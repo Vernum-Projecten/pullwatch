@@ -169,6 +169,34 @@
         }
       }
     },
+    "CVE-check onvolledig: van %lld van %lld kwetsbaarheden ontbreken de details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CVE-Prüfung unvollständig: Details fehlen für %1$lld von %2$lld Schwachstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CVE check incomplete: details missing for %1$lld of %2$lld vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification CVE incomplète : détails manquants pour %1$lld vulnérabilités sur %2$lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CVE-check onvolledig: van %lld van %lld kwetsbaarheden ontbreken de details"
+          }
+        }
+      }
+    },
     "Geen toegang tot \"%@\", controleer de naam": {
       "localizations": {
         "de": {

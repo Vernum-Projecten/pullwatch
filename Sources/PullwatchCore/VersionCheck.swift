@@ -250,7 +250,12 @@ public struct VersionChecker: Sendable {
             do {
                 let ids = try await OSV.query(dependencies, http: http, now: now())
                 vulnerabilityIds = Dictionary(uniqueKeysWithValues: zip(dependencies, ids))
-                records = await OSV.records(ids: Set(ids.joined()), http: http, now: now())
+                let allIds = Set(ids.joined())
+                let fetched = await OSV.records(ids: allIds, http: http, now: now())
+                records = fetched.records
+                if fetched.failed > 0 {
+                    osvError = String(localized: "CVE-check onvolledig: van \(fetched.failed) van \(allIds.count) kwetsbaarheden ontbreken de details", bundle: .localizedCore)
+                }
             } catch {
                 osvError = String(localized: "CVE-check mislukt: \(Self.message(error))", bundle: .localizedCore)
             }
@@ -362,8 +367,14 @@ public struct VersionChecker: Sendable {
         var scan = Scan()
         var replacedGoModules: Set<String> = []
         for path in paths {
-            // Eén onleesbaar bestand mag de rest van de repo niet blokkeren.
-            guard let content = try? await provider.fileContent(in: repo, path: path, ref: ref) else { continue }
+            // Een bestand dat tussen lijst en lezen verdween telt niet; elke andere fout (rate limit,
+            // netwerk) zou stil minder versies en CVE's opleveren, dus die faalt de hele repo.
+            let content: String
+            do {
+                content = try await provider.fileContent(in: repo, path: path, ref: ref)
+            } catch ProviderError.server(status: 404) {
+                continue
+            }
             scan.versions += StackDetector.detect(path: path, content: content)
             if path.hasSuffix("go.mod") {
                 replacedGoModules.formUnion(StackDetector.localGoReplacements(path: path, content: content))

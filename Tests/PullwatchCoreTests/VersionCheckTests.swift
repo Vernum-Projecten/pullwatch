@@ -9,12 +9,18 @@ private actor FileProvider: PRProvider {
     let files: [String: [String: String]]
     let brokenRepos: Set<String>
     let tagNames: [String: [String]]
+    /// Pad → fout bij het lezen van dat bestand.
+    let failingFiles: [String: ProviderError]
 
-    init(repos: [String]?, files: [String: [String: String]], brokenRepos: Set<String> = [], tags: [String: [String]] = [:]) {
+    init(
+        repos: [String]?, files: [String: [String: String]], brokenRepos: Set<String> = [],
+        tags: [String: [String]] = [:], failingFiles: [String: ProviderError] = [:]
+    ) {
         self.repos = repos
         self.files = files
         self.brokenRepos = brokenRepos
         self.tagNames = tags
+        self.failingFiles = failingFiles
     }
 
     func currentUserId() async throws -> String { "me" }
@@ -36,7 +42,8 @@ private actor FileProvider: PRProvider {
         return (files[key] ?? [:]).keys.sorted()
     }
     func fileContent(in repo: String, path: String, ref: String?) async throws -> String {
-        files[ref.map { "\(repo)@\($0)" } ?? repo]?[path] ?? ""
+        if let error = failingFiles[path] { throw error }
+        return files[ref.map { "\(repo)@\($0)" } ?? repo]?[path] ?? ""
     }
     func invalidateCredentials() async {}
 }
@@ -399,5 +406,39 @@ private actor FileProvider: PRProvider {
         )])
         #expect(after.newVulnerabilities(since: before).isEmpty)
         #expect(after.repos[0].isInRelease(vuln("1.0.0")) == true)
+    }
+}
+
+@Suite struct ScanFailureTests {
+    let now = Date(timeIntervalSince1970: 1_792_000_000)
+    let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
+
+    func check(_ failure: ProviderError, http: MockHTTPClient = MockHTTPClient()) async -> RepoVersions {
+        let provider = FileProvider(
+            repos: ["a/one"],
+            files: ["a/one": ["go.mod": "go 1.27\n", "package-lock.json": "{}"]],
+            failingFiles: ["package-lock.json": failure]
+        )
+        return await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+    }
+
+    @Test func vanishedFileIsSkipped() async {
+        #expect(await check(.server(status: 404)).error == nil)
+    }
+
+    @Test func rateLimitedReadFailsTheRepoInsteadOfHidingCVEs() async {
+        #expect(await check(.rateLimited(until: now)).error != nil)
+    }
+
+    @Test func missingOSVDetailsMarkTheCheckIncomplete() async {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{"vulns":[{"id":"GO-1"}]}]}"#)
+        http.on("vulns/GO-1", status: 500, body: "")
+        let provider = FileProvider(repos: ["a/one"], files: ["a/one": ["go.mod": "go 1.27\nrequire x.com/y v1.0.0\n"]])
+
+        let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+
+        #expect(repo.vulnerabilities.count == 1)
+        #expect(repo.vulnerabilityError != nil)
     }
 }

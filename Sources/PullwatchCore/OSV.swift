@@ -138,21 +138,24 @@ public enum OSV {
     }
 
     /// Haalt de details van alle ids op, maximaal `detailConcurrency` tegelijk. Mislukte ids ontbreken.
-    public static func records(ids: Set<String>, http: any HTTPClient, now: Date = Date()) async -> [String: OSVRecord] {
+    /// `failed` telt de ids zonder details: dan ontbreken ernst, fix-versie en het samenvoegen
+    /// van aliassen, en moet de check als onvolledig gemeld worden.
+    public static func records(ids: Set<String>, http: any HTTPClient, now: Date = Date()) async -> (records: [String: OSVRecord], failed: Int) {
         await withTaskGroup(of: OSVRecord?.self) { group in
             var pending = ids.sorted().makeIterator()
             var result: [String: OSVRecord] = [:]
+            var failed = 0
             for _ in 0..<detailConcurrency {
                 guard let id = pending.next() else { break }
                 group.addTask { try? await record(id: id, http: http, now: now) }
             }
             for await record in group {
-                if let record { result[record.id] = record }
+                if let record { result[record.id] = record } else { failed += 1 }
                 if let id = pending.next() {
                     group.addTask { try? await OSV.record(id: id, http: http, now: now) }
                 }
             }
-            return result
+            return (result, failed)
         }
     }
 
