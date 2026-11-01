@@ -10,13 +10,22 @@ private let logger = Logger(subsystem: "nl.torrisi.pullwatch", category: "app")
 final class AppModel {
     static let shared = AppModel()
 
-    private(set) var config: AppConfig
-    private(set) var history: History
+    private(set) var config: AppConfig {
+        didSet { recomputeRepoSummaries() }
+    }
+    private(set) var history: History {
+        didSet { recomputeRepoSummaries() }
+    }
     private(set) var statuses: [UUID: AccountState] = [:]
     private(set) var notificationsAllowed = true
     /// Voortgang van "Opnieuw ophalen"; `nil` als er niets loopt.
     private(set) var refetch: RefetchProgress?
-    private(set) var versionReport: VersionReport?
+    private(set) var versionReport: VersionReport? {
+        didSet {
+            packageSummaries = versionReport?.packageSummaries() ?? []
+            recomputeRepoSummaries()
+        }
+    }
     /// Voortgang van "Versies checken" (gescande repo's, totaal); `nil` als er niets loopt.
     private(set) var versionCheck: (done: Int, total: Int)?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
@@ -52,8 +61,15 @@ final class AppModel {
     /// Tijdens een sprong naar een repo of statistieken blijft de selectie binnen het onderdeel staan.
     @ObservationIgnored private var isNavigating = false
 
-    var repoSummaries: [RepoSummary] {
-        RepoOverview.summaries(accounts: config.accounts, report: versionReport, history: history)
+    /// Bewaard en alleen opnieuw berekend als config, geschiedenis of rapport verandert: de zijbalk,
+    /// lijsten en repo-pagina lezen ze bij elke schermupdate.
+    private(set) var repoSummaries: [RepoSummary] = []
+    private(set) var packageSummaries: [PackageSummary] = []
+
+    private func recomputeRepoSummaries() {
+        repoSummaries = RepoOverview.summaries(
+            accounts: config.accounts, report: versionReport, history: history, packageSummaries: packageSummaries
+        )
     }
 
     /// Opent de pagina van een repo, bv. vanuit PR's of Versies.
@@ -148,7 +164,6 @@ final class AppModel {
         didSet { UserDefaults.standard.set(seenPackageVersions, forKey: "seenPackageVersions") }
     }
 
-    var packageSummaries: [PackageSummary] { versionReport?.packageSummaries() ?? [] }
 
     /// Packages met een nieuwe versie die nog niet gezien is; teller in de zijbalk.
     var unseenPackageUpdates: Int {
@@ -223,6 +238,9 @@ final class AppModel {
         } catch {
             logger.error("versions.json onleesbaar, start leeg: \(error.localizedDescription)")
         }
+        // didSet loopt niet in init.
+        packageSummaries = versionReport?.packageSummaries() ?? []
+        recomputeRepoSummaries()
     }
 
     /// Zet een onleesbaar bestand opzij als `<naam>.corrupt-<unix-tijd>`, zodat het niet overschreven wordt.

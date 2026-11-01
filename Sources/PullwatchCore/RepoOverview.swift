@@ -39,8 +39,11 @@ public struct RepoSummary: Hashable, Sendable, Identifiable {
 public enum RepoOverview {
     /// Repo's uit de laatste versiecheck plus repo's die expliciet gevolgd worden maar nog niet gecheckt
     /// zijn. Slechtste eerst, dan op naam. Accountfouten in het rapport (naam zonder "/") tellen niet.
-    public static func summaries(accounts: [Account], report: VersionReport?, history: History) -> [RepoSummary] {
-        let packageSummaries = report?.packageSummaries() ?? []
+    /// `packageSummaries` mag al uitgerekend meegegeven worden (`report.packageSummaries()`).
+    public static func summaries(
+        accounts: [Account], report: VersionReport?, history: History, packageSummaries: [PackageSummary]? = nil
+    ) -> [RepoSummary] {
+        let packageSummaries = packageSummaries ?? report?.packageSummaries() ?? []
         var entries: [(accountId: UUID, repo: String, versions: RepoVersions?)] = []
         for versions in report?.repos ?? [] where versions.repo.contains("/") {
             entries.append((versions.accountId, versions.repo, versions))
@@ -51,11 +54,23 @@ public enum RepoOverview {
                 if !known { entries.append((account.id, repo, nil)) }
             }
         }
+        // Eén keer indelen per repo en per repo-id, niet per repo de hele geschiedenis doorzoeken.
+        struct RepoKey: Hashable {
+            let accountId: UUID
+            let repo: String
+            init(_ accountId: UUID, _ repo: String) {
+                self.accountId = accountId
+                self.repo = repo.lowercased()
+            }
+        }
+        let itemsByRepo = Dictionary(grouping: history.items) { RepoKey($0.entry.accountId, $0.entry.repo) }
+        var updatesByRepo: [String: [PackageSummary]] = [:]
+        for summary in packageSummaries {
+            for user in summary.behind { updatesByRepo[user.repoId, default: []].append(summary) }
+        }
         return entries.map { entry in
             let id = "\(entry.accountId.uuidString)/\(entry.repo)"
-            let items = history.items.filter {
-                $0.entry.accountId == entry.accountId && $0.entry.repo.caseInsensitiveCompare(entry.repo) == .orderedSame
-            }
+            let items = itemsByRepo[RepoKey(entry.accountId, entry.repo)] ?? []
             return RepoSummary(
                 id: id,
                 accountId: entry.accountId,
@@ -65,7 +80,7 @@ public enum RepoOverview {
                 openPullRequests: items.filter { $0.entry.prState == .open }.count,
                 latestTag: items.filter { $0.entry.kind == .tag }.max { $0.detectedAt < $1.detectedAt }?.entry.title
                     ?? entry.versions?.release?.tag,
-                packageUpdates: packageSummaries.filter { summary in summary.behind.contains { $0.repoId == id } }
+                packageUpdates: updatesByRepo[id] ?? []
             )
         }
         .sorted {
