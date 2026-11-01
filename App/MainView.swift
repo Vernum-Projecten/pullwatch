@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk; Instellingen staat los onderaan.
 enum MainSection: String, CaseIterable, Identifiable {
-    case pullRequests, tags, repoCheck, versions, settings
+    case pullRequests, tags, repos, versions, settings
 
     var id: Self { self }
 
@@ -11,7 +11,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         switch self {
         case .pullRequests: "PR's"
         case .tags: "Tags"
-        case .repoCheck: "Repo-controle"
+        case .repos: "Repo's"
         case .versions: "Versies"
         case .settings: "Instellingen"
         }
@@ -21,17 +21,18 @@ enum MainSection: String, CaseIterable, Identifiable {
         switch self {
         case .pullRequests: "arrow.triangle.pull"
         case .tags: "tag"
-        case .repoCheck: "checklist"
+        case .repos: "folder"
         case .versions: "shippingbox"
         case .settings: "gearshape"
         }
     }
 }
 
-/// Selectie in de zijbalk: een onderdeel, of één project onder PR's of Tags.
+/// Selectie in de zijbalk: een onderdeel, of één project onder PR's, Tags of Repo's.
 enum SidebarItem: Hashable {
     case section(MainSection)
     case group(ItemKind, HistoryGroup.ID)
+    case repoGroup(HistoryGroup.ID)
 }
 
 /// Hoofdvenster: PR's en tags per project, repo-controle, versies en instellingen achter één zijbalk.
@@ -39,6 +40,7 @@ struct MainView: View {
     @Bindable var model: AppModel
     @AppStorage("sidebarPullRequestsExpanded") private var pullRequestsExpanded = true
     @AppStorage("sidebarTagsExpanded") private var tagsExpanded = false
+    @AppStorage("sidebarReposExpanded") private var reposExpanded = false
 
     private var accountNames: [UUID: String] {
         Dictionary(model.config.accounts.map { ($0.id, $0.displayName) }, uniquingKeysWith: { first, _ in first })
@@ -49,7 +51,8 @@ struct MainView: View {
         case .pullRequests: model.history.unreadCount(.pullRequest)
         case .tags: model.history.unreadCount(.tag)
         case .versions: model.unseenPackageUpdates
-        case .repoCheck, .settings: 0
+        case .repos: model.repoSummaries.filter { $0.health == .problem }.count
+        case .settings: 0
         }
     }
 
@@ -77,9 +80,33 @@ struct MainView: View {
         }
     }
 
+    @ViewBuilder
+    private var reposSection: some View {
+        let groups = RepoOverview.groups(model.repoSummaries, accountNames: accountNames)
+        if groups.isEmpty {
+            row(.repos)
+        } else {
+            DisclosureGroup(isExpanded: $reposExpanded) {
+                ForEach(groups) { group in
+                    Text(group.name)
+                        .badge(group.unreadCount)
+                        .tag(SidebarItem.repoGroup(group.id))
+                }
+            } label: {
+                row(.repos)
+            }
+        }
+    }
+
     private var groupName: String? {
-        guard case .group(let kind, let id) = model.sidebarSelection else { return nil }
-        return model.history.groups(kind, accountNames: accountNames).first { $0.id == id }?.name
+        switch model.sidebarSelection {
+        case .group(let kind, let id):
+            model.history.groups(kind, accountNames: accountNames).first { $0.id == id }?.name
+        case .repoGroup(let id):
+            RepoOverview.groups(model.repoSummaries, accountNames: accountNames).first { $0.id == id }?.name
+        default:
+            nil
+        }
     }
 
     var body: some View {
@@ -87,7 +114,7 @@ struct MainView: View {
             List(selection: $model.sidebarSelection) {
                 historySection(.pullRequests, kind: .pullRequest, isExpanded: $pullRequestsExpanded)
                 historySection(.tags, kind: .tag, isExpanded: $tagsExpanded)
-                row(.repoCheck)
+                reposSection
                 row(.versions)
             }
             .safeAreaInset(edge: .bottom) {
@@ -104,11 +131,13 @@ struct MainView: View {
             switch model.sidebarSelection {
             case .group(let kind, let id):
                 HistoryView(model: model, kind: kind, group: id, groupName: groupName)
+            case .repoGroup(let id):
+                ReposView(model: model, group: id, groupName: groupName)
             default:
                 switch model.mainSection {
                 case .pullRequests: HistoryView(model: model, kind: .pullRequest)
                 case .tags: HistoryView(model: model, kind: .tag)
-                case .repoCheck: VersionsView(model: model)
+                case .repos: ReposView(model: model)
                 case .versions: PackagesView(model: model)
                 case .settings: SettingsView(model: model)
                 }

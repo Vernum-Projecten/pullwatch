@@ -190,11 +190,10 @@ private struct UserRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Button(user.repo) {
-                model.versionsSearch = user.repo
-                model.mainSection = .repoCheck
+                model.showRepo(id: user.repoId)
             }
             .buttonStyle(.link)
-            .help("Toon deze repo in Repo-controle")
+            .help("Open de pagina van deze repo")
             Text(verbatim: user.version).monospacedDigit().foregroundStyle(.secondary)
             Text(verbatim: user.sources.joined(separator: ", ")).foregroundStyle(.tertiary).lineLimit(1)
         }

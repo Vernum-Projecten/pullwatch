@@ -17,17 +17,15 @@ struct HistoryView: View {
         model.history.search(searchText, kind: kind, group: group)
     }
 
-    /// Repo van de selectie, als die over één repo gaat.
-    private var selectedRepo: String? {
-        let repos = Set(model.history.items.filter { selection.contains($0.id) }.map(\.entry.repo))
-        return repos.count == 1 ? repos.first : nil
+    /// Account en repo van de selectie, als die over één repo gaat.
+    private func repo(of ids: Set<HistoryItem.ID>) -> (accountId: UUID, name: String)? {
+        let entries = model.history.items.filter { ids.contains($0.id) }.map(\.entry)
+        guard let first = entries.first,
+              entries.allSatisfy({ $0.accountId == first.accountId && $0.repo == first.repo }) else { return nil }
+        return (first.accountId, first.repo)
     }
 
-    /// Springt naar Repo-controle, gefilterd op `repo` als die er is.
-    private func showVersions(of repo: String?) {
-        model.versionsSearch = repo ?? ""
-        model.mainSection = .repoCheck
-    }
+    private var selectedRepo: (accountId: UUID, name: String)? { repo(of: selection) }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -51,11 +49,12 @@ struct HistoryView: View {
                     .help("Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)")
                 }
                 Button {
-                    showVersions(of: selectedRepo)
+                    if let selectedRepo { model.showRepo(accountId: selectedRepo.accountId, repo: selectedRepo.name) }
                 } label: {
-                    Label("Versies", systemImage: "shippingbox")
+                    Label("Repo", systemImage: "folder")
                 }
-                .help(selectedRepo.map { String(localized: "Toon de versies van \($0)") } ?? String(localized: "Open het versie-overzicht"))
+                .disabled(selectedRepo == nil)
+                .help(selectedRepo.map { String(localized: "Open de pagina van \($0.name)") } ?? String(localized: "Selecteer een PR of tag van één repo"))
             }
 
             Table(items, selection: $selection) {
@@ -88,9 +87,8 @@ struct HistoryView: View {
                 .width(min: 90, ideal: 130)
             }
             .contextMenu(forSelectionType: HistoryItem.ID.self) { ids in
-                let repos = Set(model.history.items.filter { ids.contains($0.id) }.map(\.entry.repo))
-                if repos.count == 1, let repo = repos.first {
-                    Button("Toon versies van \(repo)") { showVersions(of: repo) }
+                if let repo = repo(of: ids) {
+                    Button("Open \(repo.name)") { model.showRepo(accountId: repo.accountId, repo: repo.name) }
                 }
             } primaryAction: { ids in
                 for id in ids {

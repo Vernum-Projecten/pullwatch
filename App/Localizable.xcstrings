@@ -197,6 +197,62 @@
         }
       }
     },
+    "%lld CVE's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld CVEs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld CVEs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld CVE"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld CVE's"
+          }
+        }
+      }
+    },
+    "%lld PR's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld PRs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld PRs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld PR"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld PR's"
+          }
+        }
+      }
+    },
     "%lld PR's completed": {
       "localizations": {
         "de": {
@@ -422,6 +478,34 @@
         }
       }
     },
+    "%lld open": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld offen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld open"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ouvertes"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld open"
+          }
+        }
+      }
+    },
     "%lld repo's al op %@": {
       "localizations": {
         "de": {
@@ -506,6 +590,62 @@
         }
       }
     },
+    "1 CVE": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 CVE"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 CVE"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 CVE"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 CVE"
+          }
+        }
+      }
+    },
+    "1 PR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 PR"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 PR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 PR"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 PR"
+          }
+        }
+      }
+    },
     "1 kwetsbaarheid": {
       "localizations": {
         "de": {
@@ -530,6 +670,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 kwetsbaarheid"
+          }
+        }
+      }
+    },
+    "1 nieuwe versie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 neue Version"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 new version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 nouvelle version"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 nieuwe versie"
           }
         }
       }
@@ -842,6 +1010,62 @@
         }
       }
     },
+    "Alles actueel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles aktuell"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All current"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est à jour"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles actueel"
+          }
+        }
+      }
+    },
+    "Alles checken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check all"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout vérifier"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles checken"
+          }
+        }
+      }
+    },
     "Alles gelezen": {
       "localizations": {
         "de": {
@@ -1038,6 +1262,34 @@
         }
       }
     },
+    "Check": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        }
+      }
+    },
     "Check deze repo opnieuw": {
       "localizations": {
         "de": {
@@ -1062,6 +1314,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Check deze repo opnieuw"
+          }
+        }
+      }
+    },
+    "Check eerst alle repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe zuerst alle Repositories"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check all repositories first"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez d'abord tous les dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check eerst alle repo's"
           }
         }
       }
@@ -1202,6 +1482,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Completed aan/uit voor alle zichtbare repo's"
+          }
+        }
+      }
+    },
+    "Controle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contrôle"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controle"
           }
         }
       }
@@ -1458,6 +1766,34 @@
         }
       }
     },
+    "Geen PR's in de geschiedenis": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine PRs im Verlauf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No PRs in the history"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune PR dans l'historique"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen PR's in de geschiedenis"
+          }
+        }
+      }
+    },
     "Geen melding; staat wel in menu en geschiedenis": {
       "localizations": {
         "de": {
@@ -1510,6 +1846,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen packages gevonden"
+          }
+        }
+      }
+    },
+    "Geen repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Repositories"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen repo's"
+          }
+        }
+      }
+    },
+    "Geen talen of frameworks herkend": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Sprachen oder Frameworks erkannt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No languages or frameworks recognised"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun langage ni framework reconnu"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen talen of frameworks herkend"
           }
         }
       }
@@ -1906,6 +2298,34 @@
         }
       }
     },
+    "Kopieer de versies en kwetsbaarheden van deze repo naar het klembord": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen und Schwachstellen dieses Repositorys in die Zwischenablage kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this repository's versions and vulnerabilities to the clipboard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier les versions et vulnérabilités de ce dépôt dans le presse-papiers"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieer de versies en kwetsbaarheden van deze repo naar het klembord"
+          }
+        }
+      }
+    },
     "Kopieer de versies van deze repo naar het klembord": {
       "localizations": {
         "de": {
@@ -2070,6 +2490,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's"
+          }
+        }
+      }
+    },
+    "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest pro verfolgtem Repository die Sprach- und Framework-Versionen und vergleicht sie mit endoflife.date; Pakete werden bei OSV.dev auf bekannte CVEs und in ihrer Registry auf die neueste Version geprüft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads the language and framework versions of each followed repository and compares them with endoflife.date; packages are checked against OSV.dev for known CVEs and against their registry for the latest version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit les versions de langage et de framework de chaque dépôt suivi et les compare à endoflife.date ; les paquets sont vérifiés sur OSV.dev pour les CVE connues et dans leur registre pour la dernière version"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie"
           }
         }
       }
@@ -2830,6 +3278,90 @@
         }
       }
     },
+    "Open %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %@"
+          }
+        }
+      }
+    },
+    "Open de pagina van %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite von %@ öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the page of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la page de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open de pagina van %@"
+          }
+        }
+      }
+    },
+    "Open de pagina van deze repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite dieses Repositorys öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the page of this repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la page de ce dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open de pagina van deze repo"
+          }
+        }
+      }
+    },
     "Open het versie-overzicht": {
       "localizations": {
         "de": {
@@ -2854,6 +3386,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open het versie-overzicht"
+          }
+        }
+      }
+    },
+    "Open in browser": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Browser öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in browser"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans le navigateur"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in browser"
           }
         }
       }
@@ -3166,6 +3726,34 @@
         }
       }
     },
+    "Packages met nieuwe versie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete mit neuer Version"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages with a new version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquets avec une nouvelle version"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages met nieuwe versie"
+          }
+        }
+      }
+    },
     "Personal Access Token": {
       "localizations": {
         "de": {
@@ -3390,6 +3978,34 @@
         }
       }
     },
+    "Repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repositories"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repo's"
+          }
+        }
+      }
+    },
     "Repo-controle": {
       "localizations": {
         "de": {
@@ -3470,6 +4086,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Repositories"
+          }
+        }
+      }
+    },
+    "Selecteer een PR of tag van één repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen PR oder Tag eines Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a PR or tag of one repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez une PR ou un tag d'un seul dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecteer een PR of tag van één repo"
           }
         }
       }
@@ -4232,6 +4876,34 @@
         }
       }
     },
+    "Volg repo's in Instellingen en check ze om hier te zien hoe ze ervoor staan.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folge Repositories in den Einstellungen und prüfe sie, um hier ihren Zustand zu sehen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow repositories in Settings and check them to see how they're doing here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivez des dépôts dans les Réglages et vérifiez-les pour voir ici leur état."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volg repo's in Instellingen en check ze om hier te zien hoe ze ervoor staan."
+          }
+        }
+      }
+    },
     "Volgen": {
       "localizations": {
         "de": {
@@ -4457,6 +5129,34 @@
         }
       }
     },
+    "Zoek op repo, taal of CVE…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Repository, Sprache oder CVE suchen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by repository, language or CVE…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher par dépôt, langage ou CVE…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek op repo, taal of CVE…"
+          }
+        }
+      }
+    },
     "Zoek op repo, taal, versie of CVE…": {
       "localizations": {
         "de": {
@@ -4541,6 +5241,34 @@
         }
       }
     },
+    "actueel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aktuell"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "current"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "à jour"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "actueel"
+          }
+        }
+      }
+    },
     "alleen main": {
       "localizations": {
         "de": {
@@ -4569,6 +5297,90 @@
         }
       }
     },
+    "check mislukt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfung fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "check failed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "échec de la vérification"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "check mislukt"
+          }
+        }
+      }
+    },
+    "gecheckt %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geprüft %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "checked %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vérifié %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gecheckt %@"
+          }
+        }
+      }
+    },
+    "laatste tag %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuester Tag %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest tag %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dernier tag %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "laatste tag %@"
+          }
+        }
+      }
+    },
     "niet geconfigureerd": {
       "localizations": {
         "de": {
@@ -4593,6 +5405,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "niet geconfigureerd"
+          }
+        }
+      }
+    },
+    "nog niet gecheckt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "noch nicht geprüft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not checked yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pas encore vérifié"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nog niet gecheckt"
           }
         }
       }
@@ -4650,6 +5490,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ook in %@"
+          }
+        }
+      }
+    },
+    "vs. %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs. %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs. %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs. %@"
           }
         }
       }

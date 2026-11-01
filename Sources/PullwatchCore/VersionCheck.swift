@@ -153,7 +153,9 @@ extension VersionReport {
     /// versies uit `latest` komen erbij; bij een ongewijzigde versie of mislukte opzoeking blijft de oude.
     public func replacing(_ repo: RepoVersions, latest: [String: PackageLatest] = [:]) -> VersionReport {
         let merged = latestPackages.merging(latest) { old, new in PackageLatest.keepsOld(old, over: new) ? old : new }
-        return VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 }, latestPackages: merged)
+        // Een repo die bij de laatste volledige check nog niet gevolgd werd, komt erbij.
+        let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
+        return VersionReport(checkedAt: checkedAt, repos: replaced, latestPackages: merged)
     }
 
     /// Automatische check: eens per dag.

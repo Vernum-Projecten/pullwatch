@@ -147,6 +147,13 @@ private actor FileProvider: PRProvider {
         #expect(http.requests.filter { $0.url!.absoluteString.contains("x/indirect") }.isEmpty)
     }
 
+    @Test func replacingAddsARepoThatWasNotCheckedYet() {
+        let id = UUID()
+        let old = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: id, repo: "a/one", components: [])])
+        let updated = old.replacing(RepoVersions(accountId: id, repo: "a/new", components: []))
+        #expect(Set(updated.repos.map(\.repo)) == ["a/one", "a/new"])
+    }
+
     @Test func replacingMergesLatestAndKeepsSeenDate() {
         let id = UUID()
         let old = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: id, repo: "a/one", components: [])], latestPackages: [

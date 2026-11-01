@@ -27,7 +27,6 @@ final class AppModel {
     private(set) var updateCheckMessage: String?
     private(set) var isCheckingForUpdates = false
     /// Zoekterm die het Versies-venster overneemt zodra het verschijnt (bv. een repo uit Geschiedenis).
-    var versionsSearch: String?
     /// Opent het hoofdvenster; gezet door een altijd aanwezige view (het menubalk-label), want
     /// `openWindow` bestaat alleen in de SwiftUI-omgeving.
     @ObservationIgnored var openMainWindow: (() -> Void)?
@@ -38,7 +37,37 @@ final class AppModel {
         didSet {
             // Alleen het onderdeel wordt onthouden; een project kan bij de volgende start weg zijn.
             UserDefaults.standard.set(mainSection.rawValue, forKey: "mainSection")
+            if !isShowingRepo { selectedRepoId = nil }
         }
+    }
+
+    /// Geopende repo in het onderdeel Repo's (`RepoSummary.id`); nil toont de lijst.
+    var selectedRepoId: String?
+    @ObservationIgnored private var isShowingRepo = false
+
+    var repoSummaries: [RepoSummary] {
+        RepoOverview.summaries(accounts: config.accounts, report: versionReport, history: history)
+    }
+
+    /// Opent de pagina van een repo, bv. vanuit PR's of Versies.
+    func showRepo(id: String) {
+        isShowingRepo = true
+        sidebarSelection = .section(.repos)
+        isShowingRepo = false
+        selectedRepoId = id
+    }
+
+    func showRepo(accountId: UUID, repo: String) {
+        let id = repoSummaries.first { $0.accountId == accountId && $0.repo.caseInsensitiveCompare(repo) == .orderedSame }?.id
+        showRepo(id: id ?? "\(accountId.uuidString)/\(repo)")
+    }
+
+    /// Volgen en meldingen van één repo, direct opgeslagen; daarna meteen pollen.
+    func setWatch(_ set: WatchSet, repo: String, accountId: UUID) {
+        guard let index = config.accounts.firstIndex(where: { $0.id == accountId }) else { return }
+        config.accounts[index].setWatch(set, for: repo)
+        saveConfig()
+        Task { await refreshNow() }
     }
 
     /// Onderdeel van het hoofdvenster; een gekozen project hoort bij PR's of Tags.
@@ -48,6 +77,7 @@ final class AppModel {
             case .section(let section): section
             case .group(.pullRequest, _): .pullRequests
             case .group(.tag, _): .tags
+            case .repoGroup: .repos
             case nil: .pullRequests
             }
         }
@@ -255,7 +285,7 @@ final class AppModel {
     }
 
     /// Checkt één repo opnieuw en vervangt alleen die regel; geen meldingen.
-    func refreshVersions(of repo: RepoVersions) async {
+    func refreshVersions(of repo: RepoSummary) async {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)

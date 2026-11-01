@@ -40,7 +40,7 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo-controle** (repository check) and **Versies** (versions), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's and Tags you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories) and **Versies** (versions), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### History
 
@@ -50,9 +50,15 @@ Pullwatch also fetches existing PRs (open, merged and closed) for the history. T
 
 Calls to `az` and `gh` time out after 20 seconds.
 
+### Repositories
+
+**Repo's** lists the followed repositories, worst first: red for known CVEs or an end-of-life runtime, orange for a runtime that is behind or packages with a new version, green when current, grey when not checked yet. Clicking one opens its page: open and recent PRs, the check (runtimes and CVEs, see below) and the packages with a new version, plus buttons to open it in the browser, check it again and follow it (PR's, Tags, Completed, each with its own notification bell) without going to Settings.
+
+Every full check also stores a compact snapshot (versions, statuses, CVE counts, package updates per repository; at most 730) in `version-history.json`, for statistics in a later version.
+
 ### Versions
 
-**Repo-controle** shows which followed repositories are behind. Per repository Pullwatch reads, on the default branch:
+The check behind **Repo's** shows which followed repositories are behind. Per repository Pullwatch reads, on the default branch:
 
 | File | Detects |
 |---|---|
@@ -77,11 +83,11 @@ The same check looks up known vulnerabilities via [OSV.dev](https://osv.dev) for
 
 If a repository has tags, the newest version tag is checked too (pre-releases like `-rc1` only if there is nothing else). Each vulnerability on the default branch is marked as also in that release or new since it. Anything already fixed on the default branch is not reported.
 
-The check runs once a day (can be turned off under Settings → General) and on **Opnieuw checken**; ↻ re-checks a single repository and the copy button puts a repository's versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Versies** (or right-click a row) opens the repository check filtered on that repository.
+The check runs once a day (can be turned off under Settings → General) and on **Alles checken**; on a repository page, **Check** re-checks just that repository and the copy button puts its versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Repo** (or right-click a row) opens the page of that repository.
 
 ### Versions per package
 
-**Versies** turns the same check around: per runtime and package, which version is the latest and which repositories are still on an older one. It updates with the version check (daily, **Opnieuw checken**, **Nu checken**).
+**Versies** turns the same check around: per runtime and package, which version is the latest and which repositories are still on an older one. It updates with the version check (daily, **Alles checken**, **Nu checken**).
 
 - **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift, Docker images) are compared within their release cycle, patches included: a repository on Go 1.27.3 sees "Go 1.27 · 1.27.4 beschikbaar", one on Go 1.26.9 sees 1.26.10 once that is out. A newer cycle (Node 22 → 25) is not listed here; the repository check already shows that as behind. A version without a patch (`go 1.27`, `node:22`) is never behind on patches.
 - **Packages** are the direct dependencies only: `go.mod` without `// indirect`, the root package in `package-lock.json` (v2/v3), and for `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock` the names in `composer.json`, `Cargo.toml` or `pyproject.toml`. .NET `PackageReference`s and `requirements*.txt` are direct already. A package without an exact version (a range without a lockfile) is not counted. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) appear once, as a package.
