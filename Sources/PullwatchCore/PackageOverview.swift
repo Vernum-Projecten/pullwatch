@@ -57,6 +57,11 @@ public enum PackageVersions {
         return false
     }
 
+    /// Updates waarvan de nieuwste versie nog niet gezien is; `seen` is id → laatst geziene `latest`.
+    public static func unseen(_ summaries: [PackageSummary], seen: [String: String]) -> [PackageSummary] {
+        summaries.filter { $0.state == .updateAvailable && seen[$0.id] != $0.latest }
+    }
+
     static func kind(ofEcosystem ecosystem: String) -> String {
         switch ecosystem {
         case "Go": "go"

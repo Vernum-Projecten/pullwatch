@@ -123,6 +123,17 @@ import Testing
         #expect(report.newPackageVersions(since: nil).isEmpty)
     }
 
+    @Test func unseenAreUpdatesWhoseLatestWasNotSeenYet() {
+        let report = VersionReport(checkedAt: t0, repos: [
+            repo("acme/a", components: [go("1.27.3", cycle: "1.27", latest: "1.27.4")], packages: [npm("vite", "6.0.0"), npm("zod", "3.0.0")]),
+        ], latestPackages: [
+            "npm:vite": PackageLatest(version: "6.1.0", seenAt: t0),
+            "npm:zod": PackageLatest(version: "3.1.0", seenAt: t0),
+        ])
+        let unseen = PackageVersions.unseen(report.packageSummaries(), seen: ["runtime:go:1.27": "1.27.4", "npm:vite": "6.0.5"])
+        #expect(Set(unseen.map(\.id)) == ["npm:vite", "npm:zod"])
+    }
+
     @Test func oldReportWithoutPackagesDecodes() throws {
         let json = #"{"checkedAt":0,"repos":[{"accountId":"00000000-0000-0000-0000-000000000001","repo":"acme/a","components":[]}]}"#
         let report = try JSONDecoder().decode(VersionReport.self, from: Data(json.utf8))

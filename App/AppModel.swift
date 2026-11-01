@@ -35,8 +35,27 @@ final class AppModel {
     var mainSection: MainSection? = UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests {
         didSet { UserDefaults.standard.set(mainSection?.rawValue, forKey: "mainSection") }
     }
+    /// Per package/runtime-cyclus de nieuwste versie die je in het onderdeel Versies gezien hebt.
+    private(set) var seenPackageVersions: [String: String] =
+        UserDefaults.standard.dictionary(forKey: "seenPackageVersions") as? [String: String] ?? [:] {
+        didSet { UserDefaults.standard.set(seenPackageVersions, forKey: "seenPackageVersions") }
+    }
+
+    var packageSummaries: [PackageSummary] { versionReport?.packageSummaries() ?? [] }
+
     /// Packages met een nieuwe versie die nog niet gezien is; teller in de zijbalk.
-    var unseenPackageUpdates: Int { 0 }
+    var unseenPackageUpdates: Int {
+        PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count
+    }
+
+    /// Alles wat nu in Versies staat telt als gezien.
+    func markPackagesSeen() {
+        var seen = seenPackageVersions
+        for summary in packageSummaries {
+            if let latest = summary.latest { seen[summary.id] = latest }
+        }
+        if seen != seenPackageVersions { seenPackageVersions = seen }
+    }
 
     struct RefetchProgress: Equatable {
         let startedAt: Date
