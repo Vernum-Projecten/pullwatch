@@ -314,6 +314,12 @@ public struct VersionChecker: Sendable {
     struct Scan: Sendable {
         var versions: [DetectedVersion] = []
         var dependencies: [Dependency] = []
+        /// Direct gevraagde namen per ecosysteem uit package.json, composer.json, pyproject.toml en Cargo.toml.
+        var manifests: [String: Set<String>] = [:]
+
+        var directDependencies: [PackageUse] {
+            DependencyDetector.direct(dependencies, manifests: manifests)
+        }
     }
 
     /// Default branch plus, als de repo tags heeft, de nieuwste tag.
@@ -376,6 +382,9 @@ public struct VersionChecker: Sendable {
                 continue
             }
             scan.versions += StackDetector.detect(path: path, content: content)
+            if let direct = DependencyDetector.directNames(path: path, content: content) {
+                scan.manifests[direct.ecosystem, default: []].formUnion(direct.names)
+            }
             if path.hasSuffix("go.mod") {
                 replacedGoModules.formUnion(StackDetector.localGoReplacements(path: path, content: content))
             }
