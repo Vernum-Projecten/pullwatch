@@ -57,6 +57,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Check van de nieuwste tag; nil als de repo geen tags met een versienummer heeft. Alleen ter info:
     /// status, sortering en meldingen gaan over de default branch.
     public let release: ReleaseVersions?
+    /// Direct gebruikte packages op de default branch, voor het overzicht per package.
+    public let packages: [PackageUse]
 
     public var id: String { "\(accountId.uuidString)/\(repo)" }
 
@@ -85,7 +87,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         error: String? = nil,
         vulnerabilities: [Vulnerability] = [],
         vulnerabilityError: String? = nil,
-        release: ReleaseVersions? = nil
+        release: ReleaseVersions? = nil,
+        packages: [PackageUse] = []
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -94,10 +97,11 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         self.vulnerabilities = vulnerabilities
         self.vulnerabilityError = vulnerabilityError
         self.release = release
+        self.packages = packages
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release
+        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages
     }
 
     /// versions.json van vóór de CVE-check heeft geen `vulnerabilities`.
@@ -110,6 +114,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         vulnerabilities = try c.decodeIfPresent([Vulnerability].self, forKey: .vulnerabilities) ?? []
         vulnerabilityError = try c.decodeIfPresent(String.self, forKey: .vulnerabilityError)
         release = try c.decodeIfPresent(ReleaseVersions.self, forKey: .release)
+        packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
     }
 }
 
@@ -117,21 +122,36 @@ public struct VersionReport: Codable, Equatable, Sendable {
     public let checkedAt: Date
     /// Slechtste status eerst, dan meeste kwetsbaarheden, dan alfabetisch.
     public let repos: [RepoVersions]
+    /// Nieuwste versie per package (`PackageUse.key`) over alle repo's.
+    public let latestPackages: [String: PackageLatest]
 
-    public init(checkedAt: Date, repos: [RepoVersions]) {
+    public init(checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:]) {
         self.checkedAt = checkedAt
+        self.latestPackages = latestPackages
         self.repos = repos.sorted {
             if $0.severity != $1.severity { return $0.severity > $1.severity }
             if $0.vulnerabilities.count != $1.vulnerabilities.count { return $0.vulnerabilities.count > $1.vulnerabilities.count }
             return $0.repo.localizedCaseInsensitiveCompare($1.repo) == .orderedAscending
         }
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case checkedAt, repos, latestPackages
+    }
+
+    /// versions.json van vóór het package-overzicht heeft geen `latestPackages`.
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        checkedAt = try c.decode(Date.self, forKey: .checkedAt)
+        repos = try c.decode([RepoVersions].self, forKey: .repos)
+        latestPackages = try c.decodeIfPresent([String: PackageLatest].self, forKey: .latestPackages) ?? [:]
+    }
 }
 
 extension VersionReport {
     /// Vervangt één repo; `checkedAt` blijft het tijdstip van de laatste volledige check.
     public func replacing(_ repo: RepoVersions) -> VersionReport {
-        VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 })
+        VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 }, latestPackages: latestPackages)
     }
 
     /// Automatische check: eens per dag.
