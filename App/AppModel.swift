@@ -40,6 +40,7 @@ final class AppModel {
             if !isNavigating {
                 selectedRepoId = nil
                 statsRepoId = nil
+                historyFilter = nil
             }
         }
     }
@@ -57,17 +58,61 @@ final class AppModel {
 
     /// Opent de pagina van een repo, bv. vanuit PR's of Versies.
     func showRepo(id: String) {
-        isNavigating = true
-        sidebarSelection = .section(.repos)
-        isNavigating = false
+        navigate(to: .repos)
         selectedRepoId = id
+    }
+
+    /// Extra filter op PR's of Tags vanaf een andere plek (auteur uit Statistieken, repo-pagina).
+    var historyFilter: HistoryFilter?
+    /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
+    var packagesSearch: String?
+    /// Verhoogd door ⌘F; het zoekveld van het zichtbare onderdeel pakt de focus.
+    var searchFocusRequest = 0
+    /// Verhoogd door ⌘O; het zichtbare onderdeel opent zijn selectie in de browser.
+    var openInBrowserRequest = 0
+
+    private func navigate(to section: MainSection) {
+        isNavigating = true
+        sidebarSelection = .section(section)
+        isNavigating = false
+    }
+
+    /// PR's of Tags, gefilterd op auteur en/of repo.
+    func showHistory(_ kind: ItemKind, author: String? = nil, repo: HistoryRepo? = nil) {
+        navigate(to: kind == .pullRequest ? .pullRequests : .tags)
+        historyFilter = HistoryFilter(author: author, repo: repo)
+    }
+
+    /// Versies, gezocht op een package.
+    func showPackage(_ name: String) {
+        navigate(to: .versions)
+        packagesSearch = name
+    }
+
+    /// ⌘R: de geopende repo opnieuw checken, in PR's/Tags/Statistieken pollen, anders alles checken.
+    func refreshCurrent() {
+        switch mainSection {
+        case .repos:
+            if let id = selectedRepoId, let summary = repoSummaries.first(where: { $0.id == id }) {
+                Task { await refreshVersions(of: summary) }
+            } else {
+                Task { await checkVersions() }
+            }
+        case .versions:
+            Task { await checkVersions() }
+        case .pullRequests, .tags, .stats, .settings:
+            Task { await refreshNow() }
+        }
+    }
+
+    /// ⌘[ en Esc: van een repo-pagina terug naar de lijst.
+    func goBack() {
+        selectedRepoId = nil
     }
 
     /// Opent Statistieken voor één repo.
     func showStats(repoId: String) {
-        isNavigating = true
-        sidebarSelection = .section(.stats)
-        isNavigating = false
+        navigate(to: .stats)
         statsRepoId = repoId
     }
 
@@ -502,4 +547,10 @@ final class AppModel {
             logger.error("history opslaan mislukt: \(error.localizedDescription)")
         }
     }
+}
+
+/// Filter op PR's of Tags dat vanaf een andere plek komt; staat als label boven de lijst.
+struct HistoryFilter: Equatable {
+    var author: String?
+    var repo: HistoryRepo?
 }

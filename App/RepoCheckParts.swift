@@ -31,6 +31,9 @@ extension ComponentVersion {
 struct VulnerabilityList: View {
     let repo: RepoVersions
     @State var isExpanded = false
+    /// Klik op een package dat in Versies staat; nil laat het package als tekst staan.
+    var showPackage: ((String) -> Void)? = nil
+    var knownPackages: Set<String> = []
 
 
     private var vulnerabilities: [Vulnerability] { repo.vulnerabilities }
@@ -69,7 +72,11 @@ struct VulnerabilityList: View {
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(Array(vulnerabilities.enumerated()), id: \.offset) { _, vulnerability in
-                        VulnerabilityRow(vulnerability: vulnerability, location: repo.location(of: vulnerability))
+                        VulnerabilityRow(
+                            vulnerability: vulnerability,
+                            location: repo.location(of: vulnerability),
+                            showPackage: knownPackages.contains(vulnerability.package) ? showPackage : nil
+                        )
                     }
                 }
                 .padding(.leading, 16)
@@ -81,13 +88,21 @@ struct VulnerabilityList: View {
 private struct VulnerabilityRow: View {
     let vulnerability: Vulnerability
     let location: VulnerabilityLocation?
+    var showPackage: ((String) -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
             HStack(spacing: 6) {
                 SeverityPill(severity: vulnerability.severity)
                 Link(vulnerability.cve ?? vulnerability.id, destination: vulnerability.url)
-                Text(packageText).monospacedDigit().foregroundStyle(.secondary)
+                if let showPackage {
+                    Button(packageText) { showPackage(vulnerability.package) }
+                        .buttonStyle(.link)
+                        .monospacedDigit()
+                        .help("Toon dit package in Versies, met alle repo's die het gebruiken")
+                } else {
+                    Text(packageText).monospacedDigit().foregroundStyle(.secondary)
+                }
                 if let location {
                     LocationPill(location: location)
                 }

@@ -22,6 +22,7 @@ struct PackagesView: View {
             HStack {
                 TextField("Zoek op package of repo…", text: $searchText)
                     .textFieldStyle(.roundedBorder)
+                    .searchFocus(model)
                 if let progress = model.versionCheck {
                     ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
                         .frame(width: 100)
@@ -74,6 +75,11 @@ struct PackagesView: View {
         .onAppear {
             seenAtOpen = model.seenPackageVersions
             model.markPackagesSeen()
+        }
+        .onChange(of: model.packagesSearch, initial: true) { _, search in
+            guard let search else { return }
+            searchText = search
+            model.packagesSearch = nil
         }
         .onChange(of: model.versionReport?.checkedAt) {
             // Nieuwe check terwijl je kijkt: wat nu nieuw is houdt zijn stip tot je terugkomt.

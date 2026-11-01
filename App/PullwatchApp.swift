@@ -61,6 +61,7 @@ struct PullwatchApp: App {
             MainView(model: model)
         }
         .commands {
+            ShortcutCommands(model: model)
             CommandGroup(replacing: .appSettings) {
                 Button("Instellingen…") {
                     model.mainSection = .settings

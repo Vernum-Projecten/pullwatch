@@ -14,7 +14,8 @@ struct HistoryView: View {
     @State private var selection = Set<HistoryItem.ID>()
 
     private var items: [HistoryItem] {
-        model.history.search(searchText, kind: kind, group: group)
+        model.history.search(searchText, kind: kind, group: group,
+                             author: model.historyFilter?.author, repo: model.historyFilter?.repo)
     }
 
     /// Account en repo van de selectie, als die over één repo gaat.
@@ -35,6 +36,7 @@ struct HistoryView: View {
                     text: $searchText
                 )
                     .textFieldStyle(.roundedBorder)
+                    .searchFocus(model)
                 if let progress = model.refetch {
                     ProgressView(value: Double(progress.done), total: Double(progress.total))
                         .frame(width: 100)
@@ -55,6 +57,18 @@ struct HistoryView: View {
                 }
                 .disabled(selectedRepo == nil)
                 .help(selectedRepo.map { String(localized: "Open de pagina van \($0.name)") } ?? String(localized: "Selecteer een PR of tag van één repo"))
+            }
+
+            if let filter = model.historyFilter {
+                HStack(spacing: 6) {
+                    if let author = filter.author {
+                        FilterChip(title: author, systemImage: "person") { model.historyFilter?.author = nil }
+                    }
+                    if let repo = filter.repo {
+                        FilterChip(title: repo.repo, systemImage: "folder") { model.historyFilter?.repo = nil }
+                    }
+                    Spacer()
+                }
             }
 
             Table(items, selection: $selection) {
@@ -100,5 +114,10 @@ struct HistoryView: View {
         }
         .padding(12)
         .frame(minWidth: 720, minHeight: 420)
+        .onChange(of: model.openInBrowserRequest) {
+            for item in items where selection.contains(item.id) {
+                model.open(item)
+            }
+        }
     }
 }

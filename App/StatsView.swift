@@ -73,6 +73,16 @@ struct StatsView: View {
                     Toggle("Bots verbergen", isOn: $hideBots)
                     Spacer()
                 }
+                if let author {
+                    Button {
+                        let repo = repoId.flatMap { id in model.repoSummaries.first { $0.id == id } }
+                            .map { HistoryRepo(accountId: $0.accountId, repo: $0.repo) }
+                        model.showHistory(.pullRequest, author: author, repo: repo)
+                    } label: {
+                        Label("Toon de PR's van \(author)", systemImage: "arrow.triangle.pull")
+                    }
+                    .buttonStyle(.link)
+                }
                 if let repoId, let summary = model.repoSummaries.first(where: { $0.id == repoId }) {
                     HStack(spacing: 6) {
                         Button {

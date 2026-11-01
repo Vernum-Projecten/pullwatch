@@ -219,12 +219,18 @@ public struct History: Codable, Equatable, Sendable {
     }
 
     /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur en repo.
-    /// Met `group` alleen items van dat project.
-    public func search(_ text: String, kind: ItemKind?, group: HistoryGroup.ID? = nil) -> [HistoryItem] {
+    /// Met `group` alleen items van dat project, met `author` alleen PR's van die auteur, met `repo`
+    /// alleen items van die repo (hoofdletterongevoelig).
+    public func search(
+        _ text: String, kind: ItemKind?, group: HistoryGroup.ID? = nil, author: String? = nil, repo: HistoryRepo? = nil
+    ) -> [HistoryItem] {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return items.filter { item in
             if let kind, item.entry.kind != kind { return false }
             if let group, HistoryGroup.ID(item.entry) != group { return false }
+            if let author, item.entry.author != author { return false }
+            if let repo, item.entry.accountId != repo.accountId
+                || item.entry.repo.caseInsensitiveCompare(repo.repo) != .orderedSame { return false }
             if query.isEmpty { return true }
             return item.entry.title.localizedCaseInsensitiveContains(query)
                 || (item.entry.author?.localizedCaseInsensitiveContains(query) ?? false)
@@ -285,4 +291,15 @@ public struct HistoryGroup: Hashable, Sendable, Identifiable {
     public let id: ID
     public let name: String
     public let unreadCount: Int
+}
+
+/// Eén repo binnen een account, als filter op de geschiedenis.
+public struct HistoryRepo: Hashable, Sendable {
+    public let accountId: UUID
+    public let repo: String
+
+    public init(accountId: UUID, repo: String) {
+        self.accountId = accountId
+        self.repo = repo
+    }
 }

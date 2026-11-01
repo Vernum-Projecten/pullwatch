@@ -69,6 +69,20 @@ import Testing
         #expect(history.search("login", kind: .pullRequest, group: nil).count == 2)
     }
 
+    @Test func searchOnAuthorAndRepo() {
+        var history = History()
+        history.add(pullRequests: [
+            .fixture(repo: "P/api", number: 1, authorName: "ana"),
+            .fixture(repo: "P/web", number: 2, authorName: "ana"),
+            .fixture(repo: "p/API", number: 3, authorName: "bob"),
+        ], tags: [.fixture(repo: "P/api")], at: t0)
+        #expect(history.search("", kind: .pullRequest, author: "ana").map(\.entry.repo).sorted() == ["P/api", "P/web"])
+        let api = HistoryRepo(accountId: fixedAccountId, repo: "P/api")
+        #expect(history.search("", kind: .pullRequest, repo: api).count == 2)
+        #expect(history.search("", kind: .tag, repo: api).count == 1)
+        #expect(history.search("", kind: .pullRequest, author: "ana", repo: api).count == 1)
+    }
+
     @Test func pruneRespectsRetention() {
         var history = History()
         history.add(pullRequests: [.fixture(number: 1)], tags: [], at: t0)

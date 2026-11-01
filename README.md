@@ -42,6 +42,12 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 **Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories), **Versies** (versions) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
+### Keyboard shortcuts and jumps
+
+In the main window, the **Ga** (Go) menu has ⌘1–⌘5 for PR's, Tags, Repo's, Versies and Statistieken, ⌘F to search the current section, ⌘R to refresh (the open repository, otherwise poll or check everything), ⌘[ or Esc to go back from a repository page, and ⌘O to open the selection (or the open repository) in the browser.
+
+Jumps between sections: a repository page links to all its PRs and tags, to its statistics, and from a CVE to that package in Versies; in Statistieken a selected author links to their PRs and a repository to its page; in the menu, right-click a PR or tag for **Open repo**.
+
 ### History
 
 **PR's** and **Tags** are searchable lists of every detected PR and tag (double-click opens the page). Retention (2 months, 6 months, 1 year or forever) is set under Settings → General.

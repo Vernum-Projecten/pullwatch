@@ -58,6 +58,13 @@ struct MenuView: View {
             } else {
                 ForEach(pullRequests) { item in
                     RecentRow(item: item) { model.open(item) }
+                        .contextMenu {
+                            Button("Open repo \(item.entry.repo)") {
+                                NSApp.keyWindow?.orderOut(nil)
+                                model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
+                                model.openMainWindow?()
+                            }
+                        }
                 }
             }
 
@@ -66,6 +73,13 @@ struct MenuView: View {
                 SectionHeader(title: "Tags")
                 ForEach(tags) { item in
                     RecentRow(item: item) { model.open(item) }
+                        .contextMenu {
+                            Button("Open repo \(item.entry.repo)") {
+                                NSApp.keyWindow?.orderOut(nil)
+                                model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
+                                model.openMainWindow?()
+                            }
+                        }
                 }
             }
 

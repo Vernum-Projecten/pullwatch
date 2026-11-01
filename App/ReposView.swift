@@ -52,6 +52,7 @@ struct ReposView: View {
                     text: $searchText
                 )
                 .textFieldStyle(.roundedBorder)
+                .searchFocus(model)
                 CheckAllButton(model: model)
             }
             if let report = model.versionReport {
@@ -184,6 +185,8 @@ private struct RepoDetailView: View {
 
     private var account: Account? { model.config.accounts.first { $0.id == summary.accountId } }
 
+    private var historyRepo: HistoryRepo { HistoryRepo(accountId: summary.accountId, repo: summary.repo) }
+
     private var pullRequests: [HistoryItem] {
         let items = model.history.items.filter {
             $0.entry.kind == .pullRequest && $0.entry.accountId == summary.accountId
@@ -198,6 +201,12 @@ private struct RepoDetailView: View {
             VStack(alignment: .leading, spacing: 14) {
                 header
                 Divider()
+                HStack(spacing: 12) {
+                    Button("Alle PR's van deze repo") { model.showHistory(.pullRequest, repo: historyRepo) }
+                    Button("Alle tags van deze repo") { model.showHistory(.tag, repo: historyRepo) }
+                }
+                .buttonStyle(.link)
+                .font(.callout)
                 DetailSection(title: "Pull requests", trailing: summary.openPullRequests == 0 ? nil : String(localized: "\(summary.openPullRequests) open")) {
                     if pullRequests.isEmpty {
                         Text("Geen PR's in de geschiedenis").foregroundStyle(.secondary)
@@ -247,6 +256,10 @@ private struct RepoDetailView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onExitCommand { model.goBack() }
+        .onChange(of: model.openInBrowserRequest) {
+            if let url = account?.repoWebURL(summary.repo) { NSWorkspace.shared.open(url) }
         }
     }
 
@@ -340,7 +353,12 @@ private struct RepoDetailView: View {
                 Text(vulnerabilityError).foregroundStyle(.orange)
             }
             if !versions.vulnerabilities.isEmpty {
-                VulnerabilityList(repo: versions, isExpanded: true)
+                VulnerabilityList(
+                    repo: versions,
+                    isExpanded: true,
+                    showPackage: { model.showPackage($0) },
+                    knownPackages: Set(model.packageSummaries.map(\.label))
+                )
             }
         } else {
             Text("Nog niet gecheckt").foregroundStyle(.secondary)

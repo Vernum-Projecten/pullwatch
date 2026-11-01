@@ -1010,6 +1010,34 @@
         }
       }
     },
+    "Alle PR's van deze repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle PRs dieses Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All PRs of this repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les PR de ce dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle PR's van deze repo"
+          }
+        }
+      }
+    },
     "Alle auteurs": {
       "localizations": {
         "de": {
@@ -1118,6 +1146,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle tags"
+          }
+        }
+      }
+    },
+    "Alle tags van deze repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Tags dieses Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All tags of this repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les tags de ce dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle tags van deze repo"
           }
         }
       }
@@ -1934,6 +1990,34 @@
         }
       }
     },
+    "Filter weghalen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter entfernen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove filter"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer le filtre"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter weghalen"
+          }
+        }
+      }
+    },
     "Fout: %@": {
       "localizations": {
         "de": {
@@ -1958,6 +2042,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fout: %@"
+          }
+        }
+      }
+    },
+    "Ga": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gehe zu"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ga"
           }
         }
       }
@@ -3782,6 +3894,34 @@
         }
       }
     },
+    "Open repo %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository %@ öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open repository %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le dépôt %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open repo %@"
+          }
+        }
+      }
+    },
     "Openen…": {
       "localizations": {
         "de": {
@@ -4959,6 +5099,34 @@
         }
       }
     },
+    "Terug": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terug"
+          }
+        }
+      }
+    },
     "Terug naar de pagina van deze repo": {
       "localizations": {
         "de": {
@@ -5127,6 +5295,34 @@
         }
       }
     },
+    "Toon de PR's van %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRs von %@ zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the PRs of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les PR de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon de PR's van %@"
+          }
+        }
+      }
+    },
     "Toon de versies van %@": {
       "localizations": {
         "de": {
@@ -5179,6 +5375,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Toon deze repo in Repo-controle"
+          }
+        }
+      }
+    },
+    "Toon dit package in Versies, met alle repo's die het gebruiken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Paket in Versionen zeigen, mit allen Repositories, die es verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this package in Versions, with every repository that uses it"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher ce paquet dans Versions, avec tous les dépôts qui l'utilisent"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon dit package in Versies, met alle repo's die het gebruiken"
           }
         }
       }
@@ -5432,6 +5656,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versies…"
+          }
+        }
+      }
+    },
+    "Verversen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiser"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verversen"
           }
         }
       }
