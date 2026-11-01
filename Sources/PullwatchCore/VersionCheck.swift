@@ -150,9 +150,9 @@ public struct VersionReport: Codable, Equatable, Sendable {
 
 extension VersionReport {
     /// Vervangt één repo; `checkedAt` blijft het tijdstip van de laatste volledige check. Nieuwste
-    /// versies uit `latest` komen erbij; bij een ongewijzigde versie blijft de oude `seenAt`.
+    /// versies uit `latest` komen erbij; bij een ongewijzigde versie of mislukte opzoeking blijft de oude.
     public func replacing(_ repo: RepoVersions, latest: [String: PackageLatest] = [:]) -> VersionReport {
-        let merged = latestPackages.merging(latest) { old, new in old.version == new.version ? old : new }
+        let merged = latestPackages.merging(latest) { old, new in PackageLatest.keepsOld(old, over: new) ? old : new }
         return VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 }, latestPackages: merged)
     }
 

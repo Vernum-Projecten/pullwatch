@@ -10,6 +10,11 @@ public struct PackageLatest: Codable, Hashable, Sendable {
         self.version = version
         self.seenAt = seenAt
     }
+
+    /// Oude waarde houden bij dezelfde versie of als de nieuwe opzoeking mislukte.
+    static func keepsOld(_ old: PackageLatest, over new: PackageLatest) -> Bool {
+        old.version == new.version || new.version == nil
+    }
 }
 
 /// Eén repo die een package of runtime-cyclus gebruikt.
@@ -142,12 +147,13 @@ extension VersionReport {
         }
     }
 
-    /// Behoudt `seenAt` uit `previous` zolang de nieuwste versie van een package niet veranderde.
+    /// Behoudt `seenAt` uit `previous` zolang de nieuwste versie van een package niet veranderde. Een
+    /// mislukte opzoeking (nil) wist een eerder bekende versie niet: anders mist de volgende check de melding.
     public func carryingSeenDates(from previous: VersionReport?) -> VersionReport {
         guard let previous else { return self }
         var latest = latestPackages
         for (key, value) in latest {
-            if let old = previous.latestPackages[key], old.version == value.version {
+            if let old = previous.latestPackages[key], PackageLatest.keepsOld(old, over: value) {
                 latest[key] = old
             }
         }

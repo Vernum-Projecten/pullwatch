@@ -107,9 +107,12 @@ public enum DependencyDetector {
             result.append(Dependency(ecosystem: "npm", name: name, version: version, source: path, isDirect: isDirect))
         }
         if let packages = lock.packages {
-            let root = packages[""]
-            let rootNames = root.map { root in
-                Set([root.dependencies, root.devDependencies, root.optionalDependencies].compactMap { $0?.keys }.joined())
+            // De root en, bij workspaces, de eigen packages ("packages/web", zonder node_modules/) vragen
+            // de directe dependencies.
+            let rootNames = packages[""].map { _ in
+                Set(packages.filter { !$0.key.contains("node_modules/") }.values.flatMap { entry in
+                    [entry.dependencies, entry.devDependencies, entry.optionalDependencies].compactMap { $0?.keys }.joined()
+                })
             }
             // Directe packages eerst, zodat die bij dezelfde naam@versie winnen.
             for (key, entry) in packages.sorted(by: { $0.key.count < $1.key.count }) {
@@ -252,7 +255,7 @@ public enum DependencyDetector {
         case "pyproject.toml":
             return ("PyPI", pyprojectNames(content))
         case "Cargo.toml":
-            return ("crates.io", Set(tomlKeys(content, sections: ["dependencies", "dev-dependencies", "build-dependencies"])))
+            return ("crates.io", Set(cargoDependencies(content)))
         default:
             return nil
         }
@@ -294,21 +297,28 @@ public enum DependencyDetector {
         return names
     }
 
-    /// Sleutels (`naam = …`) in de opgegeven TOML-secties.
-    private static func tomlKeys(_ content: String, sections: Set<String>) -> [String] {
-        var keys: [String] = []
+    /// Crate-namen uit `[dependencies]`, `[dev-dependencies]`, `[build-dependencies]`,
+    /// `[workspace.dependencies]` en `[target.'…'.dependencies]` (sleutels), plus tabellen als
+    /// `[dependencies.serde]` (naam in de kop).
+    private static func cargoDependencies(_ content: String) -> [String] {
+        let kinds = ["dependencies", "dev-dependencies", "build-dependencies"]
+        var names: [String] = []
         var inSection = false
         for raw in content.split(whereSeparator: \.isNewline) {
             let line = raw.trimmingCharacters(in: .whitespaces)
             if line.hasPrefix("[") {
-                inSection = sections.contains(line.trimmingCharacters(in: CharacterSet(charactersIn: "[] ")))
+                let section = line.trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
+                inSection = kinds.contains { section == $0 || section.hasSuffix(".\($0)") }
+                if !inSection, let kind = kinds.first(where: { section.hasPrefix("\($0).") }) {
+                    names.append(String(section.dropFirst(kind.count + 1)))
+                }
                 continue
             }
             if inSection, let m = line.firstMatch(of: /^([A-Za-z0-9_-]+)\s*=/) {
-                keys.append(String(m.output.1))
+                names.append(String(m.output.1))
             }
         }
-        return keys
+        return names
     }
 
     /// Directe packages van een repo, één per (ecosysteem, naam) met de oudste versie en alle bronnen.

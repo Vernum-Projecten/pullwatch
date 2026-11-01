@@ -101,6 +101,17 @@ import Testing
         #expect(report.latestPackages["npm:vite"]?.seenAt == later)
     }
 
+    @Test func failedLookupKeepsThePreviousLatestVersion() {
+        let previous = VersionReport(checkedAt: t0, repos: [], latestPackages: ["npm:lodash": PackageLatest(version: "4.17.21", seenAt: t0)])
+        let later = t0 + 86_400
+        let report = VersionReport(checkedAt: later, repos: [], latestPackages: [
+            "npm:lodash": PackageLatest(version: nil, seenAt: later),
+            "npm:private": PackageLatest(version: nil, seenAt: later),
+        ]).carryingSeenDates(from: previous)
+        #expect(report.latestPackages["npm:lodash"] == PackageLatest(version: "4.17.21", seenAt: t0))
+        #expect(report.latestPackages["npm:private"]?.version == nil)
+    }
+
     @Test func newVersionsOnlyWhenLatestChangedAndSomeoneIsBehind() {
         let repos = [
             repo("acme/a", components: [go("1.27.3", cycle: "1.27", latest: "1.27.4")],

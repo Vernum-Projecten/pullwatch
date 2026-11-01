@@ -39,6 +39,40 @@ import Testing
         #expect(deps.first { $0.name == "loose-envify" }?.isDirect == false)
     }
 
+    @Test func npmLockWorkspacePackagesCountAsDirect() {
+        let lock = """
+        {"lockfileVersion": 3, "packages": {
+          "": {"workspaces": ["packages/*"], "devDependencies": {"typescript": "^5"}},
+          "packages/web": {"name": "web", "dependencies": {"react": "^19.0.0"}},
+          "node_modules/web": {"resolved": "packages/web", "link": true},
+          "node_modules/react": {"version": "19.2.1"},
+          "node_modules/typescript": {"version": "5.6.0"},
+          "node_modules/scheduler": {"version": "0.25.0"}
+        }}
+        """
+        let deps = DependencyDetector.detect(path: "package-lock.json", content: lock)
+        #expect(Set(deps.filter { $0.isDirect == true }.map(\.name)) == ["react", "typescript"])
+        #expect(deps.first { $0.name == "scheduler" }?.isDirect == false)
+    }
+
+    @Test func cargoTomlReadsWorkspaceTargetAndTableDependencies() {
+        let toml = """
+        [workspace.dependencies]
+        anyhow = "1"
+
+        [dependencies.serde]
+        version = "1"
+        features = ["derive"]
+
+        [target.'cfg(unix)'.dependencies]
+        libc = "0.2"
+
+        [profile.release]
+        lto = true
+        """
+        #expect(DependencyDetector.directNames(path: "Cargo.toml", content: toml)?.names == ["anyhow", "serde", "libc"])
+    }
+
     @Test func npmLockV1LeavesDirectnessUnknown() {
         let lock = #"{"lockfileVersion": 1, "dependencies": {"lodash": {"version": "4.17.21"}}}"#
         #expect(DependencyDetector.detect(path: "package-lock.json", content: lock).first?.isDirect == .some(nil))

@@ -161,6 +161,10 @@ private actor FileProvider: PRProvider {
         #expect(updated.latestPackages["npm:react"]?.seenAt == now)
         #expect(updated.latestPackages["npm:vite"]?.version == "6.0.0")
         #expect(updated.latestPackages["npm:zod"]?.seenAt == later)
+        let failed = updated.replacing(RepoVersions(accountId: id, repo: "a/one", components: []), latest: [
+            "npm:react": PackageLatest(version: nil, seenAt: later),
+        ])
+        #expect(failed.latestPackages["npm:react"] == PackageLatest(version: "19.3.0", seenAt: now))
     }
 
     @Test func followsReposViaNewRepoDefault() async {
