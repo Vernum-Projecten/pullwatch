@@ -122,6 +122,47 @@ private actor FileProvider: PRProvider {
         #expect(component.cycleLatest == nil)
     }
 
+    @Test func collectsDirectPackagesAndTheirLatestVersions() async {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{},{},{}]}"#)
+        http.on("proxy.golang.org/github.com/x/direct/@latest", body: #"{"Version":"v1.3.0"}"#)
+        http.on("proxy.golang.org/github.com/acme/private/@latest", status: 404, body: "")
+        let gomod = """
+        module example.com/app
+        require (
+            github.com/x/direct v1.2.0
+            github.com/acme/private v0.1.0
+            github.com/x/indirect v0.9.0 // indirect
+        )
+        """
+        let provider = FileProvider(repos: ["acme/a"], files: ["acme/a": ["go.mod": gomod]])
+
+        let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now })
+            .run(accounts: [account(["acme/a": .prs])])
+
+        #expect(report.repos.first?.packages.map(\.name) == ["github.com/x/direct", "github.com/acme/private"])
+        #expect(report.latestPackages["Go:github.com/x/direct"] == PackageLatest(version: "1.3.0", seenAt: now))
+        #expect(report.latestPackages["Go:github.com/acme/private"] == PackageLatest(version: nil, seenAt: now))
+        #expect(report.latestPackages["Go:github.com/x/indirect"] == nil)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("x/indirect") }.isEmpty)
+    }
+
+    @Test func replacingMergesLatestAndKeepsSeenDate() {
+        let id = UUID()
+        let old = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: id, repo: "a/one", components: [])], latestPackages: [
+            "npm:react": PackageLatest(version: "19.3.0", seenAt: now),
+            "npm:vite": PackageLatest(version: "6.0.0", seenAt: now),
+        ])
+        let later = now + 3600
+        let updated = old.replacing(RepoVersions(accountId: id, repo: "a/one", components: []), latest: [
+            "npm:react": PackageLatest(version: "19.3.0", seenAt: later),
+            "npm:zod": PackageLatest(version: "3.1.0", seenAt: later),
+        ])
+        #expect(updated.latestPackages["npm:react"]?.seenAt == now)
+        #expect(updated.latestPackages["npm:vite"]?.version == "6.0.0")
+        #expect(updated.latestPackages["npm:zod"]?.seenAt == later)
+    }
+
     @Test func followsReposViaNewRepoDefault() async {
         let provider = FileProvider(repos: ["acme/a"], files: [:])
         let report = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now })
@@ -360,14 +401,15 @@ private actor FileProvider: PRProvider {
         let provider = FileProvider(repos: nil, files: ["a/one": ["go.mod": "go 1.27.2"]])
         let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
-        let fresh = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+        let (fresh, latest) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
 
         #expect(fresh.components.first?.status == .current)
+        #expect(latest.isEmpty)
         let old = VersionReport(checkedAt: Date(timeIntervalSince1970: 1), repos: [
             RepoVersions(accountId: account.id, repo: "a/one", components: [], error: "Netwerkfout"),
             RepoVersions(accountId: account.id, repo: "a/two", components: []),
         ])
-        let updated = old.replacing(fresh)
+        let updated = old.replacing(fresh, latest: latest)
         #expect(updated.checkedAt == old.checkedAt)
         #expect(updated.repos.first { $0.repo == "a/one" }?.error == nil)
         #expect(updated.repos.count == 2)
@@ -400,7 +442,7 @@ private actor FileProvider: PRProvider {
         )
         let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
-        let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+        let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one").repo
 
         #expect(repo.components.first?.status == .current)
         #expect(repo.release?.tag == "v1.0.0")
@@ -417,7 +459,7 @@ private actor FileProvider: PRProvider {
         let provider = FileProvider(repos: ["a/one"], files: ["a/one": [:]])
         let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
-        let repo = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now }).run(account: account, repo: "a/one")
+        let repo = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now }).run(account: account, repo: "a/one").repo
 
         #expect(repo.release == nil)
     }
@@ -447,7 +489,7 @@ private actor FileProvider: PRProvider {
             files: ["a/one": ["go.mod": "go 1.27\n", "package-lock.json": "{}"]],
             failingFiles: ["package-lock.json": failure]
         )
-        return await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+        return await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one").repo
     }
 
     @Test func vanishedFileIsSkipped() async {
@@ -464,7 +506,7 @@ private actor FileProvider: PRProvider {
         http.on("vulns/GO-1", status: 500, body: "")
         let provider = FileProvider(repos: ["a/one"], files: ["a/one": ["go.mod": "go 1.27\nrequire x.com/y v1.0.0\n"]])
 
-        let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+        let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one").repo
 
         #expect(repo.vulnerabilities.count == 1)
         #expect(repo.vulnerabilityError != nil)

@@ -196,10 +196,10 @@ final class AppModel {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
-        let fresh = await VersionChecker(makeProvider: { ProviderFactory.make($0) }).run(account: account, repo: repo.repo)
+        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0) }).run(account: account, repo: repo.repo)
         refreshingRepos.remove(repo.id)
         guard let report = versionReport else { return }
-        versionReport = report.replacing(fresh)
+        versionReport = report.replacing(fresh, latest: latest)
         do {
             try versionStore.save(versionReport!)
         } catch {

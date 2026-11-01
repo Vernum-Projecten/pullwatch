@@ -149,9 +149,11 @@ public struct VersionReport: Codable, Equatable, Sendable {
 }
 
 extension VersionReport {
-    /// Vervangt één repo; `checkedAt` blijft het tijdstip van de laatste volledige check.
-    public func replacing(_ repo: RepoVersions) -> VersionReport {
-        VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 }, latestPackages: latestPackages)
+    /// Vervangt één repo; `checkedAt` blijft het tijdstip van de laatste volledige check. Nieuwste
+    /// versies uit `latest` komen erbij; bij een ongewijzigde versie blijft de oude `seenAt`.
+    public func replacing(_ repo: RepoVersions, latest: [String: PackageLatest] = [:]) -> VersionReport {
+        let merged = latestPackages.merging(latest) { old, new in old.version == new.version ? old : new }
+        return VersionReport(checkedAt: checkedAt, repos: repos.map { $0.id == repo.id ? repo : $0 }, latestPackages: merged)
     }
 
     /// Automatische check: eens per dag.
@@ -217,20 +219,22 @@ public struct VersionChecker: Sendable {
             }
         }
 
-        return VersionReport(checkedAt: now(), repos: results + (await check(targets, progress: progress)))
+        let checked = await check(targets, progress: progress)
+        return VersionReport(checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest)
     }
 
-    /// Checkt één repo opnieuw, bv. na een fix; het resultaat vervangt de regel in het rapport.
-    public func run(account: Account, repo: String) async -> RepoVersions {
-        let results = await check([(account, makeProvider(account), [repo])], progress: { _, _ in })
-        return results.first ?? RepoVersions(accountId: account.id, repo: repo, components: [])
+    /// Checkt één repo opnieuw, bv. na een fix; het resultaat vervangt de regel in het rapport
+    /// (`VersionReport.replacing(_:latest:)`).
+    public func run(account: Account, repo: String) async -> (repo: RepoVersions, latest: [String: PackageLatest]) {
+        let checked = await check([(account, makeProvider(account), [repo])], progress: { _, _ in })
+        return (checked.repos.first ?? RepoVersions(accountId: account.id, repo: repo, components: []), checked.latest)
     }
 
     /// Stap 2 t/m 5 voor de opgegeven repo's per account.
     private func check(
         _ targets: [(account: Account, provider: any PRProvider, repos: [String])],
         progress: @escaping @Sendable (Int, Int) async -> Void
-    ) async -> [RepoVersions] {
+    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest]) {
         var results: [RepoVersions] = []
         // 2. Bestanden scannen; accounts parallel, repo's per account na elkaar.
         let total = targets.reduce(0) { $0 + $1.repos.count }
@@ -289,6 +293,27 @@ public struct VersionChecker: Sendable {
             }
         }
 
+        // 4b. Nieuwste versie per direct gebruikt package op de default branch, één keer per package.
+        let mainScans = scanned.compactMap { try? $0.found.get().main }
+        let packages = Dictionary(mainScans.flatMap(\.directDependencies).map { ($0.key, $0) }, uniquingKeysWith: { first, _ in first })
+        let checkedAt = now()
+        var latest: [String: PackageLatest] = [:]
+        await withTaskGroup(of: (String, String?).self) { group in
+            var pending = packages.values.makeIterator()
+            func addNext() {
+                guard let package = pending.next() else { return }
+                group.addTask {
+                    (package.key, await PackageRegistry.latest(ecosystem: package.ecosystem, name: package.name, http: http, now: checkedAt))
+                }
+            }
+            // Niet honderden verzoeken tegelijk: hooguit acht lopen er.
+            for _ in 0..<Self.registryConcurrency { addNext() }
+            for await (key, version) in group {
+                latest[key] = PackageLatest(version: version, seenAt: checkedAt)
+                addNext()
+            }
+        }
+
         // 5. Per repo samenvoegen en beoordelen.
         let date = now()
         func components(_ scan: Scan) -> [ComponentVersion] {
@@ -336,12 +361,15 @@ public struct VersionChecker: Sendable {
                     components: components(repoScan.main),
                     vulnerabilities: vulnerabilities(repoScan.main),
                     vulnerabilityError: repoScan.main.dependencies.isEmpty ? nil : osvError,
-                    release: release
+                    release: release,
+                    packages: repoScan.main.directDependencies
                 ))
             }
         }
-        return results
+        return (results, latest)
     }
+
+    static let registryConcurrency = 8
 
     struct Scan: Sendable {
         var versions: [DetectedVersion] = []
