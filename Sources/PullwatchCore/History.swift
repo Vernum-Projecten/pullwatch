@@ -207,11 +207,30 @@ public struct History: Codable, Equatable, Sendable {
         Array(items.filter { $0.entry.kind == kind }.prefix(max(limit, 0)))
     }
 
+    /// Projecten (Azure DevOps) of eigenaren (GitHub) met items van `kind`, op naam. Dezelfde naam bij
+    /// twee accounts krijgt de accountnaam erachter.
+    public func groups(_ kind: ItemKind, accountNames: [UUID: String]) -> [HistoryGroup] {
+        var unread: [HistoryGroup.ID: Int] = [:]
+        for item in items where item.entry.kind == kind {
+            let id = HistoryGroup.ID(item.entry)
+            unread[id, default: 0] += item.isRead ? 0 : 1
+        }
+        let projectCounts = Dictionary(grouping: unread.keys, by: \.project).mapValues(\.count)
+        return unread.map { id, count in
+            let account = accountNames[id.accountId]
+            let name = (projectCounts[id.project] ?? 0) > 1 && account != nil ? "\(id.project) (\(account!))" : id.project
+            return HistoryGroup(id: id, name: name, unreadCount: count)
+        }
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
     /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur en repo.
-    public func search(_ text: String, kind: ItemKind?) -> [HistoryItem] {
+    /// Met `group` alleen items van dat project.
+    public func search(_ text: String, kind: ItemKind?, group: HistoryGroup.ID? = nil) -> [HistoryItem] {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return items.filter { item in
             if let kind, item.entry.kind != kind { return false }
+            if let group, HistoryGroup.ID(item.entry) != group { return false }
             if query.isEmpty { return true }
             return item.entry.title.localizedCaseInsensitiveContains(query)
                 || (item.entry.author?.localizedCaseInsensitiveContains(query) ?? false)
@@ -235,4 +254,26 @@ extension History {
         if let legacy { return (History(migrating: legacy), true) }
         return (History(), false)
     }
+}
+
+/// Project (Azure DevOps) of eigenaar (GitHub) binnen één account: het deel van de repo-naam vóór de "/".
+public struct HistoryGroup: Hashable, Sendable, Identifiable {
+    public struct ID: Hashable, Sendable, Codable {
+        public let accountId: UUID
+        public let project: String
+
+        public init(accountId: UUID, project: String) {
+            self.accountId = accountId
+            self.project = project
+        }
+
+        init(_ entry: HistoryEntry) {
+            let project = entry.repo.split(separator: "/", maxSplits: 1).first.map(String.init) ?? entry.repo
+            self.init(accountId: entry.accountId, project: project)
+        }
+    }
+
+    public let id: ID
+    public let name: String
+    public let unreadCount: Int
 }

@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 final class DockIcon {
     static let shared = DockIcon()
-    static let windowIds = ["settings", "main"]
+    static let windowIds = ["main"]
 
     func start() {
         let center = NotificationCenter.default
@@ -57,13 +57,17 @@ struct PullwatchApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Pullwatch instellingen", id: "settings") {
-            SettingsView(model: model)
-        }
-        .windowResizability(.contentMinSize)
-
         Window("Pullwatch", id: "main") {
             MainView(model: model)
+        }
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Instellingen…") {
+                    model.mainSection = .settings
+                    model.openMainWindow?()
+                }
+                .keyboardShortcut(",")
+            }
         }
         .windowResizability(.contentMinSize)
     }

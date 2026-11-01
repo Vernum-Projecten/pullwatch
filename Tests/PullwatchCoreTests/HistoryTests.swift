@@ -34,6 +34,41 @@ import Testing
         #expect(history.unreadCount(.tag) == 1)
     }
 
+    @Test func groupsByProjectPerAccountSortedWithUnreadCounts() {
+        let other = UUID()
+        var history = History()
+        history.add(pullRequests: [
+            .fixture(repo: "FerroHEALTH/portal", number: 1),
+            .fixture(repo: "FerroHEALTH/api", number: 2),
+            .fixture(repo: "Code24/engine", number: 3),
+            .fixture(accountId: other, repo: "acme/web", number: 4),
+        ], tags: [.fixture(repo: "Lab/x")], at: t0)
+        history.markRead(history.items.first { $0.entry.repo == "Code24/engine" }!.id)
+        let groups = history.groups(.pullRequest, accountNames: [fixedAccountId: "Werk", other: "GitHub"])
+        #expect(groups.map(\.name) == ["acme", "Code24", "FerroHEALTH"])
+        #expect(groups.map(\.unreadCount) == [1, 0, 2])
+        #expect(groups.first { $0.name == "FerroHEALTH" }?.id == HistoryGroup.ID(accountId: fixedAccountId, project: "FerroHEALTH"))
+    }
+
+    @Test func sameProjectNameInTwoAccountsGetsAccountName() {
+        let other = UUID()
+        var history = History()
+        history.add(pullRequests: [.fixture(repo: "acme/a", number: 1), .fixture(accountId: other, repo: "acme/b", number: 2)], tags: [], at: t0)
+        let names = history.groups(.pullRequest, accountNames: [fixedAccountId: "Werk", other: "GitHub"]).map(\.name)
+        #expect(names == ["acme (GitHub)", "acme (Werk)"])
+    }
+
+    @Test func searchWithinGroup() {
+        var history = History()
+        history.add(pullRequests: [
+            .fixture(repo: "FerroHEALTH/portal", number: 1, title: "Fix login"),
+            .fixture(repo: "Code24/engine", number: 2, title: "Fix login too"),
+        ], tags: [], at: t0)
+        let group = HistoryGroup.ID(accountId: fixedAccountId, project: "FerroHEALTH")
+        #expect(history.search("login", kind: .pullRequest, group: group).map(\.entry.repo) == ["FerroHEALTH/portal"])
+        #expect(history.search("login", kind: .pullRequest, group: nil).count == 2)
+    }
+
     @Test func pruneRespectsRetention() {
         var history = History()
         history.add(pullRequests: [.fixture(number: 1)], tags: [], at: t0)

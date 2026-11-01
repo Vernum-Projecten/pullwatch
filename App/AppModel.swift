@@ -32,8 +32,26 @@ final class AppModel {
     /// `openWindow` bestaat alleen in de SwiftUI-omgeving.
     @ObservationIgnored var openMainWindow: (() -> Void)?
     /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
-    var mainSection: MainSection? = UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests {
-        didSet { UserDefaults.standard.set(mainSection?.rawValue, forKey: "mainSection") }
+    var sidebarSelection: SidebarItem? = .section(
+        UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests
+    ) {
+        didSet {
+            // Alleen het onderdeel wordt onthouden; een project kan bij de volgende start weg zijn.
+            UserDefaults.standard.set(mainSection.rawValue, forKey: "mainSection")
+        }
+    }
+
+    /// Onderdeel van het hoofdvenster; een gekozen project hoort bij PR's of Tags.
+    var mainSection: MainSection {
+        get {
+            switch sidebarSelection {
+            case .section(let section): section
+            case .group(.pullRequest, _): .pullRequests
+            case .group(.tag, _): .tags
+            case nil: .pullRequests
+            }
+        }
+        set { sidebarSelection = .section(newValue) }
     }
     /// Per package/runtime-cyclus de nieuwste versie die je in het onderdeel Versies gezien hebt.
     private(set) var seenPackageVersions: [String: String] =

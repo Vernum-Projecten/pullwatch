@@ -5,13 +5,16 @@ import SwiftUI
 struct HistoryView: View {
     let model: AppModel
     let kind: ItemKind
+    /// Alleen dit project (uit de zijbalk); nil voor alles.
+    var group: HistoryGroup.ID? = nil
+    var groupName: String? = nil
 
     @State private var searchText = ""
     // Zonder selectie-binding vuurt de primaryAction (dubbelklik) van contextMenu niet.
     @State private var selection = Set<HistoryItem.ID>()
 
     private var items: [HistoryItem] {
-        model.history.search(searchText, kind: kind)
+        model.history.search(searchText, kind: kind, group: group)
     }
 
     /// Repo van de selectie, als die over één repo gaat.
@@ -29,7 +32,10 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack {
-                TextField("Zoek op titel, auteur, repo…", text: $searchText)
+                TextField(
+                    groupName.map { String(localized: "Zoek in \($0)…", comment: "Projectnaam") } ?? String(localized: "Zoek op titel, auteur, repo…"),
+                    text: $searchText
+                )
                     .textFieldStyle(.roundedBorder)
                 if let progress = model.refetch {
                     ProgressView(value: Double(progress.done), total: Double(progress.total))

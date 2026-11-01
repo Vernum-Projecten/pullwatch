@@ -83,7 +83,7 @@ struct MenuView: View {
                     .disabled(model.history.unreadCount == 0)
                 Spacer()
                 OpenWindowButton(title: "Openen…", windowId: "main")
-                SettingsButton()
+                SettingsButton(model: model)
                 Button("Stop") { NSApp.terminate(nil) }
             }
         }
@@ -93,8 +93,10 @@ struct MenuView: View {
 }
 
 struct SettingsButton: View {
+    let model: AppModel
+
     var body: some View {
-        OpenWindowButton(title: "Instellingen…", windowId: "settings")
+        OpenWindowButton(title: "Instellingen…", windowId: "main") { model.mainSection = .settings }
     }
 }
 
@@ -103,10 +105,12 @@ struct SettingsButton: View {
 private struct OpenWindowButton: View {
     let title: LocalizedStringKey
     let windowId: String
+    var before: () -> Void = {}
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Button(title) {
+            before()
             let menuPanel = NSApp.keyWindow
             openWindow(id: windowId)
             menuPanel?.orderOut(nil)

@@ -28,7 +28,7 @@ make release   # signed with Developer ID, notarized and stapled DMG
 
 ## Usage
 
-1. Click the menu bar icon → **Instellingen…** (Settings).
+1. Click the menu bar icon → **Instellingen…** (Settings), which opens the settings in the main window.
 2. Add an account (Azure DevOps or GitHub), choose PAT or CLI, and test the connection. With the GitHub CLI and several `gh` accounts, pick which one provides the token under **GitHub-account**.
 3. Per account, choose which repositories you follow: PR's, Tags and/or Completed (merged PRs).
 
@@ -40,7 +40,7 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has four sections: **PR's**, **Tags**, **Repo-controle** (repository check) and **Versies** (versions); the badges count unread PRs and tags and unseen new versions. Pullwatch remembers the last section.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo-controle** (repository check) and **Versies** (versions), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's and Tags you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### History
 
