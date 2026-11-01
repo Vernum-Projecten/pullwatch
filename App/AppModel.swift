@@ -37,13 +37,19 @@ final class AppModel {
         didSet {
             // Alleen het onderdeel wordt onthouden; een project kan bij de volgende start weg zijn.
             UserDefaults.standard.set(mainSection.rawValue, forKey: "mainSection")
-            if !isShowingRepo { selectedRepoId = nil }
+            if !isNavigating {
+                selectedRepoId = nil
+                statsRepoId = nil
+            }
         }
     }
 
     /// Geopende repo in het onderdeel Repo's (`RepoSummary.id`); nil toont de lijst.
     var selectedRepoId: String?
-    @ObservationIgnored private var isShowingRepo = false
+    /// Statistieken gefilterd op één repo (`RepoSummary.id`), vanaf de repo-pagina.
+    var statsRepoId: String?
+    /// Tijdens een sprong naar een repo of statistieken blijft de selectie binnen het onderdeel staan.
+    @ObservationIgnored private var isNavigating = false
 
     var repoSummaries: [RepoSummary] {
         RepoOverview.summaries(accounts: config.accounts, report: versionReport, history: history)
@@ -51,10 +57,18 @@ final class AppModel {
 
     /// Opent de pagina van een repo, bv. vanuit PR's of Versies.
     func showRepo(id: String) {
-        isShowingRepo = true
+        isNavigating = true
         sidebarSelection = .section(.repos)
-        isShowingRepo = false
+        isNavigating = false
         selectedRepoId = id
+    }
+
+    /// Opent Statistieken voor één repo.
+    func showStats(repoId: String) {
+        isNavigating = true
+        sidebarSelection = .section(.stats)
+        isNavigating = false
+        statsRepoId = repoId
     }
 
     func showRepo(accountId: UUID, repo: String) {

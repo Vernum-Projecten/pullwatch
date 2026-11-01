@@ -278,6 +278,12 @@ private struct RepoDetailView: View {
                     .disabled(model.versionCheck != nil || model.versionReport == nil)
                     .help(model.versionReport == nil ? String(localized: "Check eerst alle repo's") : String(localized: "Check deze repo opnieuw"))
                 }
+                Button {
+                    model.showStats(repoId: summary.id)
+                } label: {
+                    Label("Statistieken", systemImage: "chart.bar")
+                }
+                .help("Open de statistieken van deze repo")
                 if let versions = summary.versions {
                     Button {
                         NSPasteboard.general.clearContents()

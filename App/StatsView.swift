@@ -42,11 +42,13 @@ struct StatsView: View {
     }
 
     var body: some View {
-        let filter = ActivityFilter(group: group, author: author, hideBots: hideBots)
+        let repoId = model.statsRepoId
+        let filter = ActivityFilter(group: group, author: author, repoId: repoId, hideBots: hideBots)
         let stats = ActivityStats.compute(history: model.history, period: period, filter: filter)
         // Auteurskeuze zonder auteursfilter, anders blijft alleen de gekozen auteur over.
         let authors = author == nil ? stats.authors
-            : ActivityStats.compute(history: model.history, period: period, filter: ActivityFilter(group: group, hideBots: hideBots)).authors
+            : ActivityStats.compute(history: model.history, period: period,
+                                    filter: ActivityFilter(group: group, repoId: repoId, hideBots: hideBots)).authors
         let groups = model.history.groups(.pullRequest, accountNames: accountNames)
 
         ScrollView {
@@ -70,6 +72,27 @@ struct StatsView: View {
                     .fixedSize()
                     Toggle("Bots verbergen", isOn: $hideBots)
                     Spacer()
+                }
+                if let repoId, let summary = model.repoSummaries.first(where: { $0.id == repoId }) {
+                    HStack(spacing: 6) {
+                        Button {
+                            model.showRepo(id: repoId)
+                        } label: {
+                            Label(summary.repo, systemImage: "folder")
+                        }
+                        .buttonStyle(.link)
+                        .help("Terug naar de pagina van deze repo")
+                        Button {
+                            model.statsRepoId = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Toon alle repo's")
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
 
                 HStack(spacing: 10) {

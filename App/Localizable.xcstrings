@@ -3698,6 +3698,34 @@
         }
       }
     },
+    "Open de statistieken van deze repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiken dieses Repositorys öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the statistics of this repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les statistiques de ce dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open de statistieken van deze repo"
+          }
+        }
+      }
+    },
     "Open het versie-overzicht": {
       "localizations": {
         "de": {
@@ -4931,6 +4959,34 @@
         }
       }
     },
+    "Terug naar de pagina van deze repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zur Seite dieses Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the page of this repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour à la page de ce dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terug naar de pagina van deze repo"
+          }
+        }
+      }
+    },
     "Test verbinding": {
       "localizations": {
         "de": {
@@ -5039,6 +5095,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Token ongeldig of verlopen. Werk het bij in Instellingen."
+          }
+        }
+      }
+    },
+    "Toon alle repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Repositories zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher tous les dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon alle repo's"
           }
         }
       }
