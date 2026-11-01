@@ -85,6 +85,7 @@ final class AppModel {
     @ObservationIgnored private let historyStore = JSONFileStore<History>(url: AppPaths.file("history.json"))
     @ObservationIgnored private let legacyRecentStore = JSONFileStore<RecentList>(url: AppPaths.file("recent.json"))
     @ObservationIgnored private let versionStore = JSONFileStore<VersionReport>(url: AppPaths.file("versions.json"))
+    @ObservationIgnored private let versionHistoryStore = JSONFileStore<VersionHistory>(url: AppPaths.file("version-history.json"))
     @ObservationIgnored private let secrets = KeychainStore()
     @ObservationIgnored private let engine = PollEngine(
         makeProvider: { ProviderFactory.make($0) },
@@ -237,6 +238,19 @@ final class AppModel {
             try versionStore.save(report)
         } catch {
             logger.error("versions opslaan mislukt: \(error.localizedDescription)")
+        }
+        appendSnapshot(report)
+    }
+
+    /// Momentopname voor latere statistieken. Een onleesbaar bestand wordt niet overschreven:
+    /// liever één opname missen dan de hele geschiedenis kwijt.
+    private func appendSnapshot(_ report: VersionReport) {
+        do {
+            var history = try versionHistoryStore.load() ?? VersionHistory()
+            history.append(report)
+            try versionHistoryStore.save(history)
+        } catch {
+            logger.error("versiegeschiedenis bijwerken mislukt: \(error.localizedDescription)")
         }
     }
 
