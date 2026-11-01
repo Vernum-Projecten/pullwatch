@@ -181,6 +181,19 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     }
 
     /// Wat er voor deze repo gevolgd wordt (hoofdletterongevoelig).
+    /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `github.com/<eigenaar>/<repo>`.
+    public func repoWebURL(_ repo: String) -> URL? {
+        switch kind {
+        case .azureDevOps:
+            let parts = repo.split(separator: "/", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else { return nil }
+            return URL(string: "https://dev.azure.com")?
+                .appending(path: organization).appending(path: parts[0]).appending(path: "_git").appending(path: parts[1])
+        case .gitHub:
+            return URL(string: "https://github.com")?.appending(path: repo)
+        }
+    }
+
     public func watch(for repo: String) -> WatchSet {
         RepoWatchCoding.lookup(repo, in: repoWatch, default: newRepoDefault)
     }

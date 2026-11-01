@@ -215,13 +215,7 @@ public struct History: Codable, Equatable, Sendable {
             let id = HistoryGroup.ID(item.entry)
             unread[id, default: 0] += item.isRead ? 0 : 1
         }
-        let projectCounts = Dictionary(grouping: unread.keys, by: \.project).mapValues(\.count)
-        return unread.map { id, count in
-            let account = accountNames[id.accountId]
-            let name = (projectCounts[id.project] ?? 0) > 1 && account != nil ? "\(id.project) (\(account!))" : id.project
-            return HistoryGroup(id: id, name: name, unreadCount: count)
-        }
-        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return HistoryGroup.named(unread, accountNames: accountNames)
     }
 
     /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur en repo.
@@ -268,9 +262,24 @@ public struct HistoryGroup: Hashable, Sendable, Identifiable {
         }
 
         init(_ entry: HistoryEntry) {
-            let project = entry.repo.split(separator: "/", maxSplits: 1).first.map(String.init) ?? entry.repo
-            self.init(accountId: entry.accountId, project: project)
+            self.init(accountId: entry.accountId, repo: entry.repo)
         }
+
+        public init(accountId: UUID, repo: String) {
+            let project = repo.split(separator: "/", maxSplits: 1).first.map(String.init) ?? repo
+            self.init(accountId: accountId, project: project)
+        }
+    }
+
+    /// Groepen met hun teller, op naam; dezelfde projectnaam bij twee accounts krijgt de accountnaam erachter.
+    static func named(_ counts: [ID: Int], accountNames: [UUID: String]) -> [HistoryGroup] {
+        let projectCounts = Dictionary(grouping: counts.keys, by: \.project).mapValues(\.count)
+        return counts.map { id, count in
+            let account = accountNames[id.accountId]
+            let name = (projectCounts[id.project] ?? 0) > 1 && account != nil ? "\(id.project) (\(account!))" : id.project
+            return HistoryGroup(id: id, name: name, unreadCount: count)
+        }
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     public let id: ID
