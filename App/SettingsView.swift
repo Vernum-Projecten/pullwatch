@@ -116,6 +116,12 @@ private struct GeneralSettingsView: View {
                 set: { model.setAutoVersionCheck($0) }
             ))
             .help("Eens per dag automatisch; melding als er bij een gevolgde repo een nieuwe CVE bijkomt")
+            Toggle("Melding bij nieuwe versies", isOn: Binding(
+                get: { model.config.notifyPackageUpdates },
+                set: { model.setNotifyPackageUpdates($0) }
+            ))
+            .disabled(!model.config.autoVersionCheck)
+            .help("Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken")
             Toggle("Automatisch op updates controleren", isOn: Binding(
                 get: { model.config.checkForUpdates },
                 set: { model.setCheckForUpdates($0) }

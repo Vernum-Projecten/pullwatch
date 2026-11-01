@@ -28,6 +28,9 @@ final class AppModel {
     private(set) var isCheckingForUpdates = false
     /// Zoekterm die het Versies-venster overneemt zodra het verschijnt (bv. een repo uit Geschiedenis).
     var versionsSearch: String?
+    /// Opent het hoofdvenster; gezet door een altijd aanwezige view (het menubalk-label), want
+    /// `openWindow` bestaat alleen in de SwiftUI-omgeving.
+    @ObservationIgnored var openMainWindow: (() -> Void)?
     /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
     var mainSection: MainSection? = UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests {
         didSet { UserDefaults.standard.set(mainSection?.rawValue, forKey: "mainSection") }
@@ -115,6 +118,11 @@ final class AppModel {
     func start() {
         guard loopTask == nil else { return }
         notifier.onOpen = { [weak self] key in self?.markRead(key) }
+        notifier.onOpenSection = { [weak self] section in
+            guard let self, let section = MainSection(rawValue: section) else { return }
+            self.mainSection = section
+            self.openMainWindow?()
+        }
 
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
@@ -170,19 +178,23 @@ final class AppModel {
         guard versionCheck == nil else { return }
         versionCheck = (0, 0)
         let checker = VersionChecker(makeProvider: { ProviderFactory.make($0) })
-        let report = await checker.run(accounts: config.pollableAccounts) { done, total in
+        let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
         }
         versionCheck = nil
-        if automatic && report.failedCompletely {
+        if automatic && fresh.failedCompletely {
             logger.notice("automatische versiecheck mislukt, opnieuw over een uur")
             return
         }
         let previous = versionReport
+        let report = fresh.carryingSeenDates(from: previous)
         versionReport = report
         if automatic {
             let new = report.newVulnerabilities(since: previous)
             if !new.isEmpty { notifier.deliverVulnerabilities(new) }
+            if config.notifyPackageUpdates {
+                notifier.deliverPackageUpdates(report.newPackageVersions(since: previous))
+            }
         }
         do {
             try versionStore.save(report)
@@ -319,6 +331,11 @@ final class AppModel {
                 updateCheckMessage = String(localized: "Controleren mislukt: \(reason)")
             }
         }
+    }
+
+    func setNotifyPackageUpdates(_ enabled: Bool) {
+        config.notifyPackageUpdates = enabled
+        saveConfig()
     }
 
     func setAutoVersionCheck(_ enabled: Bool) {

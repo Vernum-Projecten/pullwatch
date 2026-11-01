@@ -10,19 +10,23 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var autoVersionCheck: Bool
     /// Eens per dag kijken of er een nieuwere Pullwatch op GitHub staat.
     public var checkForUpdates: Bool
+    /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
+    public var notifyPackageUpdates: Bool
 
     public init(
         accounts: [Account] = [],
         pollInterval: Int = 120,
         historyRetention: HistoryRetention = .oneYear,
         autoVersionCheck: Bool = true,
-        checkForUpdates: Bool = true
+        checkForUpdates: Bool = true,
+        notifyPackageUpdates: Bool = true
     ) {
         self.accounts = accounts
         self.pollInterval = pollInterval
         self.historyRetention = historyRetention
         self.autoVersionCheck = autoVersionCheck
         self.checkForUpdates = checkForUpdates
+        self.notifyPackageUpdates = notifyPackageUpdates
     }
 
     public init(from decoder: any Decoder) throws {
@@ -32,6 +36,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         historyRetention = try c.decodeIfPresent(HistoryRetention.self, forKey: .historyRetention) ?? .oneYear
         autoVersionCheck = try c.decodeIfPresent(Bool.self, forKey: .autoVersionCheck) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
+        notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
     }
 
     public var clampedInterval: Int {

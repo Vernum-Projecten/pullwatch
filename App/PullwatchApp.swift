@@ -53,12 +53,7 @@ struct PullwatchApp: App {
         MenuBarExtra {
             MenuView(model: model)
         } label: {
-            HStack(spacing: 2) {
-                Image(systemName: model.menuBarSymbol)
-                if model.history.unreadCount > 0 {
-                    Text("•")
-                }
-            }
+            MenuBarLabel(model: model)
         }
         .menuBarExtraStyle(.window)
 
@@ -71,5 +66,26 @@ struct PullwatchApp: App {
             MainView(model: model)
         }
         .windowResizability(.contentMinSize)
+    }
+}
+
+/// Icoon in de menubalk. Bestaat zolang de app draait en geeft het model daarom de `openWindow`-actie.
+private struct MenuBarLabel: View {
+    let model: AppModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: model.menuBarSymbol)
+            if model.history.unreadCount > 0 {
+                Text("•")
+            }
+        }
+        .onAppear {
+            model.openMainWindow = {
+                openWindow(id: "main")
+                NSApp.activate()
+            }
+        }
     }
 }

@@ -11,6 +11,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
 
     /// Wordt aangeroepen met de dedupKey wanneer de gebruiker op een PR-melding klikt.
     var onOpen: ((String) -> Void)?
+    /// Klik op een melding die bij een onderdeel van het hoofdvenster hoort (bv. nieuwe versies).
+    var onOpenSection: ((String) -> Void)?
 
     private var center: UNUserNotificationCenter { .current() }
 
@@ -92,6 +94,24 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// Eén melding voor alle nieuwe versies van één check; klik opent het onderdeel Versies.
+    func deliverPackageUpdates(_ items: [PackageSummary]) {
+        guard !items.isEmpty else { return }
+        let lines = items.map { "\($0.label) \($0.latest ?? "")" }
+        let content = UNMutableNotificationContent()
+        if let only = items.first, items.count == 1 {
+            content.title = String(localized: "\(only.label) \(only.latest ?? "") beschikbaar", comment: "Package, versie")
+            content.body = String(localized: "\(only.behind.count) repo's lopen achter")
+        } else {
+            content.title = String(localized: "\(items.count) nieuwe versies")
+            content.body = (lines.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer")] : []))
+                .joined(separator: "\n")
+        }
+        content.userInfo = ["section": "versions"]
+        content.sound = .default
+        add(UNNotificationRequest(identifier: "packages-\(lines.joined(separator: ","))", content: content, trigger: nil))
+    }
+
     /// Klik opent de DMG (of de releasepagina als die er niet bij staat).
     func deliverUpdate(_ update: AvailableUpdate) {
         let content = UNMutableNotificationContent()
@@ -123,7 +143,11 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let info = response.notification.request.content.userInfo
         let urlString = info["url"] as? String
         let key = info["key"] as? String
+        let section = info["section"] as? String
         await MainActor.run {
+            if let section {
+                self.onOpenSection?(section)
+            }
             if let urlString, let url = URL(string: urlString) {
                 NSWorkspace.shared.open(url)
             }
