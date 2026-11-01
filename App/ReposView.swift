@@ -218,6 +218,13 @@ private struct RepoDetailView: View {
                         }
                     }
                 }
+                DetailSection(title: "Activiteit", trailing: String(localized: "PR's per maand")) {
+                    ActivityChart(
+                        stats: ActivityStats.compute(history: model.history, period: .month, filter: ActivityFilter(repoId: summary.id)),
+                        period: .month
+                    )
+                    .frame(height: 120)
+                }
                 DetailSection(title: "Controle", trailing: summary.versions?.release.map { String(localized: "vs. \($0.tag)", comment: "Tagnaam") }) {
                     control
                 }

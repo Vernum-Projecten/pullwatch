@@ -40,7 +40,7 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories) and **Versies** (versions), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories), **Versies** (versions) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### History
 
@@ -55,6 +55,10 @@ Calls to `az` and `gh` time out after 20 seconds.
 **Repo's** lists the followed repositories, worst first: red for known CVEs or an end-of-life runtime, orange for a runtime that is behind or packages with a new version, green when current, grey when not checked yet. Clicking one opens its page: open and recent PRs, the check (runtimes and CVEs, see below) and the packages with a new version, plus buttons to open it in the browser, check it again and follow it (PR's, Tags, Completed, each with its own notification bell) without going to Settings.
 
 Every full check also stores a compact snapshot (versions, statuses, CVE counts, package updates per repository; at most 730) in `version-history.json`, for statistics in a later version.
+
+### Statistics
+
+**Statistieken** shows PR activity from the history: opened and merged PRs per week, month or year (12 weeks, 12 months or 5 years), the PRs opened and merged in the current period, the median time from opening to merge and the number of active authors, plus rankings of authors and of the busiest repositories. Filter on a project or an author (click a name in the ranking); bots (`[bot]` in the name) are hidden by default. A repository page shows the same chart per month for that repository. Activity only counts PRs, not commits, and goes back as far as the history does.
 
 ### Versions
 

@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk; Instellingen staat los onderaan.
 enum MainSection: String, CaseIterable, Identifiable {
-    case pullRequests, tags, repos, versions, settings
+    case pullRequests, tags, repos, versions, stats, settings
 
     var id: Self { self }
 
@@ -13,6 +13,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .tags: "Tags"
         case .repos: "Repo's"
         case .versions: "Versies"
+        case .stats: "Statistieken"
         case .settings: "Instellingen"
         }
     }
@@ -23,6 +24,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .tags: "tag"
         case .repos: "folder"
         case .versions: "shippingbox"
+        case .stats: "chart.bar"
         case .settings: "gearshape"
         }
     }
@@ -52,7 +54,7 @@ struct MainView: View {
         case .tags: model.history.unreadCount(.tag)
         case .versions: model.unseenPackageUpdates
         case .repos: model.repoSummaries.filter { $0.health == .problem }.count
-        case .settings: 0
+        case .stats, .settings: 0
         }
     }
 
@@ -116,6 +118,7 @@ struct MainView: View {
                 historySection(.tags, kind: .tag, isExpanded: $tagsExpanded)
                 reposSection
                 row(.versions)
+                row(.stats)
             }
             .safeAreaInset(edge: .bottom) {
                 // Vast onderaan, los van de inhoud; een eigen List zodat de selectie er hetzelfde uitziet.
@@ -139,6 +142,7 @@ struct MainView: View {
                 case .tags: HistoryView(model: model, kind: .tag)
                 case .repos: ReposView(model: model)
                 case .versions: PackagesView(model: model)
+                case .stats: StatsView(model: model)
                 case .settings: SettingsView(model: model)
                 }
             }
