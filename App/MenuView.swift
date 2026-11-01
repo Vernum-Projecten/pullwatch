@@ -10,6 +10,10 @@ struct MenuView: View {
             HStack {
                 Text(verbatim: "Pullwatch").font(.headline)
                 Spacer()
+                Text(verbatim: AppModel.currentVersion)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
                 Button {
                     NSApp.keyWindow?.orderOut(nil)
                     AboutPanel.show()
