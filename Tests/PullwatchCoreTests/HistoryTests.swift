@@ -27,6 +27,13 @@ import Testing
         #expect(history.latest(.pullRequest, limit: 2).allSatisfy { $0.entry.kind == .pullRequest })
     }
 
+    @Test func unreadCountPerKind() {
+        var history = History()
+        history.add(pullRequests: [.fixture(number: 1), .fixture(number: 2)], tags: [.fixture(name: "v1")], at: t0)
+        #expect(history.unreadCount(.pullRequest) == 2)
+        #expect(history.unreadCount(.tag) == 1)
+    }
+
     @Test func pruneRespectsRetention() {
         var history = History()
         history.add(pullRequests: [.fixture(number: 1)], tags: [], at: t0)

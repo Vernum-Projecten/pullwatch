@@ -4,27 +4,14 @@ import SwiftUI
 
 struct HistoryView: View {
     let model: AppModel
-
-    private enum Filter: Hashable {
-        case all, pullRequests, tags
-
-        var kind: ItemKind? {
-            switch self {
-            case .all: nil
-            case .pullRequests: .pullRequest
-            case .tags: .tag
-            }
-        }
-    }
+    let kind: ItemKind
 
     @State private var searchText = ""
-    @State private var filter: Filter = .all
     // Zonder selectie-binding vuurt de primaryAction (dubbelklik) van contextMenu niet.
     @State private var selection = Set<HistoryItem.ID>()
-    @Environment(\.openWindow) private var openWindow
 
     private var items: [HistoryItem] {
-        model.history.search(searchText, kind: filter.kind)
+        model.history.search(searchText, kind: kind)
     }
 
     /// Repo van de selectie, als die over één repo gaat.
@@ -33,11 +20,10 @@ struct HistoryView: View {
         return repos.count == 1 ? repos.first : nil
     }
 
-    /// Opent het Versies-venster, gefilterd op `repo` als die er is.
+    /// Springt naar Repo-controle, gefilterd op `repo` als die er is.
     private func showVersions(of repo: String?) {
         model.versionsSearch = repo ?? ""
-        openWindow(id: "versions")
-        NSApp.activate()
+        model.mainSection = .repoCheck
     }
 
     var body: some View {
@@ -45,14 +31,6 @@ struct HistoryView: View {
             HStack {
                 TextField("Zoek op titel, auteur, repo…", text: $searchText)
                     .textFieldStyle(.roundedBorder)
-                Picker("Soort", selection: $filter) {
-                    Text("Alles").tag(Filter.all)
-                    Text("PR's").tag(Filter.pullRequests)
-                    Text("Tags").tag(Filter.tags)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
                 if let progress = model.refetch {
                     ProgressView(value: Double(progress.done), total: Double(progress.total))
                         .frame(width: 100)

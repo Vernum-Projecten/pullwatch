@@ -12,12 +12,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Toont Pullwatch in het Dock zolang er een eigen venster (instellingen, geschiedenis, versies)
+/// Toont Pullwatch in het Dock zolang er een eigen venster (instellingen, hoofdvenster)
 /// open is; zonder venster draait de app weer alleen in de menubalk.
 @MainActor
 final class DockIcon {
     static let shared = DockIcon()
-    static let windowIds = ["settings", "history", "versions"]
+    static let windowIds = ["settings", "main"]
 
     func start() {
         let center = NotificationCenter.default
@@ -67,13 +67,8 @@ struct PullwatchApp: App {
         }
         .windowResizability(.contentMinSize)
 
-        Window("Geschiedenis", id: "history") {
-            HistoryView(model: model)
-        }
-        .windowResizability(.contentMinSize)
-
-        Window("Versies", id: "versions") {
-            VersionsView(model: model)
+        Window("Pullwatch", id: "main") {
+            MainView(model: model)
         }
         .windowResizability(.contentMinSize)
     }

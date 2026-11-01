@@ -28,6 +28,12 @@ final class AppModel {
     private(set) var isCheckingForUpdates = false
     /// Zoekterm die het Versies-venster overneemt zodra het verschijnt (bv. een repo uit Geschiedenis).
     var versionsSearch: String?
+    /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
+    var mainSection: MainSection? = UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests {
+        didSet { UserDefaults.standard.set(mainSection?.rawValue, forKey: "mainSection") }
+    }
+    /// Packages met een nieuwe versie die nog niet gezien is; teller in de zijbalk.
+    var unseenPackageUpdates: Int { 0 }
 
     struct RefetchProgress: Equatable {
         let startedAt: Date

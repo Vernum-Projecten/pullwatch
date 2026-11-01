@@ -82,8 +82,7 @@ struct MenuView: View {
                 Button("Alles gelezen") { model.markAllRead() }
                     .disabled(model.history.unreadCount == 0)
                 Spacer()
-                HistoryButton()
-                OpenWindowButton(title: "Versies…", windowId: "versions")
+                OpenWindowButton(title: "Openen…", windowId: "main")
                 SettingsButton()
                 Button("Stop") { NSApp.terminate(nil) }
             }
@@ -96,12 +95,6 @@ struct MenuView: View {
 struct SettingsButton: View {
     var body: some View {
         OpenWindowButton(title: "Instellingen…", windowId: "settings")
-    }
-}
-
-struct HistoryButton: View {
-    var body: some View {
-        OpenWindowButton(title: "Geschiedenis…", windowId: "history")
     }
 }
 

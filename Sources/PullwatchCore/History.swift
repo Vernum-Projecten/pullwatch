@@ -118,6 +118,10 @@ public struct History: Codable, Equatable, Sendable {
         items.filter { !$0.isRead }.count
     }
 
+    public func unreadCount(_ kind: ItemKind) -> Int {
+        items.filter { !$0.isRead && $0.entry.kind == kind }.count
+    }
+
     /// Bestaande items worden vervangen en komen bovenaan; tags komen boven de PR's uit dezelfde aanroep.
     public mutating func add(pullRequests: [PullRequest], tags: [Tag], at date: Date) {
         let entries = pullRequests.sorted { $0.createdAt < $1.createdAt }.map(HistoryEntry.pullRequest)
