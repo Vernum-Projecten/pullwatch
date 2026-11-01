@@ -70,16 +70,20 @@ public enum EndOfLife {
         product == "swift" ? try await SwiftReleases.fetch(http: http, now: now) : try await fetch(product: product, http: http, now: now)
     }
 
+    /// Cyclus waar `version` in valt: de langste naam die er een prefix van is ("1.27" voor "1.27.3").
+    public static func cycle(of version: String, releases: [EndOfLifeRelease]) -> EndOfLifeRelease? {
+        releases
+            .filter { version == $0.name || version.hasPrefix($0.name + ".") }
+            .max { $0.name.count < $1.name.count }
+    }
+
     /// Patches tellen niet: alleen een nieuwere cyclus (major/minor) maakt een versie "achter".
     public static func evaluate(version: String, releases: [EndOfLifeRelease], now: Date) -> (status: VersionStatus, latest: String?) {
         let today = now.formatted(Date.ISO8601FormatStyle(timeZone: .gmt).year().month().day())
         let released = releases.filter { $0.releaseDate <= today }
         guard let newest = released.max(by: { $0.releaseDate < $1.releaseDate }) else { return (.unknown, nil) }
         let latest = newest.latest ?? newest.name
-        let match = released
-            .filter { version == $0.name || version.hasPrefix($0.name + ".") }
-            .max { $0.name.count < $1.name.count }
-        guard let match else { return (.unknown, latest) }
+        guard let match = cycle(of: version, releases: released) else { return (.unknown, latest) }
         if match.isEol { return (.eol, latest) }
         return (match.name == newest.name ? .current : .behind, latest)
     }

@@ -9,14 +9,22 @@ public struct ComponentVersion: Codable, Hashable, Sendable {
     public let latest: String?
     public let status: VersionStatus
     public let sources: [String]
+    /// Releasecyclus van `version` (bv. "1.26") en de nieuwste patch daarin; nil als onbekend.
+    public let cycle: String?
+    public let cycleLatest: String?
 
-    public init(product: String, label: String, version: String, latest: String?, status: VersionStatus, sources: [String]) {
+    public init(
+        product: String, label: String, version: String, latest: String?, status: VersionStatus, sources: [String],
+        cycle: String? = nil, cycleLatest: String? = nil
+    ) {
         self.product = product
         self.label = label
         self.version = version
         self.latest = latest
         self.status = status
         self.sources = sources
+        self.cycle = cycle
+        self.cycleLatest = cycleLatest
     }
 }
 
@@ -265,16 +273,20 @@ public struct VersionChecker: Sendable {
         let date = now()
         func components(_ scan: Scan) -> [ComponentVersion] {
             Self.combine(scan.versions).map { detected, sources in
-                let evaluation = releases[detected.product].flatMap { $0 }
+                let productReleases = releases[detected.product].flatMap { $0 }
+                let evaluation = productReleases
                     .map { EndOfLife.evaluate(version: detected.version, releases: $0, now: date) }
                     ?? (status: .unknown, latest: nil)
+                let cycle = productReleases.flatMap { EndOfLife.cycle(of: detected.version, releases: $0) }
                 return ComponentVersion(
                     product: detected.product,
                     label: detected.label,
                     version: detected.version,
                     latest: evaluation.latest,
                     status: evaluation.status,
-                    sources: sources
+                    sources: sources,
+                    cycle: cycle?.name,
+                    cycleLatest: cycle.map { $0.latest ?? $0.name }
                 )
             }
         }

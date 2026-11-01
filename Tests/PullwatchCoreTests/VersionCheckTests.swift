@@ -94,6 +94,34 @@ private actor FileProvider: PRProvider {
         #expect(http.requests.filter { $0.url!.absoluteString.contains("products/go") }.count == 1)
     }
 
+    @Test func componentKeepsLatestPatchOfItsOwnCycle() async {
+        let http = MockHTTPClient()
+        http.on("products/go", body: goReleases())
+        let provider = FileProvider(repos: ["acme/a"], files: ["acme/a": ["go.mod": "go 1.26.9"]])
+        let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now })
+            .run(accounts: [account(["acme/a": .prs])])
+        let go = report.repos.first?.components.first
+        #expect(go?.cycle == "1.26")
+        #expect(go?.cycleLatest == "1.26.10")
+        #expect(go?.latest == "1.27.3")
+    }
+
+    @Test func cycleMatchesLongestPrefix() throws {
+        let releases = [
+            EndOfLifeRelease(name: "1.27", releaseDate: "2026-08-19", isEol: false, latest: "1.27.4"),
+            EndOfLifeRelease(name: "1.2", releaseDate: "2014-01-01", isEol: true, latest: "1.2.2"),
+        ]
+        #expect(EndOfLife.cycle(of: "1.27.3", releases: releases)?.latest == "1.27.4")
+        #expect(EndOfLife.cycle(of: "1.2.1", releases: releases)?.name == "1.2")
+        #expect(EndOfLife.cycle(of: "1.28", releases: releases) == nil)
+    }
+
+    @Test func oldComponentWithoutCycleDecodes() throws {
+        let json = #"{"product":"go","label":"Go","version":"1.26","status":"current","sources":[]}"#
+        let component = try JSONDecoder().decode(ComponentVersion.self, from: Data(json.utf8))
+        #expect(component.cycleLatest == nil)
+    }
+
     @Test func followsReposViaNewRepoDefault() async {
         let provider = FileProvider(repos: ["acme/a"], files: [:])
         let report = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now })
