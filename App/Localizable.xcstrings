@@ -1,6 +1,62 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "%@ %@ beschikbaar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ available"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ disponible"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@ beschikbaar"
+          }
+        }
+      }
+    },
+    "%@ beschikbaar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ available"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ disponible"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ beschikbaar"
+          }
+        }
+      }
+    },
     "%@ · %@": {
       "localizations": {
         "de": {
@@ -309,6 +365,34 @@
         }
       }
     },
+    "%lld nieuwe versies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld neue Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld new versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nouvelles versions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld nieuwe versies"
+          }
+        }
+      }
+    },
     "%lld ook in %@": {
       "comment": "Aantal kwetsbaarheden, tagnaam",
       "localizations": {
@@ -338,6 +422,90 @@
         }
       }
     },
+    "%lld repo's al op %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld Repositories bereits auf %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld repositories already on %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld dépôts déjà en %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld repo's al op %@"
+          }
+        }
+      }
+    },
+    "%lld repo's lopen achter": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Repositories im Rückstand"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld repositories behind"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld dépôts en retard"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld repo's lopen achter"
+          }
+        }
+      }
+    },
+    "+ %lld meer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ %lld weitere"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ %lld more"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ %lld de plus"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ %lld meer"
+          }
+        }
+      }
+    },
     "1 kwetsbaarheid": {
       "localizations": {
         "de": {
@@ -362,6 +530,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 kwetsbaarheid"
+          }
+        }
+      }
+    },
+    "1 repo al op %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Repository bereits auf %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 repository already on %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 dépôt déjà en %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 repo al op %@"
           }
         }
       }
@@ -870,6 +1066,34 @@
         }
       }
     },
+    "Check opnieuw om ook de packages van je repo's op te halen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe erneut, um auch die Pakete deiner Repositories abzurufen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again to also fetch the packages of your repositories."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifiez à nouveau pour récupérer aussi les paquets de vos dépôts."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check opnieuw om ook de packages van je repo's op te halen."
+          }
+        }
+      }
+    },
     "Check welke gevolgde repo's achterlopen op taal- of frameworkversie.": {
       "localizations": {
         "de": {
@@ -1258,6 +1482,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen melding; staat wel in menu en geschiedenis"
+          }
+        }
+      }
+    },
+    "Geen packages gevonden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Pakete gefunden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No packages found"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun paquet trouvé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen packages gevonden"
           }
         }
       }
@@ -1738,6 +1990,34 @@
         }
       }
     },
+    "Leest de versies in alle gevolgde repo's en zoekt de nieuwste versie op bij endoflife.date en de package-registers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest die Versionen in allen verfolgten Repositories und sucht die neueste Version bei endoflife.date und den Paket-Registries"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads the versions in all followed repositories and looks up the latest version on endoflife.date and the package registries"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit les versions de tous les dépôts suivis et recherche la dernière version sur endoflife.date et dans les registres de paquets"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leest de versies in alle gevolgde repo's en zoekt de nieuwste versie op bij endoflife.date en de package-registers"
+          }
+        }
+      }
+    },
     "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's": {
       "localizations": {
         "de": {
@@ -1846,6 +2126,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Melding als een PR in deze repo gemerged wordt (binnen ~15 minuten)"
+          }
+        }
+      }
+    },
+    "Melding bij nieuwe versies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei neuen Versionen benachrichtigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify about new versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier les nouvelles versions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melding bij nieuwe versies"
           }
         }
       }
@@ -1962,6 +2270,34 @@
         }
       }
     },
+    "Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach der täglichen Prüfung: eine Mitteilung, wenn etwas, das deine Repositories verwenden, eine neue Version hat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the daily check: one notification when something your repositories use has a new version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après la vérification quotidienne : une notification quand un élément utilisé par vos dépôts a une nouvelle version"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken"
+          }
+        }
+      }
+    },
     "Naam": {
       "localizations": {
         "de": {
@@ -1986,6 +2322,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Naam"
+          }
+        }
+      }
+    },
+    "Niet te checken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht prüfbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't be checked"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible à vérifier"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet te checken"
           }
         }
       }
@@ -2130,6 +2494,34 @@
         }
       }
     },
+    "Nieuwe versie beschikbaar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Version verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version available"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle version disponible"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe versie beschikbaar"
+          }
+        }
+      }
+    },
     "Nieuwste tag; ook gecheckt, zodat je ziet wat er in de laatste release zit": {
       "localizations": {
         "de": {
@@ -2154,6 +2546,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nieuwste tag; ook gecheckt, zodat je ziet wat er in de laatste release zit"
+          }
+        }
+      }
+    },
+    "Nieuwste versie niet op te halen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version nicht abrufbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version unavailable"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version indisponible"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie niet op te halen"
           }
         }
       }
@@ -2210,6 +2630,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nog niet gecheckt"
+          }
+        }
+      }
+    },
+    "Nu checken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check now"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier maintenant"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu checken"
           }
         }
       }
@@ -2378,6 +2826,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open het versie-overzicht"
+          }
+        }
+      }
+    },
+    "Openen…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Openen…"
           }
         }
       }
@@ -2746,6 +3222,34 @@
         }
       }
     },
+    "Pullwatch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch"
+          }
+        }
+      }
+    },
     "Pullwatch %@ is beschikbaar": {
       "localizations": {
         "de": {
@@ -2858,6 +3362,34 @@
         }
       }
     },
+    "Repo-controle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository-Prüfung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contrôle des dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repo-controle"
+          }
+        }
+      }
+    },
     "Repos laden": {
       "localizations": {
         "de": {
@@ -2938,6 +3470,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Selecteer of voeg een account toe"
+          }
+        }
+      }
+    },
+    "Sinds wanneer deze versie de nieuwste is": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seit wann diese Version die neueste ist"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Since when this version is the latest"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depuis quand cette version est la plus récente"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinds wanneer deze versie de nieuwste is"
           }
         }
       }
@@ -3363,6 +3923,34 @@
         }
       }
     },
+    "Toon deze repo in Repo-controle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Repository in der Repository-Prüfung zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this repository in Repository check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher ce dépôt dans Contrôle des dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon deze repo in Repo-controle"
+          }
+        }
+      }
+    },
     "Toon versies van %@": {
       "localizations": {
         "de": {
@@ -3728,6 +4316,34 @@
         }
       }
     },
+    "Zie welke runtimes en packages je repo's gebruiken en of er een nieuwere versie is.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sieh, welche Runtimes und Pakete deine Repositories verwenden und ob es eine neuere Version gibt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See which runtimes and packages your repositories use and whether a newer version exists."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voyez quels runtimes et paquets vos dépôts utilisent et s'il existe une version plus récente."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zie welke runtimes en packages je repo's gebruiken en of er een nieuwere versie is."
+          }
+        }
+      }
+    },
     "Zit ook in de laatste release (%@)": {
       "comment": "Tagnaam",
       "localizations": {
@@ -3753,6 +4369,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zit ook in de laatste release (%@)"
+          }
+        }
+      }
+    },
+    "Zoek op package of repo…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Paket oder Repository suchen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by package or repository…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher par paquet ou dépôt…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek op package of repo…"
           }
         }
       }
@@ -3978,6 +4622,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "wacht op eerste poll"
+          }
+        }
+      }
+    },
+    "· %lld repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld Repositories"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld repo's"
+          }
+        }
+      }
+    },
+    "· %lld repo's achter": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld Repositories im Rückstand"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld repositories behind"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld dépôts en retard"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· %lld repo's achter"
+          }
+        }
+      }
+    },
+    "· 1 repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 Repository"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 repo"
+          }
+        }
+      }
+    },
+    "· 1 repo achter": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 Repository im Rückstand"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 repository behind"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 dépôt en retard"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· 1 repo achter"
           }
         }
       }

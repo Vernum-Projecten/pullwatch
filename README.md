@@ -38,9 +38,13 @@ Pullwatch checks GitHub once a day for a newer release (Settings → General, al
 
 While a window (settings, history, versions) is open, Pullwatch shows in the Dock; close the last window and it runs from the menu bar only.
 
+### Main window
+
+**Openen…** in the menu opens the main window. Its sidebar has four sections: **PR's**, **Tags**, **Repo-controle** (repository check) and **Versies** (versions); the badges count unread PRs and tags and unseen new versions. Pullwatch remembers the last section.
+
 ### History
 
-**Geschiedenis…** opens a searchable list of every detected PR and tag (filter by kind, double-click opens the page). Retention (2 months, 6 months, 1 year or forever) is set under Settings → General.
+**PR's** and **Tags** are searchable lists of every detected PR and tag (double-click opens the page). Retention (2 months, 6 months, 1 year or forever) is set under Settings → General.
 
 Pullwatch also fetches existing PRs (open, merged and closed) for the history. The first time it goes back to the retention period, with at most 1000 PRs per account; after that the history is updated every 15 minutes (state, title and close date). Fetched PRs don't notify and are marked as read. Changing the repository filter or retention restarts the initial fetch for that account. The GitHub search API has its own limit of 30 requests per minute; when hit, Pullwatch waits it out while PR polling carries on.
 
@@ -48,7 +52,7 @@ Calls to `az` and `gh` time out after 20 seconds.
 
 ### Versions
 
-**Versies…** shows which followed repositories are behind. Per repository Pullwatch reads, on the default branch:
+**Repo-controle** shows which followed repositories are behind. Per repository Pullwatch reads, on the default branch:
 
 | File | Detects |
 |---|---|
@@ -73,7 +77,16 @@ The same check looks up known vulnerabilities via [OSV.dev](https://osv.dev) for
 
 If a repository has tags, the newest version tag is checked too (pre-releases like `-rc1` only if there is nothing else). Each vulnerability on the default branch is marked as also in that release or new since it. Anything already fixed on the default branch is not reported.
 
-The check runs once a day (can be turned off under Settings → General) and on **Opnieuw checken**; ↻ re-checks a single repository and the copy button puts a repository's versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From the history window, **Versies** (or right-click a row) opens the versions filtered on that repository.
+The check runs once a day (can be turned off under Settings → General) and on **Opnieuw checken**; ↻ re-checks a single repository and the copy button puts a repository's versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Versies** (or right-click a row) opens the repository check filtered on that repository.
+
+### Versions per package
+
+**Versies** turns the same check around: per runtime and package, which version is the latest and which repositories are still on an older one. It updates with the version check (daily, **Opnieuw checken**, **Nu checken**).
+
+- **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift, Docker images) are compared within their release cycle, patches included: a repository on Go 1.27.3 sees "Go 1.27 · 1.27.4 beschikbaar", one on Go 1.26.9 sees 1.26.10 once that is out. A newer cycle (Node 22 → 25) is not listed here; the repository check already shows that as behind. A version without a patch (`go 1.27`, `node:22`) is never behind on patches.
+- **Packages** are the direct dependencies only: `go.mod` without `// indirect`, the root package in `package-lock.json` (v2/v3), and for `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock` the names in `composer.json`, `Cargo.toml` or `pyproject.toml`. .NET `PackageReference`s and `requirements*.txt` are direct already. A package without an exact version (a range without a lockfile) is not counted. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) appear once, as a package.
+- The latest version comes from the package's registry: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org and crates.io. Pre-releases don't count. Package names are sent to these registries, also for private repositories. Private modules and Swift packages end up under **Niet te checken** (can't be checked).
+- After the daily check, one notification lists the new versions of anything a repository is behind on (turn off under Settings → General → **Melding bij nieuwe versies**). The first time a package is seen stays silent.
 
 ### PAT scopes
 
