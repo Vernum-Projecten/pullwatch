@@ -504,15 +504,18 @@ private struct RepoPackageUpdatesSection: View {
     }
 }
 
-/// Volgen (PR's, Tags, Completed) en per soort de melding, direct opgeslagen.
+/// Volgen (PR's, tags, gemerged) en per soort de melding, direct opgeslagen; met dezelfde regels
+/// als de lijst in Instellingen (gemerged hoort bij de PR's).
 private struct RepoWatchSection: View {
     @Binding var watch: WatchSet
 
     var body: some View {
         Section {
-            WatchRow(title: "PR's", follow: $watch.prs, notify: $watch.notifyPRs)
-            WatchRow(title: "Tags", follow: $watch.tags, notify: $watch.notifyTags)
-            WatchRow(title: "Completed", follow: $watch.completed, notify: $watch.notifyCompleted)
+            ForEach(WatchKind.allCases) { kind in
+                WatchRow(title: kind.columnTitle, follow: $watch[follows: kind], notify: $watch[notifies: kind])
+                    .disabled(kind == .merged && !watch.prs)
+                    .help(kind.help)
+            }
         } header: {
             Text("Volgen")
         } footer: {
@@ -523,7 +526,7 @@ private struct RepoWatchSection: View {
 }
 
 private struct WatchRow: View {
-    let title: LocalizedStringResource
+    let title: LocalizedStringKey
     @Binding var follow: Bool
     @Binding var notify: Bool
 

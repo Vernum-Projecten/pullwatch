@@ -27,6 +27,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
 
 ### Changed
 
+- **Choose per repository what to follow.** The account's repository list
+  has three columns again, PRs, Tags and Merged, with an "all" checkbox
+  per owner and column. Notifications per kind are in a repository's
+  context menu. New repositories can follow nothing, PRs, or PRs and tags.
 - A new app icon in Icon Composer format.
 - Account names follow the organisation.
 - The project is a committed Xcode project with settings in `.xcconfig`
