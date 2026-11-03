@@ -14,6 +14,9 @@ import Synchronization
 final class FakeGitHub: HTTPClient {
     static let isEnabled = UserDefaults.standard.bool(forKey: "PullwatchFakeGitHub")
     static let hasData = UserDefaults.standard.bool(forKey: "PullwatchFakeData")
+    /// Met `-PullwatchFakeDelay <seconden>` wacht elk antwoord zo lang, zodat de voortgang van
+    /// een eerste sync te zien (en te fotograferen) is.
+    static let delay = UserDefaults.standard.double(forKey: "PullwatchFakeDelay")
     static let shared = FakeGitHub()
 
     static let login = "octocat"
@@ -34,6 +37,7 @@ final class FakeGitHub: HTTPClient {
     }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        if Self.delay > 0 { try await Task.sleep(for: .seconds(Self.delay)) }
         let url = request.url!
         let path = url.path()
         let body: String
@@ -68,6 +72,8 @@ final class FakeGitHub: HTTPClient {
                 body = #"[{"full_name":"octocat/hello-world"},{"full_name":"octocat/spoon-knife"},{"full_name":"octocat/linguist"}]"#
             case "/search/issues":
                 body = #"{"total_count":0,"items":[]}"#
+            case "/graphql":
+                body = #"{"data":{"repository":null}}"#
             default:
                 // Tags, bomen, bestanden: leeg, zodat polls en checks gewoon doorlopen.
                 body = path.hasSuffix("/tags") ? "[]" : #"{"tree":[]}"#
@@ -153,6 +159,7 @@ private enum FakeWorld {
             break
         }
         if path == "/search/issues" { return search(query: url.query() ?? "") }
+        if path == "/graphql" { return datedTags(body: request.httpBody) }
         let parts = url.pathComponents
         // /repos/octocat/<repo>/...
         guard parts.count >= 5, parts[1] == "repos", parts[2] == FakeGitHub.login else { return nil }
@@ -184,6 +191,23 @@ private enum FakeWorld {
                 + #""repository_url":"https://api.github.com/repos/octocat/\#(pr.repo)"}"#
         }
         return #"{"total_count":\#(items.count),"items":["# + items.joined(separator: ",") + "]}"
+    }
+
+    /// De GraphQL-vraag naar tags met datum (`GitHubProvider.datedTags`): de tags van de repo,
+    /// de eerste een paar dagen oud en elke volgende een maand ouder.
+    static func datedTags(body: Data?) -> String {
+        struct Query: Decodable {
+            struct Variables: Decodable { let owner: String; let name: String }
+            let variables: Variables
+        }
+        let query = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }
+        guard let query, query.variables.owner == FakeGitHub.login, let names = tags[query.variables.name] else {
+            return #"{"data":{"repository":null}}"#
+        }
+        let nodes = names.enumerated().map { index, name in
+            #"{"name":"\#(name)","target":{"committedDate":"\#(iso(3 + Double(index) * 30))"}}"#
+        }
+        return #"{"data":{"repository":{"refs":{"nodes":["# + nodes.joined(separator: ",") + "]}}}}"
     }
 
     static func endOfLife(product: String) -> String? {

@@ -158,6 +158,15 @@ extension VersionReport {
         return VersionReport(checkedAt: checkedAt, repos: replaced, latestPackages: merged)
     }
 
+    /// Vervangt of voegt meerdere repo's toe (`runMissing`), zoals `replacing(_:latest:)`.
+    public func replacing(_ repos: [RepoVersions], latest: [String: PackageLatest] = [:]) -> VersionReport {
+        var report = self
+        for (index, repo) in repos.enumerated() {
+            report = report.replacing(repo, latest: index == 0 ? latest : [:])
+        }
+        return report
+    }
+
     /// Automatische check: eens per dag.
     public static let autoInterval: TimeInterval = 24 * 3600
     /// Na een volledig mislukte automatische check (bv. offline) opnieuw na een uur.
@@ -230,6 +239,30 @@ public struct VersionChecker: Sendable {
     public func run(account: Account, repo: String) async -> (repo: RepoVersions, latest: [String: PackageLatest]) {
         let checked = await check([(account, makeProvider(account), [repo])], progress: { _, _ in })
         return (checked.repos.first ?? RepoVersions(accountId: account.id, repo: repo, components: []), checked.latest)
+    }
+
+    /// Checkt alleen de gevolgde repo's die nog niet in `report` staan (net gevolgd of nieuw bij
+    /// de dienst), zodat ze niet tot de volgende dagelijkse check op "Nog niet gecheckt" blijven.
+    /// Een account waarvan de lijst niet lukt wordt overgeslagen. `progress` zoals bij `run(accounts:)`.
+    public func runMissing(
+        accounts: [Account],
+        in report: VersionReport,
+        progress: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
+    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest]) {
+        let known = Set(report.repos.map { "\($0.accountId.uuidString)/\($0.repo.lowercased())" })
+        var targets: [(account: Account, provider: any PRProvider, repos: [String])] = []
+        for account in accounts {
+            let provider = makeProvider(account)
+            guard let listed = try? await provider.listRepos() else { continue }
+            let repos = listed.filter {
+                let watch = account.watch(for: $0)
+                return (watch.prs || watch.tags || watch.completed)
+                    && !known.contains("\(account.id.uuidString)/\($0.lowercased())")
+            }
+            if !repos.isEmpty { targets.append((account, provider, repos)) }
+        }
+        guard !targets.isEmpty else { return ([], [:]) }
+        return await check(targets, progress: progress)
     }
 
     /// Stap 2 t/m 5 voor de opgegeven repo's per account.

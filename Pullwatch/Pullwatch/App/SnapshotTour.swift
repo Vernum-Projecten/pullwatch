@@ -1,5 +1,5 @@
 #if DEBUG
-import Foundation
+import AppKit
 import PullwatchCore
 
 /// Alleen in debug-builds, met `-PullwatchSnapshotTour YES` (en `-PullwatchSnapshotDirectory`):
@@ -13,7 +13,36 @@ enum SnapshotTour {
     static func runIfRequested(_ model: AppModel) async {
         guard UserDefaults.standard.bool(forKey: "PullwatchSnapshotTour"), !hasRun else { return }
         hasRun = true
-        for _ in 0..<120 where model.history.items.isEmpty || model.versionReport == nil || model.versionCheck != nil {
+        // `-PullwatchSnapshotDark YES`: de schermen in donkere modus, los van de instelling van de Mac.
+        if UserDefaults.standard.bool(forKey: "PullwatchSnapshotDark") {
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+        // Eerst de lege schermen tijdens de eerste sync, met de balk onderin (met
+        // `-PullwatchFakeDelay` duurt die lang genoeg om te zien).
+        if model.history.items.isEmpty {
+            model.show(.pullRequests)
+            try? await Task.sleep(for: .seconds(2))
+            SnapshotCamera.shoot("fetching-pull-requests", windowId: WindowID.main.rawValue)
+            // De camera wacht zelf 400 ms; pas daarna verder.
+            try? await Task.sleep(for: .seconds(1))
+            model.show(.tags)
+            try? await Task.sleep(for: .seconds(1))
+            SnapshotCamera.shoot("fetching-tags", windowId: WindowID.main.rawValue)
+            try? await Task.sleep(for: .seconds(1))
+            model.show(.repos)
+            try? await Task.sleep(for: .seconds(1))
+            SnapshotCamera.shoot("fetching-repos", windowId: WindowID.main.rawValue)
+            try? await Task.sleep(for: .seconds(1))
+            // De versiecheck met zijn aantallen, zodra die loopt.
+            for _ in 0..<120 where model.versionCheck.map({ $0.total == 0 }) ?? true {
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+            model.show(.versions)
+            try? await Task.sleep(for: .seconds(1))
+            SnapshotCamera.shoot("checking-versions", windowId: WindowID.main.rawValue)
+            try? await Task.sleep(for: .seconds(1))
+        }
+        for _ in 0..<240 where model.history.items.isEmpty || model.versionReport == nil || model.versionCheck != nil {
             try? await Task.sleep(for: .milliseconds(500))
         }
         model.show(.main)

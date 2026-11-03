@@ -168,6 +168,51 @@ public actor AzureDevOpsProvider: PRProvider {
         return TagFetch(tags: result, unavailableRepos: unavailable)
     }
 
+    /// Tags met de datum van hun commit: de refs (met `peelTags`, zodat een geannoteerde tag zijn
+    /// commit noemt) en daarna de commits in één `commitsbatch` per honderd.
+    public func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
+        guard let slash = repo.firstIndex(of: "/"), limit > 0 else { return [] }
+        let project = String(repo[..<slash])
+        let name = String(repo[repo.index(after: slash)...])
+        let repoURL = baseURL.appending(path: project).appending(path: "_apis/git/repositories").appending(path: name)
+        let list: ValueList<RefDTO> = try await get(
+            repoURL.appending(path: "refs"),
+            query: [URLQueryItem(name: "filter", value: "tags/"), URLQueryItem(name: "peelTags", value: "true")]
+        )
+        var commitByTag: [String: String] = [:]
+        for ref in list.value {
+            guard let commit = ref.peeledObjectId ?? ref.objectId else { continue }
+            commitByTag[ref.name] = commit
+        }
+        var dates: [String: Date] = [:]
+        let ids = Array(Set(commitByTag.values)).sorted()
+        // Hooguit tien batches: een repo met duizenden tags hoeft niet helemaal terug.
+        for start in stride(from: 0, to: min(ids.count, 1000), by: 100) {
+            let batch = Array(ids[start..<min(start + 100, ids.count)])
+            let body = try JSONEncoder().encode(CommitsBatchDTO(ids: batch, top: batch.count))
+            let commits: ValueList<CommitDTO> = try await get(repoURL.appending(path: "commitsbatch"), body: body)
+            for commit in commits.value {
+                if let date = (commit.committer?.date ?? commit.author?.date).flatMap(DateParsing.parse) {
+                    dates[commit.commitId] = date
+                }
+            }
+        }
+        let creators = Dictionary(list.value.map { ($0.name, $0.creator?.displayName) }, uniquingKeysWith: { first, _ in first })
+        let tags: [Tag] = commitByTag.compactMap { refName, commit in
+            guard let date = dates[commit] else { return nil }
+            let tagName = refName.hasPrefix("refs/tags/") ? String(refName.dropFirst("refs/tags/".count)) : refName
+            return Tag(
+                accountId: accountId,
+                repo: repo,
+                name: tagName,
+                authorName: creators[refName] ?? nil,
+                webURL: tagURL(project: project, repo: name, tag: tagName),
+                createdAt: date
+            )
+        }
+        return Array(tags.sorted { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }.prefix(limit))
+    }
+
     private func tagURL(project: String, repo: String, tag: String) -> URL {
         let base = baseURL.appending(path: project).appending(path: "_git").appending(path: repo)
         var components = URLComponents(url: base, resolvingAgainstBaseURL: false)!
@@ -272,10 +317,20 @@ public actor AzureDevOpsProvider: PRProvider {
         }
     }
 
-    private func get<T: Decodable>(_ url: URL, apiVersion: String = "7.1", query: [URLQueryItem] = []) async throws -> T {
+    private func get<T: Decodable>(
+        _ url: URL,
+        apiVersion: String = "7.1",
+        query: [URLQueryItem] = [],
+        body: Data? = nil
+    ) async throws -> T {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         components.queryItems = query + [URLQueryItem(name: "api-version", value: apiVersion)]
         var request = URLRequest(url: components.url!)
+        if let body {
+            request.httpMethod = "POST"
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         let authorization = try await authorizationHeader()
         request.setValue(authorization, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -339,4 +394,24 @@ private struct RefDTO: Decodable {
     struct Creator: Decodable { let displayName: String }
     let name: String
     let creator: Creator?
+    let objectId: String?
+    /// Bij `peelTags=true` de commit achter een geannoteerde tag.
+    let peeledObjectId: String?
+}
+
+private struct CommitsBatchDTO: Encodable {
+    let ids: [String]
+    let top: Int
+
+    private enum CodingKeys: String, CodingKey {
+        case ids
+        case top = "$top"
+    }
+}
+
+private struct CommitDTO: Decodable {
+    struct Person: Decodable { let date: String? }
+    let commitId: String
+    let author: Person?
+    let committer: Person?
 }

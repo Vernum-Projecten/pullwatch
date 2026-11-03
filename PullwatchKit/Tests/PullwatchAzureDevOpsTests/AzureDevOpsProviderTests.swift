@@ -160,6 +160,33 @@ import PullwatchTestSupport
         #expect(tags.allSatisfy { $0.repo == "proj/api" && $0.accountId == fixedAccountId })
     }
 
+    @Test func datedTagsUseTheCommitDates() async throws {
+        let http = MockHTTPClient()
+        http.on("repositories/api/refs", body: #"""
+        {"value":[
+          {"name":"refs/tags/v1","objectId":"c1"},
+          {"name":"refs/tags/v2","objectId":"t2","peeledObjectId":"c2","creator":{"displayName":"Jan"}},
+          {"name":"refs/tags/lost","objectId":"c9"}
+        ]}
+        """#)
+        http.on("repositories/api/commitsbatch", body: #"""
+        {"count":2,"value":[
+          {"commitId":"c1","committer":{"date":"2026-08-01T10:00:00Z"}},
+          {"commitId":"c2","committer":{"date":"2026-10-01T10:00:00Z"}}
+        ]}
+        """#)
+
+        let tags = try await makeProvider(http).datedTags(in: "proj/api", limit: 10)
+
+        #expect(tags.map(\.name) == ["v2", "v1"])
+        #expect(tags.map(\.authorName) == ["Jan", nil])
+        #expect(tags.first?.createdAt == DateParsing.parse("2026-10-01T10:00:00Z"))
+        let refs = try #require(http.requests.first?.url?.absoluteString)
+        #expect(refs.contains("peelTags=true"))
+        let batch = try #require(http.requests.last)
+        #expect(batch.httpMethod == "POST")
+    }
+
     @Test func tagURLEncodesName() async throws {
         let http = MockHTTPClient()
         http.on("_apis/git/repositories/api/refs", body: #"{"value":[{"name":"refs/tags/release/2.0+b"}]}"#)

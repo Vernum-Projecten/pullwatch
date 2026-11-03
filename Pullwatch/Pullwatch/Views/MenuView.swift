@@ -10,6 +10,7 @@ struct MenuView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             MenuHeader(
+                isPolling: model.pollProgress != nil,
                 refresh: { Task { await model.refreshNow() } },
                 openSettings: { MenuPanel.close(); model.show(.settings) },
                 openAbout: { MenuPanel.close(); model.show(.about) }
@@ -71,6 +72,8 @@ enum MenuPanel {
 /// instellingen). Gewone randloze knoppen: het paneel zelf is al van Liquid Glass, en Apple
 /// raadt glas op glas en glas in de inhoudslaag af.
 private struct MenuHeader: View {
+    /// Er loopt een poll: een kleine spinner naast Verversen, en Verversen staat uit.
+    let isPolling: Bool
     let refresh: () -> Void
     let openSettings: () -> Void
     let openAbout: () -> Void
@@ -86,8 +89,16 @@ private struct MenuHeader: View {
             HStack(spacing: 12) {
                 Button("Over Pullwatch", systemImage: "info.circle", action: openAbout)
                     .help("Over Pullwatch")
+                // Vaste plek naast Verversen, alleen zichtbaar tijdens een poll: er verschuift niets.
+                ProgressView()
+                    .controlSize(.small)
+                    .opacity(isPolling ? 1 : 0)
+                    .accessibilityHidden(!isPolling)
+                    .accessibilityLabel(Text("Bezig met verversen"))
+                    .help("Bezig met verversen")
                 Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
                     .keyboardShortcut("r")
+                    .disabled(isPolling)
                     .help("Nu verversen")
                 Button("Instellingen", systemImage: "gearshape", action: openSettings)
                     .keyboardShortcut(",")

@@ -16,6 +16,10 @@ public protocol PRProvider: Sendable {
     /// Tags van de opgegeven repos; `Tag.repo` is exact de doorgegeven repo-string.
     /// Een repo die 404 of geen toegang geeft wordt overgeslagen en in `unavailableRepos` gemeld.
     func tags(in repos: [String]) async throws -> TagFetch
+    /// De nieuwste tags van één repo mét datum (`Tag.createdAt`), nieuwste eerst, hooguit
+    /// `limit`. Alleen voor de eerste tag-poll van een repo, die ze stil in de geschiedenis zet.
+    /// Een provider zonder datums geeft een lege lijst.
+    func datedTags(in repo: String, limit: Int) async throws -> [Tag]
     /// Alle bestandspaden (zonder leidende "/") op `ref` (tagnaam) of zonder ref op de default branch;
     /// een lege repo geeft een lege lijst.
     func filePaths(in repo: String, ref: String?) async throws -> [String]
@@ -26,6 +30,8 @@ public protocol PRProvider: Sendable {
 }
 
 extension PRProvider {
+    public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
+
     public func filePaths(in repo: String) async throws -> [String] {
         try await filePaths(in: repo, ref: nil)
     }

@@ -168,6 +168,28 @@ public struct History: Codable, Equatable, Sendable {
         return changed
     }
 
+    /// Voegt bestaande tags uit de eerste tag-poll toe: gelezen, `detectedAt` = `createdAt`, op
+    /// volgorde van datum. Een tag die al in de geschiedenis staat blijft zoals hij is, net als
+    /// tags zonder datum of van vóór `notBefore`. Geeft `true` als er iets is toegevoegd.
+    @discardableResult
+    public mutating func merge(syncedTags tags: [Tag], notBefore: Date? = nil) -> Bool {
+        var known = Set(items.map(\.id))
+        var added: [HistoryItem] = []
+        for tag in tags {
+            guard let date = tag.createdAt, notBefore.map({ date >= $0 }) ?? true,
+                  known.insert(tag.dedupKey).inserted else { continue }
+            added.append(HistoryItem(entry: .tag(tag), detectedAt: date, isRead: true))
+        }
+        guard !added.isEmpty else { return false }
+        // Stabiel: bij gelijke datum blijven bestaande items vóór de nieuwe.
+        items = (items + added).enumerated()
+            .sorted { $0.element.detectedAt != $1.element.detectedAt
+                ? $0.element.detectedAt > $1.element.detectedAt
+                : $0.offset < $1.offset }
+            .map(\.element)
+        return true
+    }
+
     /// Werkt status, sluitdatum en titel van een PR-item bij. Geeft `true` als er iets veranderde.
     private static func update(_ item: inout HistoryItem, with pr: PullRequest) -> Bool {
         guard case .pullRequest(var existing) = item.entry else { return false }

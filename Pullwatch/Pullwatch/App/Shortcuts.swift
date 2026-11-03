@@ -100,7 +100,12 @@ struct ShortcutCommands: Commands {
                 Task { await model.checkVersions() }
             }
             .keyboardShortcut("r", modifiers: [.command, .option])
-            .disabled(model.versionCheck != nil)
+            .disabled(model.versionCheck != nil || !model.refreshingRepos.isEmpty)
+            Button("Ophalen stoppen") {
+                model.cancelSync()
+            }
+            .keyboardShortcut(".", modifiers: .command)
+            .disabled(!(model.syncStatus.work?.isCancellable ?? false))
         }
     }
 }

@@ -87,7 +87,14 @@ struct PackagesView: View {
             if let repoId = PackageNode.repoId(in: ids) { model.showRepo(id: repoId) }
         }
         .overlay {
-            if model.versionReport == nil {
+            if model.versionReport == nil && model.versionCheck != nil {
+                // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
+                ContentUnavailableView(
+                    "Versies checken…",
+                    systemImage: "shippingbox",
+                    description: Text("Pullwatch leest de runtimes en packages van de repo's die je volgt.")
+                )
+            } else if model.versionReport == nil {
                 ContentUnavailableView(
                     "Nog niet gecheckt",
                     systemImage: "shippingbox",

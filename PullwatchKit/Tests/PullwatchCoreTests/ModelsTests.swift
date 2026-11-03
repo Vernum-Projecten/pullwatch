@@ -7,7 +7,8 @@ import PullwatchTestSupport
     @Test func accountDefaults() {
         let account = Account(kind: .gitHub, organization: "alessandro", authMethod: .cli)
         #expect(account.repoWatch.isEmpty)
-        #expect(account.newRepoDefault == .prs)
+        // Een nieuw account volgt PR's en tags (#52); oude configs houden `.prs` (zie PopulateTests).
+        #expect(account.newRepoDefault == .prsAndTags)
         #expect(account.includeDrafts == false)
         #expect(account.hideOwn == true)
     }

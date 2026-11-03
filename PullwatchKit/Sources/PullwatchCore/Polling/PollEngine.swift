@@ -22,6 +22,26 @@ public struct PollResult: Equatable, Sendable {
     /// PR's die sinds de vorige geschiedenis-sync gemerged zijn in repo's met "Completed" aan,
     /// gesorteerd op `closedAt`.
     public var completedPullRequests: [PullRequest] = []
+    /// Bestaande tags uit de eerste tag-poll van een repo, met datum en binnen de bewaartermijn,
+    /// voor de geschiedenis (gelezen). Niet bedoeld voor meldingen.
+    public var syncedTags: [Tag] = []
+    /// Per account de repo's waarvan deze poll de tags ophaalde (alleen als tags aan de beurt waren).
+    public var tagRepos: [UUID: [String]] = [:]
+}
+
+/// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account
+/// er een eerste geschiedenis-sync (volledige backfill) doet; nil als er geen bij zit.
+public struct PollProgress: Equatable, Sendable {
+    public var done: Int
+    public var total: Int
+    /// `Account.displayName` van het account met de eerste sync in deze poll.
+    public var firstSyncAccount: String?
+
+    public init(done: Int, total: Int, firstSyncAccount: String? = nil) {
+        self.done = done
+        self.total = total
+        self.firstSyncAccount = firstSyncAccount
+    }
 }
 
 public actor PollEngine {
@@ -33,6 +53,8 @@ public actor PollEngine {
     public static let syncLimit = 1000
     /// Een vervolg-sync kijkt zoveel terug vóór de vorige sync, zodat randgevallen niet wegvallen.
     public static let syncOverlap: TimeInterval = 3600
+    /// Maximaal aantal bestaande tags per repo dat de eerste tag-poll in de geschiedenis zet.
+    public static let tagBackfillLimit = 100
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -48,7 +70,11 @@ public actor PollEngine {
         let pullRequests: [PullRequest]
         /// `nil` als tags deze cyclus niet aan de beurt waren of het ophalen mislukte.
         let tags: [Tag]?
+        /// De repo's waarvan de tags opgehaald zijn; bij tags volgen als standaard uit de lijst
+        /// van de dienst.
         let tagRepos: [String]
+        /// Gedateerde tags van repo's die nog niet geseed waren (`PRProvider.datedTags`).
+        let backfillTags: [Tag]
         /// Tag-repo's die de provider oversloeg (404/geen toegang), lowercased.
         let unavailableTagRepos: Set<String>
         /// Fout bij het ophalen van tags die het account niet laat falen (zie `fetchTags`).
@@ -57,6 +83,13 @@ public actor PollEngine {
         let synced: [PullRequest]?
         /// Fout bij de geschiedenis-sync; laat het account nooit falen.
         let syncError: ProviderError?
+    }
+
+    /// Waar een poll de tags van ophaalt: het account (eigen instellingen, standaard) en de repo's
+    /// (lowercased) waarvan de eerste tag-poll al gedaan is.
+    private struct TagRepos: Sendable {
+        let account: Account
+        let seeded: Set<String>
     }
 
     /// Een geschiedenis-sync die deze cyclus moet draaien; `since == nil` haalt alles op.
@@ -79,6 +112,9 @@ public actor PollEngine {
     private var inFlight: Set<UUID> = []
     /// Account waarvan de eerste sync (volledige backfill) nu loopt; geldt over overlappende poll()-aanroepen heen.
     private var firstSyncAccount: UUID?
+    /// Sync-markeringen van vóór "Opnieuw ophalen", per account dat nog niet opnieuw gesynct is;
+    /// `cancelHistoryResync` zet ze terug.
+    private var resyncBackup: [String: SyncMark] = [:]
 
     public init(
         makeProvider: @escaping ProviderFactory,
@@ -99,8 +135,24 @@ public actor PollEngine {
     /// Vergeet alle sync-markeringen en pollt meteen, zodat elk account de geschiedenis binnen de
     /// bewaartermijn opnieuw ophaalt (één account tegelijk, zoals bij de eerste sync).
     public func resetHistorySync() {
+        resyncBackup = resyncBackup.merging(state.syncMarks) { kept, _ in kept }
         state.syncMarks = [:]
         forceRefresh()
+    }
+
+    /// Stopt "Opnieuw ophalen": accounts die nog niet opnieuw gesynct zijn krijgen hun vorige
+    /// sync-markering terug en gaan verder met een gewone vervolg-sync. Wat al opnieuw is
+    /// opgehaald (of nu loopt) blijft.
+    public func cancelHistoryResync() {
+        for (key, mark) in resyncBackup where state.syncMarks[key] == nil {
+            state.syncMarks[key] = mark
+        }
+        resyncBackup = [:]
+        do {
+            try store?.save(state)
+        } catch {
+            logger.error("seen-state opslaan mislukt: \(error.localizedDescription)")
+        }
     }
 
     /// Tijdstip van de laatste geslaagde sync per account (alleen accounts met een sync).
@@ -110,6 +162,13 @@ public actor PollEngine {
             if let mark = state.syncMarks[id.uuidString] { result[id] = mark.at }
         }
         return result
+    }
+
+    /// Accounts waarvan de geschiedenis nog een eerste sync over de hele bewaartermijn nodig heeft
+    /// (nieuw account, of andere filters of bewaartermijn); hun lijsten zijn dan nog niet gevuld.
+    public func pendingFirstSync(accounts: [Account], retention: HistoryRetention) -> Set<UUID> {
+        let t = now()
+        return Set(accounts.filter { syncRequest(for: $0, retention: retention, at: t).isFirst }.map(\.id))
     }
 
     public func forceRefresh() {
@@ -126,7 +185,8 @@ public actor PollEngine {
     public func poll(
         accounts: [Account],
         interval: TimeInterval,
-        retention: HistoryRetention
+        retention: HistoryRetention,
+        progress: (@Sendable (PollProgress) async -> Void)? = nil
     ) async -> PollResult {
         let t = now()
         forget(except: Set(accounts.map(\.id)))
@@ -144,18 +204,27 @@ public actor PollEngine {
                 if let request = sync, request.isFirst {
                     if firstSyncAccount == nil { firstSyncAccount = account.id } else { sync = nil }
                 }
+                let prefix = "\(account.id.uuidString):"
                 return (
                     account: account,
                     provider: provider(for: account),
                     userId: userIds[account.id],
-                    tagRepos: account.tagRepos,
-                    fetchTags: tagsDue && !account.tagRepos.isEmpty,
+                    tagRepos: TagRepos(
+                        account: account,
+                        seeded: Set(state.tagSeeded.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) })
+                    ),
+                    fetchTags: tagsDue && (account.followsTagsByDefault || !account.tagRepos.isEmpty),
                     sync: sync
                 )
             }
         // Markeer vóór de eerste suspensie, zodat overlappende poll()-aanroepen deze accounts overslaan.
         for job in jobs { inFlight.insert(job.account.id) }
         let jobsById = Dictionary(uniqueKeysWithValues: jobs.map { ($0.account.id, $0) })
+        var report = PollProgress(
+            done: 0, total: jobs.count,
+            firstSyncAccount: jobs.first { $0.sync?.isFirst == true }?.account.displayName
+        )
+        if !jobs.isEmpty { await progress?(report) }
 
         var result = PollResult()
         var succeeded: [UUID] = []
@@ -176,9 +245,11 @@ public actor PollEngine {
                 guard let job = jobsById[id] else { continue }
                 switch outcome {
                 case .success(let fetched):
-                    let fresh = handleSuccess(job.account, fetched, at: t, interval: interval)
+                    let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
                     result.newTags += fresh.tags
+                    result.syncedTags += fresh.backfill
+                    if fetched.tags != nil { result.tagRepos[id] = fetched.tagRepos }
                     let sync = handleSync(job.account, fetched, request: job.sync, retention: retention, at: t)
                     result.syncedPullRequests += sync.pullRequests
                     result.completedPullRequests += sync.completed
@@ -190,6 +261,8 @@ public actor PollEngine {
                 }
                 inFlight.remove(id)
                 if firstSyncAccount == id { firstSyncAccount = nil }
+                report.done += 1
+                await progress?(report)
             }
         }
 
@@ -203,6 +276,7 @@ public actor PollEngine {
 
         result.newPullRequests.sort { $0.createdAt < $1.createdAt }
         result.newTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
+        result.syncedTags.sort { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
         return result
@@ -211,7 +285,7 @@ public actor PollEngine {
     private static func fetch(
         _ provider: any PRProvider,
         knownUserId: String?,
-        tagRepos: [String],
+        tagRepos: TagRepos,
         fetchTags: Bool,
         sync: SyncRequest?
     ) async -> Result<Fetched, ProviderError> {
@@ -223,10 +297,9 @@ public actor PollEngine {
                 userId = try await provider.currentUserId()
             }
             let pullRequests = try await provider.openPullRequests()
-            var tagFetch: TagFetch?
-            var tagError: ProviderError?
+            var tags = TagOutcome(repos: tagRepos.account.tagRepos)
             if fetchTags {
-                (tagFetch, tagError) = try await Self.fetchTags(provider, in: tagRepos)
+                tags = try await Self.fetchTags(provider, tagRepos)
             }
             var synced: [PullRequest]?
             var syncError: ProviderError?
@@ -236,10 +309,11 @@ public actor PollEngine {
             return .success(Fetched(
                 userId: userId,
                 pullRequests: pullRequests,
-                tags: tagFetch?.tags,
-                tagRepos: tagRepos,
-                unavailableTagRepos: Set((tagFetch?.unavailableRepos ?? []).map { $0.lowercased() }),
-                tagError: tagError,
+                tags: tags.fetch?.tags,
+                tagRepos: tags.repos,
+                backfillTags: tags.backfill,
+                unavailableTagRepos: Set((tags.fetch?.unavailableRepos ?? []).map { $0.lowercased() }),
+                tagError: tags.error,
                 synced: synced,
                 syncError: syncError
             ))
@@ -250,21 +324,52 @@ public actor PollEngine {
         }
     }
 
+    /// Uitkomst van het ophalen van tags in één poll.
+    private struct TagOutcome {
+        var fetch: TagFetch?
+        var repos: [String]
+        var backfill: [Tag] = []
+        var error: ProviderError?
+    }
+
+    /// Haalt de tags op van de eigen tag-repo's, en bij tags als standaard van alle repo's in de
+    /// lijst van de dienst. Repo's die nog niet geseed zijn krijgen hun gedateerde tags erbij
+    /// (`datedTags`); lukt dat niet, dan seedt die repo stil zoals vroeger.
     /// Alleen `.rateLimited` laat het account falen; andere tag-fouten (ook `.unauthorized`,
     /// bv. een 403 op één repo) worden teruggegeven zodat de PR's van deze poll gewoon verwerkt worden.
     private static func fetchTags(
         _ provider: any PRProvider,
-        in repos: [String]
-    ) async throws -> (fetch: TagFetch?, error: ProviderError?) {
+        _ tagRepos: TagRepos
+    ) async throws -> TagOutcome {
+        let account = tagRepos.account
+        var outcome = TagOutcome(repos: account.tagRepos)
         do {
-            return (try await provider.tags(in: repos), nil)
+            if account.followsTagsByDefault {
+                outcome.repos = account.tagRepos(available: try await provider.listRepos())
+            }
+            let fetch = try await provider.tags(in: outcome.repos)
+            outcome.fetch = fetch
+            let unavailable = Set(fetch.unavailableRepos.map { $0.lowercased() })
+            for repo in outcome.repos {
+                let key = repo.lowercased()
+                guard !tagRepos.seeded.contains(key), !unavailable.contains(key) else { continue }
+                do {
+                    outcome.backfill += try await provider.datedTags(in: repo, limit: tagBackfillLimit)
+                } catch {
+                    logger.notice("tagdatums ophalen mislukt voor \(repo): \(error.localizedDescription)")
+                }
+            }
+            return outcome
         } catch let error as ProviderError {
             switch error {
             case .rateLimited: throw error
-            default: return (nil, error)
+            default:
+                outcome.error = error
+                return outcome
             }
         } catch {
-            return (nil, .network(error.localizedDescription))
+            outcome.error = .network(error.localizedDescription)
+            return outcome
         }
     }
 
@@ -311,15 +416,17 @@ public actor PollEngine {
         let keys = Set(ids.map(\.uuidString))
         state.lastSettings = state.lastSettings.filter { keys.contains($0.key) }
         state.syncMarks = state.syncMarks.filter { keys.contains($0.key) }
+        resyncBackup = resyncBackup.filter { keys.contains($0.key) }
         state.retain(onlyKeyPrefixes: keys.map { "\($0):" })
     }
 
     private func handleSuccess(
         _ account: Account,
         _ fetched: Fetched,
+        retention: HistoryRetention,
         at t: Date,
         interval: TimeInterval
-    ) -> (pullRequests: [PullRequest], tags: [Tag]) {
+    ) -> (pullRequests: [PullRequest], tags: [Tag], backfill: [Tag]) {
         let settings = account.filterSettings
         let key = account.id.uuidString
         let previous = state.lastSettings[key].flatMap { $0.sameSource(as: settings) ? $0 : nil }
@@ -351,7 +458,8 @@ public actor PollEngine {
         }
         schedules[account.id] = schedule
         statuses[account.id] = .ok(lastPoll: t)
-        return (fresh, handleTags(account, fetched, at: t))
+        let tags = handleTags(account, fetched, notBefore: retention.maxAge.map { t - $0 }, at: t)
+        return (fresh, tags.fresh, tags.backfill)
     }
 
     /// Verwerkt de geschiedenis-sync: plant de volgende sync en geeft de gefilterde PR's terug,
@@ -384,6 +492,7 @@ public actor PollEngine {
         let previous = request?.isFirst == false ? state.syncMarks[account.id.uuidString] : nil
         let newlyCompleted = completed(account, synced, previous: previous, userId: fetched.userId, at: t)
         state.syncMarks[account.id.uuidString] = SyncMark(at: t, settings: settings, retention: retention)
+        resyncBackup[account.id.uuidString] = nil
         schedule.nextSyncDue = t + Self.tagInterval
         return (synced.filter { PRFilter.passes($0, settings: settings, currentUserId: fetched.userId) }, newlyCompleted)
     }
@@ -413,21 +522,30 @@ public actor PollEngine {
         return fresh
     }
 
-    /// Eerste tag-poll per repo is stil; daarna wordt elke onbekende tag gemeld.
-    private func handleTags(_ account: Account, _ fetched: Fetched, at t: Date) -> [Tag] {
+    /// Eerste tag-poll per repo meldt niets: de bestaande tags met een datum vanaf `notBefore`
+    /// (de bewaartermijn) gaan als `backfill` stil de geschiedenis in. Daarna wordt elke
+    /// onbekende tag gemeld.
+    private func handleTags(
+        _ account: Account,
+        _ fetched: Fetched,
+        notBefore: Date?,
+        at t: Date
+    ) -> (fresh: [Tag], backfill: [Tag]) {
         // Mislukte tag-fetch: tag-state ongemoeid laten tot de volgende tag-poll.
-        guard fetched.tagError == nil else { return [] }
+        guard fetched.tagError == nil else { return ([], []) }
         let prefix = "\(account.id.uuidString):"
         // Repo's waarvan tags uit staan vergeten, zodat weer aanzetten opnieuw stil seedt.
         let wantedKeys = Set(fetched.tagRepos.map { prefix + $0.lowercased() })
         state.tagSeeded = state.tagSeeded.filter { !$0.key.hasPrefix(prefix) || wantedKeys.contains($0.key) }
 
-        guard let tags = fetched.tags else { return [] }
+        guard let tags = fetched.tags else { return ([], []) }
         let tagsByRepo = Dictionary(grouping: tags) { $0.repo.lowercased() }
+        let datedByRepo = Dictionary(grouping: fetched.backfillTags) { $0.repo.lowercased() }
         if !fetched.unavailableTagRepos.isEmpty {
             logger.warning("tags overgeslagen voor \(account.displayName): \(fetched.unavailableTagRepos.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }
         var fresh: [Tag] = []
+        var backfill: [Tag] = []
         // Onbereikbare repo's niet als geseed markeren of verversen: anders worden hun bestaande
         // tags als nieuw gemeld zodra de toegang terugkomt.
         for repo in Set(fetched.tagRepos.map { $0.lowercased() }).subtracting(fetched.unavailableTagRepos) {
@@ -439,9 +557,16 @@ public actor PollEngine {
                 }
                 state.mark(tag.dedupKey, at: t)
             }
+            if !isSeeded {
+                for tag in datedByRepo[repo] ?? [] {
+                    guard let date = tag.createdAt, notBefore.map({ date >= $0 }) ?? true else { continue }
+                    backfill.append(tag)
+                    state.mark(tag.dedupKey, at: t)
+                }
+            }
             state.tagSeeded[seededKey] = t
         }
-        return fresh
+        return (fresh, backfill)
     }
 
     /// Geeft `true` als het account net naar `.unauthorized` is overgegaan.

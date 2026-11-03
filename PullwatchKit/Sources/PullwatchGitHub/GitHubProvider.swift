@@ -219,6 +219,28 @@ public actor GitHubProvider: PRProvider {
         return TagFetch(tags: result, unavailableRepos: unavailable)
     }
 
+    /// Via GraphQL, in één verzoek: de REST-lijst van tags heeft geen datums. Een geannoteerde
+    /// tag krijgt de datum van de tagger, een lichte tag die van de commit. Een repo die niet
+    /// (meer) bestaat geeft een lege lijst.
+    public func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
+        let parts = repo.split(separator: "/", maxSplits: 1).map(String.init)
+        guard parts.count == 2, limit > 0 else { return [] }
+        let request = TagQueryDTO(
+            query: TagQueryDTO.text,
+            variables: .init(owner: parts[0], name: parts[1], first: min(limit, pageSize))
+        )
+        let response = try JSONDecoding.decode(
+            TagQueryDTO.Response.self,
+            from: try await data(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
+        )
+        return (response.data?.repository?.refs.nodes ?? []).compactMap { node in
+            guard let url = tagURL(repo: repo, tag: node.name),
+                  let date = (node.target.tagger?.date ?? node.target.committedDate ?? node.target.target?.committedDate)
+                .flatMap(DateParsing.parse) else { return nil }
+            return Tag(accountId: accountId, repo: repo, name: node.name, authorName: nil, webURL: url, createdAt: date)
+        }
+    }
+
     /// De tagnaam wordt als één padsegment gecodeerd, dus "/" wordt %2F en "+" wordt %2B.
     private func tagURL(repo: String, tag: String) -> URL? {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
@@ -289,10 +311,20 @@ public actor GitHubProvider: PRProvider {
         try JSONDecoding.decode(T.self, from: try await data(url, query: query), snakeCase: true)
     }
 
-    private func data(_ url: URL, query: [URLQueryItem] = [], accept: String = "application/vnd.github+json") async throws -> Data {
+    private func data(
+        _ url: URL,
+        query: [URLQueryItem] = [],
+        accept: String = "application/vnd.github+json",
+        body: Data? = nil
+    ) async throws -> Data {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         var request = URLRequest(url: components.url!)
+        if let body {
+            request.httpMethod = "POST"
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         let token = try await tokenSource.token()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue(accept, forHTTPHeaderField: "Accept")
@@ -348,4 +380,51 @@ private struct TreeDTO: Decodable {
 
 private struct TagDTO: Decodable {
     let name: String
+}
+
+/// GraphQL: de nieuwste tags van één repo, op datum, met de datum van tagger of commit.
+private struct TagQueryDTO: Encodable {
+    static let text = """
+        query($owner: String!, $name: String!, $first: Int!) {
+          repository(owner: $owner, name: $name) {
+            refs(refPrefix: "refs/tags/", first: $first, orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) {
+              nodes {
+                name
+                target {
+                  ... on Commit { committedDate }
+                  ... on Tag { tagger { date } target { ... on Commit { committedDate } } }
+                }
+              }
+            }
+          }
+        }
+        """
+
+    struct Variables: Encodable {
+        let owner: String
+        let name: String
+        let first: Int
+    }
+
+    let query: String
+    let variables: Variables
+
+    struct Response: Decodable {
+        struct Payload: Decodable { let repository: Repository? }
+        struct Repository: Decodable { let refs: Refs }
+        struct Refs: Decodable { let nodes: [Node] }
+        struct Node: Decodable {
+            let name: String
+            let target: Target
+        }
+        struct Target: Decodable {
+            struct Tagger: Decodable { let date: String? }
+            struct Inner: Decodable { let committedDate: String? }
+            let committedDate: String?
+            let tagger: Tagger?
+            let target: Inner?
+        }
+
+        let data: Payload?
+    }
 }

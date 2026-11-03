@@ -8,6 +8,10 @@ actor MockProvider: PRProvider {
     private var tagError: ProviderError?
     private var unavailableTagRepos: Set<String> = []
     private var tagList: [Tag] = []
+    private var datedTagList: [Tag] = []
+    private var datedTagError: ProviderError?
+    private var repos: [String] = []
+    private(set) var datedTagRepos: [String] = []
     private var syncedPullRequests: [PullRequest] = []
     private var syncError: ProviderError?
     private(set) var fetchCount = 0
@@ -22,6 +26,11 @@ actor MockProvider: PRProvider {
     /// Fout die alleen `pullRequests(updatedSince:limit:)` gooit.
     func set(syncError: ProviderError?) { self.syncError = syncError }
     func set(tags: [Tag]) { tagList = tags }
+    /// Wat `datedTags(in:limit:)` geeft (per repo gefilterd).
+    func set(datedTags: [Tag]) { datedTagList = datedTags }
+    func set(datedTagError: ProviderError?) { self.datedTagError = datedTagError }
+    /// Wat `listRepos()` geeft.
+    func set(repos: [String]) { self.repos = repos }
     func set(error: ProviderError?) { self.error = error }
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
@@ -38,7 +47,10 @@ actor MockProvider: PRProvider {
         return userId
     }
 
-    func listRepos() async throws -> [String] { [] }
+    func listRepos() async throws -> [String] {
+        if let error { throw error }
+        return repos
+    }
 
     func openPullRequests() async throws -> [PullRequest] {
         fetchCount += 1
@@ -62,6 +74,12 @@ actor MockProvider: PRProvider {
             tags: tagList.filter { wanted.contains($0.repo.lowercased()) },
             unavailableRepos: repos.filter { unavailableTagRepos.contains($0.lowercased()) }
         )
+    }
+
+    func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
+        datedTagRepos.append(repo)
+        if let datedTagError { throw datedTagError }
+        return Array(datedTagList.filter { $0.repo.lowercased() == repo.lowercased() }.prefix(limit))
     }
 
     func filePaths(in repo: String, ref: String?) async throws -> [String] { [] }
