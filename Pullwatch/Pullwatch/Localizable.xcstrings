@@ -2490,6 +2490,28 @@
         }
       }
     },
+    "Advies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advisory"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advisory"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avis"
+          }
+        }
+      }
+    },
     "Afhankelijkheden": {
       "localizations": {
         "de": {
@@ -3334,6 +3356,28 @@
         }
       }
     },
+    "Artikel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Artikel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Article"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Article"
+          }
+        }
+      }
+    },
     "Auteur": {
       "localizations": {
         "de": {
@@ -3546,6 +3590,28 @@
         }
       }
     },
+    "Bewijs": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachweis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preuve"
+          }
+        }
+      }
+    },
     "Bezig met verversen": {
       "localizations": {
         "de": {
@@ -3618,6 +3684,29 @@
         }
       }
     },
+    "Bijgewerkt %@": {
+      "comment": "Datum",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiert am %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updated %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mis à jour le %@"
+          }
+        }
+      }
+    },
     "Bijna klaar": {
       "localizations": {
         "de": {
@@ -3664,6 +3753,73 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bots verbergen"
+          }
+        }
+      }
+    },
+    "Bron: %@": {
+      "comment": "Naam van de database van een kwetsbaarheid",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source : %@"
+          }
+        }
+      }
+    },
+    "Bronnen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
+          }
+        }
+      }
+    },
+    "Bronnen: alle ids, links en datums van dit advies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellen: alle IDs, Links und Daten dieses Advisorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources: every id, link and date of this advisory"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources : tous les identifiants, liens et dates de cet avis"
           }
         }
       }
@@ -4003,6 +4159,28 @@
         }
       }
     },
+    "Datums": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dates"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dates"
+          }
+        }
+      }
+    },
     "De eigenaar moet het nieuwe recht van de Pullwatch-app goedkeuren bij de installatie op GitHub": {
       "localizations": {
         "de": {
@@ -4043,6 +4221,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "La barre des menus, avec l’icône de Pullwatch en haut à droite près de l’horloge"
+          }
+        }
+      }
+    },
+    "Detectie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erkennung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detection"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détection"
           }
         }
       }
@@ -4154,6 +4354,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Direct dans %@"
+          }
+        }
+      }
+    },
+    "Discussie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diskussion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discussion"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discussion"
           }
         }
       }
@@ -4674,6 +4896,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vérifier chaque jour les dépendances et les vulnérabilités"
+          }
+        }
+      }
+    },
+    "Ernst": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité"
           }
         }
       }
@@ -5356,6 +5600,29 @@
         }
       }
     },
+    "Gepubliceerd %@": {
+      "comment": "Datum",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht am %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié le %@"
+          }
+        }
+      }
+    },
     "Geschiedenis": {
       "localizations": {
         "de": {
@@ -5839,6 +6106,28 @@
         }
       }
     },
+    "Ids": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IDs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ids"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identifiants"
+          }
+        }
+      }
+    },
     "In %@": {
       "comment": "Workspace, bv. packages/web",
       "localizations": {
@@ -5979,6 +6268,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Connecté à GitHub"
+          }
+        }
+      }
+    },
+    "Ingetrokken, niet meegeteld: %@": {
+      "comment": "Ids van ingetrokken adviezen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgezogen, nicht gezählt: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawn, not counted: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirés, non comptés : %@"
+          }
+        }
+      }
+    },
+    "Ingetrokken, niet meegeteld: %lld": {
+      "comment": "Aantal ingetrokken adviezen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgezogen, nicht gezählt: %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawn, not counted: %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirés, non comptés : %lld"
           }
         }
       }
@@ -6843,6 +7178,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licence"
+          }
+        }
+      }
+    },
+    "Links": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liens"
           }
         }
       }
@@ -8086,6 +8443,28 @@
         }
       }
     },
+    "Oorzaak": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ursache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduced"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Origine"
+          }
+        }
+      }
+    },
     "Op een ander account of organisatie installeren…": {
       "localizations": {
         "de": {
@@ -8248,6 +8627,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ouvrir Réglages Système"
+          }
+        }
+      }
+    },
+    "Open bij %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf %@ öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open on %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir sur %@"
           }
         }
       }
@@ -8426,28 +8827,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open in browser"
-          }
-        }
-      }
-    },
-    "Open in de GitHub Advisory Database": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In der GitHub Advisory Database öffnen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open in the GitHub Advisory Database"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ouvrir dans la GitHub Advisory Database"
           }
         }
       }
@@ -8637,6 +9016,51 @@
           "stringUnit": {
             "state": "translated",
             "value": "Récupération…"
+          }
+        }
+      }
+    },
+    "Oplossing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korrektur"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correctif"
+          }
+        }
+      }
+    },
+    "Oplossing: %@": {
+      "comment": "Link naar de fix-commit of -release",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korrektur: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correctif : %@"
           }
         }
       }
@@ -10089,6 +10513,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch, un compte signale une erreur"
+          }
+        }
+      }
+    },
+    "Rapport": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rapport"
           }
         }
       }
@@ -11928,6 +12374,28 @@
         }
       }
     },
+    "Verwant": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwandt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Related"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Associés"
+          }
+        }
+      }
+    },
     "Verwijderen": {
       "localizations": {
         "de": {
@@ -12552,6 +13020,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ce que ce projet publie lui-même sur ses vulnérabilités"
+          }
+        }
+      }
+    },
+    "Web": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web"
           }
         }
       }

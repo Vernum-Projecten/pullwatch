@@ -80,11 +80,13 @@ struct VulnerabilityList: View {
     }
 }
 
-/// Eén advies: ernst, id, package, of het direct of via een ander package binnenkomt, per geraakte
-/// install de versie, plek en keten, en onderaan wat je moet bijwerken.
+/// Eén advies: ernst, id met zijn database, package, of het direct of via een ander package
+/// binnenkomt, waar de ernst vandaan komt, per geraakte install de versie, plek en keten, en
+/// onderaan wat je moet bijwerken. Alle ids, links en datums staan achter de infoknop.
 private struct AdvisoryRow: View {
     let advisory: Advisory
-    /// GitHubs eigen gegevens (ernst, CVSS, CWE's); nil zonder advies in de Advisory Database.
+    /// GitHubs eigen gegevens (CWE's, en de ernst als OSV er geen geeft); nil zonder advies in de
+    /// Advisory Database.
     let gitHub: GitHubAdvisory?
     let location: VulnerabilityLocation?
     let showsWorkspace: Bool
@@ -92,6 +94,7 @@ private struct AdvisoryRow: View {
     var showPackage: ((String) -> Void)? = nil
 
     private var vulnerability: Vulnerability { advisory.first }
+    private var assessment: SeverityAssessment { vulnerability.severityAssessment(gitHub) }
 
     /// Elke oplossing één keer, op volgorde van de installs.
     private var fixes: [VulnerabilityFix] {
@@ -101,18 +104,17 @@ private struct AdvisoryRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                let severity = gitHub?.severity ?? vulnerability.severity
+                let severity = assessment.level
                 Pill(text: Vulnerability.severityLabel(severity), tint: Vulnerability.severityColor(severity))
-                if let cvss = gitHub?.cvss {
-                    Pill(text: "CVSS \(cvss.score.formatted(.number.precision(.fractionLength(1))))", tint: Vulnerability.severityColor(severity))
-                        .help(Text(verbatim: cvss.vector ?? ""))
+                    .help(Text(verbatim: assessment.note(for: vulnerability)))
+                if let score = assessment.score {
+                    Pill(text: "CVSS \(score.formatted(.number.precision(.fractionLength(1))))", tint: Vulnerability.severityColor(severity))
+                        .help(Text(verbatim: assessment.vector ?? ""))
                 }
-                Link(vulnerability.cve ?? gitHub?.cveId ?? vulnerability.id, destination: vulnerability.url)
-                    .help("Open bij OSV.dev")
-                if let ghsa = vulnerability.ghsa ?? gitHub?.ghsaId, ghsa != vulnerability.cve ?? gitHub?.cveId ?? vulnerability.id {
-                    Link(ghsa, destination: gitHub?.url ?? GitHubAdvisory.pageURL(ghsaId: ghsa))
-                        .help("Open in de GitHub Advisory Database")
-                }
+                Link(vulnerability.id, destination: vulnerability.pageURL)
+                    .help("Open bij \(vulnerability.database.name)")
+                SourceLabel(database: vulnerability.database)
+                VulnerabilitySourceButton(vulnerability: vulnerability, gitHub: gitHub)
                 if let showPackage {
                     Button(vulnerability.package) { showPackage(vulnerability.package) }
                         .buttonStyle(.link)
@@ -136,6 +138,7 @@ private struct AdvisoryRow: View {
             if let summary = vulnerability.summary ?? gitHub?.summary {
                 Text(verbatim: summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
+            Text(verbatim: assessment.note(for: vulnerability)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             if let cweText = gitHub?.cweText {
                 Text(verbatim: cweText).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
@@ -386,8 +389,9 @@ extension RepoVersions {
     }
 
     /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace, kwetsbaarheden
-    /// per advies (met GitHubs ernst, CVSS en CWE's), met waar en hoe elke install erin komt, en de
-    /// beveiligingsmeldingen van de dienst.
+    /// per advies (id met database en alle andere ids, ernst met CVSS en waar die vandaan komt,
+    /// CWE's, de fix-links), met waar en hoe elke install erin komt, de ingetrokken adviezen, en
+    /// de beveiligingsmeldingen van de dienst.
     func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:], report: VersionReport? = nil) -> String {
         let context = report?.updateContext(for: self) ?? .empty
         var lines = [repo]
@@ -440,10 +444,15 @@ extension RepoVersions {
                 if let severity = v.severityText(found) { line += " [\(severity)]" }
                 line += " \(v.package)"
                 if let summary = v.summary ?? found?.summary { line += ": \(summary)" }
-                line += " (\((found?.url ?? v.url).absoluteString))"
+                line += " (\(v.pageURL.absoluteString))"
                 lines.append(line)
-                if let vector = found?.cvss?.vector { lines.append("    \(vector)") }
+                let assessment = v.severityAssessment(found)
+                lines.append("    \(assessment.note(for: v))")
+                if let vector = assessment.vector { lines.append("    \(vector)") }
                 if let cweText = found?.cweText { lines.append("    \(cweText)") }
+                for reference in v.references where reference.type == "FIX" {
+                    lines.append("    \(String(localized: "Oplossing: \(reference.url.absoluteString)", comment: "Link naar de fix-commit of -release"))")
+                }
                 for install in advisory.installs {
                     var installLine = "    \(install.version)"
                     if let fixedIn = install.fixedIn { installLine += " → \(fixedIn)" }
@@ -454,6 +463,10 @@ extension RepoVersions {
                     lines.append("    \(fix)")
                 }
             }
+        }
+        if !withdrawnVulnerabilities.isEmpty {
+            let ids = Array(Set(withdrawnVulnerabilities.map(\.id))).sorted().joined(separator: ", ")
+            lines.append(String(localized: "Ingetrokken, niet meegeteld: \(ids)", comment: "Ids van ingetrokken adviezen"))
         }
         if let security { lines += security.clipboardLines }
         return lines.joined(separator: "\n")

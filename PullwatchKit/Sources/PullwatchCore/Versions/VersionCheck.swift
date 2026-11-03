@@ -54,6 +54,9 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     public let vulnerabilities: [Vulnerability]
     /// Gezet als de CVE-check voor deze repo niet kon draaien (OSV onbereikbaar).
     public let vulnerabilityError: String?
+    /// Adviezen die hun database heeft ingetrokken (OSV `withdrawn`): niet in `vulnerabilities`,
+    /// niet in status, telling of meldingen; alleen apart genoemd.
+    public let withdrawnVulnerabilities: [Vulnerability]
     /// Check van de nieuwste tag; nil als de repo geen tags met een versienummer heeft. Alleen ter info:
     /// status, sortering en meldingen gaan over de default branch.
     public let release: ReleaseVersions?
@@ -97,6 +100,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         error: String? = nil,
         vulnerabilities: [Vulnerability] = [],
         vulnerabilityError: String? = nil,
+        withdrawnVulnerabilities: [Vulnerability] = [],
         release: ReleaseVersions? = nil,
         packages: [PackageUse] = [],
         otherPackages: [PackageUse] = [],
@@ -108,6 +112,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         self.error = error
         self.vulnerabilities = vulnerabilities
         self.vulnerabilityError = vulnerabilityError
+        self.withdrawnVulnerabilities = withdrawnVulnerabilities
         self.release = release
         self.packages = packages
         self.otherPackages = otherPackages
@@ -115,7 +120,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages, otherPackages, security
+        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, withdrawnVulnerabilities, release, packages
+        case otherPackages, security
     }
 
     /// versions.json van vóór de CVE-check heeft geen `vulnerabilities`.
@@ -127,6 +133,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         error = try c.decodeIfPresent(String.self, forKey: .error)
         vulnerabilities = try c.decodeIfPresent([Vulnerability].self, forKey: .vulnerabilities) ?? []
         vulnerabilityError = try c.decodeIfPresent(String.self, forKey: .vulnerabilityError)
+        withdrawnVulnerabilities = try c.decodeIfPresent([Vulnerability].self, forKey: .withdrawnVulnerabilities) ?? []
         release = try c.decodeIfPresent(ReleaseVersions.self, forKey: .release)
         packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
         otherPackages = try c.decodeIfPresent([PackageUse].self, forKey: .otherPackages) ?? []
@@ -434,17 +441,19 @@ public struct VersionChecker: Sendable {
                 let release = repoScan.release.map { tag, found in
                     switch found {
                     case .success(let scan):
-                        ReleaseVersions(tag: tag, components: components(scan), vulnerabilities: vulnerabilities(scan))
+                        ReleaseVersions(tag: tag, components: components(scan), vulnerabilities: vulnerabilities(scan).filter { !$0.isWithdrawn })
                     case .failure(let error):
                         ReleaseVersions(tag: tag, components: [], error: Self.message(error))
                     }
                 }
+                let found = vulnerabilities(repoScan.main)
                 results.append(RepoVersions(
                     accountId: item.accountId,
                     repo: item.repo,
                     components: components(repoScan.main),
-                    vulnerabilities: vulnerabilities(repoScan.main),
+                    vulnerabilities: found.filter { !$0.isWithdrawn },
                     vulnerabilityError: repoScan.main.dependencies.isEmpty ? nil : osvError,
+                    withdrawnVulnerabilities: found.filter(\.isWithdrawn),
                     release: release,
                     packages: repoScan.main.directDependencies,
                     otherPackages: repoScan.main.otherPackages,

@@ -99,15 +99,16 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Tot drie losse meldingen (klik opent de pagina van GitHubs advies, anders die van OSV),
-    /// daarboven één samenvatting. Elke melding noemt CVE en GHSA-id, GitHubs ernst met de
-    /// CVSS-score, en of het lek direct of via een ander package binnenkomt.
+    /// Tot drie losse meldingen (klik opent de pagina bij de database van het advies), daarboven
+    /// één samenvatting. Elke melding noemt de id met zijn database en de andere ids
+    /// ("RUSTSEC-… (RustSec), ook GHSA-… en CVE-…"), de ernst met de CVSS-score en waar die
+    /// vandaan komt, en of het lek direct of via een ander package binnenkomt.
     func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)], report: VersionReport) {
         func line(_ v: Vulnerability) -> String {
             let advisory = report.advisory(for: v)
             let severity = v.severityText(advisory).map { " [\($0)]" } ?? ""
             let fix = v.fixedIn.map { " → \($0)" } ?? ""
-            return "\(v.identifiers(advisory))\(severity) \(v.package) \(v.version)\(fix)"
+            return "\(v.identifiers(advisory, maxAliases: 3))\(severity) \(v.package) \(v.version)\(fix)"
         }
         /// Wat de oplossing vraagt: binnen het bereik, het manifest mee, of eerst iets anders bijwerken.
         func fix(_ v: Vulnerability, in repo: String) -> String? {
@@ -120,9 +121,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 let content = UNMutableNotificationContent()
                 content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
                 // Direct of via welk package, en waar: dan weet je meteen wat je moet bijwerken.
-                content.body = [line(v), v.provenanceLine, fix(v, in: repo), advisory?.cweText, advisory?.summary ?? v.summary]
+                let severityNote = v.severityAssessment(advisory).note(for: v)
+                content.body = [line(v), severityNote, v.provenanceLine, fix(v, in: repo), advisory?.cweText, advisory?.summary ?? v.summary]
                     .compactMap { $0 }.joined(separator: "\n")
-                content.userInfo = ["url": (advisory?.url ?? v.url).absoluteString]
+                content.userInfo = ["url": v.pageURL.absoluteString]
                 content.sound = .default
                 add(UNNotificationRequest(identifier: "cve-\(repo)-\(v.id)-\(v.package)", content: content, trigger: nil))
             }

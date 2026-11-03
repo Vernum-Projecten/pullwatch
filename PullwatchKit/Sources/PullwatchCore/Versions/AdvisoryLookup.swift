@@ -8,6 +8,11 @@ extension VersionReport {
         return advisories.values.filter { $0.cveId == cve }.min { $0.ghsaId < $1.ghsaId }
     }
 
+    /// De ernst van een eigen vondst uit de beste bron (`Vulnerability.severityAssessment(_:)`).
+    public func severityAssessment(for vulnerability: Vulnerability) -> SeverityAssessment {
+        vulnerability.severityAssessment(advisory(for: vulnerability))
+    }
+
     /// Alle kwetsbaarheden in het rapport, ook die van de laatste release.
     var allVulnerabilities: [Vulnerability] {
         repos.flatMap { $0.vulnerabilities + ($0.release?.vulnerabilities ?? []) }
@@ -81,5 +86,56 @@ extension VersionChecker {
         }
         let lookup = await AdvisoryDatabase.lookUp(ghsaIds: missing.ghsaIds, cves: missing.cves, http: http, token: token, now: date)
         return report.adding(lookup, at: date)
+    }
+}
+
+/// De ernst van een kwetsbaarheid uit de beste bron, met waar die vandaan komt.
+public struct SeverityAssessment: Hashable, Sendable {
+    public enum Origin: Hashable, Sendable {
+        /// Uitgerekend uit de CVSS-vector van het OSV-record `record` (`id` of een alias).
+        case cvss(CVSSRating, record: String)
+        /// `database_specific.severity` van het OSV-record `record`.
+        case database(record: String)
+        /// GitHubs advies uit de Advisory Database (#73), via het GHSA-id of de CVE.
+        case gitHub(ghsaId: String)
+    }
+
+    /// "CRITICAL", "HIGH", "MODERATE" of "LOW"; nil als geen bron een ernst geeft.
+    public let level: String?
+    /// 0.0 t/m 10.0; nil zonder CVSS.
+    public let score: Double?
+    public let vector: String?
+    /// nil als geen bron een ernst geeft.
+    public let origin: Origin?
+
+    public init(level: String?, score: Double? = nil, vector: String? = nil, origin: Origin?) {
+        self.level = level
+        self.score = score
+        self.vector = vector
+        self.origin = origin
+    }
+}
+
+extension Vulnerability {
+    /// De ernst uit de beste bron: de CVSS-vector in OSV (de score rekent Pullwatch zelf uit),
+    /// anders `database_specific.severity` van OSV, anders GitHubs advies bij het GHSA-alias.
+    /// RustSec en Go geven vaak alleen een id; dan komt de ernst van GitHub.
+    public func severityAssessment(_ advisory: GitHubAdvisory?) -> SeverityAssessment {
+        let record = severityFrom ?? id
+        if let cvss {
+            return SeverityAssessment(level: cvss.level, score: cvss.score, vector: cvss.vector, origin: .cvss(cvss, record: record))
+        }
+        if let severity {
+            return SeverityAssessment(level: severity, origin: .database(record: record))
+        }
+        if let advisory, advisory.severity != nil || advisory.cvss != nil {
+            return SeverityAssessment(
+                level: advisory.severity ?? advisory.cvss.flatMap { CVSSCalculator.rating($0.score) },
+                score: advisory.cvss?.score,
+                vector: advisory.cvss?.vector,
+                origin: .gitHub(ghsaId: advisory.ghsaId)
+            )
+        }
+        return SeverityAssessment(level: nil, origin: nil)
     }
 }
