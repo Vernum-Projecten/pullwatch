@@ -94,7 +94,7 @@ struct OnboardingView: View {
         if let draft { model.discardDraft(draft.id) }
         model.completeOnboarding()
         dismissWindow(id: "onboarding")
-        if !model.config.pollableAccounts.isEmpty { model.openMainWindow?() }
+        if !model.config.pollableAccounts.isEmpty { model.show(.main) }
     }
 }
 

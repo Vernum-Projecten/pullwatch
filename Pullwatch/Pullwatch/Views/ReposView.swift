@@ -258,9 +258,7 @@ private struct RepoDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onExitCommand { model.goBack() }
-        .onChange(of: model.openInBrowserRequest) {
-            if let url = account?.repoWebURL(summary.repo) { NSWorkspace.shared.open(url) }
-        }
+        .focusedSceneValue(\.browserTarget, account?.repoWebURL(summary.repo).map(BrowserTarget.page))
     }
 
     private var header: some View {

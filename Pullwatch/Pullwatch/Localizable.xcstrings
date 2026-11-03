@@ -1980,34 +1980,6 @@
         }
       }
     },
-    "De nieuwe taal werkt na een herstart.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die neue Sprache gilt nach einem Neustart."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The new language takes effect after a restart."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La nouvelle langue s'applique après un redémarrage."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De nieuwe taal werkt na een herstart."
-          }
-        }
-      }
-    },
     "Downloaden": {
       "localizations": {
         "de": {
@@ -2830,34 +2802,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Installer Pullwatch sur GitHub"
-          }
-        }
-      }
-    },
-    "Instellingen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Einstellungen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réglages"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instellingen"
           }
         }
       }
@@ -4088,34 +4032,6 @@
         }
       }
     },
-    "Nu herstarten": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jetzt neu starten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restart now"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redémarrer maintenant"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nu herstarten"
-          }
-        }
-      }
-    },
     "Nu verversen": {
       "localizations": {
         "de": {
@@ -4168,6 +4084,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onbekend"
+          }
+        }
+      }
+    },
+    "Ongelezen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungelesen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non lu"
           }
         }
       }
@@ -5634,62 +5572,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stop"
-          }
-        }
-      }
-    },
-    "Systeem": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "System"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "System"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Système"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Systeem"
-          }
-        }
-      }
-    },
-    "Taal": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sprache"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Language"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Langue"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Taal"
           }
         }
       }
@@ -7404,34 +7286,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "wacht op eerste poll"
-          }
-        }
-      }
-    },
-    "•": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "•"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "•"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "•"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "•"
           }
         }
       }

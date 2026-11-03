@@ -19,10 +19,10 @@ import Testing
         #expect(info["LSUIElement"] as? Bool == true)
     }
 
+    /// De talen staan in de bundle, zodat macOS ze aanbiedt onder Systeeminstellingen → Algemeen →
+    /// Taal en regio → Apps (Pullwatch heeft geen eigen taalkeuze meer).
     @Test func shipsEveryLanguageTheAppOffers() {
-        let offered = AppLanguage.allCases.filter { $0 != .system }.map(\.rawValue)
-        #expect(Set(offered) == ["nl", "en", "de", "fr"])
-        for code in offered {
+        for code in ["nl", "en", "de", "fr"] {
             #expect(Bundle.main.localizations.contains(code), "geen \(code).lproj in de app")
             #expect((info["CFBundleLocalizations"] as? [String])?.contains(code) == true, "\(code) ontbreekt in CFBundleLocalizations")
         }

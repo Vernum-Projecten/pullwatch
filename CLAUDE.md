@@ -34,13 +34,19 @@ of each part is in `docs/superpowers/specs/` and its plan in
   Vernum-Projecten; then the optional, git-ignored `Local.xcconfig`) and
   `Release.xcconfig` (the maintainer's GitHub App). Never put the test app in
   `Release.xcconfig`.
-  `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (the
-  `MenuBarExtra`, the main `Window`, the Dock-icon switch), `AppModel.swift`
-  (the one `@Observable` model: polling loop, config, history, update check),
-  `Notifier`, `Shortcuts`, `AppLanguage`. `Pullwatch/Pullwatch/Views/`: only
-  draws. `MenuView` (the menu-bar popover), `MainView` (sidebar: PRs, Tags,
-  Repos, Versions, Statistics, Settings), `SettingsView`, `AccountEditor`,
-  the section views, and `Components/` (pills, rows). `Localizable.xcstrings`
+  `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (four
+  scenes: the `MenuBarExtra`, the main `Window`, the welcome `Window` that
+  opens by itself on a first launch via `defaultLaunchBehavior`, and the
+  `Settings` scene; `WindowPresence` shows the Dock icon while one of them is
+  open; the menu-bar label opens windows the model asks for through
+  `windowRequest`), `AppModel.swift` (the one `@Observable` model: polling
+  loop, config, history, update check; `show(_:)` opens a window or section),
+  `GitHubSignIn` (the GitHub sign-in flow), `FakeGitHub` (debug only),
+  `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
+  value), `AboutPanel`. `Pullwatch/Pullwatch/Views/`: only draws. `MenuView`
+  (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
+  Statistics), `SettingsView` (the Settings window: Accounts and General),
+  `AccountEditor`, the section views, and `Components/`. `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
   app icon, an Icon Composer bundle (`icon.json` plus one SVG per layer in

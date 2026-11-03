@@ -114,10 +114,6 @@ struct HistoryView: View {
         }
         .padding(12)
         .frame(minWidth: 720, minHeight: 420)
-        .onChange(of: model.openInBrowserRequest) {
-            for item in items where selection.contains(item.id) {
-                model.open(item)
-            }
-        }
+        .focusedSceneValue(\.browserTarget, .history(items.filter { selection.contains($0.id) }.map(\.id)))
     }
 }

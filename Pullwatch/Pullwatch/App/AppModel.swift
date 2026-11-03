@@ -6,6 +6,17 @@ import UserNotifications
 
 private let logger = Log(category: "app")
 
+/// De vensters van de app, met hun scene-id.
+enum WindowID: String {
+    case main, onboarding
+}
+
+/// Een verzoek om een venster te openen; elk verzoek is nieuw, ook voor hetzelfde venster.
+struct WindowRequest: Equatable {
+    let window: WindowID
+    let id = UUID()
+}
+
 @MainActor
 @Observable
 final class AppModel {
@@ -36,12 +47,30 @@ final class AppModel {
     /// Uitkomst van "Nu controleren" onder Instellingen; nil als er niet handmatig gekeken is.
     private(set) var updateCheckMessage: String?
     private(set) var isCheckingForUpdates = false
-    /// Zoekterm die het Versies-venster overneemt zodra het verschijnt (bv. een repo uit Geschiedenis).
-    /// Opent het hoofdvenster; gezet door een altijd aanwezige view (het menubalk-label), want
-    /// `openWindow` bestaat alleen in de SwiftUI-omgeving.
-    @ObservationIgnored var openMainWindow: (() -> Void)?
-    /// Opent het welkomstvenster; gezet door het menubalk-label, zoals `openMainWindow`.
-    @ObservationIgnored var openOnboarding: (() -> Void)?
+
+    /// Een venster dat open moet, als gegeven: `WindowOpener` (in het menubalk-label, dat er
+    /// altijd is) opent het met `openWindow` en zet dit weer op nil.
+    var windowRequest: WindowRequest?
+
+    /// Opent een venster (en haalt de app naar voren).
+    func show(_ window: WindowID) {
+        windowRequest = WindowRequest(window: window)
+    }
+
+    /// Opent het hoofdvenster op een onderdeel.
+    func show(_ section: MainSection) {
+        mainSection = section
+        show(.main)
+    }
+
+    /// Bij een eerste start opent het welkomstvenster vanzelf; niet als host van de unit-tests.
+    var opensOnboardingAtLaunch: Bool { needsOnboarding && !Self.isTestHost }
+
+    /// De app draait als host van de unit-tests: niet pollen, melden of vensters openen.
+    nonisolated static var isTestHost: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
     /// Het welkomstvenster is afgerond (of overgeslagen); daarna komt het niet vanzelf terug.
     var onboardingCompleted: Bool { config.onboardingCompleted }
     /// Eerste start: nog geen bruikbaar account en het welkomstvenster nooit afgerond.
@@ -91,8 +120,6 @@ final class AppModel {
     var packagesSearch: String?
     /// Verhoogd door ⌘F; het zoekveld van het zichtbare onderdeel pakt de focus.
     var searchFocusRequest = 0
-    /// Verhoogd door ⌘O; het zichtbare onderdeel opent zijn selectie in de browser.
-    var openInBrowserRequest = 0
 
     private func navigate(to section: MainSection) {
         isNavigating = true
@@ -123,7 +150,7 @@ final class AppModel {
             }
         case .versions:
             Task { await checkVersions() }
-        case .pullRequests, .tags, .stats, .settings:
+        case .pullRequests, .tags, .stats:
             Task { await refreshNow() }
         }
     }
@@ -204,6 +231,7 @@ final class AppModel {
     )
     @ObservationIgnored private let notifier = Notifier.shared
     @ObservationIgnored private var loopTask: Task<Void, Never>?
+    @ObservationIgnored private var wakeTask: Task<Void, Never>?
     /// Vroegste moment voor de volgende automatische versiecheck (na een mislukte of lopende poging).
     @ObservationIgnored private var nextAutoVersionAttempt: Date?
     @ObservationIgnored private var nextUpdateCheck: Date?
@@ -272,17 +300,12 @@ final class AppModel {
         notifier.onOpen = { [weak self] key in self?.markRead(key) }
         notifier.onOpenSection = { [weak self] section in
             guard let self, let section = MainSection(rawValue: section) else { return }
-            self.mainSection = section
-            self.openMainWindow?()
+            self.show(section)
         }
 
-        NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didWakeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            // Wi-Fi is vlak na het ontwaken nog niet terug; wacht om een vals "Netwerkfout" te voorkomen.
-            Task { @MainActor in
+        wakeTask = Task { [weak self] in
+            for await _ in NSWorkspace.shared.notificationCenter.notifications(named: NSWorkspace.didWakeNotification) {
+                // Wi-Fi is vlak na het ontwaken nog niet terug; wacht om een vals "Netwerkfout" te voorkomen.
                 try? await Task.sleep(for: .seconds(10))
                 await self?.refreshNow()
             }
@@ -402,6 +425,16 @@ final class AppModel {
     func refreshNow() async {
         await engine.forceRefresh()
         await tick()
+    }
+
+    /// ⌘O: wat het zichtbare onderdeel geselecteerd heeft in de browser.
+    func open(_ target: BrowserTarget) {
+        switch target {
+        case .history(let ids):
+            for item in history.items where ids.contains(item.id) { open(item) }
+        case .page(let url):
+            NSWorkspace.shared.open(url)
+        }
     }
 
     func open(_ item: HistoryItem) {
