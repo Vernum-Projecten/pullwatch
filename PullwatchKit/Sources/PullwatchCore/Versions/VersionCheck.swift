@@ -280,6 +280,88 @@ extension VersionReport {
         }
         return result
     }
+
+    /// Het rapport zoals het getoond mag worden nu `disabled` uit staan: wat eerder van zo'n bron
+    /// kwam, staat er niet meer als actueel, en de bron staat in `skippedSources` van elke repo
+    /// waar hij iets had moeten controleren, met dezelfde regels als `VersionChecker.check`. Zo ziet
+    /// het rapport eruit alsof de bronnen bij de laatste check al uit stonden. `accountKinds` geeft
+    /// per account de dienst, voor de beveiliging van die dienst; een repo van een onbekend account
+    /// houdt zijn beveiliging.
+    public func visible(disabled: Set<DataSourceID>, accountKinds: [UUID: ProviderKind]) -> VersionReport {
+        guard !disabled.isEmpty else { return self }
+        func isOff(key: String) -> Bool {
+            VersionChecker.split(key).flatMap { DataSourceID.registry(ecosystem: $0.0) }.map(disabled.contains) ?? false
+        }
+        /// Onderdelen waarvan de releasebron uit staat: geen nieuwste versie en geen status.
+        func components(_ components: [ComponentVersion]) -> (components: [ComponentVersion], skipped: Set<DataSourceID>) {
+            var skipped: Set<DataSourceID> = []
+            let result = components.map { component in
+                let id = DataSourceID.releases(product: component.product)
+                guard disabled.contains(id) else { return component }
+                skipped.insert(id)
+                return ComponentVersion(
+                    product: component.product, label: component.label, version: component.version, latest: nil,
+                    status: .unknown, sources: component.sources
+                )
+            }
+            return (result, skipped)
+        }
+        /// OSV als er packages zijn, een register per gebruikt ecosysteem.
+        func packageSources(hasPackages: Bool, ecosystems: Set<String>) -> Set<DataSourceID> {
+            var skipped: Set<DataSourceID> = []
+            if hasPackages, disabled.contains(.osv) { skipped.insert(.osv) }
+            for ecosystem in ecosystems {
+                if let id = DataSourceID.registry(ecosystem: ecosystem), disabled.contains(id) { skipped.insert(id) }
+            }
+            return skipped
+        }
+
+        let repos = repos.map { repo -> RepoVersions in
+            let uses = repo.packages + repo.otherPackages
+            let ecosystems = Set(uses.map(\.ecosystem))
+            var skipped = repo.skippedSources.union(packageSources(hasPackages: !uses.isEmpty, ecosystems: ecosystems))
+            let shown = components(repo.components)
+            skipped.formUnion(shown.skipped)
+            var security = repo.security
+            if let id = accountKinds[repo.accountId].flatMap(VersionChecker.securitySource(for:)), disabled.contains(id) {
+                security = nil
+                skipped.insert(id)
+            }
+            // Van de release bewaart het rapport geen packages: die van de default branch en de
+            // gevonden kwetsbaarheden van de tag staan ervoor. Liever een keer te vaak "niet
+            // gecontroleerd" dan een oude "geen kwetsbaarheden".
+            let release = repo.release.map { release -> ReleaseVersions in
+                guard release.error == nil else { return release }
+                let releaseShown = components(release.components)
+                let releaseSkipped = release.skippedSources
+                    .union(packageSources(
+                        hasPackages: !uses.isEmpty || !release.vulnerabilities.isEmpty,
+                        ecosystems: ecosystems.union(release.vulnerabilities.map(\.ecosystem))
+                    ))
+                    .union(releaseShown.skipped)
+                return ReleaseVersions(
+                    tag: release.tag, components: releaseShown.components,
+                    vulnerabilities: disabled.contains(.osv) ? [] : release.vulnerabilities, error: release.error,
+                    skippedSources: releaseSkipped
+                )
+            }
+            let osvOff = disabled.contains(.osv)
+            return RepoVersions(
+                accountId: repo.accountId, repo: repo.repo, components: shown.components, error: repo.error,
+                vulnerabilities: osvOff ? [] : repo.vulnerabilities,
+                vulnerabilityError: osvOff ? nil : repo.vulnerabilityError,
+                release: release, packages: repo.packages, otherPackages: repo.otherPackages, security: security,
+                skippedSources: skipped
+            )
+        }
+        return VersionReport(
+            checkedAt: checkedAt, repos: repos,
+            latestPackages: latestPackages.filter { !isOff(key: $0.key) },
+            advisories: disabled.contains(.gitHubAdvisoryDatabase) ? [:] : advisories,
+            advisoryMisses: advisoryMisses,
+            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }
+        )
+    }
 }
 
 /// Leest per gevolgde repo de projectbestanden, vergelijkt de gevonden versies met endoflife.date
@@ -615,7 +697,7 @@ public struct VersionChecker: Sendable {
     }
 
     /// Stap 6: haalt in rondes op wat `VersionReport.updateNeeds()` nog mist, elk ding één keer.
-    private func completingMetadata(
+    func completingMetadata(
         _ start: [String: PackageMetadata], repos: [RepoVersions], latest: [String: PackageLatest],
         floors: [String: (floor: String, keep: Set<String>)], attempted: Set<String>, date: Date
     ) async -> [String: PackageMetadata] {
