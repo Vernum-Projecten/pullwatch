@@ -426,16 +426,16 @@
     "%@, uitgezet": {
       "comment": "Dienst (GitHub of Azure DevOps); het account wordt niet opgehaald",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@, turned off"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "%@, ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, turned off"
           }
         },
         "fr": {
@@ -2859,6 +2859,34 @@
         }
       }
     },
+    "Code ophalen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code wird abgerufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting the code"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération du code"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code ophalen"
+          }
+        }
+      }
+    },
     "Controle": {
       "localizations": {
         "de": {
@@ -3051,16 +3079,16 @@
     },
     "Dit account ophalen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fetch This Account"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Dieses Konto abrufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetch This Account"
           }
         },
         "fr": {
@@ -4570,16 +4598,16 @@
     },
     "Je volgt nog niets. Vink hieronder aan wat Pullwatch moet ophalen.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You don’t follow anything yet. Check below what Pullwatch should fetch."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Du folgst noch nichts. Markiere unten, was Pullwatch abrufen soll."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don’t follow anything yet. Check below what Pullwatch should fetch."
           }
         },
         "fr": {
@@ -8748,16 +8776,16 @@
     },
     "Uit: Pullwatch haalt niets op voor dit account en stuurt er geen meldingen over. Wat je volgt blijft bewaard.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Off: Pullwatch fetches nothing for this account and sends no notifications about it. What you follow is kept."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Aus: Pullwatch ruft für dieses Konto nichts ab und sendet keine Mitteilungen dazu. Was du folgst, bleibt gespeichert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off: Pullwatch fetches nothing for this account and sends no notifications about it. What you follow is kept."
           }
         },
         "fr": {
@@ -8770,16 +8798,16 @@
     },
     "Uitgezet": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turned off"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turned off"
           }
         },
         "fr": {
@@ -8830,6 +8858,63 @@
           "stringUnit": {
             "state": "translated",
             "value": "À partir de ce niveau, Pullwatch écrit dans le journal système. Dans Console, recherchez nl.torrisi.pullwatch."
+          }
+        }
+      }
+    },
+    "Verbinding": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding"
+          }
+        }
+      }
+    },
+    "Verbonden als %@": {
+      "comment": "Naam van de ingelogde gebruiker",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden als %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected as %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté en tant que %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbonden als %@"
           }
         }
       }
@@ -9920,6 +10005,34 @@
         }
       }
     },
+    "Zonder account verder; je voegt er later een toe onder Instellingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Konto weiter; du kannst später unter Einstellungen eines hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue without an account; you can add one later in Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer sans compte ; vous pourrez en ajouter un plus tard dans Réglages"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder account verder; je voegt er later een toe onder Instellingen"
+          }
+        }
+      }
+    },
     "Zonder manifest in dezelfde map is niet te zien of je project deze packages zelf vraagt": {
       "localizations": {
         "de": {
@@ -10421,35 +10534,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "wacht op eerste poll"
-          }
-        }
-      }
-    },
-    "✓ Verbonden als %@": {
-      "comment": "Naam van de ingelogde gebruiker",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Verbunden als %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Connected as %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Connecté en tant que %@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Verbonden als %@"
           }
         }
       }

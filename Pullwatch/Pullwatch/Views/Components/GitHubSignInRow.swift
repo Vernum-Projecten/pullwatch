@@ -21,7 +21,9 @@ struct GitHubSignInRow: View {
             errorRow
         case .requestingCode:
             LabeledContent("GitHub") {
-                ProgressView().controlSize(.small)
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityLabel(Text("Code ophalen"))
             }
         case .waitingForApproval(let code):
             WaitingForApproval(code: code, signIn: signIn)
@@ -39,6 +41,7 @@ struct GitHubSignInRow: View {
                 } icon: {
                     if let login {
                         AccountAvatar(gitHubLogin: login, size: 20)
+                            .accessibilityHidden(true)
                     } else {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
@@ -57,7 +60,8 @@ struct GitHubSignInRow: View {
     }
 }
 
-/// De code om op github.com in te vullen, groot en selecteerbaar, met de twee acties.
+/// De code om op github.com in te vullen, groot en selecteerbaar, met de acties eronder en het
+/// wachten op een eigen rij, zodat in elke taal alles past.
 private struct WaitingForApproval: View {
     let code: DeviceCode
     let signIn: GitHubSignIn
@@ -71,6 +75,16 @@ private struct WaitingForApproval: View {
         } label: {
             Text("Je code")
             Text("Plak hem op github.com/login/device en keur Pullwatch goed. Pullwatch wacht hier tot dat gebeurd is.")
+        }
+        LabeledContent {
+            Button("Annuleren") { signIn.cancel() }
+        } label: {
+            Label {
+                Text("Wachten op goedkeuring…")
+            } icon: {
+                ProgressView().controlSize(.small)
+            }
+            .foregroundStyle(.secondary)
         }
         HStack {
             Button("Open github.com") { signIn.openVerificationPage() }
@@ -86,11 +100,8 @@ private struct WaitingForApproval: View {
                 }
             }
             .accessibilityIdentifier("github.copyCode")
-            Spacer()
-            ProgressView().controlSize(.small)
-            Text("Wachten op goedkeuring…").foregroundStyle(.secondary)
-            Button("Annuleren") { signIn.cancel() }
         }
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 }
 
@@ -116,15 +127,19 @@ struct GitHubInstallationsRow: View {
                 Text("Installeer Pullwatch op GitHub")
                 Text("Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).")
             }
-            HStack(spacing: 6) {
-                if signIn.waitingForInstall {
-                    ProgressView().controlSize(.small)
-                    Text("Wachten op de installatie op github.com…").foregroundStyle(.secondary)
-                }
-                Spacer()
+            LabeledContent {
                 Button("Opnieuw kijken") { Task { await signIn.refreshInstallations() } }
                     .disabled(signIn.checkingInstallations)
                     .accessibilityIdentifier("github.recheck")
+            } label: {
+                if signIn.waitingForInstall {
+                    Label {
+                        Text("Wachten op de installatie op github.com…")
+                    } icon: {
+                        ProgressView().controlSize(.small)
+                    }
+                    .foregroundStyle(.secondary)
+                }
             }
             errorRow
         case .found(let owners):
@@ -137,7 +152,11 @@ struct GitHubInstallationsRow: View {
                 HStack {
                     Label("Op een ander account of organisatie installeren…", systemImage: "plus.circle")
                     Spacer()
-                    if signIn.waitingForInstall { ProgressView().controlSize(.small) }
+                    if signIn.waitingForInstall {
+                        ProgressView()
+                            .controlSize(.small)
+                            .accessibilityLabel(Text("Wachten op de installatie op github.com…"))
+                    }
                 }
                 .contentShape(.rect)
             }
@@ -176,6 +195,7 @@ private struct OwnerRow: View {
         Toggle(isOn: $isFollowed) {
             HStack(spacing: 10) {
                 AccountAvatar(gitHubLogin: owner.login, size: 28)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: owner.login)
                     Text(kind).font(.caption).foregroundStyle(.secondary)
