@@ -1190,6 +1190,7 @@ final class AppModel {
             accounts: accounts,
             interval: TimeInterval(config.clampedInterval),
             retention: retention,
+            checksForOwnPullRequests: config.notifications.checksFailed,
             progress: { [weak self] progress in await self?.setPollProgress(progress) }
         )
         activePolls -= 1
@@ -1216,6 +1217,8 @@ final class AppModel {
         if history.merge(syncedTags: result.syncedTags, notBefore: cutoff) { changed = true }
         // Bekende tags krijgen hun auteur en release bij, zonder melding en op hun plek.
         if history.update(tags: result.updatedTags) { changed = true }
+        // De checks (CI) van PR's die er al staan, op hun plek en zonder melding.
+        if history.update(checks: result.checks) { changed = true }
         if history.prune(now: now, retention: config.historyRetention) { changed = true }
         if changed { saveHistory() }
         let builder = notificationBuilder
@@ -1223,6 +1226,7 @@ final class AppModel {
             pullRequests: result.newPullRequests,
             tags: result.newTags,
             completed: result.completedPullRequests,
+            failedChecks: result.failedChecks,
             settings: config.notifications,
             accounts: config.accounts
         )

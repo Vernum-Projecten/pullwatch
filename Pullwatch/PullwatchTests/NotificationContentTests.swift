@@ -93,6 +93,21 @@ import Testing
         #expect(try builder(kind: .gitLab).content(for: .merged(pr())).title == "Merge Request Merged")
     }
 
+    @Test func `Failed checks say how many of the checks failed`() throws {
+        var own = pr()
+        own.checks = .counts(CheckCounts(passed: 7, failed: 1))
+        let content = try builder().content(for: .checksFailed(own))
+        #expect(content.title == "Checks Failed")
+        #expect(content.body == "Add dark mode\n1 of 8 checks failed")
+        #expect(content.identifier == own.dedupKey + ":checks")
+        #expect(content.payload.url == own.webURL)
+        #expect(content.payload.historyKeys == [own.dedupKey])
+        #expect(content.importance.level == .active)
+        #expect(try builder("nl").content(for: .checksFailed(own)).body == "Add dark mode\n1 van 8 checks mislukt")
+        let summary = try builder().summary(RepositoryKey(accountId: accountId, repo: repo), [.checksFailed(own), .checksFailed(pr(7))])
+        #expect(summary.title == "Checks Failed on 2 Pull Requests")
+    }
+
     // MARK: Releases en tags
 
     @Test func aReleaseIsNamedAfterItsTagWithItsTitleInTheBody() throws {

@@ -38,11 +38,28 @@ Apps**, **New GitHub App**:
 | Repository security advisories | Read-only | the advisories a repository publishes about itself, on its page in Pullwatch (`repos/{owner}/{repo}/security-advisories?state=published`) |
 | Code scanning alerts | Read-only, optional | open CodeQL and other code scanning alerts on the repository page, in its findings and health, and (when turned on) a notification for a new critical or high one (`repos/{owner}/{repo}/code-scanning/alerts?state=open`) |
 | Secret scanning alerts | Read-only, optional | only the number of open secrets, with a link to GitHub; Pullwatch asks with `hide_secret=true` and never reads a secret (`repos/{owner}/{repo}/secret-scanning/alerts?state=open`) |
+| Checks | Read-only, optional | the check runs (GitHub Actions and other apps) on a pull request's last commit, counted per state for the checks cell (`statusCheckRollup` in GraphQL; on REST `GET /repos/{owner}/{repo}/commits/{ref}/check-runs`) |
+| Commit statuses | Read-only, optional | the commit statuses (older CI services that post a status) on the same commit, in the same count (`statusCheckRollup`; on REST `GET /repos/{owner}/{repo}/commits/{ref}/status`) |
 
-Without the two optional permissions Pullwatch works as before: the
+Without the optional permissions Pullwatch works as before: the
 repository page shows **Needs permission** next to Code scanning or Secret
-scanning, quietly, and nothing else changes. Add them only if the people who
-use Pullwatch want those alerts in it.
+scanning, quietly, and nothing else changes. Without Checks and Commit
+statuses a pull request has no checks cell, and the repository page says
+**Checks: Needs permission** under its pull requests. Add them only if the
+people who use Pullwatch want those alerts or checks in it.
+
+The checks need both permissions because GitHub's `statusCheckRollup` mixes
+check runs and commit statuses; GitHub's table "Permissions required for
+GitHub Apps" lists the check-run endpoints under **Checks** and the status
+endpoints under **Commit statuses**, and a GraphQL query without the
+permission returns `FORBIDDEN` ("Resource not accessible by integration") for
+that field. Pullwatch asks only for the count per state on the last commit
+(`checkRunCountsByState` and `statusContextCountsByState`), in the same
+GraphQL request as the co-authors (twenty pull requests per request), and
+only for open pull requests and those merged in the last three days. A pull
+request whose checks are finished and that did not change costs no request;
+running checks are asked again each poll until they finish, failed ones of an
+open pull request every 15 minutes (someone may run them again).
 
 The details of GitHub's own advisories (severity, CVSS score and vector,
 CWE, the page on `github.com/advisories`) for the vulnerabilities Pullwatch

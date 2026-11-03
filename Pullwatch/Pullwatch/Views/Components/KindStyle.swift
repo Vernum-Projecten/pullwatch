@@ -151,6 +151,44 @@ nonisolated enum PRStatus: CaseIterable, Hashable, Sendable {
     }
 }
 
+// Vaste waarden (icoon, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests. Naast de
+// kleuren van `PRStatus`, zodat ze niet uit elkaar lopen: groen en rood zijn die van open en
+// gesloten, geel het amber van GitHub ("attention", licht #9A6700 en donker #D29922).
+nonisolated extension CheckState {
+    /// De Octicons van GitHub (MIT, zie NOTICE), op 16 px getekend: check, x en dot-fill.
+    var glyph: Glyph {
+        switch self {
+        case .passed: .asset("checks.passed")
+        case .failed: .asset("checks.failed")
+        case .pending: .asset("checks.pending")
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .passed: PRState.open.color
+        case .failed: PRState.closed.color
+        case .pending: Color("ChecksPending")
+        }
+    }
+}
+
+nonisolated extension CheckCounts {
+    /// De telling in de cel: geslaagd (overgeslagen tellen mee) van het totaal, "8/8".
+    var fraction: String { "\(succeeded)/\(total)" }
+
+    /// Wat de cel zegt, in woorden, voor de tooltip en VoiceOver: "4 van 8 checks geslaagd,
+    /// 1 mislukt en 3 bezig". Elke stand is een eigen zin met meervoud; de lijst maakt
+    /// `ListFormatStyle` per taal.
+    var spokenSummary: String {
+        var parts = [String(localized: "\(succeeded) van \(total) checks geslaagd", comment: "Checks van een PR; geslaagd (overgeslagen tellen mee), totaal")]
+        if failed > 0 { parts.append(String(localized: "\(failed) mislukt", comment: "Aantal mislukte checks van een PR")) }
+        if pending > 0 { parts.append(String(localized: "\(pending) bezig", comment: "Aantal checks van een PR die nog lopen of wachten")) }
+        if skipped > 0 { parts.append(String(localized: "\(skipped) overgeslagen", comment: "Aantal overgeslagen of neutrale checks van een PR")) }
+        return parts.formatted(.list(type: .and))
+    }
+}
+
 nonisolated extension HistoryEntry {
     /// De status van de PR, met drafts apart; `nil` voor tags.
     var prStatus: PRStatus? {

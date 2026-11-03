@@ -68,13 +68,32 @@ struct RepoPullRequestsSection: View {
                 }
             }
         } footer: {
-            HStack(spacing: 12) {
-                Button("Alle PR's van deze repo") { showAll(.pullRequest) }
-                Button("Alle tags van deze repo") { showAll(.tag) }
+            VStack(alignment: .trailing, spacing: 6) {
+                if items.contains(where: { $0.entry.checks == .needsPermission }) {
+                    ChecksPermissionNote()
+                }
+                HStack(spacing: 12) {
+                    Button("Alle PR's van deze repo") { showAll(.pullRequest) }
+                    Button("Alle tags van deze repo") { showAll(.tag) }
+                }
+                .buttonStyle(.link)
             }
-            .buttonStyle(.link)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
+    }
+}
+
+/// De checks van PR's in deze repo mag Pullwatch niet lezen: dan staat er geen cel, en hier
+/// waarom, met wat er nodig is.
+private struct ChecksPermissionNote: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("Checks")
+            Text("Toestemming nodig").foregroundStyle(.secondary)
+        }
+        .font(.caption)
+        .help(Text("Pullwatch mag de checks van deze PR's niet lezen. Bij GitHub keurt de eigenaar de rechten Checks en Commit statuses (lezen) van de Pullwatch-app goed; bij Azure DevOps en GitLab mag het token de builds of pipelines lezen."))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -89,6 +108,7 @@ struct PullRequestRow: View {
             Text(verbatim: item.entry.title)
                 .fontWeight(item.isRead ? .regular : .semibold)
                 .lineLimit(1)
+            ChecksBadge(checks: item.entry.checks)
             Spacer(minLength: 8)
             if let author = item.entry.author {
                 Text(verbatim: author).foregroundStyle(.secondary).lineLimit(1)

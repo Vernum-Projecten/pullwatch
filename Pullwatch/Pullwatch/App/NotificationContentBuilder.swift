@@ -45,6 +45,10 @@ struct NotificationContentBuilder {
             body = [pr.title, byline(pr.authorName, others: pr.coAuthors.map(\.handle))]
             url = pr.webURL
             avatar = gitHubAvatar(pr.authorName, account: account)
+        case .checksFailed(let pr):
+            title = String(localized: "Checks mislukt", bundle: bundle, comment: "Meldingstitel; de checks (CI) van een eigen PR mislukten")
+            body = [pr.title, pr.checks?.counts.map(failedLine)]
+            url = pr.webURL
         case .tag(let tag):
             title = tagTitle(tag)
             body = [tag.releaseTitle, byline(tag.release?.authorLogin ?? tag.authorName, others: [])]
@@ -80,6 +84,8 @@ struct NotificationContentBuilder {
                 : String(localized: "\(count) nieuwe pull requests", bundle: bundle, comment: "Meldingstitel; aantal nieuwe PR's in één repo")
         case .merged?:
             String(localized: "\(count) pull requests gemerged", bundle: bundle, comment: "Meldingstitel; aantal gemergde PR's in één repo")
+        case .checksFailed?:
+            String(localized: "Checks van \(count) pull requests mislukt", bundle: bundle, comment: "Meldingstitel; aantal eigen PR's in één repo waarvan de checks mislukten")
         case .release?:
             String(localized: "\(count) nieuwe releases", bundle: bundle, comment: "Meldingstitel; aantal nieuwe releases in één repo")
         case .tag?:
@@ -89,7 +95,7 @@ struct NotificationContentBuilder {
         }
         let names = items.map { item in
             switch item {
-            case .pullRequest(let pr), .merged(let pr): pr.title
+            case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): pr.title
             case .tag(let tag): tag.releaseTitle.map { "\(tag.name) \($0)" } ?? tag.name
             }
         }
@@ -309,6 +315,11 @@ struct NotificationContentBuilder {
         case (false, true): String(localized: "Nieuwe concept-pull request", bundle: bundle, comment: "Meldingstitel; een PR die nog concept (draft) is")
         case (false, false): String(localized: "Nieuwe pull request", bundle: bundle, comment: "Meldingstitel")
         }
+    }
+
+    /// "1 van 8 checks mislukt", onder de titel van de PR.
+    private func failedLine(_ counts: CheckCounts) -> String {
+        String(localized: "\(counts.failed) van \(counts.total) checks mislukt", bundle: bundle, comment: "Melding; aantal mislukte checks, totaal")
     }
 
     private func mergedTitle(_ account: Account?) -> String {

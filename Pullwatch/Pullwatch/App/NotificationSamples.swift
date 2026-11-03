@@ -27,6 +27,15 @@ struct NotificationSamples {
         )
     }
 
+    /// Een eigen PR waarvan 1 van de 8 checks mislukte.
+    private var checksFailed: PullRequest {
+        PullRequest(
+            accountId: Self.accountId, repo: Self.repo, number: 43, title: "Speed up the start of the app",
+            authorId: "mona", authorName: "mona", isDraft: false, createdAt: Date(timeIntervalSince1970: 1_790_100_000),
+            webURL: Self.web.appending(path: "pull/43"), checks: .counts(CheckCounts(passed: 7, failed: 1))
+        )
+    }
+
     private var release: Tag {
         Tag(
             accountId: Self.accountId, repo: Self.repo, name: "v1.2.0", authorName: "mona",
@@ -82,6 +91,7 @@ struct NotificationSamples {
         return switch kind {
         case .pullRequest: builder.content(for: .pullRequest(pullRequest))
         case .merged: builder.content(for: .merged(merged))
+        case .checksFailed: builder.content(for: .checksFailed(checksFailed))
         case .release: builder.content(for: .tag(release))
         case .tag: builder.content(for: .tag(tag))
         case .vulnerability: builder.vulnerability(vulnerability)

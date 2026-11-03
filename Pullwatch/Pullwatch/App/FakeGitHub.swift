@@ -433,8 +433,19 @@ nonisolated private enum FakeWorld {
         return #"{"data":{"# + fields.joined(separator: ",") + "}}"
     }
 
-    /// De GraphQL-vraag naar commit-auteurs (`GitHubProvider.coAuthors`): per alias de auteur
-    /// van de PR en zijn co-auteurs uit `coAuthors`.
+    /// De checks van de open PR's ("repo#nummer"): geslaagd, overgeslagen, mislukt en bezig, zodat
+    /// de lijsten elke stand tonen. De PR's van linguist geven geen checks: daar mist de app het
+    /// recht, zoals bij de test-app zonder Checks en Commit statuses.
+    static let checks: [String: (passed: Int, skipped: Int, failed: Int, pending: Int)] = [
+        "hello-world#42": (3, 0, 0, 0),
+        "hello-world#41": (4, 0, 1, 3),
+        "hello-world#40": (7, 1, 0, 0),
+        "spoon-knife#22": (3, 0, 0, 5),
+    ]
+    static let checksForbiddenRepo = "linguist"
+
+    /// De GraphQL-vraag naar commit-auteurs en checks (`GitHubProvider.details`): per alias de
+    /// auteur van de PR en zijn co-auteurs uit `coAuthors`, en de telling uit `checks`.
     static func coAuthorCommits(body: Data?) -> String {
         struct Query: Decodable {
             enum Value: Decodable {
@@ -445,10 +456,14 @@ nonisolated private enum FakeWorld {
                     if let number = try? c.decode(Int.self) { self = .number(number) } else { self = .text(try c.decode(String.self)) }
                 }
             }
+            let query: String
             let variables: [String: Value]
         }
-        let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
+        let decoded = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }
+        let variables = decoded?.variables ?? [:]
+        let query = decoded?.query ?? ""
         var fields: [String] = []
+        var errors: [String] = []
         for index in 0... {
             guard case .text(let repo) = variables["n\(index)"], case .number(let number) = variables["p\(index)"] else { break }
             let author = pullRequests.first { $0.repo == repo && $0.number == number }?.author ?? FakeGitHub.login
@@ -458,10 +473,39 @@ nonisolated private enum FakeWorld {
                 let email = (person.login ?? person.name.lowercased().replacingOccurrences(of: " ", with: ".")) + "@example.com"
                 return #"{"name":"\#(person.name)","email":"\#(email)","user":\#(user)}"#
             }
-            fields.append(#""pr\#(index)":{"pullRequest":{"commits":{"nodes":[{"commit":{"authors":{"nodes":["#
-                + nodes.joined(separator: ",") + "]}}}]}}}")
+            // Wat deze alias vraagt: de tekst tussen "pr<n>:" en de volgende alias.
+            let start = query.range(of: "pr\(index):")?.upperBound ?? query.endIndex
+            let end = query.range(of: "pr\(index + 1):", range: start..<query.endIndex)?.lowerBound ?? query.endIndex
+            let asked = query[start..<end]
+            var parts: [String] = []
+            if asked.contains("commits(last: 50)") {
+                parts.append(#""commits":{"nodes":[{"commit":{"authors":{"nodes":["# + nodes.joined(separator: ",") + "]}}}]}")
+            }
+            if asked.contains("headCommit") {
+                parts.append(headCommit(repo: repo, number: number))
+                if repo == checksForbiddenRepo {
+                    errors.append(#"{"type":"FORBIDDEN","path":["pr\#(index)","pullRequest","headCommit","nodes",0,"commit","statusCheckRollup"],"#
+                        + #""message":"Resource not accessible by integration"}"#)
+                }
+            }
+            fields.append(#""pr\#(index)":{"pullRequest":{"# + parts.joined(separator: ",") + "}}")
         }
-        return #"{"data":{"# + fields.joined(separator: ",") + "}}"
+        let errorList = errors.isEmpty ? "" : #","errors":["# + errors.joined(separator: ",") + "]"
+        return #"{"data":{"# + fields.joined(separator: ",") + "}" + errorList + "}"
+    }
+
+    /// De laatste commit van een PR met de telling van zijn checks; zonder checks (of zonder
+    /// recht) `null`, zoals GitHub.
+    private static func headCommit(repo: String, number: Int) -> String {
+        guard repo != checksForbiddenRepo, let c = checks["\(repo)#\(number)"] else {
+            return #""headCommit":{"nodes":[{"commit":{"statusCheckRollup":null}}]}"#
+        }
+        let runs = [("SUCCESS", c.passed), ("SKIPPED", c.skipped), ("FAILURE", c.failed), ("IN_PROGRESS", c.pending)]
+            .filter { $0.1 > 0 }
+            .map { #"{"state":"\#($0.0)","count":\#($0.1)}"# }
+            .joined(separator: ",")
+        return #""headCommit":{"nodes":[{"commit":{"statusCheckRollup":{"contexts":{"#
+            + #""checkRunCountsByState":[\#(runs)],"statusContextCountsByState":[]}}}}]}"#
     }
 
     static func endOfLife(product: String) -> String? {

@@ -77,6 +77,31 @@ import Testing
         #expect(image.isTemplate)
     }
 
+    /// De checks hebben de Octicons check, x en dot-fill, als symbool (volgt de tint) en elk een
+    /// andere vorm, zodat de stand niet alleen aan de kleur hangt.
+    @Test(arguments: CheckState.allCases)
+    func `Check icons are symbols in the asset catalog`(_ state: CheckState) throws {
+        guard case .asset(let name) = state.glyph else {
+            Issue.record("\(state) heeft geen eigen icoon")
+            return
+        }
+        let image = try #require(NSImage(named: name))
+        #expect(image.isTemplate)
+    }
+
+    @Test func `Check icons differ and amber is in the asset catalog`() {
+        #expect(Set(CheckState.allCases.map(\.glyph)).count == CheckState.allCases.count)
+        #expect(NSColor(named: "ChecksPending") != nil)
+    }
+
+    /// De cel zegt alleen "4/8"; tooltip en VoiceOver zeggen het in woorden, per stand.
+    @Test func `Checks are counted and said in words`() {
+        let counts = CheckCounts(passed: 3, skipped: 1, failed: 1, pending: 3)
+        #expect(counts.fraction == "4/8")
+        #expect(!counts.spokenSummary.isEmpty)
+        #expect(counts.spokenSummary != CheckCounts(passed: 4, pending: 4).spokenSummary)
+    }
+
     @Test func pullRequestIconsDiffer() {
         #expect(Set(PRStatus.allCases.map(\.glyph)).count == PRStatus.allCases.count)
     }
