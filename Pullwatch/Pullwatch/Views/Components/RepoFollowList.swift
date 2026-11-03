@@ -2,22 +2,33 @@ import PullwatchCore
 import SwiftUI
 
 extension Account {
-    /// Volgt dit account de PR's van deze repo? Tags, completed en meldingen per soort staan op
-    /// de repo-pagina in het hoofdvenster; hier alleen volgen ja of nee.
+    /// Volgt dit account deze repo? Volgen is PR's en tags; completed en meldingen per soort
+    /// staan op de repo-pagina in het hoofdvenster, hier alleen volgen ja of nee.
     subscript(follows repo: String) -> Bool {
         get { watch(for: repo).prs }
         set {
             var watch = watch(for: repo)
             watch.prs = newValue
-            if newValue { watch.notifyPRs = true }
+            watch.tags = newValue
+            if newValue {
+                watch.notifyPRs = true
+                watch.notifyTags = true
+            }
             setWatch(watch, for: repo)
         }
     }
 
-    /// Nieuwe repo's (die er later bij komen) ook volgen.
+    /// Nieuwe repo's (die er later bij komen) ook volgen, met PR's en tags. Een account dat nog
+    /// alleen PR's als standaard heeft (van vóór tags als standaard) houdt dat.
     var followsNewRepositories: Bool {
-        get { newRepoDefault == .prs }
-        set { newRepoDefault = newValue ? .prs : .none }
+        get { newRepoDefault != .none }
+        set {
+            if newValue {
+                if newRepoDefault == .none { newRepoDefault = .prsAndTags }
+            } else {
+                newRepoDefault = .none
+            }
+        }
     }
 }
 

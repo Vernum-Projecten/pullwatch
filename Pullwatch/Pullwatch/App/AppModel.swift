@@ -57,6 +57,52 @@ final class AppModel {
     private(set) var versionCheck: (done: Int, total: Int)?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
     private(set) var refreshingRepos: Set<String> = []
+    /// Voortgang van de poll die nu loopt; nil tussen twee polls.
+    private(set) var pollProgress: PollProgress?
+    /// Accounts waarvan de eerste geschiedenis-sync nog moet komen (hun lijsten zijn nog leeg).
+    private(set) var pendingFirstSync: Set<UUID> = []
+    /// Nog geen poll afgerond sinds de start: lege lijsten zeggen dan "ophalen" in plaats van "nog geen".
+    private(set) var hasPolledOnce = false
+    /// Laatste poll waarin minstens één account slaagde.
+    private(set) var lastSuccessfulPoll: Date?
+    @ObservationIgnored private var versionTask: Task<Void, Never>?
+
+    /// Eén status voor alles wat Pullwatch ophaalt: de balk onderin het hoofdvenster en de
+    /// spinner in het menu lezen hem.
+    var syncStatus: SyncStatus {
+        let repoName = refreshingRepos.first.flatMap { id in repoSummariesById[id]?.repo }
+        return SyncStatus.current(
+            poll: pollProgress,
+            firstSyncPending: !pendingFirstSync.isEmpty && !config.pollableAccounts.isEmpty,
+            refetch: refetch.map { ($0.done, $0.total) },
+            versions: versionCheck,
+            checkingRepo: refreshingRepos.isEmpty ? nil : (repoName ?? ""),
+            failure: pollFailure
+        )
+    }
+
+    /// Lijsten van PR's en tags vullen zich nog: eerste start, eerste sync of opnieuw ophalen.
+    var isFillingHistory: Bool {
+        guard !config.pollableAccounts.isEmpty else { return false }
+        return !hasPolledOnce || !pendingFirstSync.isEmpty || refetch != nil
+    }
+
+    /// Naam van het account waarvan de geschiedenis nu (of als eerste) opgehaald wordt.
+    var fillingAccountName: String? {
+        if let name = pollProgress?.firstSyncAccount { return name }
+        let id = pendingFirstSync.first ?? config.pollableAccounts.first?.id
+        return config.accounts.first { $0.id == id }?.displayName
+    }
+
+    /// Melding van het eerste account waarvan de laatste poll mislukte.
+    private var pollFailure: String? {
+        for account in config.accounts {
+            if case .failed(let error, _) = statuses[account.id] {
+                return String(localized: "\(account.displayName): \(error.userMessage)", comment: "Accountnaam, foutmelding")
+            }
+        }
+        return nil
+    }
     /// Nieuwere Pullwatch op GitHub; nil als deze versie de nieuwste is (of nog niet gekeken).
     private(set) var availableUpdate: AvailableUpdate?
     /// Uitkomst van "Nu controleren" onder Instellingen; nil als er niet handmatig gekeken is.
@@ -435,6 +481,21 @@ final class AppModel {
         await tick()
     }
 
+    /// Stopt wat de balk onderin toont, als dat veilig kan: "Opnieuw ophalen" (accounts die nog
+    /// niet aan de beurt waren houden hun oude geschiedenis-sync) of de versiecheck (repo's die al
+    /// gecheckt zijn blijven).
+    func cancelSync() {
+        switch syncStatus.work {
+        case .refetch:
+            refetch = nil
+            Task { await engine.cancelHistoryResync() }
+        case .versions:
+            versionTask?.cancel()
+        default:
+            break
+        }
+    }
+
     /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat.
     private func startAutoVersionCheckIfDue() {
         guard config.autoVersionCheck, versionCheck == nil, !config.pollableAccounts.isEmpty else { return }
@@ -449,19 +510,40 @@ final class AppModel {
     /// Automatisch: een volledig mislukte check (bv. offline) overschrijft het vorige resultaat niet,
     /// en nieuwe CVE's ten opzichte van de vorige check geven een melding.
     func checkVersions(automatic: Bool = false) async {
-        guard versionCheck == nil else { return }
+        guard versionCheck == nil, refreshingRepos.isEmpty else { return }
         versionCheck = (0, 0)
+        let task = Task { await runVersionCheck(automatic: automatic) }
+        versionTask = task
+        await task.value
+        versionTask = nil
+        versionCheck = nil
+    }
+
+    private func runVersionCheck(automatic: Bool) async {
         let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) })
         let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
         }
-        versionCheck = nil
+        if Task.isCancelled {
+            // Gestopt: alleen wat helemaal gecheckt is komt in het rapport, zonder meldingen.
+            let done = fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil }
+            logger.notice("versiecheck gestopt na \(done.count) repo's")
+            nextAutoVersionAttempt = Date() + VersionReport.autoRetryInterval
+            guard !done.isEmpty else { return }
+            let report = versionReport?.replacing(done, latest: fresh.latestPackages)
+                ?? VersionReport(checkedAt: fresh.checkedAt, repos: done, latestPackages: fresh.latestPackages)
+            versionReport = report
+            saveVersions(report)
+            return
+        }
         if automatic && fresh.failedCompletely {
             logger.notice("automatische versiecheck mislukt, opnieuw over een uur")
             return
         }
         let previous = versionReport
         let report = fresh.carryingSeenDates(from: previous)
+        // Een volledige check dekt alles wat nu gevolgd wordt.
+        lastFollowScope = Dictionary(config.pollableAccounts.map { ($0.id, $0.filterSettings) }, uniquingKeysWith: { first, _ in first })
         versionReport = report
         if automatic {
             let new = report.newVulnerabilities(since: previous)
@@ -499,11 +581,70 @@ final class AppModel {
         refreshingRepos.remove(repo.id)
         guard let report = versionReport else { return }
         versionReport = report.replacing(fresh, latest: latest)
+        saveVersions(versionReport!)
+    }
+
+    private func saveVersions(_ report: VersionReport) {
         do {
-            try versionStore.save(versionReport!)
+            try versionStore.save(report)
         } catch {
             logger.error("versions opslaan mislukt: \(error.localizedDescription)")
         }
+    }
+
+    /// Wat er per account gevolgd werd bij de laatste check van net gevolgde repo's.
+    @ObservationIgnored private var lastFollowScope: [UUID: FilterSettings]?
+    /// Repo's (`accountId/repo` lowercased) die al een keer los gecheckt zijn, zodat een repo die
+    /// steeds mislukt of niet in de lijst van de dienst staat niet elke poll opnieuw gaat.
+    @ObservationIgnored private var attemptedNewRepos: Set<String> = []
+
+    /// Na een poll: repo's die gevolgd worden maar nog niet in het versierapport staan (net
+    /// gevolgd, of nieuw bij de dienst) krijgen meteen hun check, niet pas bij de dagelijkse.
+    /// Alleen met de dagelijkse check aan en als er al een rapport is (anders doet die alles).
+    private func startNewRepoVersionCheckIfNeeded(after result: PollResult) {
+        guard config.autoVersionCheck, versionCheck == nil, !isCheckingNewRepos, refreshingRepos.isEmpty,
+              let report = versionReport else { return }
+        let accounts = config.pollableAccounts
+        let scope = Dictionary(accounts.map { ($0.id, $0.filterSettings) }, uniquingKeysWith: { first, _ in first })
+        let known = Set(report.repos.map { "\($0.accountId.uuidString)/\($0.repo.lowercased())" })
+        var seen: [(UUID, String)] = result.tagRepos.flatMap { id, repos in repos.map { (id, $0) } }
+        seen += (result.syncedPullRequests + result.newPullRequests).map { ($0.accountId, $0.repo) }
+        seen += result.syncedTags.map { ($0.accountId, $0.repo) }
+        let unseen = seen.contains { id, repo in
+            let key = "\(id.uuidString)/\(repo.lowercased())"
+            guard let account = accounts.first(where: { $0.id == id }), !known.contains(key),
+                  !attemptedNewRepos.contains(key) else { return false }
+            let watch = account.watch(for: repo)
+            return watch.prs || watch.tags || watch.completed
+        }
+        guard scope != lastFollowScope || unseen else { return }
+        lastFollowScope = scope
+        Task { await checkNewRepos() }
+    }
+
+    /// Loopt `checkNewRepos`; de balk verschijnt pas als er echt repo's te checken zijn.
+    @ObservationIgnored private var isCheckingNewRepos = false
+
+    private func checkNewRepos() async {
+        guard versionCheck == nil, !isCheckingNewRepos, let start = versionReport else { return }
+        isCheckingNewRepos = true
+        defer { isCheckingNewRepos = false }
+        let task = Task {
+            let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) })
+            let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { done, total in
+                await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
+            }
+            attemptedNewRepos.formUnion(fresh.repos.map { "\($0.accountId.uuidString)/\($0.repo.lowercased())" })
+            let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos
+            guard !repos.isEmpty, let report = versionReport else { return }
+            logger.notice("\(repos.count) net gevolgde repo's gecheckt")
+            versionReport = report.replacing(repos, latest: fresh.latest)
+            saveVersions(versionReport!)
+        }
+        versionTask = task
+        await task.value
+        versionTask = nil
+        versionCheck = nil
     }
 
     private func updateRefetchProgress() async {
@@ -788,14 +929,29 @@ final class AppModel {
     }
 
 
+    /// Lopende `tick()`s; de voortgang gaat pas weg als de laatste klaar is.
+    @ObservationIgnored private var activePolls = 0
+
     private func tick() async {
         notificationsAllowed = await notifier.isAuthorized()
+        let accounts = config.pollableAccounts
+        let retention = config.historyRetention
+        await refreshPendingFirstSync()
+        activePolls += 1
         let result = await engine.poll(
-            accounts: config.pollableAccounts,
+            accounts: accounts,
             interval: TimeInterval(config.clampedInterval),
-            retention: config.historyRetention
+            retention: retention,
+            progress: { [weak self] progress in await self?.setPollProgress(progress) }
         )
+        activePolls -= 1
+        if activePolls == 0 { pollProgress = nil }
+        hasPolledOnce = true
         statuses = result.statuses
+        await refreshPendingFirstSync()
+        if result.statuses.values.contains(where: { if case .ok = $0 { true } else { false } }) {
+            lastSuccessfulPoll = Date()
+        }
 
         let now = Date()
         var changed = false
@@ -808,6 +964,8 @@ final class AppModel {
         // PR's van vóór de bewaartermijn niet toevoegen: die zou prune meteen weer verwijderen.
         let cutoff = config.historyRetention.maxAge.map { now - $0 }
         if history.merge(synced: result.syncedPullRequests, notBefore: cutoff) { changed = true }
+        // Bestaande tags uit de eerste tag-poll van een repo: gelezen, zonder melding.
+        if history.merge(syncedTags: result.syncedTags, notBefore: cutoff) { changed = true }
         if history.prune(now: now, retention: config.historyRetention) { changed = true }
         if changed { saveHistory() }
         let audible = NotificationPlanner.audible(
@@ -829,6 +987,21 @@ final class AppModel {
             }
         }
         await updateRefetchProgress()
+        startNewRepoVersionCheckIfNeeded(after: result)
+    }
+
+    /// Accounts die nog een eerste sync moeten doen. Een account dat nu faalt (bv. uitgelogd)
+    /// telt niet mee: anders blijft de balk "ophalen" zeggen tot het weer werkt.
+    private func refreshPendingFirstSync() async {
+        let accounts = config.pollableAccounts.filter {
+            if case .failed = statuses[$0.id] { false } else { true }
+        }
+        let pending = await engine.pendingFirstSync(accounts: accounts, retention: config.historyRetention)
+        if pending != pendingFirstSync { pendingFirstSync = pending }
+    }
+
+    private func setPollProgress(_ progress: PollProgress) {
+        pollProgress = progress
     }
 
     private func saveConfig() {

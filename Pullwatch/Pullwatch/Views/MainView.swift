@@ -22,6 +22,8 @@ struct MainView: View {
             }
             // Een andere keuze in de zijbalk is een nieuwe stack, met eigen zoekveld en selectie.
             .id(selection)
+            // Lang werk (eerste sync, opnieuw ophalen, versiecheck) op één vaste plek, in elk onderdeel.
+            .activityBar(model.syncStatus, cancel: model.cancelSync)
         }
         .frame(minWidth: 900, minHeight: 520)
         .onAppear {

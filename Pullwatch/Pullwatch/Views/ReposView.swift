@@ -143,7 +143,17 @@ struct ReposView: View {
         }
         .overlay {
             if rows.isEmpty {
-                if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty
+                    && (model.isFillingHistory || model.versionCheck != nil) {
+                    // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
+                    ContentUnavailableView(
+                        "Repo's ophalen…",
+                        systemImage: "folder",
+                        description: model.fillingAccountName.map {
+                            Text("Pullwatch haalt de repo's op van \($0).", comment: "Accountnaam, bv. @octocat op GitHub")
+                        } ?? Text("Pullwatch haalt de repo's op die je volgt.")
+                    )
+                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
                     ContentUnavailableView(
                         "Geen repo's",
                         systemImage: "folder",
@@ -180,25 +190,20 @@ enum CheckedSubtitle {
     }
 }
 
-/// "Alles checken" in de knoppenbalk, of de voortgang van de lopende check.
+/// "Alles checken" in de knoppenbalk. De knop blijft staan (uitgeschakeld) terwijl een check
+/// loopt; de voortgang staat in de balk onderin het venster.
 struct CheckAllToolbarItem: ToolbarContent {
     let model: AppModel
 
     var body: some ToolbarContent {
         ToolbarItem {
-            if let progress = model.versionCheck {
-                ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
-                    .progressViewStyle(.circular)
-                    .controlSize(.small)
-                    .help(Text("Checken… \(progress.done)/\(progress.total) repo's"))
-            } else {
-                Button {
-                    Task { await model.checkVersions() }
-                } label: {
-                    Label("Alles checken", systemImage: "checkmark.shield")
-                }
-                .help("Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie")
+            Button {
+                Task { await model.checkVersions() }
+            } label: {
+                Label("Alles checken", systemImage: "checkmark.shield")
             }
+            .disabled(model.versionCheck != nil || !model.refreshingRepos.isEmpty)
+            .help("Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie")
         }
     }
 }
@@ -552,19 +557,13 @@ private struct RepoDetailToolbar: ToolbarContent {
                 }
                 .help("Open in browser")
             }
-            if model.refreshingRepos.contains(summary.id) {
-                ProgressView()
-                    .controlSize(.small)
-                    .help("Checken…")
-            } else {
-                Button {
-                    Task { await model.refreshVersions(of: summary) }
-                } label: {
-                    Label("Check", systemImage: "arrow.clockwise")
-                }
-                .disabled(model.versionCheck != nil || model.versionReport == nil)
-                .help(model.versionReport == nil ? Text("Check eerst alle repo's") : Text("Check deze repo opnieuw"))
+            Button {
+                Task { await model.refreshVersions(of: summary) }
+            } label: {
+                Label("Check", systemImage: "arrow.clockwise")
             }
+            .disabled(model.versionCheck != nil || model.versionReport == nil || !model.refreshingRepos.isEmpty)
+            .help(model.versionReport == nil ? Text("Check eerst alle repo's") : Text("Check deze repo opnieuw"))
             Button {
                 model.showStats(repoId: summary.id)
             } label: {

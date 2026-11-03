@@ -74,14 +74,16 @@ public struct WatchSet: Codable, Hashable, Sendable {
     public static let both = WatchSet(prs: true, tags: true)
 }
 
-/// Wat er gevolgd wordt voor repo's zonder eigen instelling. Tags staan nooit standaard aan.
+/// Wat er gevolgd wordt voor repo's zonder eigen instelling. Een nieuw account volgt PR's en
+/// tags (`prsAndTags`); een config van vóór die keuze houdt `prs` (alleen PR's).
 public enum NewRepoDefault: String, Codable, CaseIterable, Sendable {
-    case none, prs
+    case none, prs, prsAndTags
 
     public var watchSet: WatchSet {
         switch self {
         case .none: return .none
         case .prs: return .prs
+        case .prsAndTags: return .both
         }
     }
 }
@@ -182,7 +184,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         authMethod: AuthMethod,
         login: String? = nil,
         repoWatch: [String: WatchSet] = [:],
-        newRepoDefault: NewRepoDefault = .prs,
+        newRepoDefault: NewRepoDefault = .prsAndTags,
         includeDrafts: Bool = false,
         hideOwn: Bool = true,
         cliUser: String? = nil
@@ -286,6 +288,17 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         var seen: Set<String> = []
         return repoWatch.filter { $0.value.tags }.keys.sorted().filter { seen.insert($0.lowercased()).inserted }
     }
+
+    /// Volgen repo's zonder eigen instelling ook hun tags? Dan zijn de tag-repo's pas bekend
+    /// met de lijst van de dienst (`tagRepos(available:)`).
+    public var followsTagsByDefault: Bool { newRepoDefault.watchSet.tags }
+
+    /// Repo's waarvan de tags gevolgd worden, uit de lijst van de dienst plus de eigen
+    /// instellingen; hoofdletterongevoelig ontdubbeld (de schrijfwijze van de dienst wint).
+    public func tagRepos(available: [String]) -> [String] {
+        Account.mergedRepoNames(available: available, configured: Array(repoWatch.keys))
+            .filter { watch(for: $0).tags }
+    }
 }
 
 public enum PRState: String, Codable, Sendable, CaseIterable {
@@ -360,13 +373,17 @@ public struct Tag: Codable, Hashable, Sendable {
     public let name: String
     public let authorName: String?
     public let webURL: URL
+    /// Datum van de tag (of de commit erachter); alleen bekend uit `PRProvider.datedTags`.
+    /// Ontbreekt in oude JSON en bij `tags(in:)`.
+    public let createdAt: Date?
 
-    public init(accountId: UUID, repo: String, name: String, authorName: String?, webURL: URL) {
+    public init(accountId: UUID, repo: String, name: String, authorName: String?, webURL: URL, createdAt: Date? = nil) {
         self.accountId = accountId
         self.repo = repo
         self.name = name
         self.authorName = authorName
         self.webURL = webURL
+        self.createdAt = createdAt
     }
 
     public var dedupKey: String { "\(accountId.uuidString):\(repo.lowercased()):tag:\(name)" }

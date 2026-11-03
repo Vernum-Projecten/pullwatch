@@ -182,6 +182,21 @@ private actor FileProvider: PRProvider {
         #expect(report.repos.map(\.repo) == ["acme/a"])
     }
 
+    @Test func runMissingChecksOnlyNewlyFollowedRepos() async {
+        let provider = FileProvider(repos: ["acme/known", "acme/new", "acme/off"], files: [:])
+        let followed = account(["acme/off": .none], default: .prsAndTags)
+        let checker = VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now })
+        let report = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: followed.id, repo: "Acme/Known", components: [])])
+
+        let fresh = await checker.runMissing(accounts: [followed], in: report)
+        #expect(fresh.repos.map(\.repo) == ["acme/new"])
+
+        let merged = report.replacing(fresh.repos, latest: fresh.latest)
+        #expect(Set(merged.repos.map(\.repo)) == ["Acme/Known", "acme/new"])
+        #expect(merged.checkedAt == now)
+        #expect(await checker.runMissing(accounts: [followed], in: merged).repos.isEmpty)
+    }
+
     @Test func errorsStayPerRepoAndPerAccount() async {
         let http = MockHTTPClient()
         let good = FileProvider(repos: ["acme/ok", "acme/broken"], files: ["acme/ok": [:]], brokenRepos: ["acme/broken"])

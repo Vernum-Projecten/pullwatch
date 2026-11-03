@@ -33,9 +33,19 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   files and a folder per area.
 - `scripts/release/release.sh` notarises and staples the app before
   packaging it, so the app in the zip carries its own ticket too.
+- Following a repository follows its PRs and tags; a new account follows
+  both for repositories it finds later. Existing settings stay as they are.
+- Progress has one place: a bar at the bottom of the main window for the
+  first sync, fetching the history again and the version check, with Stop
+  where that is safe. Toolbar buttons stay put while their job runs, and the
+  menu shows a small spinner next to Refresh during a poll.
 
 ### Fixed
 
+- The main window fills in after adding an account: existing tags within
+  the history retention appear under Tags (read, without notifications),
+  newly followed repositories get their version check right after the poll
+  that first sees them, and empty lists say they are fetching.
 - Opening Pullwatch while it runs shows the main window.
 - Adding an account no longer leaves an empty row behind: nothing is saved
   until the account has an organisation, and empty accounts from older

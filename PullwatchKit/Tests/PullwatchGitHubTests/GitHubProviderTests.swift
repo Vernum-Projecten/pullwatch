@@ -164,6 +164,34 @@ import PullwatchTestSupport
         #expect(tags.allSatisfy { $0.repo == "acme/api" && $0.authorName == nil && $0.accountId == fixedAccountId })
     }
 
+    @Test func datedTagsComeFromGraphQLWithTaggerOrCommitDate() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: #"""
+        {"data":{"repository":{"refs":{"nodes":[
+          {"name":"v2","target":{"tagger":{"date":"2026-10-01T10:00:00Z"},"target":{"committedDate":"2026-09-30T10:00:00Z"}}},
+          {"name":"v1","target":{"committedDate":"2026-08-01T10:00:00Z"}},
+          {"name":"tree","target":{}}
+        ]}}}}
+        """#)
+
+        let tags = try await makeProvider(http).datedTags(in: "acme/api", limit: 50)
+
+        #expect(tags.map(\.name) == ["v2", "v1"])
+        #expect(tags.first?.createdAt == DateParsing.parse("2026-10-01T10:00:00Z"))
+        #expect(tags.allSatisfy { $0.repo == "acme/api" && $0.accountId == fixedAccountId })
+        let request = try #require(http.requests.first)
+        #expect(request.httpMethod == "POST")
+        let body = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
+        #expect(body.contains(#""owner":"acme""#) && body.contains(#""name":"api""#) && body.contains(#""first":50"#))
+    }
+
+    @Test func datedTagsOfMissingRepoAreEmpty() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: #"{"data":{"repository":null},"errors":[{"type":"NOT_FOUND"}]}"#)
+
+        #expect(try await makeProvider(http).datedTags(in: "acme/gone", limit: 50).isEmpty)
+    }
+
     @Test func tagURLEncodesName() async throws {
         let http = MockHTTPClient()
         http.on("repos/acme/api/tags", body: #"[{"name":"release/1.0"},{"name":"v1+b"}]"#)

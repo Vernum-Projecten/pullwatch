@@ -112,7 +112,15 @@ struct HistoryView: View {
         }
         .overlay {
             if rows.isEmpty {
-                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty
+                    && model.isFillingHistory {
+                    // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
+                    ContentUnavailableView(
+                        kind == .pullRequest ? "PR's ophalen…" : "Tags ophalen…",
+                        systemImage: kind.symbol,
+                        description: fillingDescription
+                    )
+                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
                     ContentUnavailableView(
                         kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags",
                         systemImage: kind.symbol,
@@ -152,10 +160,19 @@ struct HistoryView: View {
         })
     }
 
-    private var subtitle: Text {
-        if let progress = model.refetch {
-            return Text("Ophalen… \(progress.done)/\(progress.total) accounts")
+    /// Onder "PR's ophalen…": van welk account, als dat bekend is.
+    private var fillingDescription: Text {
+        guard let account = model.fillingAccountName else {
+            return Text(kind == .pullRequest
+                        ? "Pullwatch haalt de PR's op van de repo's die je volgt."
+                        : "Pullwatch haalt de tags op van de repo's die je volgt.")
         }
+        return kind == .pullRequest
+            ? Text("Pullwatch haalt de PR's op van \(account).", comment: "Accountnaam, bv. @octocat op GitHub")
+            : Text("Pullwatch haalt de tags op van \(account).", comment: "Accountnaam, bv. @octocat op GitHub")
+    }
+
+    private var subtitle: Text {
         let unread = rows.count(where: { !$0.isRead })
         return unread == 0 ? Text("Niets ongelezen") : Text("\(unread) ongelezen")
     }
@@ -202,26 +219,21 @@ private struct HistoryContextMenu: View {
     }
 }
 
-/// Opnieuw ophalen (of de voortgang ervan) en de repo van de selectie openen.
+/// Opnieuw ophalen en de repo van de selectie openen. De knop blijft staan (uitgeschakeld)
+/// terwijl het loopt; de voortgang staat in de balk onderin het venster.
 private struct HistoryToolbar: ToolbarContent {
     let model: AppModel
     let selectedRepo: HistoryRepo?
 
     var body: some ToolbarContent {
         ToolbarItem {
-            if let progress = model.refetch {
-                ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
-                    .progressViewStyle(.circular)
-                    .controlSize(.small)
-                    .help(Text("Ophalen… \(progress.done)/\(progress.total) accounts"))
-            } else {
-                Button {
-                    Task { await model.refetchHistory() }
-                } label: {
-                    Label("Opnieuw ophalen", systemImage: "arrow.clockwise")
-                }
-                .help("Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)")
+            Button {
+                Task { await model.refetchHistory() }
+            } label: {
+                Label("Opnieuw ophalen", systemImage: "arrow.clockwise")
             }
+            .disabled(model.refetch != nil)
+            .help("Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)")
         }
         ToolbarSpacer(.fixed)
         ToolbarItem {
