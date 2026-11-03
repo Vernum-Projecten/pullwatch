@@ -162,25 +162,31 @@ nonisolated private enum FakeWorld {
     ]
 
     static let files: [String: [String: String]] = [
-        // Een monorepo: de root en packages/web, lodash direct (4.17.20), via express en body-parser
-        // (4.17.15) en in packages/web (4.17.21), een kwetsbare qs alleen transitief en een dev-only lek.
+        // Een monorepo op Node 16: de root en packages/web, lodash direct (4.17.20, binnen bereik bij
+        // te werken), via express en body-parser (4.17.15, vastgehouden door body-parser) en in
+        // packages/web (4.17.21), een kwetsbare qs alleen transitief en een dev-only lek. express 5
+        // en vite 5 vragen een nieuwere Node; in packages/web houdt react-dom 18 react 19 tegen, en
+        // react-dom 19 vraagt react 19 als peer.
         "hello-world": [
             ".nvmrc": "16\n",
-            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0"}}"#,
-            "packages/web/package.json": #"{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0"}}"#,
+            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}}"#,
+            "packages/web/package.json": #"{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}}"#,
             "package-lock.json": #"{"lockfileVersion":3,"packages":{"#
-                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0"}},"#
-                + #""packages/web":{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0"}},"#
+                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}},"#
+                + #""packages/web":{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}},"#
                 + #""node_modules/web":{"resolved":"packages/web","link":true},"#
                 + #""node_modules/lodash":{"version":"4.17.20"},"#
                 + #""node_modules/express":{"version":"4.18.0","dependencies":{"body-parser":"1.20.1"}},"#
                 + #""node_modules/body-parser":{"version":"1.20.1","dependencies":{"qs":"6.10.1","lodash":"4.17.15"}},"#
                 + #""node_modules/body-parser/node_modules/lodash":{"version":"4.17.15"},"#
                 + #""node_modules/qs":{"version":"6.10.1"},"#
-                + #""node_modules/jest":{"version":"29.7.0","dev":true,"dependencies":{"semver":"6.3.0"}},"#
+                + #""node_modules/jest":{"version":"29.7.0","dev":true,"dependencies":{"semver":"^6.3.0"}},"#
                 + #""node_modules/semver":{"version":"6.3.0","dev":true},"#
+                + #""node_modules/vite":{"version":"4.5.0","dev":true,"engines":{"node":"^14.18.0 || >=16.0.0"}},"#
                 + #""node_modules/left-pad":{"version":"1.3.0"},"#
-                + #""packages/web/node_modules/lodash":{"version":"4.17.21"}}}"#,
+                + #""packages/web/node_modules/lodash":{"version":"4.17.21"},"#
+                + #""packages/web/node_modules/react":{"version":"18.3.1"},"#
+                + #""packages/web/node_modules/react-dom":{"version":"18.3.1","peerDependencies":{"react":"^18.3.1"}}}}"#,
         ],
         // lodash alleen via express: in Afhankelijkheden "alleen transitief".
         "spoon-knife": [
@@ -192,6 +198,47 @@ nonisolated private enum FakeWorld {
             "go.mod": "module github.com/octocat/linguist\n\ngo 1.22\n\nrequire github.com/spf13/cobra v1.8.0\n",
         ],
     ]
+
+    /// Het verkorte packument per npm-package (`dist-tags`, per versie dependencies, peers en
+    /// engines), zodat Afhankelijkheden elke status laat zien: binnen bereik (lodash), major met
+    /// manifest (express in spoon-knife), vastgehouden door een ouder (react door react-dom, qs
+    /// en lodash door body-parser), door een peer (react-dom) en door de runtime (vite, express op Node 16).
+    static let npmPackuments: [String: String] = {
+        func packument(_ latest: String, _ versions: [(String, String)]) -> String {
+            let entries = versions.map { #""\#($0.0)":{\#($0.1)}"# }.joined(separator: ",")
+            return #"{"dist-tags":{"latest":"\#(latest)"},"versions":{\#(entries)}}"#
+        }
+        return [
+            "lodash": packument("4.17.21", [("4.17.15", ""), ("4.17.20", ""), ("4.17.21", "")]),
+            "express": packument("5.1.0", [
+                ("4.18.0", #""dependencies":{"body-parser":"1.20.1"},"engines":{"node":">= 0.10.0"}"#),
+                ("4.21.2", #""dependencies":{"body-parser":"1.20.3"},"engines":{"node":">= 0.10.0"}"#),
+                ("5.1.0", #""dependencies":{"body-parser":"^2.2.0"},"engines":{"node":">= 18"}"#),
+            ]),
+            "body-parser": packument("2.2.0", [
+                ("1.20.1", #""dependencies":{"qs":"6.10.1","lodash":"4.17.15"}"#),
+                ("1.20.2", #""dependencies":{"qs":"^6.10.3"}"#),
+                ("1.20.3", #""dependencies":{"qs":"^6.13.0"}"#),
+                ("2.2.0", #""dependencies":{"qs":"^6.14.0"},"engines":{"node":">=18"}"#),
+            ]),
+            "qs": packument("6.14.0", [("6.10.1", ""), ("6.10.3", ""), ("6.11.0", ""), ("6.13.0", ""), ("6.14.0", "")]),
+            "left-pad": packument("1.3.0", [("1.3.0", "")]),
+            "jest": packument("29.7.0", [("29.7.0", #""dependencies":{"semver":"^6.3.0"}"#)]),
+            "semver": packument("7.6.3", [("6.3.0", ""), ("6.3.1", ""), ("7.6.3", "")]),
+            "vite": packument("6.0.0", [
+                ("4.5.0", #""engines":{"node":"^14.18.0 || >=16.0.0"}"#),
+                ("4.5.5", #""engines":{"node":"^14.18.0 || >=16.0.0"}"#),
+                ("5.4.0", #""engines":{"node":"^18.0.0 || >=20.0.0"}"#),
+                ("6.0.0", #""engines":{"node":"^18.0.0 || ^20.0.0 || >=22.0.0"}"#),
+            ]),
+            "react": packument("19.1.0", [("18.3.1", ""), ("19.0.0", ""), ("19.1.0", "")]),
+            "react-dom": packument("19.1.0", [
+                ("18.3.1", #""peerDependencies":{"react":"^18.3.1"}"#),
+                ("19.0.0", #""peerDependencies":{"react":"^19.0.0"}"#),
+                ("19.1.0", #""peerDependencies":{"react":"^19.1.0"}"#),
+            ]),
+        ]
+    }()
 
     static func iso(_ daysAgo: Double) -> String {
         Date(timeIntervalSinceNow: -daysAgo * 86_400).formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
@@ -207,11 +254,13 @@ nonisolated private enum FakeWorld {
         case "api.osv.dev":
             return osv(path: path, body: request.httpBody)
         case "registry.npmjs.org":
-            let latest = ["lodash": "4.17.21", "express": "4.21.2", "left-pad": "1.3.0", "jest": "29.7.0"]
             let name = url.pathComponents.dropFirst().first ?? ""
-            return latest[name].map { #"{"version":"\#($0)"}"# }
+            return npmPackuments[name]
         case "proxy.golang.org":
-            return path.contains("cobra") ? #"{"Version":"v1.8.1"}"# : nil
+            guard path.contains("cobra") else { return nil }
+            if path.hasSuffix(".mod") { return "module github.com/spf13/cobra\n\ngo 1.15\n" }
+            if path.hasSuffix("/@v/list") { return "v1.8.0\nv1.8.1\n" }
+            return #"{"Version":"v1.8.1"}"#
         default:
             break
         }

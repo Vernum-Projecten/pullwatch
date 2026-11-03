@@ -86,6 +86,90 @@
         }
       }
     },
+    "%@ %@ vraagt %@ %@; de repo gebruikt %@. Werk eerst %@ bij.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ vraagt %3$@ %4$@; de repo gebruikt %5$@. Werk eerst %6$@ bij."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ needs %3$@ %4$@; the repository uses %5$@. Update %6$@ first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ braucht %3$@ %4$@; das Repository nutzt %5$@. Aktualisiere zuerst %6$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ demande %3$@ %4$@ ; le dépôt utilise %5$@. Mettez d’abord %6$@ à jour."
+          }
+        }
+      }
+    },
+    "%@ %@ vraagt %@ %@; deze workspace heeft %@. Werk eerst %@ bij.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ vraagt %3$@ %4$@; deze workspace heeft %5$@. Werk eerst %6$@ bij."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ needs %3$@ %4$@; this workspace has %5$@. Update %6$@ first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ braucht %3$@ %4$@; dieser Workspace hat %5$@. Aktualisiere zuerst %6$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ demande %3$@ %4$@ ; cet espace de travail a %5$@. Mettez d’abord %6$@ à jour."
+          }
+        }
+      }
+    },
+    "%@ %@ wordt tegengehouden door %@, dat %@ vraagt. Werk eerst %@ bij naar %@.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ wordt tegengehouden door %3$@, dat %4$@ vraagt. Werk eerst %5$@ bij naar %6$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ is held back by %3$@, which asks for %4$@. Update %5$@ to %6$@ first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ wird von %3$@ zurückgehalten, das %4$@ verlangt. Aktualisiere zuerst %5$@ auf %6$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ est bloqué par %3$@, qui demande %4$@. Mettez d’abord %5$@ à jour vers %6$@."
+          }
+        }
+      }
+    },
     "%@ checken…": {
       "comment": "Naam van de repo",
       "localizations": {
@@ -295,6 +379,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ dans %2$@"
+          }
+        }
+      }
+    },
+    "%@ valt binnen %@: alleen de lockfile verandert.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ valt binnen %2$@: alleen de lockfile verandert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is within %2$@: only the lockfile changes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ liegt in %2$@: nur die Lockfile ändert sich."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ est dans %2$@ : seul le fichier lock change."
+          }
+        }
+      }
+    },
+    "%@ valt buiten %@: pas eerst het manifest aan.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ valt buiten %2$@: pas eerst het manifest aan."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is outside %2$@: change the manifest first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ liegt außerhalb von %2$@: ändere zuerst das Manifest."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ est hors de %2$@ : modifiez d’abord le manifeste."
+          }
+        }
+      }
+    },
+    "%@ vraagt %@ %@; de repo gebruikt %@ %@.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ vraagt %2$@ %3$@; de repo gebruikt %4$@ %5$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ needs %2$@ %3$@; the repository uses %4$@ %5$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ braucht %2$@ %3$@; das Repository nutzt %4$@ %5$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ demande %2$@ %3$@ ; le dépôt utilise %4$@ %5$@."
+          }
+        }
+      }
+    },
+    "%@ vraagt %@ %@; deze workspace heeft %@.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ vraagt %2$@ %3$@; deze workspace heeft %4$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ needs %2$@ %3$@; this workspace has %4$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ braucht %2$@ %3$@; dieser Workspace hat %4$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ demande %2$@ %3$@ ; cet espace de travail a %4$@."
           }
         }
       }
@@ -2833,6 +3029,28 @@
         }
       }
     },
+    "Alleen een melding als een repo de nieuwe versie binnen zijn bereik kan nemen, zonder manifest aan te passen of eerst iets anders bij te werken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only notify when a repository can take the new version within its range, without changing a manifest or updating something else first"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur benachrichtigen, wenn ein Repository die neue Version innerhalb seines Bereichs übernehmen kann, ohne das Manifest zu ändern oder vorher etwas anderes zu aktualisieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier uniquement quand un dépôt peut prendre la nouvelle version dans sa plage, sans modifier le manifeste ni mettre à jour autre chose d’abord"
+          }
+        }
+      }
+    },
     "Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert": {
       "localizations": {
         "de": {
@@ -2918,6 +3136,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seulement de %@"
+          }
+        }
+      }
+    },
+    "Alleen voor updates die nu kunnen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for updates you can take now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur für Updates, die jetzt möglich sind"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement pour les mises à jour possibles maintenant"
           }
         }
       }
@@ -4517,6 +4757,28 @@
         }
       }
     },
+    "Geblokkeerd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockiert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqué"
+          }
+        }
+      }
+    },
     "Gecheckt": {
       "localizations": {
         "de": {
@@ -5600,6 +5862,83 @@
         }
       }
     },
+    "In %lld repo's binnen het bereik bij te werken": {
+      "comment": "Meldingstekst; aantal repo's dat de nieuwe versie nu kan nemen",
+      "localizations": {
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld repo binnen het bereik bij te werken"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld repo's binnen het bereik bij te werken"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Can update within range in %lld repository"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Can update within range in %lld repositories"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld Repository im Bereich aktualisierbar"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld Repositorys im Bereich aktualisierbar"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mise à jour possible dans la plage dans %lld dépôt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mise à jour possible dans la plage dans %lld dépôts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Ingelogd als @%@": {
       "localizations": {
         "de": {
@@ -5945,6 +6284,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vous ne suivez encore rien. Cochez ci-dessous ce que Pullwatch doit récupérer."
+          }
+        }
+      }
+    },
+    "Kan nu bijwerken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can update now"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt aktualisierbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour possible"
           }
         }
       }
@@ -6647,6 +7008,72 @@
         }
       }
     },
+    "Major-update": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major update"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major-Update"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour majeure"
+          }
+        }
+      }
+    },
+    "Major-update binnen bereik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major update within range"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major-Update im Bereich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour majeure dans la plage"
+          }
+        }
+      }
+    },
+    "Manifest aanpassen nodig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a manifest change"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manifest muss geändert werden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manifeste à modifier"
+          }
+        }
+      }
+    },
     "Markeer als gelezen": {
       "localizations": {
         "de": {
@@ -6941,6 +7368,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Les notifications sont désactivées. Activez-les dans Réglages Système pour voir les nouvelles PR et les nouveaux tags dès leur apparition."
+          }
+        }
+      }
+    },
+    "Minor-update binnen bereik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minor update within range"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minor-Update im Bereich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour mineure dans la plage"
           }
         }
       }
@@ -7243,30 +7692,68 @@
         }
       }
     },
-    "Nieuwe versie beschikbaar": {
+    "Nieuwere versie": {
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neue Version verfügbar"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New version available"
+            "value": "Newer version"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuere Version"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nouvelle version disponible"
+            "value": "Version plus récente"
           }
-        },
-        "nl": {
+        }
+      }
+    },
+    "Nieuwere versie, status onbekend": {
+      "localizations": {
+        "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nieuwe versie beschikbaar"
+            "value": "Newer version, status unknown"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuere Version, Status unbekannt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version plus récente, statut inconnu"
+          }
+        }
+      }
+    },
+    "Nieuwste die nu kan: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newest you can use now: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste, die jetzt geht: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus récente utilisable maintenant : %@"
           }
         }
       }
@@ -8778,6 +9265,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Paquets :"
+          }
+        }
+      }
+    },
+    "Patch-update binnen bereik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patch update within range"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patch-Update im Bereich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correctif dans la plage"
           }
         }
       }
@@ -11010,6 +11519,72 @@
         }
       }
     },
+    "Update beschikbaar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update available"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update verfügbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour disponible"
+          }
+        }
+      }
+    },
+    "Update binnen bereik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update within range"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update im Bereich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour dans la plage"
+          }
+        }
+      }
+    },
+    "Update buiten bereik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update outside range"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update außerhalb des Bereichs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour hors plage"
+          }
+        }
+      }
+    },
     "Updates": {
       "localizations": {
         "de": {
@@ -11078,6 +11653,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "À partir de ce niveau, Pullwatch écrit dans le journal système. Dans Console, recherchez nl.torrisi.pullwatch."
+          }
+        }
+      }
+    },
+    "Vastgehouden op %@ door %@, dat %@ vraagt. Nog geen versie van %@ laat %@ toe.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Nog geen versie van %4$@ laat %5$@ toe."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Held at %1$@ by %2$@, which asks for %3$@. No version of %4$@ allows %5$@ yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Noch keine Version von %4$@ erlaubt %5$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqué à %1$@ par %2$@, qui demande %3$@. Aucune version de %4$@ n’autorise encore %5$@."
+          }
+        }
+      }
+    },
+    "Vastgehouden op %@ door %@, dat %@ vraagt. Werk eerst %@ bij naar %@.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Werk eerst %4$@ bij naar %5$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Held at %1$@ by %2$@, which asks for %3$@. Update %4$@ to %5$@ first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Aktualisiere zuerst %4$@ auf %5$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqué à %1$@ par %2$@, qui demande %3$@. Mettez d’abord %4$@ à jour vers %5$@."
           }
         }
       }
@@ -12071,6 +12702,62 @@
           "stringUnit": {
             "state": "new",
             "value": "Werk %1$@ bij naar %2$@"
+          }
+        }
+      }
+    },
+    "Werk %@ bij naar %@; dat valt binnen het bereik, alleen de lockfile verandert": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij naar %2$@; dat valt binnen het bereik, alleen de lockfile verandert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %1$@ to %2$@; that is within range, only the lockfile changes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere %1$@ auf %2$@; das liegt im Bereich, nur die Lockfile ändert sich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour %1$@ vers %2$@ ; c’est dans la plage, seul le fichier lock change"
+          }
+        }
+      }
+    },
+    "Werk %@ bij naar %@; dat valt buiten het bereik, pas het manifest aan": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij naar %2$@; dat valt buiten het bereik, pas het manifest aan"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %1$@ to %2$@; that is outside the range, change the manifest"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere %1$@ auf %2$@; das liegt außerhalb des Bereichs, ändere das Manifest"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour %1$@ vers %2$@ ; c’est hors de la plage, modifiez le manifeste"
           }
         }
       }

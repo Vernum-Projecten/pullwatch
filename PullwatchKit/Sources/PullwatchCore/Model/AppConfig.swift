@@ -14,6 +14,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var includeTestVersions: Bool
     /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
     public var notifyPackageUpdates: Bool
+    /// Die melding alleen voor updates die een repo nu binnen zijn bereik kan nemen. Standaard aan.
+    public var notifyOnlyUpdatesYouCanTake: Bool
     /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
     /// Standaard uit: die meldingen staan ook bij GitHub of Azure DevOps.
     public var notifySecurityAlerts: Bool
@@ -29,6 +31,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkForUpdates: Bool = true,
         includeTestVersions: Bool = false,
         notifyPackageUpdates: Bool = true,
+        notifyOnlyUpdatesYouCanTake: Bool = true,
         notifySecurityAlerts: Bool = false,
         onboardingCompleted: Bool = false
     ) {
@@ -39,6 +42,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.checkForUpdates = checkForUpdates
         self.includeTestVersions = includeTestVersions
         self.notifyPackageUpdates = notifyPackageUpdates
+        self.notifyOnlyUpdatesYouCanTake = notifyOnlyUpdatesYouCanTake
         self.notifySecurityAlerts = notifySecurityAlerts
         self.onboardingCompleted = onboardingCompleted
     }
@@ -52,6 +56,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
         includeTestVersions = try c.decodeIfPresent(Bool.self, forKey: .includeTestVersions) ?? false
         notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
+        notifyOnlyUpdatesYouCanTake = try c.decodeIfPresent(Bool.self, forKey: .notifyOnlyUpdatesYouCanTake) ?? true
         notifySecurityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
     }

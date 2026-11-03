@@ -5,12 +5,22 @@ import SwiftUI
 /// er meer dan één is), met Direct open en Transitief, Herkomst onbekend en Dev ingeklapt.
 struct RepoPackagesSections: View {
     let versions: RepoVersions
+    /// Wat een update tegenhoudt, en de nieuwste versie per `PackageUse.key`.
+    var context: UpdateContext = .empty
+    var latest: (String) -> String? = { _ in nil }
     /// `PackageUse.key` van de packages die in Afhankelijkheden staan.
     var knownPackages: Set<String> = []
     var showPackage: ((String) -> Void)? = nil
 
     var body: some View {
         let workspaces = versions.packageWorkspaces.filter { !$0.isEmpty }
+        let status: (WorkspacePackage, PackageInstall) -> UpdateStatus? = { package, install in
+            guard let latest = latest(package.id) else { return nil }
+            return UpdateStatus(
+                update: install.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context),
+                installed: install.version, requested: install.requested
+            )
+        }
         if workspaces.isEmpty {
             Section("Packages") {
                 Text("Geen packages met een vaste versie gevonden").foregroundStyle(.secondary)
@@ -20,16 +30,16 @@ struct RepoPackagesSections: View {
                 Section {
                     PackageGroup(title: "Direct", packages: workspace.direct, startsExpanded: true,
                                  help: "Packages die je project zelf vraagt",
-                                 knownPackages: knownPackages, showPackage: showPackage)
+                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
                     PackageGroup(title: "Transitief", packages: workspace.transitive,
                                  help: "Packages die alleen via een ander package binnenkomen",
-                                 knownPackages: knownPackages, showPackage: showPackage)
+                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
                     PackageGroup(title: "Herkomst onbekend", packages: workspace.unknown,
                                  help: "Zonder manifest in dezelfde map is niet te zien of je project deze packages zelf vraagt",
-                                 knownPackages: knownPackages, showPackage: showPackage)
+                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
                     PackageGroup(title: "Dev", packages: workspace.dev,
                                  help: "Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert",
-                                 knownPackages: knownPackages, showPackage: showPackage)
+                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
                 } header: {
                     HStack {
                         Text("Packages")
@@ -53,6 +63,7 @@ private struct PackageGroup: View {
     var startsExpanded = false
     let help: LocalizedStringResource
     let knownPackages: Set<String>
+    let status: (WorkspacePackage, PackageInstall) -> UpdateStatus?
     let showPackage: ((String) -> Void)?
 
     @State private var isExpanded: Bool?
@@ -71,6 +82,7 @@ private struct PackageGroup: View {
                     ForEach(packages) { package in
                         WorkspacePackageRow(
                             package: package,
+                            status: { status(package, $0) },
                             showPackage: knownPackages.contains(package.id) ? showPackage : nil
                         )
                     }
@@ -90,12 +102,17 @@ private struct PackageGroup: View {
 /// versies een regel per versie met de keten erbij, en "3 versies" bij de naam.
 private struct WorkspacePackageRow: View {
     let package: WorkspacePackage
+    /// De update-status van een install; nil zonder bekende nieuwste versie.
+    let status: (PackageInstall) -> UpdateStatus?
     let showPackage: ((String) -> Void)?
 
     var body: some View {
         if package.installs.count == 1, let install = package.installs.first {
             LabeledContent {
-                Text(verbatim: install.version).monospacedDigit()
+                HStack(spacing: 8) {
+                    Text(verbatim: install.version).monospacedDigit()
+                    StatusMark(status: status(install))
+                }
             } label: {
                 name
                 if let provenance = Provenance.text(scope: install.scope, via: install.via), install.scope != .direct {
@@ -108,9 +125,12 @@ private struct WorkspacePackageRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 name
                 ForEach(package.installs, id: \.self) { install in
-                    InstallLine(version: install.version, scope: install.scope, via: install.via, isDev: install.kind == .dev)
-                        .padding(.leading, 12)
-                        .help(Text(verbatim: install.source))
+                    HStack(spacing: 6) {
+                        InstallLine(version: install.version, scope: install.scope, via: install.via, isDev: install.kind == .dev)
+                            .help(Text(verbatim: install.source))
+                        StatusMark(status: status(install), font: .caption)
+                    }
+                    .padding(.leading, 12)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -132,6 +152,18 @@ private struct WorkspacePackageRow: View {
                     .foregroundStyle(.orange)
                     .help(Text(verbatim: package.repoVersions.joined(separator: ", ")))
             }
+        }
+    }
+}
+
+/// De status van een install naast zijn versie, alleen als er iets te doen is.
+private struct StatusMark: View {
+    let status: UpdateStatus?
+    var font: Font = .body
+
+    var body: some View {
+        if let status, status.category != .upToDate {
+            UpdateStatusLabel(status: status, font: font)
         }
     }
 }

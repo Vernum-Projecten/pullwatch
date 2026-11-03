@@ -89,6 +89,19 @@ import Testing
         #expect(names.allSatisfy { !$0.isEmpty })
     }
 
+    /// Elke update-status heeft een eigen symbool en een eigen kop, zodat de groepen in
+    /// Afhankelijkheden niet alleen op kleur verschillen.
+    @Test(arguments: UpdateCategory.allCases)
+    func updateStatusSymbolsExist(_ category: UpdateCategory) {
+        #expect(NSImage(systemSymbolName: category.symbol, accessibilityDescription: nil) != nil)
+    }
+
+    @Test func updateStatusesDiffer() {
+        #expect(Set(UpdateCategory.allCases.map(\.symbol)).count == UpdateCategory.allCases.count)
+        let titles = UpdateCategory.allCases.map { String(localized: $0.title) }
+        #expect(Set(titles).count == titles.count)
+    }
+
     @Test(arguments: [RepoHealth.problem, .behind, .ok, .unknown])
     func healthSymbolsExist(_ health: RepoHealth) {
         #expect(NSImage(systemSymbolName: health.symbol, accessibilityDescription: nil) != nil)

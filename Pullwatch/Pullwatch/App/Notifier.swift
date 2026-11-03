@@ -109,13 +109,18 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             let fix = v.fixedIn.map { " → \($0)" } ?? ""
             return "\(v.identifiers(advisory))\(severity) \(v.package) \(v.version)\(fix)"
         }
+        /// Wat de oplossing vraagt: binnen het bereik, het manifest mee, of eerst iets anders bijwerken.
+        func fix(_ v: Vulnerability, in repo: String) -> String? {
+            let context = report.repos.first { $0.repo == repo }.map(report.updateContext(for:)) ?? .empty
+            return v.fix(in: context).plainText
+        }
         if items.count <= 3 {
             for (repo, v) in items {
                 let advisory = report.advisory(for: v)
                 let content = UNMutableNotificationContent()
                 content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
                 // Direct of via welk package, en waar: dan weet je meteen wat je moet bijwerken.
-                content.body = [line(v), v.provenanceLine, advisory?.cweText, advisory?.summary ?? v.summary]
+                content.body = [line(v), v.provenanceLine, fix(v, in: repo), advisory?.cweText, advisory?.summary ?? v.summary]
                     .compactMap { $0 }.joined(separator: "\n")
                 content.userInfo = ["url": (advisory?.url ?? v.url).absoluteString]
                 content.sound = .default
@@ -159,17 +164,25 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Eén melding voor alle nieuwe versies van één check; klik opent het onderdeel Versies.
+    /// Eén melding voor alle nieuwe versies van één check, met per package wat je ermee kunt;
+    /// klik opent het onderdeel Versies.
     func deliverPackageUpdates(_ items: [PackageSummary]) {
         guard !items.isEmpty else { return }
         let lines = items.map { "\($0.label) \($0.latest ?? "")" }
         let content = UNMutableNotificationContent()
         if let only = items.first, items.count == 1 {
             content.title = String(localized: "\(only.label) \(only.latest ?? "") beschikbaar", comment: "Package, versie")
-            content.body = String(localized: "\(only.behind.count) repo's lopen achter", comment: "Meldingstekst; aantal repo's met een oudere versie")
+            let status = only.canUpdateNowCount > 0
+                ? String(localized: "In \(only.canUpdateNowCount) repo's binnen het bereik bij te werken", comment: "Meldingstekst; aantal repo's dat de nieuwe versie nu kan nemen")
+                : String(localized: only.category.title)
+            content.body = [
+                String(localized: "\(only.behind.count) repo's lopen achter", comment: "Meldingstekst; aantal repo's met een oudere versie"),
+                status,
+            ].joined(separator: "\n")
         } else {
             content.title = String(localized: "\(items.count) nieuwe versies", comment: "Meldingstitel; aantal packages met een nieuwe versie")
-            content.body = (lines.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")] : []))
+            let described = items.map { "\($0.label) \($0.latest ?? ""): \(String(localized: $0.category.title))" }
+            content.body = (described.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")] : []))
                 .joined(separator: "\n")
         }
         content.userInfo = ["section": "versions"]

@@ -39,7 +39,7 @@ struct PackagesView: View {
                 || (summary.behind + summary.current + summary.transitiveOnly).contains { $0.repo.localizedCaseInsensitiveContains(query) }
         }
         sections = PackageSection.Kind.allCases.compactMap { kind in
-            let summaries = found.filter { kind.state == $0.state }
+            let summaries = found.filter { PackageSection.Kind($0) == kind }
             guard !summaries.isEmpty else { return nil }
             return PackageSection(kind: kind, packages: summaries.map { summary in
                 PackageRow(
@@ -68,6 +68,10 @@ struct PackagesView: View {
                 PackageVersionCell(node: node)
             }
             .width(min: 90, ideal: 120)
+            TableColumn("Status") { node in
+                PackageUpdateCell(node: node)
+            }
+            .width(min: 150, ideal: 190)
             TableColumn("Stand") { node in
                 PackageStatusCell(node: node)
             }
@@ -166,9 +170,10 @@ struct PackagesView: View {
     }
 }
 
-/// Welke groepen in Afhankelijkheden open staan; "Nieuwe versie beschikbaar" standaard wel, de rest niet.
+/// Welke groepen in Afhankelijkheden open staan: wat je kunt bijwerken, wat een manifest vraagt
+/// en wat geblokkeerd is standaard wel, de rest niet.
 struct PackageSectionExpansion {
-    private var expanded: Set<PackageSection.Kind> = [.updates]
+    private var expanded: Set<PackageSection.Kind> = [.canUpdateNow, .needsManifestChange, .blocked]
 
     subscript(kind: PackageSection.Kind) -> Bool {
         get { expanded.contains(kind) }
@@ -178,16 +183,22 @@ struct PackageSectionExpansion {
     }
 }
 
-/// Een groep packages in de tabel.
+/// Een groep packages in de tabel: naar wat je met de nieuwe versie kunt, dan wat niet te checken is.
 struct PackageSection: Identifiable {
     enum Kind: CaseIterable, Hashable {
-        case updates, current, unchecked
+        case canUpdateNow, needsManifestChange, blocked, unknown, upToDate, unchecked
 
-        var state: PackageSummary.State {
-            switch self {
-            case .updates: .updateAvailable
-            case .current: .current
-            case .unchecked: .unchecked
+        init(_ summary: PackageSummary) {
+            guard summary.state != .unchecked else {
+                self = .unchecked
+                return
+            }
+            switch summary.category {
+            case .canUpdateNow: self = .canUpdateNow
+            case .needsManifestChange: self = .needsManifestChange
+            case .blocked: self = .blocked
+            case .unknown: self = .unknown
+            case .upToDate: self = .upToDate
             }
         }
     }
@@ -199,8 +210,11 @@ struct PackageSection: Identifiable {
 
     var title: LocalizedStringResource {
         switch kind {
-        case .updates: "Nieuwe versie beschikbaar"
-        case .current: "Actueel"
+        case .canUpdateNow: UpdateCategory.canUpdateNow.title
+        case .needsManifestChange: UpdateCategory.needsManifestChange.title
+        case .blocked: UpdateCategory.blocked.title
+        case .unknown: UpdateCategory.unknown.title
+        case .upToDate: UpdateCategory.upToDate.title
         case .unchecked: "Niet te checken"
         }
     }
@@ -249,7 +263,8 @@ struct PackageUserRow: Hashable, Identifiable {
         }
         return sorted.enumerated().map { index, install in
             PackageInstallRow(index: index, packageId: packageId, repoId: user.repoId, install: install,
-                              showsWorkspace: showsWorkspace, latest: latest)
+                              showsWorkspace: showsWorkspace, latest: latest,
+                              update: user.updates.first { $0.install == install })
         }
     }
 }
@@ -262,6 +277,8 @@ struct PackageInstallRow: Hashable, Identifiable {
     let install: PackageInstall
     let showsWorkspace: Bool
     let latest: String?
+    /// De update-status van deze install; nil zonder installs (runtimes).
+    let update: InstallUpdate?
 
     var id: String { "\(index)|\(packageId)|\(repoId)" }
 
@@ -430,5 +447,38 @@ private struct ProvenanceCell: View {
             font: .body
         )
         .help(Text(verbatim: install.source))
+    }
+}
+
+/// Wat je met de nieuwste versie kunt: per package wat in een repo het meest mogelijk is, per repo
+/// en per install zijn eigen status, met de reden in de tooltip en voor VoiceOver.
+private struct PackageUpdateCell: View {
+    let node: PackageNode
+
+    var body: some View {
+        switch node {
+        case .package(let row):
+            if row.summary.state != .unchecked, let status = row.leadingStatus {
+                UpdateStatusLabel(status: status)
+            }
+        case .user(let row):
+            if row.latest != nil {
+                UpdateStatusLabel(status: UpdateStatus(user: row.user, latest: row.latest))
+            }
+        case .install(let row):
+            if row.latest != nil, let update = row.update {
+                UpdateStatusLabel(status: UpdateStatus(update))
+            }
+        }
+    }
+}
+
+extension PackageRow {
+    /// De status van de repo die bepaalt in welke groep het package staat.
+    var leadingStatus: UpdateStatus? {
+        let category = summary.category
+        return (summary.behind + summary.current)
+            .first { $0.category(latest: summary.latest) == category }
+            .map { UpdateStatus(user: $0, latest: summary.latest) }
     }
 }
