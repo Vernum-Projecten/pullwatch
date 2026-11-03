@@ -1,1 +1,0 @@
-- Account names follow the organisation.
