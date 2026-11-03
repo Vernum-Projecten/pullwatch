@@ -137,11 +137,11 @@ private struct AccountCard: View {
                             .fontWeight(.medium)
                             .lineLimit(1)
                         if account.isPaused {
-                            Text("\(account.kind.name), uitgezet", comment: "Dienst (GitHub of Azure DevOps); het account wordt niet opgehaald")
+                            Text("\(account.serviceName), uitgezet", comment: "Dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server); het account wordt niet opgehaald")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
-                            Text(verbatim: account.kind.name)
+                            Text(verbatim: account.serviceName)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -180,7 +180,7 @@ private struct AccountCard: View {
     }
 }
 
-/// + met een pijltje (het opent een keuze: GitHub of Azure DevOps) en − onder de lijst, zoals
+/// + met een pijltje (het opent een keuze: GitHub, Azure DevOps of GitLab) en − onder de lijst, zoals
 /// in de Mac-instellingen.
 private struct AccountListButtons: View {
     let canRemove: Bool
@@ -190,8 +190,17 @@ private struct AccountListButtons: View {
     var body: some View {
         HStack(spacing: 0) {
             Menu {
-                Button("GitHub") { add(.gitHub) }
-                Button("Azure DevOps") { add(.azureDevOps) }
+                ForEach([ProviderKind.gitHub, .azureDevOps, .gitLab], id: \.self) { kind in
+                    Button {
+                        add(kind)
+                    } label: {
+                        Label {
+                            Text(verbatim: kind.name)
+                        } icon: {
+                            ProviderMark.menuIcon(for: kind)
+                        }
+                    }
+                }
             } label: {
                 Label("Account toevoegen", systemImage: "plus")
                     .labelStyle(.iconOnly)

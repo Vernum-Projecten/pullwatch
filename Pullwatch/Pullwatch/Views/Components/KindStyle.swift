@@ -34,6 +34,24 @@ nonisolated enum Glyph: Hashable, Sendable {
     }
 }
 
+nonisolated extension ProviderKind {
+    /// Het beeld van de dienst op de keuzekaarten en in het toevoeg-menu. Alleen GitHub staat een
+    /// logo in een app toe ("Show integration", brand.github.com/foundations/logo): de
+    /// Invertocat, onveranderd, zwart op licht en wit op donker (de assetcatalogus kiest). GitLab
+    /// weigert zijn logo's in gebruikersinterfaces (Trademark Guidelines van GitLab Inc.) en
+    /// Microsoft staat de Azure-iconen alleen toe in diagrammen en documentatie: daar een SF Symbol.
+    var glyph: Glyph {
+        switch self {
+        case .gitHub: .asset("GitHubMark")
+        case .azureDevOps: .system("cloud")
+        case .gitLab: .system("arrow.triangle.merge")
+        }
+    }
+
+    /// Het logo moet zijn eigen kleuren houden: nooit tinten of als template tekenen.
+    var glyphKeepsItsColours: Bool { self == .gitHub }
+}
+
 // Vaste waarden (icoon, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
 nonisolated extension ItemKind {
     var color: Color {

@@ -250,7 +250,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         let named = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         guard !named.isEmpty else { return kind.name }
         let list = named.formatted(.list(type: .and))
-        return String(localized: "\(list) op \(serviceName)", bundle: .localizedCore, comment: "Organisatie(s) of gebruiker(s), dienst (GitHub of Azure DevOps)")
+        return String(localized: "\(list) op \(serviceName)", bundle: .localizedCore, comment: "Organisatie(s), groep(en) of gebruiker(s), dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server)")
     }
 
     /// Een account dat minstens één eigenaar volgt: alleen zo'n account wordt bewaard en gepold.
