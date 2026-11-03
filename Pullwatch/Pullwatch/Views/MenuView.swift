@@ -12,12 +12,12 @@ struct MenuView: View {
             MenuHeader(
                 isPolling: model.pollProgress != nil,
                 refresh: { Task { await model.refreshNow() } },
-                openSettings: { MenuPanel.close(); model.show(.settings) },
-                openAbout: { MenuPanel.close(); model.show(.about) }
+                openSettings: { model.show(.settings) },
+                openAbout: { model.show(.about) }
             )
 
             if let update = model.availableUpdate {
-                UpdateBanner(update: update) { MenuPanel.close(); model.installUpdate() }
+                UpdateBanner(update: update) { model.installUpdate(); MenuPanel.close() }
             }
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
@@ -26,16 +26,14 @@ struct MenuView: View {
             Divider()
 
             if model.config.pollableAccounts.isEmpty {
-                SetupPrompt { MenuPanel.close(); model.show(.onboarding) }
+                SetupPrompt { model.show(.onboarding) }
             } else {
                 RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: model.menuPullRequests, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
-                    MenuPanel.close()
                     model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                     model.show(.main)
                 }
                 if model.hasTags {
                     RecentSection(title: "Tags en releases", empty: nil, items: model.menuTags, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
-                        MenuPanel.close()
                         model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         model.show(.main)
                     }
@@ -52,7 +50,7 @@ struct MenuView: View {
             MenuFooter(
                 unreadCount: model.unreadCount,
                 markAllRead: model.markAllRead,
-                openMain: { MenuPanel.close(); model.show(.main) }
+                openMain: { model.show(.main) }
             )
         }
         .padding(12)
@@ -60,7 +58,8 @@ struct MenuView: View {
     }
 }
 
-/// Sluit het menupaneel, zodat een venster dat daarna opent er niet onder valt.
+/// Sluit het menupaneel. Voor vensters die het model opent doet `MenuBarLabel` dat zelf, na het
+/// openen; hier alleen voor Sparkle's venster.
 @MainActor
 enum MenuPanel {
     static func close() {
