@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # scripts/release/release.sh [--unsigned]
 #
-# Bouwt Pullwatch (Release, universal) en maakt dist/Pullwatch-<versie>.dmg.
+# Bouwt Pullwatch (Release, universal) en maakt met package.sh
+# dist/Pullwatch-<versie>.dmg (met installatievenster) en dist/Pullwatch-<versie>.zip.
 # Standaard: gesigned met Developer ID (hardened runtime), genotariseerd en
 # gestapled, zodat de DMG zonder Gatekeeper-waarschuwing opent. Met
 # --unsigned: ad-hoc gesigned, voor lokaal testen.
@@ -47,13 +48,9 @@ if ((sign)); then
   codesign --verify --strict --verbose=2 "$app"
 fi
 
-stage="$root/dist/dmg"
-rm -rf "$stage"
-mkdir -p "$stage"
-cp -R "$app" "$stage/"
-ln -s /Applications "$stage/Applications"
-hdiutil create -volname Pullwatch -srcfolder "$stage" -ov -format UDZO "$dmg"
-rm -r "$stage"
+# Het installatievenster (achtergrond, pijl, vaste posities) en de zip voor
+# de updater; zie package.sh.
+"$root/scripts/release/package.sh" "$app" "$version" "$root/dist"
 
 if ((sign)); then
   codesign --force --timestamp --sign "$SIGN_ID" "$dmg"
