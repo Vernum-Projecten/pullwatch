@@ -27,27 +27,35 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 ## Repository map
 
-- `App/`: the SwiftUI app target. `PullwatchApp.swift` (the `MenuBarExtra`,
-  the main `Window`, the Dock-icon switch), `AppModel.swift` (the one
-  `@Observable` model: polling loop, config, history, update check),
-  `MenuView` (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos,
-  Versions, Statistics, Settings), `SettingsView`, `AccountEditor`,
-  `Notifier` (user notifications), `Shortcuts`, `AppLanguage`.
-  `Localizable.xcstrings` holds the app's text in nl, en, de and fr.
-  `Assets.xcassets/AppIcon.appiconset` is the icon (drawn by
-  `scripts/make-icon.swift`; being replaced, #4).
-- `Sources/PullwatchCore/`: a local Swift package with everything without a
-  window. Providers behind `PRProvider` (`GitHubProvider`,
-  `AzureDevOpsProvider`, `ProviderFactory`), token sources (PAT in the
-  Keychain, `gh` / `az` CLI), `PollEngine`, `History`, `SeenState`,
-  `NotificationPlanner`, the version and vulnerability checks
-  (`StackDetector`, `DependencyDetector`, `PackageRegistry`, `EndOfLife`,
-  `OSV`), `UpdateChecker` (GitHub releases), `HTTP` and `ProcessRunner`.
-- `Tests/PullwatchCoreTests/`: Swift Testing suites for the package;
-  `Support/` has `MockHTTPClient` and `MockProcessRunner`.
-- `project.yml` (XcodeGen) generates the git-ignored `Pullwatch.xcodeproj`;
-  `Makefile` wraps the build, DMG and release. Both are being replaced by a
-  committed Xcode project and xcconfig (#12).
+- `Pullwatch/`: the app. `Pullwatch.xcodeproj` (committed; synchronized
+  folders, so adding a file needs no project edit; shared scheme
+  `Pullwatch`), `App.xcconfig` (version, build number, bundle id).
+  `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (the
+  `MenuBarExtra`, the main `Window`, the Dock-icon switch), `AppModel.swift`
+  (the one `@Observable` model: polling loop, config, history, update check),
+  `Notifier`, `Shortcuts`, `AppLanguage`. `Pullwatch/Pullwatch/Views/`: only
+  draws. `MenuView` (the menu-bar popover), `MainView` (sidebar: PRs, Tags,
+  Repos, Versions, Statistics, Settings), `SettingsView`, `AccountEditor`,
+  the section views, and `Components/` (pills, rows). `Localizable.xcstrings`
+  holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
+  generated one cannot (`CFBundleLocalizations`). `Assets.xcassets` has the
+  icon (drawn by `scripts/make-icon.swift`; being replaced, #4).
+  `Pullwatch/PullwatchTests/`: hosted Swift Testing suites for the built app
+  (bundle id, menu-bar app, languages, translations complete, SF Symbols).
+  While XCTest hosts the app, `AppDelegate` does not start polling.
+- `PullwatchKit/`: the local Swift package (`Package.swift`) with the
+  `PullwatchCore` module, everything without a window, by area under
+  `Sources/PullwatchCore/`: `Model/` (models, `AppConfig`), `Providers/`
+  (`PRProvider`, GitHub, Azure DevOps, `ProviderFactory`, token sources),
+  `Polling/` (`PollEngine`, backoff, notification planning, filters, seen
+  state), `History/` (history, statistics, repo overview), `Versions/` (the
+  version and vulnerability checks: stack and dependency detection, package
+  registries, end-of-life, OSV), `Updates/` (`UpdateChecker`), `Support/`
+  (HTTP, processes, JSON store, Keychain, localisation).
+  `Tests/PullwatchCoreTests/`: its Swift Testing suites; `Support/` has
+  `MockHTTPClient` and `MockProcessRunner`.
+- `scripts/release/release.sh [--unsigned]`: Release build (universal), DMG,
+  and with a Developer ID also signing, notarisation and stapling.
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
   (issue type, Priority, Effort), `rel.sh` (sub-issues and blocked-by),
   `labels.sh` (the label set). `scripts/dev/xcode-skills.sh` exports
@@ -66,8 +74,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   pre-commit hook and the Claude `protect_secrets.sh` hook refuse them.
 - **The bundle id stays `nl.torrisi.pullwatch`.** Changing it loses every
   user's settings, notifications permission and Keychain tokens.
-- **The app supports macOS 14 and later, universal.** No API above 14
-  without an availability check and a working fallback.
+- **The app supports macOS 26.6 and later, universal (Apple Silicon and
+  Intel).** One deployment target, set at the project level and in
+  `PullwatchKit/Package.swift`; never per target.
 - **Every user-facing string in all four languages** (nl, en, de, fr).
 - **Never weaken, skip or delete a test** to make a build pass.
 - **No AI attribution in commits, PRs or issues.** No `Co-authored-by`, no
@@ -83,12 +92,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 ```bash
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-swift test                                   # PullwatchCore
-make build                                   # needs `brew install xcodegen`; until #12
-shellcheck scripts/gh/*.sh scripts/dev/*.sh .claude/hooks/*.sh .githooks/*
+swift test --package-path PullwatchKit                      # PullwatchCore
+xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -destination 'platform=macOS'
+shellcheck scripts/*/*.sh .claude/hooks/*.sh .githooks/*
 ```
 
-A UI change is looked at before it is called done: run the app (`make run`),
+A UI change is looked at before it is called done: run the app (⌘R in Xcode),
 open every screen it touches in light and dark mode, in Dutch and English,
 at the smallest window size, and check for truncation and overflow.
 
@@ -123,7 +132,7 @@ it again; each issue lists the files to copy.
 
 ## Releases
 
-Today: `make release` on Alessandro's Mac (Developer ID of Code24 BV,
+Today: `scripts/release/release.sh` on Alessandro's Mac (Developer ID of Code24 BV,
 notarytool profile `pullwatch`) builds a signed, notarised DMG that he
 uploads to a GitHub release `vX.Y.Z`. The app's `UpdateChecker` reads
 `releases/latest` once a day. The release lane moves to CI with Sparkle

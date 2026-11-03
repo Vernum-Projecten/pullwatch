@@ -1,24 +1,23 @@
 ---
 paths:
   - "**/*.swift"
-  - "Package.swift"
-  - "App/**"
+  - "PullwatchKit/**"
+  - "Pullwatch/**"
 ---
 
 # Writing Swift here
 
-Pullwatch is a menu-bar app (`LSUIElement`) for **macOS 14 and later**,
+Pullwatch is a menu-bar app (`LSUIElement`) for **macOS 26.6 and later**,
 universal (Apple Silicon and Intel), built with the current Xcode and Swift 6
-language mode. Write for the current SDK, and guard every API newer than
-macOS 14 with `if #available` / `@available`, with a fallback that still
-works on 14. When unsure whether an API exists or how it is spelled, read
+language mode. Write for the current SDK; anything up to macOS 26.6 needs no
+availability check, anything newer does, with a fallback that works on 26.6. When unsure whether an API exists or how it is spelled, read
 the SDK's `.swiftinterface` or Apple's documentation first; never guess an
 API from memory.
 
 Apple's own guidance ships with Xcode as agent skills: run
 `bash scripts/dev/xcode-skills.sh` once per Mac (and after an Xcode update)
 to export them into `.claude/skills/` (git-ignored). `swiftui-specialist`
-supersedes anything here that disagrees, apart from the macOS 14 floor.
+supersedes anything here that disagrees, apart from the macOS 26.6 floor.
 
 Set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` when
 `xcode-select` points at the Command Line Tools.
@@ -32,9 +31,11 @@ pull request at the end, so it reads like his code.
   `docs/superpowers/`. Commit subjects, PR titles and issues are English.
 - Formatting is Xcode's (Ctrl-I indentation, 4 spaces). Do not reformat
   lines you did not change; a pull request shows only its own change.
-- `PullwatchCore` (`Sources/`) holds everything without a window: providers,
-  polling, history, version checks, the update check. `App/` only draws and
-  wires: `AppModel` is the one `@Observable` model, views read it.
+- `PullwatchCore` (`PullwatchKit/Sources/PullwatchCore/`, by area) holds
+  everything without a window: providers, polling, history, version checks,
+  the update check. The app (`Pullwatch/Pullwatch/`) only wires (`App/`) and
+  draws (`Views/`): `AppModel` is the one `@Observable` model, views read it.
+  A new file goes in the folder of its area; the Xcode project picks it up.
 - Network access goes through the `HTTPClient` protocol (`HTTP.swift`) and
   processes through `ProcessRunner`, so tests can stub both. Errors a person
   sees go through `ProviderError.userMessage`.
@@ -62,8 +63,8 @@ pull request at the end, so it reads like his code.
 - System controls, fonts, semantic colours and SF Symbols by their real
   names. `Form` with `.formStyle(.grouped)` for settings,
   `ContentUnavailableView` for empty states.
-- Liquid Glass comes from the system on macOS 26 and later; never fake it on
-  older systems and never put `.glassEffect` behind content.
+- Liquid Glass comes from the system; never put `.glassEffect` behind
+  content, only on a custom floating control.
 - Every menu command has a keyboard shortcut (`Shortcuts.swift`), every
   icon-only button a `.help` and an accessibility label.
 - Views send intents; `AppModel` changes state. No network calls from a
@@ -72,8 +73,8 @@ pull request at the end, so it reads like his code.
 ## Text and languages
 
 The app speaks Dutch (development language of the package), English, German
-and French, through `App/Localizable.xcstrings` and
-`Sources/PullwatchCore/Localizable.xcstrings`.
+and French, through `Pullwatch/Pullwatch/Localizable.xcstrings` and
+`PullwatchKit/Sources/PullwatchCore/Localizable.xcstrings`.
 
 - SwiftUI literals (`Text("…")`, `Button("…")`) localise by themselves;
   the keys are the Dutch text, as in the existing code.
@@ -82,13 +83,15 @@ and French, through `App/Localizable.xcstrings` and
 - A sentence is one string, never assembled from pieces; counts get plural
   variations in the catalog.
 - **Every new string gets all four languages** in the catalog before the
-  commit. Check the screens in at least Dutch and English.
+  commit; `LocalizationTests` fails otherwise. Check the screens in at least
+  Dutch and English.
 
 ## Tests
 
-- Swift Testing only (`@Suite`, `@Test`, `#expect`, `#require`), in
-  `Tests/PullwatchCoreTests`.
+- Swift Testing only (`@Suite`, `@Test`, `#expect`, `#require`). Logic goes
+  in `PullwatchCore` and is tested in `PullwatchKit/Tests/PullwatchCoreTests`;
+  `Pullwatch/PullwatchTests` checks the built app (hosted, no polling).
 - Network tests go through `MockHTTPClient`, process tests through
-  `MockProcessRunner` (both in `Tests/PullwatchCoreTests/Support`); never
+  `MockProcessRunner` (both in `PullwatchKit/Tests/PullwatchCoreTests/Support`); never
   the real GitHub, Azure DevOps, `gh` or `az`.
 - Never weaken, skip or delete a test to make a build pass.

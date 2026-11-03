@@ -8,23 +8,25 @@ Available in English, Dutch, German and French: Pullwatch follows the macOS lang
 
 Download the latest `Pullwatch-x.y.z.dmg` from [Releases](https://github.com/alessandro823/pullwatch/releases), open it and drag Pullwatch to Applications.
 
-The app is signed with a Developer ID and notarized by Apple. Universal (Apple silicon and Intel), requires macOS 14 or later.
+The app is signed with a Developer ID and notarized by Apple. Universal (Apple silicon and Intel), requires macOS 26.6 or later.
 
 ## Build from source
 
-- Xcode (Swift 6)
-- `brew install xcodegen`
+- Xcode (Swift 6), macOS 26.6 or later
 - Optional: `az` (`az login`) and/or `gh` (`gh auth login`) for CLI authentication
 
+Open `Pullwatch/Pullwatch.xcodeproj` in Xcode and run the **Pullwatch** scheme (⌘R). From the command line:
+
 ```bash
-make test      # PullwatchCore unit tests
-make install   # build and copy to ~/Applications/Pullwatch.app
-make run       # install + launch
-make dmg       # build dist/Pullwatch-<version>.dmg (ad-hoc signed)
-make release   # signed with Developer ID, notarized and stapled DMG
+swift test --package-path PullwatchKit              # PullwatchCore unit tests
+xcodebuild -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch build
+scripts/release/release.sh --unsigned               # dist/Pullwatch-<version>.dmg, ad-hoc signed
+scripts/release/release.sh                          # signed with Developer ID, notarized and stapled DMG
 ```
 
-`make release` needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
+The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
+
+The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package (`PullwatchCore`: providers, polling, history, version checks, updates), which the app links and which has the unit tests.
 
 ## Usage
 
@@ -111,9 +113,9 @@ The check runs once a day (can be turned off under Settings → General) and on 
 
 ## Known quirks
 
-- With an ad-hoc signed local build (`make install`), macOS may ask for Keychain access again after each install for PAT accounts; choose "Always Allow".
+- With an ad-hoc signed local build (from Xcode or `release.sh --unsigned`), macOS may ask for Keychain access again after each install for PAT accounts; choose "Always Allow".
 - On first launch Pullwatch asks for permission to send notifications.
-- `make run` doesn't restart a running Pullwatch; quit it first via **Stop** in the menu.
+- Running from Xcode while an installed Pullwatch is open gives you two menu bar icons; quit the installed one first via **Stop** in the menu.
 
 ## Data
 

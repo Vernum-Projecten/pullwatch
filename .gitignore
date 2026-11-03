@@ -1,10 +1,8 @@
 .build/
 .swiftpm/
 build/
-Pullwatch.xcodeproj/
 xcuserdata/
 .DS_Store
-App/Info.plist
 .superpowers/
 dist/
 .idea/
