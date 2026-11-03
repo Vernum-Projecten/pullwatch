@@ -53,7 +53,7 @@ struct SidebarView: View {
             }
             Section("Controle") {
                 SidebarSectionRow(section: .repos, content: content, isExpanded: $reposExpanded)
-                SidebarSectionRow(section: .versions, content: content, isExpanded: .constant(false))
+                SidebarSectionRow(section: .dependencies, content: content, isExpanded: .constant(false))
             }
         }
     }
@@ -124,7 +124,7 @@ private struct SectionRoot: View {
             case .tags: HistoryView(model: model, kind: .tag)
             case .stats: StatsView(model: model)
             case .repos: ReposView(model: model)
-            case .versions: PackagesView(model: model)
+            case .dependencies: PackagesView(model: model)
             }
         }
     }

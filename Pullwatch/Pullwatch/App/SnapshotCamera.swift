@@ -35,7 +35,7 @@ enum SnapshotCamera {
         }
     }
 
-    /// Met `-PullwatchSnapshotExpand YES`: inklapbare groepen (packages, rijen in Versies) staan
+    /// Met `-PullwatchSnapshotExpand YES`: inklapbare groepen (packages, rijen in Afhankelijkheden) staan
     /// open, zodat de foto's laten zien wat erin zit.
     static var expandsAll: Bool { UserDefaults.standard.bool(forKey: "PullwatchSnapshotExpand") }
 

@@ -37,7 +37,7 @@ enum SnapshotTour {
             for _ in 0..<120 where model.versionCheck.map({ $0.total == 0 }) ?? true {
                 try? await Task.sleep(for: .milliseconds(250))
             }
-            model.show(.versions)
+            model.show(.dependencies)
             try? await Task.sleep(for: .seconds(1))
             SnapshotCamera.shoot("checking-versions", windowId: WindowID.main.rawValue)
             try? await Task.sleep(for: .seconds(1))
@@ -55,7 +55,7 @@ enum SnapshotTour {
             ("tags", { model.show(.tags) }),
             ("stats", { model.show(.stats) }),
             ("repos", { model.show(.repos) }),
-            ("versions", { model.show(.versions) }),
+            ("versions", { model.show(.dependencies) }),
             ("history-author-token", { model.showHistory(.pullRequest, author: "mona") }),
         ]
         if let group {

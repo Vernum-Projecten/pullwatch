@@ -426,16 +426,16 @@
     "%@, uitgezet": {
       "comment": "Dienst (GitHub of Azure DevOps); het account wordt niet opgehaald",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@, turned off"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "%@, ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, turned off"
           }
         },
         "fr": {
@@ -1821,6 +1821,72 @@
         }
       }
     },
+    "Afhankelijkheden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abhängigkeiten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dependencies"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépendances"
+          }
+        }
+      }
+    },
+    "Afhankelijkheden checken…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abhängigkeiten werden geprüft…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking dependencies…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification des dépendances…"
+          }
+        }
+      }
+    },
+    "Afhankelijkheden en kwetsbaarheden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abhängigkeiten und Schwachstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dependencies and Vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépendances et vulnérabilités"
+          }
+        }
+      }
+    },
     "Afmelden": {
       "localizations": {
         "de": {
@@ -3051,16 +3117,16 @@
     },
     "Dit account ophalen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fetch This Account"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Dieses Konto abrufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetch This Account"
           }
         },
         "fr": {
@@ -3371,24 +3437,24 @@
         }
       }
     },
-    "Elke dag versies en kwetsbaarheden checken": {
+    "Elke dag afhankelijkheden en kwetsbaarheden checken": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versionen und Schwachstellen täglich prüfen"
+            "value": "Täglich Abhängigkeiten und Schwachstellen prüfen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check versions and vulnerabilities every day"
+            "value": "Check dependencies and vulnerabilities every day"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vérifier les versions et vulnérabilités chaque jour"
+            "value": "Vérifier chaque jour les dépendances et les vulnérabilités"
           }
         }
       }
@@ -4570,16 +4636,16 @@
     },
     "Je volgt nog niets. Vink hieronder aan wat Pullwatch moet ophalen.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You don’t follow anything yet. Check below what Pullwatch should fetch."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Du folgst noch nichts. Markiere unten, was Pullwatch abrufen soll."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don’t follow anything yet. Check below what Pullwatch should fetch."
           }
         },
         "fr": {
@@ -4838,52 +4904,46 @@
         }
       }
     },
-    "Kopieer de versies en kwetsbaarheden van deze repo naar het klembord": {
+    "Kopieer de afhankelijkheden en kwetsbaarheden van deze repo naar het klembord": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versionen und Schwachstellen dieses Repositorys in die Zwischenablage kopieren"
+            "value": "Die Abhängigkeiten und Schwachstellen dieses Repositorys in die Zwischenablage kopieren"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy this repository's versions and vulnerabilities to the clipboard"
+            "value": "Copy this repository’s dependencies and vulnerabilities to the clipboard"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copier les versions et vulnérabilités de ce dépôt dans le presse-papiers"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopieer de versies en kwetsbaarheden van deze repo naar het klembord"
+            "value": "Copier les dépendances et vulnérabilités de ce dépôt dans le presse-papiers"
           }
         }
       }
     },
-    "Kopieer de versies van de repo": {
+    "Kopieer de afhankelijkheden van de repo": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versionen des Repositorys kopieren"
+            "value": "Abhängigkeiten des Repositorys kopieren"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy the Repository’s Versions"
+            "value": "Copy the Repository’s Dependencies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copier les versions du dépôt"
+            "value": "Copier les dépendances du dépôt"
           }
         }
       }
@@ -8673,30 +8733,24 @@
         }
       }
     },
-    "Toon dit package in Versies, met alle repo's die het gebruiken": {
+    "Toon dit package in Afhankelijkheden, met alle repo's die het gebruiken": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieses Paket in Versionen zeigen, mit allen Repositories, die es verwenden"
+            "value": "Dieses Paket in Abhängigkeiten zeigen, mit allen Repositorys, die es verwenden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show this package in Versions, with every repository that uses it"
+            "value": "Show this package in Dependencies, with every repository that uses it"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher ce paquet dans Versions, avec tous les dépôts qui l'utilisent"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon dit package in Versies, met alle repo's die het gebruiken"
+            "value": "Afficher ce paquet dans Dépendances, avec tous les dépôts qui l’utilisent"
           }
         }
       }
@@ -8748,16 +8802,16 @@
     },
     "Uit: Pullwatch haalt niets op voor dit account en stuurt er geen meldingen over. Wat je volgt blijft bewaard.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Off: Pullwatch fetches nothing for this account and sends no notifications about it. What you follow is kept."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Aus: Pullwatch ruft für dieses Konto nichts ab und sendet keine Mitteilungen dazu. Was du folgst, bleibt gespeichert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off: Pullwatch fetches nothing for this account and sends no notifications about it. What you follow is kept."
           }
         },
         "fr": {
@@ -8770,16 +8824,16 @@
     },
     "Uitgezet": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turned off"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turned off"
           }
         },
         "fr": {
@@ -8938,78 +8992,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versie %@ is beschikbaar"
-          }
-        }
-      }
-    },
-    "Versies": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versionen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versions"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versions"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versies"
-          }
-        }
-      }
-    },
-    "Versies checken…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versionen werden geprüft…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checking versions…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vérification des versions…"
-          }
-        }
-      }
-    },
-    "Versies en kwetsbaarheden": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versionen und Schwachstellen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versions and Vulnerabilities"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versions et vulnérabilités"
           }
         }
       }
@@ -9650,30 +9632,24 @@
         }
       }
     },
-    "Zie Versies… in het menu": {
+    "Zie Afhankelijkheden in het hoofdvenster": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Siehe Versionen… im Menü"
+            "value": "Siehe Abhängigkeiten im Hauptfenster"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "See Versions… in the menu"
+            "value": "See Dependencies in the main window"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voir Versions… dans le menu"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zie Versies… in het menu"
+            "value": "Voir Dépendances dans la fenêtre principale"
           }
         }
       }

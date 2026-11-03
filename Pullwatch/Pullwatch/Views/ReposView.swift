@@ -605,6 +605,6 @@ private struct CopyVersionsButton: View {
         } label: {
             Label("Kopieer", systemImage: copied ? "checkmark" : "doc.on.doc")
         }
-        .help("Kopieer de versies en kwetsbaarheden van deze repo naar het klembord")
+        .help("Kopieer de afhankelijkheden en kwetsbaarheden van deze repo naar het klembord")
     }
 }

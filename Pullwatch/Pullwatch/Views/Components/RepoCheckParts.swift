@@ -35,7 +35,7 @@ extension ComponentVersion {
 /// elke install die het raakt, waar die zit en wat je moet bijwerken.
 struct VulnerabilityList: View {
     let repo: RepoVersions
-    /// Klik op een package dat in Versies staat; nil laat het package als tekst staan.
+    /// Klik op een package dat in Afhankelijkheden staat; nil laat het package als tekst staan.
     var showPackage: ((String) -> Void)? = nil
     var knownPackages: Set<String> = []
 
@@ -97,7 +97,7 @@ private struct AdvisoryRow: View {
                 if let showPackage {
                     Button(vulnerability.package) { showPackage(vulnerability.package) }
                         .buttonStyle(.link)
-                        .help("Toon dit package in Versies, met alle repo's die het gebruiken")
+                        .help("Toon dit package in Afhankelijkheden, met alle repo's die het gebruiken")
                 } else {
                     Text(verbatim: vulnerability.package).foregroundStyle(.secondary)
                 }
