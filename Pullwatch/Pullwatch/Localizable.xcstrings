@@ -1603,24 +1603,25 @@
         }
       }
     },
-    "Alle": {
+    "Alle PR's van %@ volgen": {
+      "comment": "Gebruiker of organisatie",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All"
+            "value": "Follow all PRs of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allen PRs von %@ folgen"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tous"
+            "value": "Suivre toutes les PR de %@"
           }
         }
       }
@@ -1677,6 +1678,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle auteurs"
+          }
+        }
+      }
+    },
+    "Alle gemergde PR's van %@ volgen": {
+      "comment": "Gebruiker of organisatie",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all merged PRs of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allen gemergten PRs von %@ folgen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les PR fusionnées de %@"
           }
         }
       }
@@ -1753,24 +1777,25 @@
         }
       }
     },
-    "Alle repositories van %@ volgen": {
+    "Alle tags van %@ volgen": {
+      "comment": "Gebruiker of organisatie",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allen Repositorys von %@ folgen"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follow all repositories of %@"
+            "value": "Follow all tags of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allen Tags von %@ folgen"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suivre tous les dépôts de %@"
+            "value": "Suivre tous les tags de %@"
           }
         }
       }
@@ -2422,34 +2447,6 @@
         }
       }
     },
-    "Completed": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abgeschlossen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminées"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed"
-          }
-        }
-      }
-    },
     "Controle": {
       "localizations": {
         "de": {
@@ -2725,6 +2722,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un utilisateur ou une organisation sur github.com"
+          }
+        }
+      }
+    },
+    "Een melding en een regel in de geschiedenis als een gevolgde PR gemerged wordt (in Azure DevOps heet dat completed)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification and a history entry when a followed PR is merged (Azure DevOps calls it completed)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Mitteilung und ein Eintrag im Verlauf, wenn ein gefolgter PR gemergt wird (in Azure DevOps heißt das „completed“)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une notification et une entrée dans l’historique quand une PR suivie est fusionnée (Azure DevOps dit « completed »)"
           }
         }
       }
@@ -3180,6 +3199,29 @@
         }
       }
     },
+    "Gemergde PR's van %@ volgen": {
+      "comment": "Repo",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow merged PRs of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemergten PRs von %@ folgen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les PR fusionnées de %@"
+          }
+        }
+      }
+    },
     "Gemerged": {
       "localizations": {
         "de": {
@@ -3409,24 +3451,24 @@
         }
       }
     },
-    "Gevolgde repositories verschijnen in het menu, de geschiedenis en de meldingen. Tags en meldingen per soort zet je op de pagina van een repository.": {
+    "Gevolgde repositories verschijnen in het menu, de geschiedenis en de meldingen. Meldingen per soort zet je met een rechtermuisklik op een repository, of op de pagina ervan.": {
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gefolgte Repositorys erscheinen im Menü, im Verlauf und in den Mitteilungen. Tags und Mitteilungen pro Art legst du auf der Seite eines Repositorys fest."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Followed repositories appear in the menu, the history and notifications. Set tags and notifications per kind on a repository’s page."
+            "value": "Followed repositories appear in the menu, the history and notifications. Choose notifications per kind by right-clicking a repository, or on its page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefolgte Repositorys erscheinen im Menü, im Verlauf und in den Mitteilungen. Mitteilungen je Art wählst du per Rechtsklick auf ein Repository oder auf seiner Seite."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les dépôts suivis apparaissent dans le menu, l’historique et les notifications. Les tags et notifications par type se règlent sur la page d’un dépôt."
+            "value": "Les dépôts suivis apparaissent dans le menu, l’historique et les notifications. Choisissez les notifications par type d’un clic droit sur un dépôt, ou sur sa page."
           }
         }
       }
@@ -4473,6 +4515,28 @@
         }
       }
     },
+    "Melding als een PR gemerged wordt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify When a PR Is Merged"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilung, wenn ein PR gemergt wird"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier quand une PR est fusionnée"
+          }
+        }
+      }
+    },
     "Melding bij een nieuwe versie": {
       "localizations": {
         "de": {
@@ -4491,6 +4555,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notifier d’une nouvelle version"
+          }
+        }
+      }
+    },
+    "Melding bij nieuwe PR's": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify About New PRs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilung bei neuen PRs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier les nouvelles PR"
+          }
+        }
+      }
+    },
+    "Melding bij nieuwe tags": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify About New Tags"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilung bei neuen Tags"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier les nouveaux tags"
           }
         }
       }
@@ -4645,6 +4753,28 @@
         }
       }
     },
+    "Niet volgen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don’t Follow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht folgen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne pas suivre"
+          }
+        }
+      }
+    },
     "Niets ongelezen": {
       "localizations": {
         "de": {
@@ -4761,6 +4891,50 @@
         }
       }
     },
+    "Nieuwe pull requests in het menu, de geschiedenis en de meldingen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New pull requests in the menu, the history and notifications"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Pull-Requests im Menü, im Verlauf und in den Mitteilungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles pull requests dans le menu, l’historique et les notifications"
+          }
+        }
+      }
+    },
+    "Nieuwe repositories": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New repositories"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Repositorys"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveaux dépôts"
+          }
+        }
+      }
+    },
     "Nieuwe tags in de repo's die je volgt komen hier te staan.": {
       "localizations": {
         "de": {
@@ -4779,6 +4953,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Les nouveaux tags des dépôts que vous suivez apparaissent ici."
+          }
+        }
+      }
+    },
+    "Nieuwe tags in het menu, de geschiedenis en de meldingen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tags in the menu, the history and notifications"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Tags im Menü, im Verlauf und in den Mitteilungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveaux tags dans le menu, l’historique et les notifications"
           }
         }
       }
@@ -5085,28 +5281,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non lu"
-          }
-        }
-      }
-    },
-    "Ook nieuwe repositories volgen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auch neuen Repositorys folgen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Also follow new repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suivre aussi les nouveaux dépôts"
           }
         }
       }
@@ -5855,6 +6029,28 @@
         }
       }
     },
+    "PR's en tags": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRs and Tags"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRs und Tags"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR et tags"
+          }
+        }
+      }
+    },
     "PR's en tags ophalen van %@…": {
       "comment": "Accountnaam, bv. @octocat op GitHub",
       "localizations": {
@@ -5974,6 +6170,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "PR's per maand"
+          }
+        }
+      }
+    },
+    "PR's van %@ volgen": {
+      "comment": "Repo",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow PRs of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRs von %@ folgen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les PR de %@"
           }
         }
       }
@@ -7310,6 +7529,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Récupération des tags…"
+          }
+        }
+      }
+    },
+    "Tags van %@ volgen": {
+      "comment": "Repo",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow tags of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags von %@ folgen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les tags de %@"
           }
         }
       }

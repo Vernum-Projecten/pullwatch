@@ -72,6 +72,58 @@ public struct WatchSet: Codable, Hashable, Sendable {
     public static let prs = WatchSet(prs: true, tags: false)
     public static let tags = WatchSet(prs: false, tags: true)
     public static let both = WatchSet(prs: true, tags: true)
+
+    /// Volgt deze set dit soort? Aanzetten zet ook de melding ervan aan. Gemerged hoort bij de
+    /// PR's: PR's uit zet gemerged uit, gemerged aan zet PR's aan.
+    public subscript(follows kind: WatchKind) -> Bool {
+        get {
+            switch kind {
+            case .pullRequests: prs
+            case .tags: tags
+            case .merged: completed
+            }
+        }
+        set {
+            switch kind {
+            case .pullRequests:
+                prs = newValue
+                if newValue { notifyPRs = true } else { completed = false }
+            case .tags:
+                tags = newValue
+                if newValue { notifyTags = true }
+            case .merged:
+                completed = newValue
+                if newValue {
+                    notifyCompleted = true
+                    if !prs { prs = true; notifyPRs = true }
+                }
+            }
+        }
+    }
+
+    /// Een melding bij dit soort (alleen zinvol als het gevolgd wordt).
+    public subscript(notifies kind: WatchKind) -> Bool {
+        get {
+            switch kind {
+            case .pullRequests: notifyPRs
+            case .tags: notifyTags
+            case .merged: notifyCompleted
+            }
+        }
+        set {
+            switch kind {
+            case .pullRequests: notifyPRs = newValue
+            case .tags: notifyTags = newValue
+            case .merged: notifyCompleted = newValue
+            }
+        }
+    }
+}
+
+/// Wat per repo te volgen is: nieuwe PR's, nieuwe tags en gemergde (completed) PR's.
+public enum WatchKind: String, CaseIterable, Identifiable, Sendable {
+    case pullRequests, tags, merged
+    public var id: Self { self }
 }
 
 /// Wat er gevolgd wordt voor repo's zonder eigen instelling. Een nieuw account volgt PR's en
