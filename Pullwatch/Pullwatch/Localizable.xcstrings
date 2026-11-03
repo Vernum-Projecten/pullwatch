@@ -359,34 +359,6 @@
         }
       }
     },
-    "%lld min": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld Min."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
-          }
-        }
-      }
-    },
     "%lld nieuwe PR's": {
       "localizations": {
         "de": {
@@ -1158,30 +1130,24 @@
         }
       }
     },
-    "Alle PR's": {
+    "Alle": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle PRs"
+            "value": "Alle"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All PRs"
+            "value": "All"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toutes les PR"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle PR's"
+            "value": "Tous"
           }
         }
       }
@@ -1242,34 +1208,6 @@
         }
       }
     },
-    "Alle completed": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle abgeschlossenen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All completed"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toutes les terminées"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle completed"
-          }
-        }
-      }
-    },
     "Alle projecten": {
       "localizations": {
         "de": {
@@ -1298,30 +1236,24 @@
         }
       }
     },
-    "Alle tags": {
+    "Alle repositories van %@ volgen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle Tags"
+            "value": "Allen Repositorys von %@ folgen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All tags"
+            "value": "Follow all repositories of %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tous les tags"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle tags"
+            "value": "Suivre tous les dépôts de %@"
           }
         }
       }
@@ -1896,34 +1828,6 @@
         }
       }
     },
-    "Completed aan/uit voor alle zichtbare repo's": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abgeschlossen an/aus für alle sichtbaren Repositories"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed on/off for all visible repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminées activé/désactivé pour tous les dépôts visibles"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed aan/uit voor alle zichtbare repo's"
-          }
-        }
-      }
-    },
     "Controle": {
       "localizations": {
         "de": {
@@ -2158,30 +2062,24 @@
         }
       }
     },
-    "Eens per dag automatisch; melding als er bij een gevolgde repo een nieuwe CVE bijkomt": {
+    "Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatisch einmal am Tag; Mitteilung, wenn ein gefolgtes Repository eine neue CVE bekommt"
+            "value": "Einmal am Tag liest Pullwatch die Sprach-, Framework- und Paketversionen deiner gefolgten Repositorys und meldet eine neue Schwachstelle oder (falls aktiviert) eine neue Version."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatically once a day; notifies when a followed repository gets a new CVE"
+            "value": "Once a day Pullwatch reads the language, framework and package versions of the repositories you follow, and tells you about a new vulnerability or (if turned on) a new version."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatiquement une fois par jour ; notification quand un dépôt suivi a une nouvelle CVE"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eens per dag automatisch; melding als er bij een gevolgde repo een nieuwe CVE bijkomt"
+            "value": "Une fois par jour, Pullwatch lit les versions de langage, de framework et de paquets des dépôts que vous suivez, et signale une nouvelle vulnérabilité ou (si activé) une nouvelle version."
           }
         }
       }
@@ -2210,6 +2108,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eigen PR's verbergen"
+          }
+        }
+      }
+    },
+    "Elke dag versies en kwetsbaarheden checken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen und Schwachstellen täglich prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check versions and vulnerabilities every day"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier les versions et vulnérabilités chaque jour"
           }
         }
       }
@@ -2382,6 +2302,28 @@
         }
       }
     },
+    "Geen account gekozen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Konto ausgewählt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Account Selected"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun compte sélectionné"
+          }
+        }
+      }
+    },
     "Geen melding; staat wel in menu en geschiedenis": {
       "localizations": {
         "de": {
@@ -2516,6 +2458,28 @@
         }
       }
     },
+    "Geldt overal: in het menu, de geschiedenis en de meldingen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt überall: im Menü, im Verlauf und in den Mitteilungen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies everywhere: in the menu, the history and notifications."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S’applique partout : dans le menu, l’historique et les notifications."
+          }
+        }
+      }
+    },
     "Gemerged": {
       "localizations": {
         "de": {
@@ -2624,6 +2588,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gesloten"
+          }
+        }
+      }
+    },
+    "Gevolgde repositories verschijnen in het menu, de geschiedenis en de meldingen. Tags en meldingen per soort zet je op de pagina van een repository.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefolgte Repositorys erscheinen im Menü, im Verlauf und in den Mitteilungen. Tags und Mitteilungen pro Art legst du auf der Seite eines Repositorys fest."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Followed repositories appear in the menu, the history and notifications. Set tags and notifications per kind on a repository’s page."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les dépôts suivis apparaissent dans le menu, l’historique et les notifications. Les tags et notifications par type se règlent sur la page d’un dépôt."
           }
         }
       }
@@ -2740,6 +2726,28 @@
         }
       }
     },
+    "Hoe vaak Pullwatch naar nieuwe pull requests en tags kijkt, en hoe lang de geschiedenis blijft staan.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie oft Pullwatch nach neuen Pull Requests und Tags sucht und wie lange der Verlauf erhalten bleibt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How often Pullwatch looks for new pull requests and tags, and how long the history is kept."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À quelle fréquence Pullwatch cherche de nouvelles pull requests et de nouveaux tags, et combien de temps l’historique est conservé."
+          }
+        }
+      }
+    },
     "Ingelogd als @%@": {
       "localizations": {
         "de": {
@@ -2780,6 +2788,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Connecté à GitHub"
+          }
+        }
+      }
+    },
+    "Inloggen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-In"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
           }
         }
       }
@@ -3000,30 +3030,68 @@
         }
       }
     },
-    "Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is": {
+    "Keur Pullwatch goed onder Systeeminstellingen → Algemeen → Inlogonderdelen.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prüft einmal am Tag auf GitHub, ob es ein neueres Pullwatch gibt"
+            "value": "Erlaube Pullwatch unter Systemeinstellungen → Allgemein → Anmeldeobjekte."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checks GitHub once a day for a newer Pullwatch"
+            "value": "Approve Pullwatch in System Settings → General → Login Items."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vérifie une fois par jour sur GitHub si une version plus récente de Pullwatch existe"
+            "value": "Autorisez Pullwatch dans Réglages Système → Général → Ouverture."
           }
-        },
-        "nl": {
+        }
+      }
+    },
+    "Kies links een account, of voeg er een toe met +.": {
+      "localizations": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is"
+            "value": "Wähle links ein Konto oder füge eines mit + hinzu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an account on the left, or add one with +."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un compte à gauche, ou ajoutez-en un avec +."
+          }
+        }
+      }
+    },
+    "Kijk elke": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfen alle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check every"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier toutes les"
           }
         }
       }
@@ -3202,34 +3270,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Laatste tag %@:"
-          }
-        }
-      }
-    },
-    "Laden…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lädt…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chargement…"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laden…"
           }
         }
       }
@@ -3462,58 +3502,24 @@
         }
       }
     },
-    "Melding als een PR in deze repo gemerged wordt (binnen ~15 minuten)": {
+    "Melding bij een nieuwe versie": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mitteilung, wenn ein PR in diesem Repository gemergt wird (innerhalb von ~15 Minuten)"
+            "value": "Bei neuer Version benachrichtigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notify when a PR in this repository is merged (within ~15 minutes)"
+            "value": "Notify about a new version"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notification quand une PR de ce dépôt est fusionnée (dans les ~15 minutes)"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Melding als een PR in deze repo gemerged wordt (binnen ~15 minuten)"
-          }
-        }
-      }
-    },
-    "Melding bij nieuwe versies": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei neuen Versionen benachrichtigen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notify about new versions"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifier les nouvelles versions"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Melding bij nieuwe versies"
+            "value": "Notifier d’une nouvelle version"
           }
         }
       }
@@ -3542,34 +3548,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Meldingen"
-          }
-        }
-      }
-    },
-    "Meldingen aan voor alle zichtbare repo's": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mitteilungen an für alle sichtbaren Repositories"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications on for all visible repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications activées pour tous les dépôts visibles"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meldingen aan voor alle zichtbare repo's"
           }
         }
       }
@@ -3624,62 +3602,6 @@
         }
       }
     },
-    "Meldingen uit voor alle zichtbare repo's": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mitteilungen aus für alle sichtbaren Repositories"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications off for all visible repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifications désactivées pour tous les dépôts visibles"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meldingen uit voor alle zichtbare repo's"
-          }
-        }
-      }
-    },
-    "Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nach der täglichen Prüfung: eine Mitteilung, wenn etwas, das deine Repositories verwenden, eine neue Version hat"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "After the daily check: one notification when something your repositories use has a new version"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Après la vérification quotidienne : une notification quand un élément utilisé par vos dépôts a une nouvelle version"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken"
-          }
-        }
-      }
-    },
     "Niet te checken": {
       "localizations": {
         "de": {
@@ -3704,34 +3626,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niet te checken"
-          }
-        }
-      }
-    },
-    "Niets": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nichts"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rien"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Niets"
           }
         }
       }
@@ -3788,34 +3682,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nieuwe pull requests en tags uit GitHub en Azure DevOps in je menubalk, met geschiedenis en een versie- en CVE-check van je repo's."
-          }
-        }
-      }
-    },
-    "Nieuwe repo's volgen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neuen Repositories folgen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Follow new repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suivre les nouveaux dépôts"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nieuwe repo's volgen"
           }
         }
       }
@@ -4110,6 +3976,28 @@
         }
       }
     },
+    "Ook nieuwe repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch neuen Repositorys folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also follow new repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre aussi les nouveaux dépôts"
+          }
+        }
+      }
+    },
     "Op een ander account of organisatie installeren…": {
       "localizations": {
         "de": {
@@ -4206,6 +4094,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ouvrir Console"
+          }
+        }
+      }
+    },
+    "Open Inlogonderdelen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldeobjekte öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Login Items"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Ouverture"
           }
         }
       }
@@ -4444,6 +4354,28 @@
         }
       }
     },
+    "Ophalen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetching"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération"
+          }
+        }
+      }
+    },
     "Ophalen… %lld/%lld accounts": {
       "localizations": {
         "de": {
@@ -4490,6 +4422,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vérifier à nouveau"
+          }
+        }
+      }
+    },
+    "Opnieuw laden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recharger"
           }
         }
       }
@@ -4546,6 +4500,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opslaan"
+          }
+        }
+      }
+    },
+    "Opstarten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startup"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrage"
           }
         }
       }
@@ -4680,34 +4656,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "PR's"
-          }
-        }
-      }
-    },
-    "PR's aan/uit voor alle zichtbare repo's": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PRs an/aus für alle sichtbaren Repositories"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PRs on/off for all visible repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PR activées/désactivées pour tous les dépôts visibles"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PR's aan/uit voor alle zichtbare repo's"
           }
         }
       }
@@ -4874,30 +4822,24 @@
         }
       }
     },
-    "Poll-interval": {
+    "Probleemoplossing": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abfrageintervall"
+            "value": "Fehlerbehebung"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Poll interval"
+            "value": "Troubleshooting"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Intervalle d'interrogation"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Poll-interval"
+            "value": "Dépannage"
           }
         }
       }
@@ -5274,34 +5216,6 @@
         }
       }
     },
-    "Repos laden": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repositories laden"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Load repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Charger les dépôts"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repos laden"
-          }
-        }
-      }
-    },
     "Repositories": {
       "localizations": {
         "de": {
@@ -5376,34 +5290,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Selecteer een PR of tag van één repo"
-          }
-        }
-      }
-    },
-    "Selecteer of voeg een account toe": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Konto auswählen oder hinzufügen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select or add an account"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sélectionnez ou ajoutez un compte"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecteer of voeg een account toe"
           }
         }
       }
@@ -5633,34 +5519,6 @@
         }
       }
     },
-    "Tags aan/uit voor alle zichtbare repo's": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tags an/aus für alle sichtbaren Repositories"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tags on/off for all visible repositories"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tags activés/désactivés pour tous les dépôts visibles"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tags aan/uit voor alle zichtbare repo's"
-          }
-        }
-      }
-    },
     "Terug": {
       "localizations": {
         "de": {
@@ -5823,6 +5681,28 @@
         }
       }
     },
+    "Token bewaren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token sichern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer le jeton"
+          }
+        }
+      }
+    },
     "Token ongeldig of verlopen. Werk het bij in Instellingen.": {
       "localizations": {
         "de": {
@@ -5963,6 +5843,28 @@
         }
       }
     },
+    "Updates": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mises à jour"
+          }
+        }
+      }
+    },
     "Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.": {
       "localizations": {
         "de": {
@@ -6098,30 +6000,24 @@
         }
       }
     },
-    "Versies en CVE's dagelijks checken": {
+    "Versies en kwetsbaarheden": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versionen und CVEs täglich prüfen"
+            "value": "Versionen und Schwachstellen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check versions and CVEs daily"
+            "value": "Versions and Vulnerabilities"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vérifier les versions et les CVE chaque jour"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versies en CVE's dagelijks checken"
+            "value": "Versions et vulnérabilités"
           }
         }
       }
@@ -6270,34 +6166,6 @@
         }
       }
     },
-    "Volgen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Folgen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Follow"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suivre"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volgen"
-          }
-        }
-      }
-    },
     "Volgende": {
       "localizations": {
         "de": {
@@ -6316,6 +6184,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivant"
+          }
+        }
+      }
+    },
+    "Volgt nog niets": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folgt noch nichts"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not following anything yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne suit encore rien"
           }
         }
       }
@@ -6602,6 +6492,28 @@
         }
       }
     },
+    "Welke PR's tellen mee": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welche Pull Requests zählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which Pull Requests Count"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelles pull requests comptent"
+          }
+        }
+      }
+    },
     "Welkom bij Pullwatch": {
       "localizations": {
         "de": {
@@ -6727,6 +6639,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zit ook in de laatste release (%@)"
+          }
+        }
+      }
+    },
+    "Zoek een repository": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository suchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search a repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher un dépôt"
           }
         }
       }

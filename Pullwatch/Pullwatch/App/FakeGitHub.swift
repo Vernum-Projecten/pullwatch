@@ -19,7 +19,9 @@ final class FakeGitHub: HTTPClient {
         var tokenPolls = 0
     }
 
-    private let state = Mutex(State())
+    /// Met `-PullwatchFakeGitHubInstalled YES` is de app al geïnstalleerd (een test-config met
+    /// accounts); anders pas na `install()`, zoals bij een eerste keer inloggen.
+    private let state = Mutex(State(installed: UserDefaults.standard.bool(forKey: "PullwatchFakeGitHubInstalled")))
 
     /// Wat er gebeurt als iemand de app op github.com installeert.
     func install() {

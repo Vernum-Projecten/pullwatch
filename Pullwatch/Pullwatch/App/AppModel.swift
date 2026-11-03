@@ -11,6 +11,8 @@ private let logger = Log(category: "app")
 /// De vensters van de app, met hun scene-id.
 enum WindowID: String {
     case main, onboarding
+    /// Het Instellingen-venster (de Settings-scene, geopend met `openSettings`).
+    case settings
 }
 
 /// Een verzoek om een venster te openen; elk verzoek is nieuw, ook voor hetzelfde venster.
@@ -234,6 +236,7 @@ final class AppModel {
     @ObservationIgnored private let notifier = Notifier.shared
     @ObservationIgnored private var loopTask: Task<Void, Never>?
     @ObservationIgnored private var wakeTask: Task<Void, Never>?
+    @ObservationIgnored private var refreshSoon: Task<Void, Never>?
     /// Vroegste moment voor de volgende automatische versiecheck (na een mislukte of lopende poging).
     @ObservationIgnored private var nextAutoVersionAttempt: Date?
     @ObservationIgnored private var nextUpdateCheck: Date?
@@ -314,9 +317,20 @@ final class AppModel {
         }
 
         // Lege accounts (zonder organisatie) die een oudere versie bij "+" meteen bewaarde.
-        let incomplete = config.accounts.filter { !$0.isComplete }
+        // Een gepauzeerd account (ingelogd, niets gevolgd) blijft staan; alleen echt lege weg.
+        let incomplete = config.accounts.filter { !$0.isComplete && $0.login == nil && $0.repoWatch.isEmpty }
         for account in incomplete { removeAccount(account.id) }
         if !incomplete.isEmpty { logger.notice("\(incomplete.count) lege accounts verwijderd") }
+        #if DEBUG
+        // Met het nagespeelde GitHub: accounts uit een test-config krijgen een nep-token, zodat ze
+        // zonder inloggen "ingelogd" zijn (schermafbeeldingen, UI-tests).
+        if FakeGitHub.isEnabled {
+            for account in config.accounts where account.authMethod == .gitHubApp && !hasGitHubAppTokens(account.id) {
+                try? GitHubAppTokenStore(accountId: account.id, secrets: secrets)
+                    .save(GitHubAppTokens(access: "fake-access", accessExpires: .distantFuture, refresh: "fake-refresh"))
+            }
+        }
+        #endif
         // Wie al een account heeft (ook van voor het welkomstvenster) krijgt het niet te zien.
         if !onboardingCompleted && !config.pollableAccounts.isEmpty { completeOnboarding() }
         // Bij een eerste start vraagt het welkomstvenster om meldingen, met uitleg erbij;
@@ -454,11 +468,13 @@ final class AppModel {
         saveHistory()
     }
 
-    /// Bewaart een volledig ingesteld account. False (en er verandert niets) als het account nog
-    /// geen organisatie heeft of de PAT niet in de Keychain kon.
+    /// Bewaart een account. Een nieuw account moet af zijn (minstens één eigenaar); een bestaand
+    /// mag niets volgen (gepauzeerd). False (en er verandert niets) als dat niet klopt of de PAT
+    /// niet in de Keychain kon.
     @discardableResult
     func saveAccount(_ account: Account, pat: String?) -> Bool {
-        guard account.isComplete else { return false }
+        let exists = config.accounts.contains { $0.id == account.id }
+        guard account.isComplete || exists else { return false }
         // Alleen de inloggegevens van de gekozen manier blijven bewaard.
         if account.authMethod != .gitHubApp {
             GitHubAppTokenStore(accountId: account.id, secrets: secrets).delete()
@@ -479,8 +495,31 @@ final class AppModel {
             config.accounts.append(account)
         }
         saveConfig()
-        Task { await refreshNow() }
+        scheduleRefresh()
         return true
+    }
+
+    /// Een wijziging aan een bestaand account, meteen bewaard (Instellingen hebben geen Opslaan).
+    func updateAccount(_ account: Account) {
+        guard let index = config.accounts.firstIndex(where: { $0.id == account.id }), config.accounts[index] != account else { return }
+        config.accounts[index] = account
+        saveConfig()
+        scheduleRefresh()
+    }
+
+    /// De repositories die bij een account te volgen zijn (van alle eigenaren).
+    func repositories(for account: Account, pat: String? = nil) async throws -> [String] {
+        try await provider(for: account, pat: pat).listRepos()
+    }
+
+    /// Opnieuw pollen kort na de laatste wijziging, niet bij elke klik.
+    private func scheduleRefresh() {
+        refreshSoon?.cancel()
+        refreshSoon = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            await self?.refreshNow()
+        }
     }
 
     func removeAccount(_ id: UUID) {
@@ -585,15 +624,52 @@ final class AppModel {
         (try? secrets.read(account: id.uuidString)) != nil
     }
 
-    func setPollInterval(_ seconds: Int) {
-        config.pollInterval = seconds
-        saveConfig()
-        Task { await refreshNow() }
+    // MARK: Instellingen, als eigenschappen voor bindings (`@Bindable`)
+
+    /// De keuzes voor het poll-interval, in seconden.
+    static let pollIntervals = [60, 120, 300, 600, 900]
+
+    /// Het poll-interval, op de dichtstbijzijnde keuze.
+    var pollInterval: Int {
+        get { Self.pollIntervals.min { abs($0 - config.clampedInterval) < abs($1 - config.clampedInterval) } ?? config.clampedInterval }
+        set {
+            config.pollInterval = newValue
+            saveConfig()
+            scheduleRefresh()
+        }
     }
 
-    func setCheckForUpdates(_ enabled: Bool) {
-        config.checkForUpdates = enabled
-        saveConfig()
+    var checksForUpdates: Bool {
+        get { config.checkForUpdates }
+        set {
+            config.checkForUpdates = newValue
+            saveConfig()
+        }
+    }
+
+    var notifiesPackageUpdates: Bool {
+        get { config.notifyPackageUpdates }
+        set {
+            config.notifyPackageUpdates = newValue
+            saveConfig()
+        }
+    }
+
+    var checksVersionsDaily: Bool {
+        get { config.autoVersionCheck }
+        set {
+            config.autoVersionCheck = newValue
+            saveConfig()
+        }
+    }
+
+    var historyRetention: HistoryRetention {
+        get { config.historyRetention }
+        set {
+            config.historyRetention = newValue
+            saveConfig()
+            if history.prune(now: Date(), retention: newValue) { saveHistory() }
+        }
     }
 
     static var currentVersion: String {
@@ -635,21 +711,6 @@ final class AppModel {
         }
     }
 
-    func setNotifyPackageUpdates(_ enabled: Bool) {
-        config.notifyPackageUpdates = enabled
-        saveConfig()
-    }
-
-    func setAutoVersionCheck(_ enabled: Bool) {
-        config.autoVersionCheck = enabled
-        saveConfig()
-    }
-
-    func setHistoryRetention(_ retention: HistoryRetention) {
-        config.historyRetention = retention
-        saveConfig()
-        if history.prune(now: Date(), retention: retention) { saveHistory() }
-    }
 
     private func tick() async {
         notificationsAllowed = await notifier.isAuthorized()

@@ -1,21 +1,39 @@
 import PullwatchCore
 import SwiftUI
 
+/// Het Instellingen-venster (de Settings-scene): Accounts en Algemeen. Alles wordt meteen
+/// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
     let model: AppModel
 
+    enum Pane: String { case accounts, general }
+
+    @State private var pane: Pane = {
+        #if DEBUG
+        // Voor schermafbeeldingen: met welk tabblad het venster opent.
+        UserDefaults.standard.string(forKey: "PullwatchSettingsPane").flatMap(Pane.init) ?? .accounts
+        #else
+        .accounts
+        #endif
+    }()
+
     var body: some View {
-        TabView {
-            Tab("Accounts", systemImage: "person.2") {
+        TabView(selection: $pane) {
+            Tab("Accounts", systemImage: "person.2", value: Pane.accounts) {
                 AccountsSettingsView(model: model)
             }
-            Tab("Algemeen", systemImage: "gearshape") {
+            Tab("Algemeen", systemImage: "gearshape", value: Pane.general) {
                 GeneralSettingsView(model: model)
+                    #if DEBUG
+                    .onAppear { SnapshotCamera.shoot("settings-general", windowId: "com_apple_SwiftUI_Settings_window") }
+                    #endif
             }
         }
-        .frame(minWidth: 680, minHeight: 520)
+        .frame(width: 760, height: 580)
     }
 }
+
+// MARK: - Accounts
 
 private struct AccountsSettingsView: View {
     let model: AppModel
@@ -25,58 +43,36 @@ private struct AccountsSettingsView: View {
     @State private var confirmsRemoval = false
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 0) {
-                List(model.config.accounts, selection: $selection) { account in
-                    HStack(spacing: 8) {
-                        AccountAvatar(account: account, size: 28)
-                        VStack(alignment: .leading) {
-                            // Wie er inlogde, met daaronder wat dit account volgt.
-                            Text(verbatim: account.login.map { "@\($0)" } ?? account.organization)
-                            Text(verbatim: account.login == nil ? account.kind.name : account.owners.formatted(.list(type: .and)))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                    .tag(account.id)
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                AccountList(accounts: model.config.accounts, selection: $selection) {
+                    if selection != nil { confirmsRemoval = true }
                 }
-                .onDeleteCommand { if selection != nil { confirmsRemoval = true } }
-                HStack {
-                    Menu {
-                        Button("Azure DevOps") { add(.azureDevOps) }
-                        Button("GitHub") { add(.gitHub) }
-                    } label: {
-                        Label("Account toevoegen", systemImage: "plus").labelStyle(.iconOnly)
-                    }
-                    .menuStyle(.button)
-                    .buttonStyle(.borderless)
-                    .fixedSize()
-                    .help("Account toevoegen")
-                    Button {
-                        confirmsRemoval = true
-                    } label: {
-                        Label("Account verwijderen", systemImage: "minus").labelStyle(.iconOnly)
-                    }
-                    .buttonStyle(.borderless)
-                    .disabled(selection == nil)
-                    .help("Account verwijderen")
-                }
-                .padding(6)
+                Divider()
+                AccountListButtons(canRemove: selection != nil, add: add) { confirmsRemoval = true }
             }
-            .frame(minWidth: 200, maxWidth: 240)
+            .frame(width: 250)
+
+            Divider()
 
             Group {
                 if let id = selection, let account = model.config.accounts.first(where: { $0.id == id }) {
                     AccountEditor(model: model, original: account).id(id)
                 } else {
-                    Text("Selecteer of voeg een account toe")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ContentUnavailableView {
+                        Label("Geen account gekozen", systemImage: "person.crop.circle")
+                    } description: {
+                        Text("Kies links een account, of voeg er een toe met +.")
+                    }
                 }
             }
-            .frame(minWidth: 440)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .onAppear { if selection == nil { selection = model.config.accounts.first?.id } }
+        #if DEBUG
+        .onAppear { SnapshotCamera.shoot("settings-accounts", windowId: "com_apple_SwiftUI_Settings_window") }
+        .onChange(of: selection) { _, _ in SnapshotCamera.shoot("settings-accounts-selected", windowId: "com_apple_SwiftUI_Settings_window") }
+        #endif
         .sheet(item: $draft) { account in
             AddAccountSheet(model: model, draft: account) { saved in
                 draft = nil
@@ -90,7 +86,7 @@ private struct AccountsSettingsView: View {
         ) { account in
             Button("Verwijderen", role: .destructive) {
                 model.removeAccount(account.id)
-                selection = nil
+                selection = model.config.accounts.first?.id
             }
         } message: { account in
             Text("\(account.displayName) en de geschiedenis ervan verdwijnen uit Pullwatch. Op \(account.kind.name) verandert niets.")
@@ -99,6 +95,120 @@ private struct AccountsSettingsView: View {
 
     private func add(_ kind: ProviderKind) {
         draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+    }
+}
+
+/// De accounts als kaarten: per inlog een kaart met foto, wie en de dienst, en daaronder de
+/// plekken die hij volgt, elk op een eigen regel. De hele kaart is een knop (Tab, spatie);
+/// de gekozen kaart heeft een blauwe rand. Delete verwijdert het gekozen account.
+private struct AccountList: View {
+    let accounts: [Account]
+    @Binding var selection: UUID?
+    let delete: () -> Void
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(accounts) { account in
+                    AccountCard(account: account, isSelected: selection == account.id) {
+                        selection = account.id
+                    }
+                }
+            }
+            .padding(10)
+        }
+        .onDeleteCommand(perform: delete)
+        .accessibilityIdentifier("settings.accounts")
+    }
+}
+
+private struct AccountCard: View {
+    let account: Account
+    let isSelected: Bool
+    let select: () -> Void
+
+    var body: some View {
+        Button(action: select) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    AccountAvatar(account: account, size: 28)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(verbatim: account.login.map { "@\($0)" } ?? account.organization)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                        Text(verbatim: account.kind.name)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+                // De gevolgde plekken van een GitHub-inlog, elk op een eigen regel.
+                if account.login != nil {
+                    if account.owners.isEmpty {
+                        Text("Volgt nog niets").font(.caption).foregroundStyle(.secondary)
+                            .padding(.leading, 36)
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(account.owners, id: \.self) { owner in
+                                Label {
+                                    Text(verbatim: owner).font(.callout).lineLimit(1)
+                                } icon: {
+                                    AccountAvatar(gitHubLogin: owner, size: 16)
+                                }
+                            }
+                        }
+                        .padding(.leading, 36)
+                    }
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(isSelected ? AnyShapeStyle(.tint.opacity(0.12)) : AnyShapeStyle(.quaternary.opacity(0.5)), in: .rect(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: isSelected ? 2 : 1))
+            .contentShape(.rect(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityIdentifier("settings.account.\(account.id)")
+    }
+}
+
+/// + (met de keuze GitHub of Azure DevOps) en − onder de lijst, zoals in de Mac-instellingen.
+private struct AccountListButtons: View {
+    let canRemove: Bool
+    let add: (ProviderKind) -> Void
+    let remove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Menu {
+                Button("GitHub") { add(.gitHub) }
+                Button("Azure DevOps") { add(.azureDevOps) }
+            } label: {
+                Label("Account toevoegen", systemImage: "plus")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 28, height: 22)
+            }
+            .menuStyle(.button)
+            .menuIndicator(.hidden)
+            .buttonStyle(.borderless)
+            .fixedSize()
+            .help("Account toevoegen")
+            .accessibilityIdentifier("settings.addAccount")
+            Divider().frame(height: 16)
+            Button(action: remove) {
+                Label("Account verwijderen", systemImage: "minus")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 28, height: 22)
+            }
+            .buttonStyle(.borderless)
+            .disabled(!canRemove)
+            .help("Account verwijderen")
+            Spacer()
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
     }
 }
 
@@ -125,91 +235,94 @@ private struct AddAccountSheet: View {
             .controlSize(.large)
             .padding(12)
         }
-        .frame(minWidth: 560, minHeight: 560)
+        .frame(width: 620, height: 640)
     }
 }
 
+// MARK: - Algemeen
+
 private struct GeneralSettingsView: View {
-    let model: AppModel
+    @Bindable var model: AppModel
     @State private var logLevel = Log.minimum
 
-    private let intervals = [60, 120, 300, 600, 900]
+    var body: some View {
+        Form {
+            Section {
+                Picker("Kijk elke", selection: $model.pollInterval) {
+                    ForEach(AppModel.pollIntervals, id: \.self) { seconds in
+                        Text(Duration.seconds(seconds), format: .units(allowed: [.minutes], width: .wide)).tag(seconds)
+                    }
+                }
+                Picker("Geschiedenis bewaren", selection: $model.historyRetention) {
+                    ForEach(HistoryRetention.allCases, id: \.self) { retention in
+                        Text(retention.label).tag(retention)
+                    }
+                }
+            } header: {
+                Text("Ophalen")
+            } footer: {
+                Text("Hoe vaak Pullwatch naar nieuwe pull requests en tags kijkt, en hoe lang de geschiedenis blijft staan.")
+            }
+
+            Section {
+                Toggle("Elke dag versies en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
+                Toggle("Melding bij een nieuwe versie", isOn: $model.notifiesPackageUpdates)
+                    .disabled(!model.checksVersionsDaily)
+            } header: {
+                Text("Versies en kwetsbaarheden")
+            } footer: {
+                Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie.")
+            }
+
+            Section {
+                Toggle("Automatisch op updates controleren", isOn: $model.checksForUpdates)
+                LabeledContent {
+                    HStack {
+                        if model.isCheckingForUpdates { ProgressView().controlSize(.small) }
+                        Button("Nu controleren") { Task { await model.checkForUpdates(manual: true) } }
+                            .disabled(model.isCheckingForUpdates)
+                    }
+                } label: {
+                    Text("Versie \(AppModel.currentVersion)")
+                    if let message = model.updateCheckMessage {
+                        Text(verbatim: message)
+                    }
+                }
+            } header: {
+                Text("Updates")
+            }
+
+            Section("Opstarten") {
+                LaunchAtLoginToggle()
+            }
+
+            Section {
+                LabeledContent {
+                    HStack {
+                        Picker("Logniveau", selection: $logLevel) {
+                            ForEach(LogLevel.allCases) { level in
+                                Text(verbatim: level.name).tag(level)
+                            }
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                        Button("Open Console") { openConsole() }
+                    }
+                } label: {
+                    Text("Logniveau")
+                }
+                .onChange(of: logLevel) { _, level in Log.minimum = level }
+            } header: {
+                Text("Probleemoplossing")
+            } footer: {
+                Text("Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.")
+            }
+        }
+        .formStyle(.grouped)
+    }
 
     private func openConsole() {
         let console = URL(filePath: "/System/Applications/Utilities/Console.app")
         NSWorkspace.shared.openApplication(at: console, configuration: NSWorkspace.OpenConfiguration())
-    }
-
-    private func nearestInterval(_ value: Int) -> Int {
-        intervals.min { abs($0 - value) < abs($1 - value) } ?? value
-    }
-
-    var body: some View {
-        Form {
-            Picker("Poll-interval", selection: Binding(
-                get: { nearestInterval(model.config.clampedInterval) },
-                set: { model.setPollInterval($0) }
-            )) {
-                ForEach(intervals, id: \.self) { seconds in
-                    Text("\(seconds / 60) min").tag(seconds)
-                }
-            }
-            Picker("Geschiedenis bewaren", selection: Binding(
-                get: { model.config.historyRetention },
-                set: { model.setHistoryRetention($0) }
-            )) {
-                ForEach(HistoryRetention.allCases, id: \.self) { retention in
-                    Text(retention.label).tag(retention)
-                }
-            }
-            Toggle("Versies en CVE's dagelijks checken", isOn: Binding(
-                get: { model.config.autoVersionCheck },
-                set: { model.setAutoVersionCheck($0) }
-            ))
-            .help("Eens per dag automatisch; melding als er bij een gevolgde repo een nieuwe CVE bijkomt")
-            Toggle("Melding bij nieuwe versies", isOn: Binding(
-                get: { model.config.notifyPackageUpdates },
-                set: { model.setNotifyPackageUpdates($0) }
-            ))
-            .disabled(!model.config.autoVersionCheck)
-            .help("Na de dagelijkse check: één melding als er een nieuwe versie is van iets dat je repo's gebruiken")
-            Toggle("Automatisch op updates controleren", isOn: Binding(
-                get: { model.config.checkForUpdates },
-                set: { model.setCheckForUpdates($0) }
-            ))
-            .help("Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is")
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Versie \(AppModel.currentVersion)").foregroundStyle(.secondary)
-                    if let message = model.updateCheckMessage {
-                        Text(verbatim: message).font(.caption).foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                if model.isCheckingForUpdates {
-                    ProgressView().controlSize(.small)
-                }
-                Button("Nu controleren") { Task { await model.checkForUpdates(manual: true) } }
-                    .disabled(model.isCheckingForUpdates)
-            }
-            LaunchAtLoginToggle()
-            LabeledContent {
-                HStack {
-                    Picker("Logniveau", selection: $logLevel) {
-                        ForEach(LogLevel.allCases) { level in
-                            Text(verbatim: level.name).tag(level)
-                        }
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                    Button("Open Console") { openConsole() }
-                }
-            } label: {
-                Text("Logniveau")
-                Text("Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.")
-            }
-            .onChange(of: logLevel) { _, level in Log.minimum = level }
-        }
-        .formStyle(.grouped)
     }
 }
