@@ -98,10 +98,52 @@ import PullwatchTestSupport
         #expect(opened(ActivityFilter(repoId: "\(fixedAccountId.uuidString)/Code24/engine")) == 1)
     }
 
+    @Test func closedWithoutMergeAndDraftsCountPerBucketAndInTotal() throws {
+        let stats = ActivityStats.compute(history: history([
+            // Oktober: twee geopend, waarvan één een open draft; één gesloten zonder merge.
+            .fixture(repo: "P/api", number: 1, authorName: "ana", isDraft: true, createdAt: date(2026, 10, 2)),
+            .fixture(repo: "P/api", number: 2, authorName: "ana", createdAt: date(2026, 10, 3), state: .closed,
+                     closedAt: date(2026, 10, 5)),
+            // September geopend, oktober gesloten zonder merge: telt in twee periodes.
+            .fixture(repo: "P/web", number: 3, authorName: "bob", createdAt: date(2026, 9, 20), state: .closed,
+                     closedAt: date(2026, 10, 1)),
+            // Een draft uit augustus is nog open; een gesloten draft telt als gesloten.
+            .fixture(repo: "P/web", number: 4, authorName: "bob", isDraft: true, createdAt: date(2026, 8, 1)),
+            .fixture(repo: "P/web", number: 5, authorName: "bob", isDraft: true, createdAt: date(2026, 9, 2), state: .closed,
+                     closedAt: date(2026, 9, 3)),
+            pr(6, author: "ana", created: date(2026, 9, 4), merged: date(2026, 10, 6)),
+        ]), period: .month, filter: ActivityFilter(), now: now, calendar: calendar)
+        let october = try #require(stats.buckets.last)
+        #expect([october.opened, october.drafts, october.openedReady, october.merged, october.closed] == [2, 1, 1, 1, 2] as [Int])
+        let september = try #require(stats.buckets.dropLast().last)
+        #expect([september.opened, september.drafts, september.merged, september.closed] == [3, 0, 0, 1] as [Int])
+        #expect(stats.buckets.dropLast(2).last.map { [$0.opened, $0.drafts] } == [1, 1])
+        #expect(stats.closedThisPeriod == 2)
+        #expect(stats.mergedThisPeriod == 1)
+        #expect(stats.openDrafts == 2)
+        #expect(stats.authorStates["ana"] == PRStateCounts(open: 0, draft: 1, merged: 1, closed: 1))
+        #expect(stats.authorStates["bob"] == PRStateCounts(draft: 1, closed: 2))
+        #expect(stats.repoStates["P/web"] == PRStateCounts(draft: 1, closed: 2))
+    }
+
+    @Test func openDraftsFollowTheFilter() {
+        let h = history([
+            .fixture(repo: "P/api", number: 1, authorName: "ana", isDraft: true, createdAt: date(2026, 10, 2)),
+            .fixture(repo: "P/web", number: 2, authorName: "bob", isDraft: true, createdAt: date(2026, 10, 2)),
+            .fixture(repo: "P/web", number: 3, authorName: "dependabot[bot]", isDraft: true, createdAt: date(2026, 10, 2)),
+        ])
+        func drafts(_ filter: ActivityFilter) -> Int {
+            ActivityStats.compute(history: h, period: .month, filter: filter, now: now, calendar: calendar).openDrafts
+        }
+        #expect(drafts(ActivityFilter()) == 2)
+        #expect(drafts(ActivityFilter(hideBots: false)) == 3)
+        #expect(drafts(ActivityFilter(author: "bob")) == 1)
+    }
+
     @Test func outsideTheRangeDoesNotCount() {
         let stats = ActivityStats.compute(history: history([pr(1, created: date(2025, 1, 1), merged: date(2025, 1, 2))]),
                                           period: .month, filter: ActivityFilter(), now: now, calendar: calendar)
-        #expect(stats.buckets.allSatisfy { $0.opened == 0 && $0.merged == 0 })
+        #expect(stats.buckets.allSatisfy { $0.opened == 0 && $0.merged == 0 && $0.closed == 0 && $0.drafts == 0 })
         #expect(stats.authors.isEmpty)
         #expect(stats.medianLeadTime == nil)
     }
