@@ -9,7 +9,11 @@ struct MenuView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            MenuHeader { Task { await model.refreshNow() } }
+            MenuHeader(
+                refresh: { Task { await model.refreshNow() } },
+                openSettings: { MenuPanel.close(); model.show(.settings) },
+                openAbout: { MenuPanel.close(); model.show(.about) }
+            )
 
             if let update = model.availableUpdate {
                 UpdateBanner(update: update)
@@ -47,8 +51,7 @@ struct MenuView: View {
             MenuFooter(
                 unreadCount: model.unreadCount,
                 markAllRead: model.markAllRead,
-                openMain: { MenuPanel.close(); model.show(.main) },
-                openSettings: { MenuPanel.close(); model.show(.settings) }
+                openMain: { MenuPanel.close(); model.show(.main) }
             )
         }
         .padding(12)
@@ -64,29 +67,37 @@ enum MenuPanel {
     }
 }
 
+/// Kop van het paneel: naam en versie, en rechtsboven drie ronde glazen knoppen (over,
+/// verversen, instellingen) in één glascontainer, zodat ze als één bediening ogen.
 private struct MenuHeader: View {
     let refresh: () -> Void
+    let openSettings: () -> Void
+    let openAbout: () -> Void
 
     var body: some View {
         HStack {
             Text(verbatim: "Pullwatch").font(.headline)
-            Spacer()
             Text(verbatim: AppModel.currentVersion)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
-            Button("Over Pullwatch", systemImage: "info.circle") {
-                MenuPanel.close()
-                AboutPanel.show()
-            }
-            .labelStyle(.iconOnly)
-            .buttonStyle(.borderless)
-            .help("Over Pullwatch")
-            Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
+            Spacer()
+            GlassEffectContainer(spacing: 6) {
+                HStack(spacing: 6) {
+                    Button("Over Pullwatch", systemImage: "info", action: openAbout)
+                    .help("Over Pullwatch")
+                    Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
+                        .keyboardShortcut("r")
+                        .help("Nu verversen")
+                    Button("Instellingen", systemImage: "gearshape", action: openSettings)
+                        .keyboardShortcut(",")
+                        .help("Instellingen")
+                        .accessibilityIdentifier("menu.settings")
+                }
                 .labelStyle(.iconOnly)
-                .buttonStyle(.borderless)
-                .keyboardShortcut("r")
-                .help("Nu verversen")
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+            }
         }
     }
 }
@@ -229,12 +240,12 @@ private struct AccountStatusRow: View {
     }
 }
 
-/// Onderaan: alles gelezen, het hoofdvenster, de instellingen en stoppen, elk met een sneltoets.
+/// Onderaan: alles gelezen, het hoofdvenster en stoppen, elk met een sneltoets (de instellingen
+/// zitten rechtsboven).
 private struct MenuFooter: View {
     let unreadCount: Int
     let markAllRead: () -> Void
     let openMain: () -> Void
-    let openSettings: () -> Void
 
     var body: some View {
         HStack {
@@ -244,8 +255,6 @@ private struct MenuFooter: View {
             Spacer()
             Button("Openen…", action: openMain)
                 .keyboardShortcut("o")
-            Button("Instellingen…", action: openSettings)
-                .keyboardShortcut(",")
             Button("Stop Pullwatch") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
         }

@@ -11,8 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UNUserNotificationCenter.current().delegate = Notifier.shared
         AppModel.shared.start()
         #if DEBUG
-        // Voor schermafbeeldingen: meteen de instellingen open.
+        // Voor schermafbeeldingen: meteen de instellingen of het Over-venster open.
         if UserDefaults.standard.bool(forKey: "PullwatchOpenSettings") { AppModel.shared.show(.settings) }
+        if UserDefaults.standard.bool(forKey: "PullwatchOpenAbout") { AppModel.shared.show(.about) }
         #endif
     }
 
@@ -76,6 +77,9 @@ struct PullwatchApp: App {
         }
         .commands {
             ShortcutCommands(model: model)
+            CommandGroup(replacing: .appInfo) {
+                Button("Over Pullwatch") { model.show(.about) }
+            }
         }
         .windowResizability(.contentMinSize)
         .defaultLaunchBehavior(.suppressed)
@@ -94,6 +98,16 @@ struct PullwatchApp: App {
             SettingsView(model: model)
                 .countsAsOpenWindow("settings")
         }
+
+        Window("Over Pullwatch", id: WindowID.about.rawValue) {
+            AboutView()
+                .countsAsOpenWindow(WindowID.about.rawValue)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .defaultPosition(.center)
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
 
         #if DEBUG
         // Alleen voor schermafbeeldingen (`-PullwatchMenuPreview YES`): het menupaneel als gewoon

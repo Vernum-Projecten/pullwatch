@@ -135,12 +135,6 @@
     "%@, %@, %@": {
       "comment": "Repo, auteur, wanneer gezien",
       "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@, %2$@, %3$@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
@@ -156,6 +150,12 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
             "value": "%1$@, %2$@, %3$@"
           }
         }
@@ -1829,6 +1829,28 @@
         }
       }
     },
+    "Checks op verouderde talen, frameworks en packages en bekende kwetsbaarheden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfungen auf veraltete Sprachen, Frameworks und Pakete sowie bekannte Schwachstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks for outdated languages, frameworks and packages, and known vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification des langages, frameworks et paquets obsolètes et des vulnérabilités connues"
+          }
+        }
+      }
+    },
     "Completed": {
       "localizations": {
         "de": {
@@ -2043,6 +2065,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "EOL"
+          }
+        }
+      }
+    },
+    "Een doorzoekbare geschiedenis en statistieken per repository": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein durchsuchbarer Verlauf und Statistiken pro Repository"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A searchable history and statistics per repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un historique consultable et des statistiques par dépôt"
           }
         }
       }
@@ -2509,6 +2553,28 @@
         }
       }
     },
+    "Gemaakt door Alessandro Torrisi.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellt von Alessandro Torrisi."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Made by Alessandro Torrisi."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créé par Alessandro Torrisi."
+          }
+        }
+      }
+    },
     "Gemerged": {
       "localizations": {
         "de": {
@@ -2727,6 +2793,28 @@
         }
       }
     },
+    "Gratis en open source onder de Apache-licentie 2.0.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kostenlos und Open Source unter der Apache-Lizenz 2.0."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free and open source under the Apache License 2.0."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratuit et open source sous licence Apache 2.0."
+          }
+        }
+      }
+    },
     "Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)": {
       "localizations": {
         "de": {
@@ -2887,30 +2975,24 @@
         }
       }
     },
-    "Instellingen…": {
+    "Instellingen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einstellungen…"
+            "value": "Einstellungen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings…"
+            "value": "Settings"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réglages…"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instellingen…"
+            "value": "Réglages"
           }
         }
       }
@@ -3381,30 +3463,24 @@
         }
       }
     },
-    "Licentie: Apache 2.0": {
+    "Licentie": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lizenz: Apache 2.0"
+            "value": "Lizenz"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "License: Apache 2.0"
+            "value": "License"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Licence : Apache 2.0"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licentie: Apache 2.0"
+            "value": "Licence"
           }
         }
       }
@@ -3581,6 +3657,28 @@
         }
       }
     },
+    "Meldingen bij nieuwe PR's, tags en gemergde PR's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungen bei neuen PRs, Tags und gemergten PRs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications for new PRs, tags and merged PRs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications pour les nouvelles PR, les tags et les PR fusionnées"
+          }
+        }
+      }
+    },
     "Meldingen staan uit in Systeeminstellingen": {
       "localizations": {
         "de": {
@@ -3687,30 +3785,24 @@
         }
       }
     },
-    "Nieuwe pull requests en tags uit GitHub en Azure DevOps in je menubalk, met geschiedenis en een versie- en CVE-check van je repo's.": {
+    "Nieuwe pull requests en tags uit GitHub en Azure DevOps in je menubalk.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Neue Pull Requests und Tags aus GitHub und Azure DevOps in deiner Menüleiste, mit Verlauf und einer Versions- und CVE-Prüfung deiner Repositories."
+            "value": "Neue Pull Requests und Tags aus GitHub und Azure DevOps in deiner Menüleiste."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New pull requests and tags from GitHub and Azure DevOps in your menu bar, with history and a version and CVE check of your repositories."
+            "value": "New pull requests and tags from GitHub and Azure DevOps in your menu bar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nouvelles pull requests et nouveaux tags de GitHub et Azure DevOps dans votre barre des menus, avec historique et vérification des versions et des CVE de vos dépôts."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nieuwe pull requests en tags uit GitHub en Azure DevOps in je menubalk, met geschiedenis en een versie- en CVE-check van je repo's."
+            "value": "Les nouvelles pull requests et les nouveaux tags de GitHub et Azure DevOps dans votre barre des menus."
           }
         }
       }
@@ -4851,6 +4943,28 @@
         }
       }
     },
+    "Probleem melden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem melden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report a Problem"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaler un problème"
+          }
+        }
+      }
+    },
     "Probleemoplossing": {
       "localizations": {
         "de": {
@@ -5967,6 +6081,35 @@
         }
       }
     },
+    "Versie %@ (%@)": {
+      "comment": "Versie, buildnummer",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Versie %1$@ (%2$@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "Versie %@ is beschikbaar": {
       "localizations": {
         "de": {
@@ -6041,6 +6184,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versions et vulnérabilités"
+          }
+        }
+      }
+    },
+    "Versies van endoflife.date, kwetsbaarheden van OSV.dev.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen von endoflife.date, Schwachstellen von OSV.dev."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions from endoflife.date, vulnerabilities from OSV.dev."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions de endoflife.date, vulnérabilités de OSV.dev."
           }
         }
       }

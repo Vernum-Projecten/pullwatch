@@ -43,7 +43,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   loop, config, history, update check; `show(_:)` opens a window or section),
   `GitHubSignIn` (the GitHub sign-in flow), `FakeGitHub` (debug only),
   `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
-  value), `AboutPanel`. `Pullwatch/Pullwatch/Views/`: only draws. `MenuView`
+  value). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
   (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
   Statistics), `SettingsView` (the Settings window: Accounts and General),
   `AccountEditor`, the section views, and `Components/`. `Localizable.xcstrings`
