@@ -1,0 +1,181 @@
+import Foundation
+import Observation
+import PullwatchCore
+
+/// Het ophalen van PR's en tags: één poll (`tick`) met zijn voortgang en de status per account,
+/// "Opnieuw ophalen" van de geschiedenis, en de eerste sync van nieuwe accounts. Wat een poll
+/// vond gaat naar de geschiedenis, de meldingen en de versiecheck.
+@Observable
+final class PollingModel {
+    private(set) var statuses: [UUID: AccountState] = [:]
+    /// Voortgang van "Opnieuw ophalen"; `nil` als er niets loopt.
+    private(set) var refetch: RefetchProgress?
+    /// Voortgang van de poll die nu loopt; nil tussen twee polls.
+    private(set) var pollProgress: PollProgress?
+    /// Accounts waarvan de eerste geschiedenis-sync nog moet komen (hun lijsten zijn nog leeg).
+    private(set) var pendingFirstSync: Set<UUID> = []
+    /// Nog geen poll afgerond sinds de start: lege lijsten zeggen dan "ophalen" in plaats van "nog geen".
+    private(set) var hasPolledOnce = false
+    /// Laatste poll waarin minstens één account slaagde.
+    private(set) var lastSuccessfulPoll: Date?
+
+    struct RefetchProgress: Equatable {
+        let startedAt: Date
+        var done: Int
+        let total: Int
+    }
+
+    /// Lopende `tick()`s; de voortgang gaat pas weg als de laatste klaar is.
+    @ObservationIgnored private var activePolls = 0
+    @ObservationIgnored private var refreshSoon: Task<Void, Never>?
+    @ObservationIgnored private let services: AppServices
+    @ObservationIgnored private let accounts: AccountsModel
+    @ObservationIgnored private let history: HistoryModel
+    @ObservationIgnored private let versions: VersionsModel
+    @ObservationIgnored private let notifications: NotificationsModel
+
+    init(
+        services: AppServices, accounts: AccountsModel, history: HistoryModel,
+        versions: VersionsModel, notifications: NotificationsModel
+    ) {
+        self.services = services
+        self.accounts = accounts
+        self.history = history
+        self.versions = versions
+        self.notifications = notifications
+    }
+
+    private var config: AppConfig { accounts.config }
+    private var engine: PollEngine { services.engine }
+
+    // MARK: - Status
+
+    /// Een account kon niet gepold worden: de menubalk toont dan een waarschuwing.
+    var hasPollError: Bool {
+        statuses.values.contains { if case .failed = $0 { true } else { false } }
+    }
+
+    /// Lijsten van PR's en tags vullen zich nog: eerste start, eerste sync of opnieuw ophalen.
+    var isFillingHistory: Bool {
+        guard !config.pollableAccounts.isEmpty else { return false }
+        return !hasPolledOnce || !pendingFirstSync.isEmpty || refetch != nil
+    }
+
+    /// Naam van het account waarvan de geschiedenis nu (of als eerste) opgehaald wordt.
+    var fillingAccountName: String? {
+        if let name = pollProgress?.firstSyncAccount { return name }
+        let id = pendingFirstSync.first ?? config.pollableAccounts.first?.id
+        return config.accounts.first { $0.id == id }?.displayName
+    }
+
+    /// Melding van het eerste account waarvan de laatste poll mislukte.
+    var pollFailure: String? {
+        for account in config.accounts {
+            if case .failed(let error, _) = statuses[account.id] {
+                return String(localized: "\(account.displayName): \(error.userMessage)", comment: "Accountnaam, foutmelding")
+            }
+        }
+        return nil
+    }
+
+    /// Een weggehaald account heeft geen status meer.
+    func removeStatus(of id: UUID) {
+        statuses[id] = nil
+    }
+
+    // MARK: - Pollen
+
+    func refreshNow() async {
+        await engine.forceRefresh()
+        await tick()
+    }
+
+    /// Opnieuw pollen kort na de laatste wijziging, niet bij elke klik.
+    func scheduleRefresh() {
+        refreshSoon?.cancel()
+        refreshSoon = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            await self?.refreshNow()
+        }
+    }
+
+    /// Haalt de geschiedenis van alle accounts opnieuw op (stil, gelezen-status blijft).
+    func refetchHistory() async {
+        let total = config.pollableAccounts.count
+        guard total > 0 else { return }
+        refetch = RefetchProgress(startedAt: Date(), done: 0, total: total)
+        await engine.resetHistorySync()
+        await tick()
+    }
+
+    /// Stopt "Opnieuw ophalen": accounts die nog niet aan de beurt waren houden hun oude
+    /// geschiedenis-sync.
+    func cancelRefetch() {
+        refetch = nil
+        Task { await engine.cancelHistoryResync() }
+    }
+
+    func tick() async {
+        await notifications.refreshAuthorization()
+        let accounts = config.pollableAccounts
+        let retention = config.historyRetention
+        await refreshPendingFirstSync()
+        activePolls += 1
+        let result = await engine.poll(
+            accounts: accounts,
+            interval: TimeInterval(config.clampedInterval),
+            retention: retention,
+            checksForOwnPullRequests: config.notifications.checksFailed,
+            progress: { [weak self] progress in await self?.setPollProgress(progress) }
+        )
+        activePolls -= 1
+        if activePolls == 0 { pollProgress = nil }
+        hasPolledOnce = true
+        statuses = result.statuses
+        await refreshPendingFirstSync()
+        if result.statuses.values.contains(where: { if case .ok = $0 { true } else { false } }) {
+            lastSuccessfulPoll = Date()
+        }
+
+        history.apply(result, retention: config.historyRetention, now: Date())
+        let builder = notifications.builder
+        let plans = NotificationPlanner.plan(
+            pullRequests: result.newPullRequests,
+            tags: result.newTags,
+            completed: result.completedPullRequests,
+            failedChecks: result.failedChecks,
+            settings: config.notifications,
+            accounts: config.accounts
+        )
+        let notifier = services.notifier
+        notifier.deliver(plans.map(builder.content(for:)))
+        notifier.deliver(result.authFailures.compactMap { id in
+            config.accounts.first { $0.id == id }.map(builder.authFailure)
+        })
+        await updateRefetchProgress()
+        versions.startNewRepoVersionCheckIfNeeded(after: result)
+    }
+
+    private func updateRefetchProgress() async {
+        guard var progress = refetch else { return }
+        let ids = config.pollableAccounts.map(\.id)
+        let synced = await engine.lastHistorySync(for: ids)
+        progress.done = synced.values.filter { $0 >= progress.startedAt }.count
+        refetch = progress.done >= progress.total ? nil : progress
+    }
+
+    /// Accounts die nog een eerste sync moeten doen. Een account dat nu faalt (bv. uitgelogd)
+    /// telt niet mee: anders blijft de balk "ophalen" zeggen tot het weer werkt.
+    private func refreshPendingFirstSync() async {
+        let accounts = config.pollableAccounts.filter {
+            if case .failed = statuses[$0.id] { false } else { true }
+        }
+        let pending = await engine.pendingFirstSync(accounts: accounts, retention: config.historyRetention)
+        if pending != pendingFirstSync { pendingFirstSync = pending }
+    }
+
+    private func setPollProgress(_ progress: PollProgress) {
+        pollProgress = progress
+    }
+}

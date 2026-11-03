@@ -112,6 +112,14 @@ public struct AppConfig: Codable, Equatable, Sendable {
         min(max(pollInterval, Self.intervalRange.lowerBound), Self.intervalRange.upperBound)
     }
 
+    /// De keuzes voor het poll-interval in Instellingen, in seconden.
+    public static let pollIntervalChoices = [60, 120, 300, 600, 900]
+
+    /// Het poll-interval op de dichtstbijzijnde keuze uit `pollIntervalChoices`.
+    public var pollIntervalChoice: Int {
+        Self.pollIntervalChoices.min { abs($0 - clampedInterval) < abs($1 - clampedInterval) } ?? clampedInterval
+    }
+
     /// Accounts die net zijn toegevoegd en nog geen organisatie hebben, worden niet gepold.
     /// Accounts die Pullwatch ophaalt: met een eigenaar en niet uitgezet.
     public var pollableAccounts: [Account] {

@@ -265,7 +265,7 @@ private struct RepoWatchRow: View {
     let repo: String
     let openRepo: ((String) -> Void)?
     var showsOwner = false
-    var status: AppModel.ExtraRepoStatus?
+    var status: AccountsModel.ExtraRepoStatus?
     var remove: (() -> Void)?
 
     private var readWithoutSignInHelp: Text {

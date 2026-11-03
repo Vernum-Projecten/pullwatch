@@ -43,6 +43,13 @@ public struct RepoSummary: Hashable, Sendable, Identifiable {
 }
 
 public enum RepoOverview {
+    /// `RepoSummary.id` van een repo uit de geschiedenis: de naam kan daar in hoofdletters
+    /// verschillen. Zonder overeenkomst de id zoals de versiecheck hem zou maken.
+    public static func repoId(in summaries: [RepoSummary], accountId: UUID, repo: String) -> String {
+        summaries.first { $0.accountId == accountId && $0.repo.caseInsensitiveCompare(repo) == .orderedSame }?.id
+            ?? "\(accountId.uuidString)/\(repo)"
+    }
+
     /// Repo's uit de laatste versiecheck plus repo's die expliciet gevolgd worden maar nog niet gecheckt
     /// zijn. Slechtste eerst, dan op naam. Accountfouten in het rapport (naam zonder "/") tellen niet.
     /// `packageSummaries` mag al uitgerekend meegegeven worden (`report.packageSummaries()`).
