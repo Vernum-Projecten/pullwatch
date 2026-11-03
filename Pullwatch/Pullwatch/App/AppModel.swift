@@ -794,7 +794,9 @@ final class AppModel {
         do {
             repo = try RepositoryReference.parse(
                 input, kind: account.kind, organization: account.organization,
-                instanceURL: account.isGitHubEnterprise ? account.instanceURL : nil
+                instanceURL: account.kind == .gitLab
+                    ? account.effectiveInstanceURL
+                    : (account.isGitHubEnterprise ? account.instanceURL : nil)
             )
         } catch {
             return .failure(RepositoryInputError(message: error.userMessage))

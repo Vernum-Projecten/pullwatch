@@ -366,6 +366,35 @@
         }
       }
     },
+    "Dit project staat op %@; dit account hoort bij %@. Voeg het toe bij een account van die server.": {
+      "comment": "Host van de link, host van het account (bv. gitlab.com)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Projekt liegt auf %1$@; dieses Konto gehört zu %2$@. Füge es bei einem Konto dieses Servers hinzu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This project is on %1$@; this account belongs to %2$@. Add it to an account on that server."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce projet se trouve sur %1$@ ; ce compte appartient à %2$@. Ajoutez-le à un compte de ce serveur."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit project staat op %1$@; dit account hoort bij %2$@. Voeg het toe bij een account van die server."
+          }
+        }
+      }
+    },
     "Geen toegang tot \"%@\", controleer de naam": {
       "localizations": {
         "de": {
@@ -614,6 +643,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Typ eigenaar/repo, of plak de link van de repository."
+          }
+        }
+      }
+    },
+    "Typ groep/project (ook met subgroepen), of plak de link van het project.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Gruppe/Projekt ein (auch mit Untergruppen) oder füge den Link des Projekts ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type group/project (subgroups too), or paste the project's link."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez groupe/projet (sous-groupes compris), ou collez le lien du projet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ groep/project (ook met subgroepen), of plak de link van het project."
           }
         }
       }

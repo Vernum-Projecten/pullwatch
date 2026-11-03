@@ -7993,6 +7993,29 @@
         }
       }
     },
+    "Openbaar project waar je account niet bij mag; Pullwatch leest het zonder token, met de lagere limiet van %@": {
+      "comment": "GitLab of de host van een eigen server",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentliches Projekt, auf das dein Konto keinen Zugriff hat; Pullwatch liest es ohne Token, mit dem niedrigeren Limit von %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A public project your account can't access; Pullwatch reads it without a token, at the lower limit of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projet public auquel votre compte n'a pas accès ; Pullwatch le lit sans jeton, avec la limite plus basse de %@"
+          }
+        }
+      }
+    },
     "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub": {
       "localizations": {
         "de": {
@@ -10893,6 +10916,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez propriétaire/dépôt, ou collez le lien de github.com. Un dépôt public d'une autre organisation fonctionne aussi ; Pullwatch le lit sans connexion si nécessaire."
+          }
+        }
+      }
+    },
+    "Typ groep/project (ook met subgroepen), of plak de link van %@. Ook een openbaar project van een andere groep kan; Pullwatch leest dat zo nodig zonder inloggen.": {
+      "comment": "Host van de GitLab-server, bv. gitlab.com",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Gruppe/Projekt ein (auch mit Untergruppen) oder füge den Link von %@ ein. Auch ein öffentliches Projekt einer anderen Gruppe geht; Pullwatch liest es bei Bedarf ohne Anmeldung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type group/project (subgroups too), or paste the link from %@. A public project of another group works as well; Pullwatch reads it without signing in if needed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez groupe/projet (sous-groupes compris), ou collez le lien de %@. Un projet public d'un autre groupe convient aussi ; Pullwatch le lit sans connexion si nécessaire."
           }
         }
       }
