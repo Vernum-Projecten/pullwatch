@@ -150,7 +150,7 @@ private struct MenuBarLabel: View {
             // Het venster moet opengaan zolang het menupaneel nog de actieve app vertegenwoordigt;
             // sluit je het paneel eerst, dan opent het "vanuit een niet-actieve app" en komt het
             // onder andere vensters te staan. Dus: openen, activeren, paneel weg, dan naar voren.
-            let panel = NSApp.keyWindow
+            let panel = MenuPanel.current()
             let windowId: String
             if request.window == .settings {
                 openSettings()
@@ -160,12 +160,9 @@ private struct MenuBarLabel: View {
                 windowId = request.window.rawValue
             }
             NSApp.activate()
-            // Alleen het paneel zelf sluiten, niet een gewoon venster (met titelbalk) dat toevallig de key was.
-            if let panel, !panel.styleMask.contains(.titled) { panel.orderOut(nil) }
+            panel?.orderOut(nil)
             DispatchQueue.main.async {
-                NSApp.windows
-                    .first { $0.identifier?.rawValue.hasPrefix(windowId) == true }?
-                    .makeKeyAndOrderFront(nil)
+                MenuPanel.window(id: windowId)?.makeKeyAndOrderFront(nil)
             }
             model.windowRequest = nil
         }

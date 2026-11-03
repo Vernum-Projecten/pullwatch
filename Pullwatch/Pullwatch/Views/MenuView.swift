@@ -17,7 +17,11 @@ struct MenuView: View {
             )
 
             if let update = model.availableUpdate {
-                UpdateBanner(update: update) { model.installUpdate(); MenuPanel.close() }
+                UpdateBanner(update: update) {
+                let panel = MenuPanel.current()
+                model.installUpdate()
+                panel?.orderOut(nil)
+            }
             }
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
@@ -62,8 +66,19 @@ struct MenuView: View {
 /// openen; hier alleen voor Sparkle's venster.
 @MainActor
 enum MenuPanel {
-    static func close() {
-        NSApp.keyWindow?.orderOut(nil)
+    /// Het menupaneel: de key window als dat een `NSPanel` is (gewone SwiftUI-vensters en
+    /// Sparkle's venster zijn `NSWindow`), anders het zichtbare MenuBarExtra-paneel.
+    static func current() -> NSWindow? {
+        if let key = NSApp.keyWindow, key is NSPanel { return key }
+        return NSApp.windows.first { $0.isVisible && $0 is NSPanel && String(describing: type(of: $0)).contains("MenuBarExtra") }
+    }
+
+    /// Het venster met deze id: SwiftUI geeft vensters de identifier `id` of `id-…`.
+    static func window(id: String) -> NSWindow? {
+        NSApp.windows.first { window in
+            guard let identifier = window.identifier?.rawValue else { return false }
+            return identifier == id || identifier.hasPrefix(id + "-")
+        }
     }
 }
 
