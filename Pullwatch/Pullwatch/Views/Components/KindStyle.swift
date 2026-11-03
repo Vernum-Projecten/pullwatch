@@ -18,7 +18,23 @@ struct Pill: View {
     }
 }
 
-// Vaste waarden (symbool, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
+/// Een icoon: een SF Symbol, of een eigen symbool uit de assetcatalogus (de Octicons van GitHub
+/// voor pull requests, als `.symbolset`, zodat ze meeschalen met de tekst en de tint volgen).
+nonisolated enum Glyph: Hashable, Sendable {
+    case system(String)
+    case asset(String)
+
+    /// Het plaatje, zonder eigen VoiceOver-tekst: de tekst ernaast (of een `accessibilityLabel`)
+    /// zegt wat het is. Een eigen symbool leest anders zijn assetnaam voor.
+    var image: Image {
+        switch self {
+        case .system(let name): Image(systemName: name)
+        case .asset(let name): Image(decorative: name)
+        }
+    }
+}
+
+// Vaste waarden (icoon, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
 nonisolated extension ItemKind {
     var color: Color {
         switch self {
@@ -27,10 +43,12 @@ nonisolated extension ItemKind {
         }
     }
 
-    var symbol: String {
+    /// Het icoon van de soort: de Octicon git-pull-request voor PR's, zoals GitHub, en het SF
+    /// Symbol tag voor tags. Ook voor het onderdeel PR's in de zijbalk en de lege lijsten.
+    var glyph: Glyph {
         switch self {
-        case .pullRequest: "arrow.triangle.pull"
-        case .tag: "tag"
+        case .pullRequest: PRStatus.open.glyph
+        case .tag: .system("tag")
         }
     }
 
@@ -50,13 +68,14 @@ nonisolated extension ReleaseInfo {
     var label: LocalizedStringResource { isPrerelease ? "Pre-release" : "Release" }
 }
 
-// Vaste waarden (symbool, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
+// Vaste waarden (kleur, tekst), geen UI-state: overal bruikbaar, ook in tests. De kleuren zijn die
+// van GitHub: open groen, gemerged paars, gesloten rood.
 nonisolated extension PRState {
     var color: Color {
         switch self {
         case .open: .green
         case .merged: .purple
-        case .closed: .gray
+        case .closed: .red
         }
     }
 
@@ -67,4 +86,69 @@ nonisolated extension PRState {
         case .closed: "Gesloten"
         }
     }
+}
+
+/// De status van een PR zoals GitHub hem toont, met een open draft apart van een gewone open PR.
+/// Bepaalt op één plek het icoon, de kleur en de tekst.
+nonisolated enum PRStatus: CaseIterable, Hashable, Sendable {
+    case open, draft, merged, closed
+
+    init(_ pr: PullRequest) {
+        switch pr.state {
+        case .open: self = pr.isDraft ? .draft : .open
+        case .merged: self = .merged
+        case .closed: self = .closed
+        }
+    }
+
+    /// De Octicons van GitHub (MIT, zie NOTICE), op 16 px getekend: git-pull-request,
+    /// git-pull-request-draft, git-merge en git-pull-request-closed.
+    var glyph: Glyph {
+        switch self {
+        case .open: .asset("pr.open")
+        case .draft: .asset("pr.draft")
+        case .merged: .asset("pr.merged")
+        case .closed: .asset("pr.closed")
+        }
+    }
+
+    /// Zoals GitHub: een draft is grijs, de rest de kleur van zijn `PRState`.
+    var color: Color {
+        switch self {
+        case .open: PRState.open.color
+        case .draft: .gray
+        case .merged: PRState.merged.color
+        case .closed: PRState.closed.color
+        }
+    }
+
+    /// Soort en status in woorden, voor de tooltip en VoiceOver waar alleen het icoon staat.
+    var spokenName: LocalizedStringResource {
+        switch self {
+        case .open: "Pull request, open"
+        case .draft: "Pull request, draft"
+        case .merged: "Pull request, gemerged"
+        case .closed: "Pull request, gesloten"
+        }
+    }
+}
+
+nonisolated extension HistoryEntry {
+    /// De status van de PR, met drafts apart; `nil` voor tags.
+    var prStatus: PRStatus? {
+        switch self {
+        case .pullRequest(let pr): PRStatus(pr)
+        case .tag: nil
+        }
+    }
+
+    /// Het icoon van dit item: dat van zijn PR-status, of het tag-symbool.
+    var glyph: Glyph { prStatus?.glyph ?? kind.glyph }
+
+    /// De kleur van dat icoon.
+    var glyphColor: Color { prStatus?.color ?? kind.color }
+
+    /// Wat dat icoon betekent, in woorden ("Pull request, gemerged" of "Tag"): de tooltip en
+    /// het VoiceOver-label waar het icoon zonder tekst staat.
+    var glyphLabel: LocalizedStringResource { prStatus?.spokenName ?? kind.pillText }
 }

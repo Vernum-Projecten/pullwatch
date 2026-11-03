@@ -197,9 +197,13 @@ private struct RecentRow: View {
                     .fill(item.isRead ? AnyShapeStyle(.clear) : AnyShapeStyle(.tint))
                     .frame(width: 6, height: 6)
                     .padding(.top, 6)
-                Image(systemName: item.entry.kind.symbol)
-                    .foregroundStyle(item.entry.kind.color)
+                // Zoals GitHub: alleen het icoon en de kleur van de status (open, draft,
+                // gemerged, gesloten), of het tag-symbool; de woorden staan in tooltip en VoiceOver.
+                item.entry.glyph.image
+                    .foregroundStyle(item.entry.glyphColor)
                     .frame(width: 14)
+                    .help(Text(item.entry.glyphLabel))
+                    .accessibilityLabel(Text(item.entry.glyphLabel))
                 VStack(alignment: .leading, spacing: 2) {
                     if let release = item.entry.releaseTitle {
                         // De titel van de release, met de tagnaam erachter.

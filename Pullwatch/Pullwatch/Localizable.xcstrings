@@ -536,16 +536,16 @@
     "%@: nieuwe beveiligingsmelding": {
       "comment": "Meldingstitel; repo",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new security alert"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "%@: neue Sicherheitswarnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: new security alert"
           }
         },
         "fr": {
@@ -815,19 +815,19 @@
     },
     "%lld gepubliceerd": {
       "localizations": {
-        "nl": {
+        "de": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld gepubliceerd"
+                  "value": "%lld veröffentlicht"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld gepubliceerd"
+                  "value": "%lld veröffentlicht"
                 }
               }
             }
@@ -851,24 +851,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld veröffentlicht"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld veröffentlicht"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -882,6 +864,24 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld publiés"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gepubliceerd"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld gepubliceerd"
                 }
               }
             }
@@ -1045,19 +1045,19 @@
     "%lld nieuwe beveiligingsmeldingen": {
       "comment": "Meldingstitel; aantal",
       "localizations": {
-        "nl": {
+        "de": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld nieuwe beveiligingsmelding"
+                  "value": "%lld neue Sicherheitswarnung"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld nieuwe beveiligingsmeldingen"
+                  "value": "%lld neue Sicherheitswarnungen"
                 }
               }
             }
@@ -1081,24 +1081,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld neue Sicherheitswarnung"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld neue Sicherheitswarnungen"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -1112,6 +1094,24 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld nouvelles alertes de sécurité"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe beveiligingsmelding"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe beveiligingsmeldingen"
                 }
               }
             }
@@ -1562,19 +1562,19 @@
     },
     "%lld open geheimen": {
       "localizations": {
-        "nl": {
+        "de": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld open geheim"
+                  "value": "%lld offenes Geheimnis"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld open geheimen"
+                  "value": "%lld offene Geheimnisse"
                 }
               }
             }
@@ -1598,24 +1598,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld offenes Geheimnis"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld offene Geheimnisse"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -1633,24 +1615,42 @@
               }
             }
           }
-        }
-      }
-    },
-    "%lld open meldingen": {
-      "localizations": {
+        },
         "nl": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld open melding"
+                  "value": "%lld open geheim"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld open meldingen"
+                  "value": "%lld open geheimen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld open meldingen": {
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld offene Warnung"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld offene Warnungen"
                 }
               }
             }
@@ -1674,24 +1674,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld offene Warnung"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld offene Warnungen"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -1705,6 +1687,24 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld alertes ouvertes"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld open melding"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld open meldingen"
                 }
               }
             }
@@ -2274,13 +2274,13 @@
     },
     "Advanced Security": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Advanced Security"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Advanced Security"
@@ -3160,16 +3160,16 @@
     },
     "Beveiliging op GitHub": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Security on GitHub"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Sicherheit auf GitHub"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security on GitHub"
           }
         },
         "fr": {
@@ -3326,13 +3326,13 @@
     },
     "CVSS %@": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "CVSS %@"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "CVSS %@"
@@ -3538,16 +3538,16 @@
     },
     "Code scanning": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code scanning"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Code-Scanning"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning"
           }
         },
         "fr": {
@@ -3560,16 +3560,16 @@
     },
     "Code scanning op GitHub en Advanced Security op Azure DevOps, per repo": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code scanning on GitHub and Advanced Security on Azure DevOps, per repository"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Code-Scanning auf GitHub und Advanced Security auf Azure DevOps, pro Repository"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning on GitHub and Advanced Security on Azure DevOps, per repository"
           }
         },
         "fr": {
@@ -3639,16 +3639,16 @@
     },
     "De eigenaar moet het nieuwe recht van de Pullwatch-app goedkeuren bij de installatie op GitHub": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The owner has to approve the Pullwatch app’s new permission on its installation on GitHub"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Der Eigentümer muss die neue Berechtigung der Pullwatch-App bei der Installation auf GitHub genehmigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The owner has to approve the Pullwatch app’s new permission on its installation on GitHub"
           }
         },
         "fr": {
@@ -4066,16 +4066,16 @@
     },
     "Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie of beveiligingsmelding.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Once a day Pullwatch reads the language, framework and package versions of the repositories you follow, and notifies you of a new vulnerability or (when turned on) a new version or security alert."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Einmal am Tag liest Pullwatch die Sprach-, Framework- und Paketversionen deiner gefolgten Repositorys und meldet eine neue Schwachstelle oder (wenn eingeschaltet) eine neue Version oder Sicherheitswarnung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once a day Pullwatch reads the language, framework and package versions of the repositories you follow, and notifies you of a new vulnerability or (when turned on) a new version or security alert."
           }
         },
         "fr": {
@@ -4116,16 +4116,16 @@
     },
     "Eigen adviezen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Own advisories"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eigene Advisories"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Own advisories"
           }
         },
         "fr": {
@@ -4160,16 +4160,16 @@
     },
     "Fout": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Error"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Fehler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
           }
         },
         "fr": {
@@ -4389,16 +4389,16 @@
     },
     "Geen open geheimen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No open secrets"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Keine offenen Geheimnisse"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No open secrets"
           }
         },
         "fr": {
@@ -4411,16 +4411,16 @@
     },
     "Geen open meldingen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No open alerts"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Keine offenen Warnungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No open alerts"
           }
         },
         "fr": {
@@ -4583,16 +4583,16 @@
     },
     "Geheimen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Secrets"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Geheimnisse"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secrets"
           }
         },
         "fr": {
@@ -5029,16 +5029,16 @@
     },
     "Goedkeuren": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Approve"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Genehmigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve"
           }
         },
         "fr": {
@@ -5123,16 +5123,16 @@
     },
     "Het token mag Advanced Security niet lezen; geef het de scope Advanced Security (lezen)": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The token may not read Advanced Security; give it the Advanced Security (read) scope"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Das Token darf Advanced Security nicht lesen; gib ihm den Bereich Advanced Security (Lesen)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The token may not read Advanced Security; give it the Advanced Security (read) scope"
           }
         },
         "fr": {
@@ -6268,16 +6268,16 @@
     },
     "Melding bij een nieuwe kritieke of hoge beveiligingsmelding": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notify on a new critical or high security alert"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Mitteilung bei einer neuen kritischen oder hohen Sicherheitswarnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify on a new critical or high security alert"
           }
         },
         "fr": {
@@ -7226,16 +7226,16 @@
     },
     "Open bij OSV.dev": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open on OSV.dev"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Auf OSV.dev öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open on OSV.dev"
           }
         },
         "fr": {
@@ -7404,16 +7404,16 @@
     },
     "Open in de GitHub Advisory Database": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open in the GitHub Advisory Database"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "In der GitHub Advisory Database öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in the GitHub Advisory Database"
           }
         },
         "fr": {
@@ -7570,16 +7570,16 @@
     },
     "Opmerking": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Note"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Hinweis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
           }
         },
         "fr": {
@@ -8412,6 +8412,118 @@
         }
       }
     },
+    "Pull request, draft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, Entwurf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, draft"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, brouillon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, draft"
+          }
+        }
+      }
+    },
+    "Pull request, gemerged": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, gemergt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, merged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, fusionnée"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, gemerged"
+          }
+        }
+      }
+    },
+    "Pull request, gesloten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, geschlossen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, closed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, fermée"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, gesloten"
+          }
+        }
+      }
+    },
+    "Pull request, open": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, offen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, open"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, ouverte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, open"
+          }
+        }
+      }
+    },
     "Pull requests": {
       "localizations": {
         "de": {
@@ -8436,6 +8548,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pull requests"
+          }
+        }
+      }
+    },
+    "Pull-request-iconen uit GitHubs Octicons, onder de MIT-licentie.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request-Symbole aus GitHubs Octicons, unter der MIT-Lizenz."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request icons from GitHub's Octicons, under the MIT License."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icônes de pull request issues des Octicons de GitHub, sous licence MIT."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-request-iconen uit GitHubs Octicons, onder de MIT-licentie."
           }
         }
       }
@@ -9128,16 +9268,16 @@
     },
     "Secret scanning": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Secret scanning"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Secret-Scanning"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secret scanning"
           }
         },
         "fr": {
@@ -9256,16 +9396,16 @@
     },
     "Staat uit": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Off"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
           }
         },
         "fr": {
@@ -9724,16 +9864,16 @@
     },
     "Toestemming nodig": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Needs permission"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Berechtigung nötig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs permission"
           }
         },
         "fr": {
@@ -9846,13 +9986,13 @@
     },
     "Tokens": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Tokens"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Tokens"
@@ -10624,16 +10764,16 @@
     },
     "Waarschuwing": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Warning"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Warnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warning"
           }
         },
         "fr": {
@@ -10740,16 +10880,16 @@
     },
     "Wat dit project zelf over zijn lekken publiceert": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What this project publishes about its own vulnerabilities"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Was dieses Projekt selbst über seine Schwachstellen veröffentlicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What this project publishes about its own vulnerabilities"
           }
         },
         "fr": {

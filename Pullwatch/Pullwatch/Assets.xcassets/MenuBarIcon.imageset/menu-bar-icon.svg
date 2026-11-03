@@ -1,12 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="232 182 560 672">
-  <!-- Het pull-request-teken uit het app-icoon (AppIcon.icon/Assets/pull-request.svg), strak
-       bijgesneden voor de menubalk. Een template: macOS kleurt het voor licht, donker en geselecteerd. -->
-  <g fill="#000000">
-    <circle cx="340" cy="292" r="86"/>
-    <circle cx="340" cy="732" r="86"/>
-    <rect x="304" y="292" width="72" height="440"/>
-    <circle cx="684" cy="732" r="86"/>
-    <path d="M720 732 V412 A156 156 0 0 0 564 256 H520 V328 H564 A84 84 0 0 1 648 412 V732 Z"/>
-    <path d="M461.4 279.2 L550.6 204.8 Q566 192 566 212 L566 372 Q566 392 550.6 379.2 L461.4 304.8 Q446 292 461.4 279.2 Z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="17" height="18" viewBox="1.25 0.427 14 14.823">
+  <!-- De Octicon git-pull-request van GitHub (16 px, MIT-licentie, zie NOTICE), net als het
+       teken van het app-icoon, strak bijgesneden voor de menubalk. Een template: macOS
+       kleurt het voor licht, donker en geselecteerd. -->
+  <path fill="#000000" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/>
 </svg>

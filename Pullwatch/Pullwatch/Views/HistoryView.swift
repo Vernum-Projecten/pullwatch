@@ -72,18 +72,17 @@ struct HistoryView: View {
 
     var body: some View {
         Table(rows, selection: $selection, sortOrder: $sortOrder) {
-            TableColumn("Soort") { item in
-                Pill(text: item.entry.kind.pillText, tint: item.entry.kind.color)
+            // Zoals de PR-lijst van GitHub: alleen een icoon, zonder tekst. De vorm verschilt per
+            // soort en status, dus de betekenis hangt niet aan de kleur; tooltip en VoiceOver
+            // zeggen het in woorden.
+            TableColumn(Text(verbatim: ""), value: \.glyphSortKey) { item in
+                item.entry.glyph.image
+                    .foregroundStyle(item.entry.glyphColor)
+                    .frame(maxWidth: .infinity)
+                    .help(Text(item.entry.glyphLabel))
+                    .accessibilityLabel(Text(item.entry.glyphLabel))
             }
-            .width(44)
-            TableColumn("Status") { item in
-                if let state = item.entry.prState {
-                    Pill(text: state.label, tint: state.color)
-                } else if let release = item.entry.release {
-                    Pill(text: release.label, tint: release.color)
-                }
-            }
-            .width(76)
+            .width(24)
             TableColumn("Titel", value: \.entry.title) { item in
                 // Zoals Mail en het menupaneel: een blauwe stip voor ongelezen, op een vaste plek.
                 HStack(spacing: 6) {
@@ -96,7 +95,11 @@ struct HistoryView: View {
                         .lineLimit(1)
                         .layoutPriority(1)
                         .help(item.entry.title)
-                    // Bij een release de titel ervan naast de tagnaam.
+                    // Bij een release een pill (Release of Pre-release) en de titel ervan naast
+                    // de tagnaam.
+                    if let release = item.entry.release {
+                        Pill(text: release.label, tint: release.color)
+                    }
                     if let release = item.entry.releaseTitle {
                         Text(verbatim: release)
                             .foregroundStyle(.secondary)
@@ -152,11 +155,15 @@ struct HistoryView: View {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty
                     && model.isFillingHistory {
                     // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
-                    ContentUnavailableView(
-                        kind == .pullRequest ? "PR's ophalen…" : "Tags ophalen…",
-                        systemImage: kind.symbol,
-                        description: fillingDescription
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text(kind == .pullRequest ? "PR's ophalen…" : "Tags ophalen…")
+                        } icon: {
+                            kind.glyph.image
+                        }
+                    } description: {
+                        fillingDescription
+                    }
                 } else if kind == .tag && tagFilter != .all {
                     ContentUnavailableView(
                         tagFilter == .releases ? "Geen releases" : "Geen tags zonder release",
@@ -164,13 +171,17 @@ struct HistoryView: View {
                         description: Text("Kies Alles om alle tags te zien.")
                     )
                 } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
-                    ContentUnavailableView(
-                        kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags",
-                        systemImage: kind.symbol,
-                        description: Text(kind == .pullRequest
-                                          ? "Nieuwe pull requests in de repo's die je volgt komen hier te staan."
-                                          : "Nieuwe tags in de repo's die je volgt komen hier te staan.")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text(kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags")
+                        } icon: {
+                            kind.glyph.image
+                        }
+                    } description: {
+                        Text(kind == .pullRequest
+                             ? "Nieuwe pull requests in de repo's die je volgt komen hier te staan."
+                             : "Nieuwe tags in de repo's die je volgt komen hier te staan.")
+                    }
                 } else {
                     ContentUnavailableView.search(text: searchText)
                 }
@@ -247,6 +258,17 @@ struct HistoryView: View {
 nonisolated extension HistoryItem {
     /// Sorteersleutel voor de kolom Auteur; zonder auteur achteraan.
     var authorSortKey: String { entry.author ?? "\u{10FFFF}" }
+
+    /// Sorteersleutel voor de icoonkolom: eerst de soort (PR's voor tags), dan de status.
+    var glyphSortKey: Int {
+        switch entry.prStatus {
+        case .open: 0
+        case .draft: 1
+        case .merged: 2
+        case .closed: 3
+        case nil: 4
+        }
+    }
 }
 
 /// Welke tags de lijst toont: alles, alleen die met een release (ook pre-releases) of alleen

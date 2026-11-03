@@ -20,13 +20,13 @@ enum MainSection: String, CaseIterable, Identifiable {
         }
     }
 
-    var symbol: String {
+    var glyph: Glyph {
         switch self {
-        case .pullRequests: "arrow.triangle.pull"
-        case .tags: "tag"
-        case .stats: "chart.bar"
-        case .repos: "folder"
-        case .dependencies: "shippingbox"
+        case .pullRequests: ItemKind.pullRequest.glyph
+        case .tags: ItemKind.tag.glyph
+        case .stats: .system("chart.bar")
+        case .repos: .system("folder")
+        case .dependencies: .system("shippingbox")
         }
     }
 }

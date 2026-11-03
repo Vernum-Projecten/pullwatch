@@ -69,7 +69,11 @@ struct StatsView: View {
                     Button {
                         model.showHistory(.pullRequest, author: author, repo: repoSummary.map { HistoryRepo(accountId: $0.accountId, repo: $0.repo) })
                     } label: {
-                        Label("Toon de PR's van \(author)", systemImage: "arrow.triangle.pull")
+                        Label {
+                            Text("Toon de PR's van \(author)")
+                        } icon: {
+                            ItemKind.pullRequest.glyph.image
+                        }
                     }
                     .buttonStyle(.link)
                 }
