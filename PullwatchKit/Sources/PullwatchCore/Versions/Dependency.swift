@@ -30,7 +30,7 @@ public enum DependencyKind: String, Codable, Hashable, Sendable {
 
 /// Een package met exacte versie uit een lockfile of manifest, in OSV-termen: één install.
 public struct Dependency: Hashable, Sendable {
-    /// OSV-ecosysteem: "Go", "npm", "NuGet", "PyPI", "Packagist", "crates.io" of "SwiftURL".
+    /// OSV-ecosysteem: "Go", "npm", "NuGet", "PyPI", "Packagist", "crates.io", "RubyGems" of "SwiftURL".
     public let ecosystem: String
     public let name: String
     public let version: String

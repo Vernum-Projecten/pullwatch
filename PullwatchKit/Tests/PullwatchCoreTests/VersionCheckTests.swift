@@ -554,3 +554,38 @@ private actor FileProvider: PRProvider {
         #expect(Set(lodash.installs.map(\.workspace)) == ["", "packages/api", "packages/web"])
     }
 }
+
+@Suite struct RubyGemsCheckTests {
+    let now = Date(timeIntervalSince1970: 1_792_000_000)
+
+    @Test func gemfileLockGivesDirectGemsWithTheirLatestVersion() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{},{},{}]}"#)
+        http.on("rubygems.org/api/v1/versions/sinatra/latest.json", body: #"{"version":"4.1.0"}"#)
+        http.on("rubygems.org/api/v1/versions/rspec/latest.json", body: #"{"version":"3.13.0"}"#)
+        let lock = """
+        GEM
+          remote: https://rubygems.org/
+          specs:
+            rack (2.2.9)
+            rspec (3.13.0)
+            sinatra (3.2.0)
+              rack (~> 2.2, >= 2.2.4)
+
+        DEPENDENCIES
+          rspec
+          sinatra (~> 3.2)
+        """
+        let gemfile = "source \"https://rubygems.org\"\ngem \"sinatra\"\ngroup :test do\n  gem \"rspec\"\nend\n"
+        let provider = FileProvider(repos: ["acme/a"], files: ["acme/a": ["Gemfile": gemfile, "Gemfile.lock": lock]])
+        let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs])
+
+        let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(accounts: [account])
+
+        let packages = try #require(report.repos.first?.packages)
+        #expect(packages.map(\.name).sorted() == ["rspec", "sinatra"])
+        #expect(packages.first { $0.name == "rspec" }?.installs.first?.kind == .dev)
+        #expect(report.latestPackages["RubyGems:sinatra"]?.version == "4.1.0")
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("versions/rack/") }.isEmpty)
+    }
+}

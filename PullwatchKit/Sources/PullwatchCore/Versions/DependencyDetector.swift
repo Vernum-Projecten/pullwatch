@@ -12,6 +12,9 @@ struct LockfileRead: Sendable {
     var graph: [String: [String]]? = nil
     /// De lockfile zegt zelf runtime of dev (composer `packages-dev`, npm-vlaggen, poetry-groepen).
     var kindsKnown = true
+    /// Wat de lockfile zelf direct noemt (Gemfile.lock `DEPENDENCIES`); het manifest in dezelfde
+    /// map geeft dan alleen nog de soort.
+    var directNames: [String: DependencyKind]? = nil
 }
 
 /// Een manifest (package.json, composer.json, pyproject.toml, Cargo.toml): welke namen het
@@ -23,15 +26,23 @@ struct Manifest: Sendable {
 }
 
 /// Leest packages met exacte versies voor de CVE-check en het package-overzicht. Versiebereiken
-/// (^1.2, >=3) tellen niet: OSV heeft een exacte versie nodig. yarn.lock en pnpm-lock.yaml worden
-/// niet gelezen. Elk package wordt een install met workspace, scope, soort en via.
+/// (^1.2, >=3) tellen niet: OSV heeft een exacte versie nodig. Elk package wordt een install met
+/// workspace, scope, soort en via.
 public enum DependencyDetector {
     public static func isRelevant(_ path: String) -> Bool {
         guard let name = path.split(separator: "/").last.map(String.init) else { return false }
         return name == "go.mod" || name == "package-lock.json" || name == "Package.resolved" || name == "composer.lock" || name == "Cargo.lock" || name == "poetry.lock" || name == "uv.lock"
+            || isLockfile(name) || name == "Gemfile" || name == "gems.rb"
             || name == "Directory.Packages.props" || name == "Directory.Build.props"
             || name.hasSuffix(".csproj") || name.hasSuffix(".fsproj")
             || (name.hasPrefix("requirements") && name.hasSuffix(".txt"))
+    }
+
+    /// Lockfiles (exacte versies, en dus CVE's); VersionCheck haalt ze als eerste op als een repo
+    /// meer dan `StackDetector.maxFiles` relevante bestanden heeft.
+    static func isLockfile(_ name: String) -> Bool {
+        ["yarn.lock", "pnpm-lock.yaml", "packages.lock.json", "Gemfile.lock", "gems.locked",
+         "package-lock.json", "composer.lock", "Cargo.lock", "poetry.lock", "uv.lock", "Package.resolved"].contains(name)
     }
 
     public static func detect(path: String, content: String) -> [Dependency] {
@@ -46,6 +57,11 @@ public enum DependencyDetector {
         if name == "Package.resolved" { return LockfileRead(ecosystem: "SwiftURL", source: path, dependencies: swiftPackages(content, path: path)) }
         if name == "poetry.lock" { return poetryLock(content, path: path) }
         if name == "uv.lock" { return uvLock(content, path: path) }
+        if name == "yarn.lock" { return yarnLock(content, path: path, packageJSONs: [:]) }
+        if name == "pnpm-lock.yaml" { return pnpmLock(content, path: path) }
+        if name == "packages.lock.json" { return nugetLock(content, path: path) }
+        if name == "Gemfile.lock" || name == "gems.locked" { return gemfileLock(content, path: path) }
+        if name == "Gemfile" || name == "gems.rb" { return LockfileRead(ecosystem: "RubyGems", source: path, dependencies: []) }
         if name == "Cargo.lock" { return LockfileRead(ecosystem: "crates.io", source: path, dependencies: cargoLock(content, path: path)) }
         if name.hasPrefix("requirements") { return LockfileRead(ecosystem: "PyPI", source: path, dependencies: requirements(content, path: path)) }
         return LockfileRead(ecosystem: "NuGet", source: path, dependencies: nugetPackages(content, path: path))
@@ -84,7 +100,7 @@ public enum DependencyDetector {
         name.lowercased().replacing(/[-_.]+/, with: "-")
     }
 
-    private static func isExactVersion(_ version: String) -> Bool {
+    static func isExactVersion(_ version: String) -> Bool {
         StackDetector.version(from: version) != nil && !version.contains(":")
     }
 
@@ -707,6 +723,9 @@ public enum DependencyDetector {
         case "Cargo.toml":
             for (key, kind) in cargoDependencies(content) { add(key, kind) }
             return Manifest(ecosystem: "crates.io", names: names)
+        case "Gemfile", "gems.rb":
+            for (key, kind) in gemfileNames(content) { add(key, kind) }
+            return Manifest(ecosystem: "RubyGems", names: names)
         default:
             return nil
         }
@@ -794,13 +813,23 @@ public enum DependencyDetector {
         var repoWide: [String: Set<String>] = [:]
         /// "ecosysteem|map" → manifest, voor scope en via van lockfiles in dezelfde map.
         var manifests: [String: Manifest] = [:]
+        /// Map → package.json met bereiken en workspaces, voor yarn.lock.
+        var packageJSONs: [String: PackageJSON] = [:]
+        for (path, content) in files where path.split(separator: "/").last == "package.json" {
+            packageJSONs[folder(of: path)] = PackageJSON(content)
+        }
         for (path, content) in files {
             if let manifest = manifest(path: path, content: content) {
                 repoWide[manifest.ecosystem, default: []].formUnion(manifest.names.keys)
                 manifests["\(manifest.ecosystem)|\(folder(of: path))", default: Manifest(ecosystem: manifest.ecosystem, names: [:])].names
                     .merge(manifest.names) { $0.weight >= $1.weight ? $0 : $1 }
             }
-            if isRelevant(path) { reads.append(read(path: path, content: content)) }
+            guard isRelevant(path) else { continue }
+            if path.split(separator: "/").last == "yarn.lock" {
+                reads.append(yarnLock(content, path: path, packageJSONs: packageJSONs))
+            } else {
+                reads.append(read(path: path, content: content))
+            }
         }
         return (resolve(reads, manifests: manifests, repoWide: repoWide), repoWide)
     }
@@ -813,8 +842,11 @@ public enum DependencyDetector {
         var result: [Dependency] = []
         for read in reads {
             var dependencies = read.dependencies
-            if let graph = read.graph, dependencies.contains(where: { $0.scope == .unknown }),
-               let manifest = manifests["\(read.ecosystem)|\(folder(of: read.source))"] {
+            let local = manifests["\(read.ecosystem)|\(folder(of: read.source))"]
+            let manifest = read.directNames.map { names in
+                Manifest(ecosystem: read.ecosystem, names: names.reduce(into: [:]) { $0[$1.key] = local?.names[$1.key] ?? $1.value })
+            } ?? local
+            if let graph = read.graph, dependencies.contains(where: { $0.scope == .unknown }), let manifest {
                 let normalize = { (name: String) in normalized(name, ecosystem: read.ecosystem) }
                 var display: [String: String] = [:]
                 for dependency in dependencies { display[normalize(dependency.name)] = dependency.name }
