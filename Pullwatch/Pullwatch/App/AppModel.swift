@@ -418,7 +418,11 @@ final class AppModel {
     /// Returns false (and changes nothing) when the PAT could not be written to the Keychain.
     @discardableResult
     func saveAccount(_ account: Account, pat: String?) -> Bool {
-        if account.authMethod == .cli {
+        // Alleen de inloggegevens van de gekozen manier blijven bewaard.
+        if account.authMethod != .gitHubApp {
+            GitHubAppTokenStore(accountId: account.id, secrets: secrets).delete()
+        }
+        if account.authMethod != .pat {
             try? secrets.delete(account: account.id.uuidString)
         } else if let pat, !pat.isEmpty {
             do {
@@ -440,6 +444,7 @@ final class AppModel {
 
     func removeAccount(_ id: UUID) {
         try? secrets.delete(account: id.uuidString)
+        GitHubAppTokenStore(accountId: id, secrets: secrets).delete()
         config.accounts.removeAll { $0.id == id }
         history.removeAccount(id)
         statuses[id] = nil
@@ -461,6 +466,50 @@ final class AppModel {
         let status = await notifier.authorizationStatus()
         notificationsAllowed = status == .authorized || status == .provisional
         return status
+    }
+
+    /// De Pullwatch GitHub App uit `App.xcconfig`; niet ingesteld = geen "Inloggen met GitHub".
+    let gitHubApp = GitHubAppConfig.main
+
+    /// Hoe een nieuw account standaard inlogt: GitHub via de GitHub App (als die er is),
+    /// Azure DevOps via `az login`.
+    func defaultAuthMethod(for kind: ProviderKind) -> AuthMethod {
+        kind == .gitHub && gitHubApp.isConfigured ? .gitHubApp : .cli
+    }
+
+    func hasGitHubAppTokens(_ id: UUID) -> Bool {
+        GitHubAppTokenStore(accountId: id, secrets: secrets).load() != nil
+    }
+
+    /// Stap 1 van inloggen met GitHub: de code die iemand op github.com intypt.
+    func startGitHubSignIn() async throws -> DeviceCode {
+        try await GitHubDeviceFlow(config: gitHubApp).start()
+    }
+
+    /// Stap 2: wacht tot de code is goedgekeurd en bewaart de tokens bij dit account.
+    func finishGitHubSignIn(_ code: DeviceCode, accountId: UUID) async throws {
+        let tokens = try await GitHubDeviceFlow(config: gitHubApp).waitForTokens(code)
+        try GitHubAppTokenStore(accountId: accountId, secrets: secrets).save(tokens)
+    }
+
+    /// Wie er met de GitHub App is ingelogd bij dit account; nil als dat (nog) niet lukt.
+    func gitHubLogin(_ accountId: UUID) async -> String? {
+        let account = Account(id: accountId, kind: .gitHub, organization: "", authMethod: .gitHubApp)
+        return try? await ProviderFactory.make(account, secrets: secrets, gitHubApp: gitHubApp).currentUserId()
+    }
+
+    /// De accounts en organisaties waar de GitHub App is geïnstalleerd, eigen account eerst.
+    func gitHubInstallationOwners(_ accountId: UUID) async throws -> [String] {
+        let tokens = GitHubAppTokenSource(
+            flow: GitHubDeviceFlow(config: gitHubApp),
+            store: GitHubAppTokenStore(accountId: accountId, secrets: secrets)
+        )
+        return try await GitHubProvider(accountId: accountId, owner: "", tokenSource: tokens, http: URLSessionHTTPClient())
+            .installationOwners()
+    }
+
+    func signOutOfGitHub(_ id: UUID) {
+        GitHubAppTokenStore(accountId: id, secrets: secrets).delete()
     }
 
     func hasStoredPAT(_ id: UUID) -> Bool {

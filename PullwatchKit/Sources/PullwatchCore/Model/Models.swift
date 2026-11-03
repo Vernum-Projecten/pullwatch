@@ -2,6 +2,14 @@ import Foundation
 
 public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
     case azureDevOps, gitHub
+
+    /// Productnaam, in elke taal hetzelfde.
+    public var name: String {
+        switch self {
+        case .azureDevOps: "Azure DevOps"
+        case .gitHub: "GitHub"
+        }
+    }
 }
 
 public enum ItemKind: String, Codable, Sendable {
@@ -9,7 +17,12 @@ public enum ItemKind: String, Codable, Sendable {
 }
 
 public enum AuthMethod: String, Codable, Hashable, Sendable, CaseIterable {
-    case pat, cli
+    /// Personal access token in de Keychain.
+    case pat
+    /// Het token van `az` of `gh`.
+    case cli
+    /// Inloggen met GitHub via de Pullwatch GitHub App (alleen GitHub); tokens in de Keychain.
+    case gitHubApp
 }
 
 /// Alleen nog gebruikt om oude configuratie te migreren.
@@ -112,7 +125,6 @@ enum RepoWatchCoding {
 public struct Account: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var kind: ProviderKind
-    public var displayName: String
     /// Azure DevOps-organisatie of GitHub-owner (user of org).
     public var organization: String
     public var authMethod: AuthMethod
@@ -125,10 +137,17 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// GitHub CLI: welk `gh`-account (login) het token levert; nil = het actieve account.
     public var cliUser: String?
 
+    /// Naam in lijsten en meldingen: de organisatie op de dienst, bijvoorbeeld "octo op GitHub";
+    /// zonder organisatie alleen de dienst.
+    public var displayName: String {
+        let organization = organization.trimmingCharacters(in: .whitespaces)
+        guard !organization.isEmpty else { return kind.name }
+        return String(localized: "\(organization) op \(kind.name)", bundle: .localizedCore, comment: "Organisatie of gebruiker, dienst (GitHub of Azure DevOps)")
+    }
+
     public init(
         id: UUID = UUID(),
         kind: ProviderKind,
-        displayName: String,
         organization: String,
         authMethod: AuthMethod,
         repoWatch: [String: WatchSet] = [:],
@@ -139,7 +158,6 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     ) {
         self.id = id
         self.kind = kind
-        self.displayName = displayName
         self.organization = organization
         self.authMethod = authMethod
         self.repoWatch = repoWatch
@@ -157,7 +175,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(UUID.self, forKey: .id)
         kind = try c.decode(ProviderKind.self, forKey: .kind)
-        displayName = try c.decode(String.self, forKey: .displayName)
+        // Een vroeger zelf gekozen `displayName` wordt niet meer gelezen: de naam volgt de organisatie.
         organization = try c.decode(String.self, forKey: .organization)
         authMethod = try c.decode(AuthMethod.self, forKey: .authMethod)
         (repoWatch, newRepoDefault) = try RepoWatchCoding.decode(from: decoder)
@@ -170,6 +188,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(id, forKey: .id)
         try c.encode(kind, forKey: .kind)
+        // Nog wel geschreven: oudere Pullwatch-versies hebben het veld nodig om de config te lezen.
         try c.encode(displayName, forKey: .displayName)
         try c.encode(organization, forKey: .organization)
         try c.encode(authMethod, forKey: .authMethod)

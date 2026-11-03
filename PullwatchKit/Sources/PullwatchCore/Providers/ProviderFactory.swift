@@ -7,7 +7,8 @@ public enum ProviderFactory {
         pat: String? = nil,
         secrets: any SecretStore = KeychainStore(),
         http: any HTTPClient = URLSessionHTTPClient(),
-        runner: any ProcessRunner = SystemProcessRunner()
+        runner: any ProcessRunner = SystemProcessRunner(),
+        gitHubApp: GitHubAppConfig = .main
     ) -> any PRProvider {
         let tokens: any TokenSource
         switch account.authMethod {
@@ -22,6 +23,11 @@ public enum ProviderFactory {
             case .azureDevOps: tokens = AzCLISource(runner: runner)
             case .gitHub: tokens = GhCLISource(runner: runner, user: account.cliUser)
             }
+        case .gitHubApp:
+            tokens = GitHubAppTokenSource(
+                flow: GitHubDeviceFlow(config: gitHubApp, http: http),
+                store: GitHubAppTokenStore(accountId: account.id, secrets: secrets)
+            )
         }
 
         switch account.kind {

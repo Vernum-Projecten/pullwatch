@@ -32,6 +32,8 @@
 		000000000000000000000121 /* PullwatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PullwatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000122 /* PullwatchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PullwatchUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000130 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
+		000000000000000000000131 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		000000000000000000000132 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -89,6 +91,8 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000130 /* App.xcconfig */,
+				000000000000000000000131 /* Debug.xcconfig */,
+				000000000000000000000132 /* Release.xcconfig */,
 				000000000000000000000010 /* Pullwatch */,
 				000000000000000000000011 /* PullwatchTests */,
 				000000000000000000000013 /* PullwatchUITests */,
@@ -395,7 +399,7 @@
 		};
 		000000000000000111000000 /* Debug configuration for PBXNativeTarget "Pullwatch" */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 000000000000000000000130 /* App.xcconfig */;
+			baseConfigurationReference = 000000000000000000000131 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";
@@ -419,7 +423,7 @@
 		};
 		000000000000000112000000 /* Release configuration for PBXNativeTarget "Pullwatch" */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 000000000000000000000130 /* App.xcconfig */;
+			baseConfigurationReference = 000000000000000000000132 /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";

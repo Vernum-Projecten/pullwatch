@@ -17,20 +17,57 @@ struct AccountEditor: View {
     @State private var reposTask: Task<Void, Never>?
     /// Accounts waarmee `gh` is ingelogd; leeg tot ze geladen zijn.
     @State private var ghAccounts: [String] = []
+    /// Er staan tokens van de GitHub App bij dit account.
+    @State private var signedInWithGitHub = false
+    /// Waar de GitHub App is geïnstalleerd: de eigenaren om uit te kiezen; nil tot ze geladen zijn.
+    @State private var installationOwners: [String]?
+    /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
+    private let originalAuthMethod: AuthMethod
 
     init(model: AppModel, original: Account) {
         self.model = model
         _draft = State(initialValue: original)
+        originalAuthMethod = original.authMethod
+    }
+
+    /// Inloggen met GitHub kan zodra de GitHub App is ingesteld.
+    private var offersGitHubApp: Bool {
+        draft.kind == .gitHub && (model.gitHubApp.isConfigured || originalAuthMethod == .gitHubApp)
+    }
+
+    /// `gh` alleen nog voor accounts die het al gebruiken, of zolang er geen GitHub App is.
+    private var offersCLI: Bool {
+        draft.kind == .azureDevOps || originalAuthMethod == .cli || !model.gitHubApp.isConfigured
     }
 
     var body: some View {
         Form {
             Section("Account") {
-                TextField("Naam", text: $draft.displayName)
-                TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
+                // De naam volgt de organisatie (`Account.displayName`). Met de GitHub App komt ook
+                // de eigenaar uit het inloggen: dan valt er niets te typen.
+                if draft.authMethod != .gitHubApp {
+                    TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
+                }
                 Picker("Authenticatie", selection: $draft.authMethod) {
+                    if offersGitHubApp {
+                        Text("Inloggen met GitHub").tag(AuthMethod.gitHubApp)
+                    }
                     Text("Personal Access Token").tag(AuthMethod.pat)
-                    Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
+                    if offersCLI {
+                        Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
+                    }
+                }
+                if draft.authMethod == .gitHubApp {
+                    GitHubSignInRow(model: model, accountId: draft.id) { _ in
+                        signedInWithGitHub = true
+                        Task { await loadInstallations() }
+                    } onSignedOut: {
+                        signedInWithGitHub = false
+                        installationOwners = nil
+                    }
+                    if signedInWithGitHub {
+                        ownerPicker
+                    }
                 }
                 if draft.kind == .gitHub && draft.authMethod == .cli {
                     Picker("GitHub-account", selection: $draft.cliUser) {
@@ -48,6 +85,7 @@ struct AccountEditor: View {
                         text: $pat
                     )
                 }
+                if draft.authMethod != .gitHubApp {
                 HStack {
                     Button("Test verbinding") {
                         testTask?.cancel()
@@ -57,6 +95,7 @@ struct AccountEditor: View {
                     if let connectionMessage {
                         Text(connectionMessage).font(.caption)
                     }
+                }
                 }
             }
 
@@ -148,7 +187,27 @@ struct AccountEditor: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear { storedPAT = model.hasStoredPAT(draft.id) }
+        .onAppear {
+            storedPAT = model.hasStoredPAT(draft.id)
+            signedInWithGitHub = model.hasGitHubAppTokens(draft.id)
+        }
+        #if DEBUG
+        .onChange(of: installationOwners) { _, _ in SnapshotCamera.shoot("account-editor", windowId: "main") }
+        .onChange(of: availableRepos) { _, _ in SnapshotCamera.shoot("account-editor-repos", windowId: "main") }
+        #endif
+        .task(id: signedInWithGitHub && draft.authMethod == .gitHubApp) {
+            guard signedInWithGitHub && draft.authMethod == .gitHubApp else { return }
+            await loadInstallations()
+            // Terug van de installatiepagina op github.com: de lijst opnieuw ophalen.
+            for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
+                await loadInstallations()
+            }
+        }
+        .onChange(of: draft.organization) { _, owner in
+            guard draft.authMethod == .gitHubApp, !owner.isEmpty else { return }
+            reposTask?.cancel()
+            reposTask = Task { await loadRepos() }
+        }
         .onDisappear {
             testTask?.cancel()
             reposTask?.cancel()
@@ -161,13 +220,69 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    private var hasRequiredFields: Bool {
-        !draft.displayName.trimmingCharacters(in: .whitespaces).isEmpty
-            && !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
+    /// Kies waar de repositories staan: het eigen account of een organisatie met de app. Direct
+    /// onder het inloggen, met daaronder de link om de app ergens anders te installeren.
+    @ViewBuilder private var ownerPicker: some View {
+        if let owners = installationOwners {
+            if owners.isEmpty {
+                Text("Pullwatch is nog nergens geïnstalleerd. Installeer het op je account of een organisatie; daarna verschijnt die hier.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                installLink(first: true)
+            } else {
+                Picker("Repositories van", selection: $draft.organization) {
+                    if !owners.contains(draft.organization) {
+                        Text("Kies…").tag(draft.organization)
+                    }
+                    ForEach(owners, id: \.self) { owner in
+                        Text(verbatim: owner).tag(owner)
+                    }
+                }
+                .accessibilityIdentifier("github.owner")
+                installLink(first: false)
+            }
+        } else {
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("Kijken waar Pullwatch is geïnstalleerd…").foregroundStyle(.secondary)
+            }
+        }
     }
 
-    private var validationMessage: String? {
-        if !hasRequiredFields { return "Naam en organisatie zijn verplicht" }
+    private func installLink(first: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Link(first ? "Installeer Pullwatch op een account of organisatie" : "Installeer Pullwatch op een ander account of organisatie",
+                 destination: model.gitHubApp.installURL)
+                .font(.callout)
+            Text("Bij een organisatie installeert een eigenaar Pullwatch, of keurt je verzoek goed.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func loadInstallations() async {
+        do {
+            let owners = try await model.gitHubInstallationOwners(draft.id)
+            installationOwners = owners
+            // Eén plek: die meteen kiezen. De naam volgt de eigenaar, tenzij die al zelf gekozen was.
+            if draft.organization.isEmpty, owners.count == 1 { draft.organization = owners[0] }
+        } catch let error as ProviderError {
+            repoError = error.userMessage
+            installationOwners = []
+        } catch {
+            repoError = error.localizedDescription
+            installationOwners = []
+        }
+    }
+
+    private var hasRequiredFields: Bool {
+        !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    private var validationMessage: LocalizedStringKey? {
+        if draft.authMethod == .gitHubApp && !signedInWithGitHub { return "Log eerst in bij GitHub" }
+        if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Kies waar je repositories staan" }
+        if !hasRequiredFields { return draft.kind == .azureDevOps ? "Vul de organisatie in" : "Vul de owner in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }
@@ -178,7 +293,7 @@ struct AccountEditor: View {
             pat = ""
             storedPAT = draft.authMethod == .pat ? (storedPAT || model.hasStoredPAT(draft.id)) : false
         } else {
-            saveError = "PAT opslaan in Keychain mislukt"
+            saveError = String(localized: "PAT opslaan in Keychain mislukt")
         }
     }
 

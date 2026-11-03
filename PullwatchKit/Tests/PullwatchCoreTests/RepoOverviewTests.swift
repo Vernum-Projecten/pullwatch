@@ -6,7 +6,7 @@ import Testing
     let t0 = Date(timeIntervalSince1970: 1_792_000_000)
 
     private func account(_ kind: ProviderKind = .azureDevOps, watch: [String: WatchSet] = [:]) -> Account {
-        Account(id: fixedAccountId, kind: kind, displayName: "Werk", organization: "code24-nl", authMethod: .pat,
+        Account(id: fixedAccountId, kind: kind, organization: "code24-nl", authMethod: .pat,
                 repoWatch: watch, newRepoDefault: .none)
     }
 

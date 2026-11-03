@@ -14,7 +14,7 @@ struct ComponentRow: View {
             VersionStatusPill(status: component.status)
             // Ter info, zonder status: wat op main al bijgewerkt is telt niet.
             if let release, let old = release.component, old.version != component.version {
-                Text(verbatim: "· \(release.tag): \(old.version)").monospacedDigit().foregroundStyle(.tertiary)
+                Text("\(old.version) in \(release.tag)", comment: "Versie in de laatste release, tagnaam").monospacedDigit().foregroundStyle(.tertiary)
             }
         }
         .help(component.sources.joined(separator: "\n"))
@@ -48,7 +48,7 @@ struct VulnerabilityList: View {
         var text = (count == 1 ? String(localized: "1 kwetsbaarheid") : String(localized: "\(count) kwetsbaarheden")) + detail
         if let release = repo.release, release.error == nil {
             let inRelease = vulnerabilities.filter { repo.isInRelease($0) == true }.count
-            text += " · " + String(localized: "\(inRelease) ook in \(release.tag)", comment: "Aantal kwetsbaarheden, tagnaam")
+            text += ", " + String(localized: "\(inRelease) ook in \(release.tag)", comment: "Aantal kwetsbaarheden, tagnaam")
         }
         return text
     }

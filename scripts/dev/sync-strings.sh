@@ -10,6 +10,7 @@
 
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
+here="$(cd "$(dirname "$0")" && pwd)"
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 derived="${DERIVED:-$root/build/DerivedData}"
 
@@ -20,15 +21,20 @@ if [ -n "${SPM:-}" ]; then build+=(-clonedSourcePackagesDirPath "$SPM"); fi
 xcodebuild build -quiet "${build[@]}"
 
 intermediates="$derived/Build/Intermediates.noindex"
+# Only this Mac's architecture, the one built above: files from an earlier
+# build for another architecture would keep text alive that left the code.
+arch="$(uname -m)"
 sync() {
   local catalog="$1" built="$2"
   local data=()
-  while IFS= read -r f; do data+=("$f"); done < <(find "$intermediates/$built" -name '*.stringsdata')
+  while IFS= read -r f; do data+=("$f"); done < <(find "$intermediates/$built" -path "*/Objects-normal/$arch/*" -name '*.stringsdata')
   if ((${#data[@]})); then
     xcrun xcstringstool sync "$catalog" --stringsdata "${data[@]}"
-    # xcstringstool writes `"key" : value`; the catalogs here are `"key": value`
-    # with sorted keys, so only real changes show in a diff.
-    python3 -I -c 'import json,sys; p=sys.argv[1]; d=json.load(open(p,encoding="utf-8")); d["strings"]=dict(sorted(d["strings"].items())); open(p,"w",encoding="utf-8").write(json.dumps(d,indent=2,ensure_ascii=False)+"\n")' "$catalog"
+    # Then: drop every entry the compiler no longer extracts (stale or never
+    # marked), and write `"key": value` with sorted keys as the catalogs here
+    # are (xcstringstool writes `"key" : value`), so a diff shows only real
+    # changes. An entry with "shouldTranslate": false stays.
+    python3 -I "$here/catalog-tidy.py" "$catalog" "${data[@]}"
     echo "$(python3 -I -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["strings"]))' "$catalog") strings in ${catalog#"$root"/}"
   fi
 }

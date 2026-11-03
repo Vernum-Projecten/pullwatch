@@ -42,6 +42,37 @@ public actor GitHubProvider: PRProvider {
         return login
     }
 
+    /// Waar de Pullwatch GitHub App is geïnstalleerd en de ingelogde persoon bij kan: de accounts
+    /// en organisaties die als eigenaar te kiezen zijn. Alleen met een token van de GitHub App.
+    public func installationOwners() async throws -> [String] {
+        struct Page: Decodable {
+            struct Installation: Decodable {
+                struct Owner: Decodable { let login: String }
+                let account: Owner
+            }
+            let totalCount: Int
+            let installations: [Installation]
+        }
+        var owners: [String] = []
+        var page = 1
+        while true {
+            let response: Page = try await get(
+                apiBase.appending(path: "user/installations"),
+                query: [URLQueryItem(name: "per_page", value: "100"), URLQueryItem(name: "page", value: "\(page)")]
+            )
+            owners += response.installations.map(\.account.login)
+            if response.installations.isEmpty || owners.count >= response.totalCount { break }
+            page += 1
+        }
+        let me = try? await currentUserId()
+        // Eigen account eerst, dan de organisaties op naam.
+        return owners.sorted { lhs, rhs in
+            if lhs == me { return true }
+            if rhs == me { return false }
+            return lhs.localizedCaseInsensitiveCompare(rhs) == .orderedAscending
+        }
+    }
+
     public func listRepos() async throws -> [String] {
         let url: URL
         var query: [URLQueryItem] = []

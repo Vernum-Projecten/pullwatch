@@ -180,7 +180,7 @@ private struct RecentRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.entry.title).lineLimit(1)
                     HStack(spacing: 4) {
-                        Text(verbatim: "\(item.entry.repo) · \(item.entry.author ?? String(localized: "onbekend")) ·")
+                        Text(verbatim: "\(item.entry.repo), \(item.entry.author ?? String(localized: "onbekend")),")
                         Text(item.detectedAt, format: .relative(presentation: .named))
                     }
                     .font(.caption)

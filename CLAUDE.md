@@ -29,7 +29,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 - `Pullwatch/`: the app. `Pullwatch.xcodeproj` (committed; synchronized
   folders, so adding a file needs no project edit; shared scheme
-  `Pullwatch`), `App.xcconfig` (version, build number, bundle id).
+  `Pullwatch`). Settings: `App.xcconfig` (version, build number, bundle id),
+  included by `Debug.xcconfig` (the test GitHub App "TEST Pullwatch" of
+  Vernum-Projecten; then the optional, git-ignored `Local.xcconfig`) and
+  `Release.xcconfig` (the maintainer's GitHub App). Never put the test app in
+  `Release.xcconfig`.
   `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (the
   `MenuBarExtra`, the main `Window`, the Dock-icon switch), `AppModel.swift`
   (the one `@Observable` model: polling loop, config, history, update check),
@@ -92,11 +96,13 @@ of each part is in `docs/superpowers/specs/` and its plan in
 - **No AI attribution in commits, PRs or issues.** No `Co-authored-by`, no
   "Generated with", no robot emoji. The `commit-msg` hook strips it and the
   Claude Bash hook refuses the command.
-- **Stay in Alessandro's style.** Dutch comments, Xcode's formatting, no
-  drive-by reformatting or renames in a pull request about something else.
-  Bigger changes to how he works (build system, formatter, CI) are proposed
-  in an issue and agreed before the pull request.
-- **Prose has no AI tells**: no em dashes, no "not X but Y", no buzzwords.
+- **A full makeover is allowed.** Refactor, rewrite, restructure and restyle
+  any part of the app, Alessandro's code included, when it makes Pullwatch
+  better; do not ask first. Keep each pull request about one thing, and keep
+  Dutch comments and Xcode's formatting.
+- **Prose has no AI tells**, in UI text, docs, commits and PRs: no em dashes,
+  no middle dot "·" as a separator, no "not X but Y", no buzzwords. Write a
+  phrase ("octo op GitHub"), use two lines, or separate labels instead.
 
 ## Gates (run before every commit)
 
