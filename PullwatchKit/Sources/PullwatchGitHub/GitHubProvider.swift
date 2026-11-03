@@ -2,17 +2,17 @@ import Foundation
 import PullwatchCore
 
 public actor GitHubProvider: PRProvider {
-    private enum OwnerKind { case organization, user }
+    enum OwnerKind { case organization, user }
 
     private let accountId: UUID
     /// De gevolgde eigenaren: het eigen account en/of organisaties.
     private let owners: [String]
-    private let tokenSource: any TokenSource
-    private let http: any HTTPClient
-    private let now: @Sendable () -> Date
-    private let apiBase = URL(string: "https://api.github.com")!
-    private let pageSize = 100
-    private let maxPages = 10
+    let tokenSource: any TokenSource
+    let http: any HTTPClient
+    let now: @Sendable () -> Date
+    let apiBase = URL(string: "https://api.github.com")!
+    let pageSize = 100
+    let maxPages = 10
     private var ownerKinds: [String: OwnerKind] = [:]
 
     public init(
@@ -406,7 +406,7 @@ public actor GitHubProvider: PRProvider {
         await tokenSource.invalidate()
     }
 
-    private func resolveOwnerKind(_ owner: String) async throws -> OwnerKind {
+    func resolveOwnerKind(_ owner: String) async throws -> OwnerKind {
         if let kind = ownerKinds[owner] { return kind }
         let info: OwnerDTO = try await get(apiBase.appending(path: "users").appending(path: owner))
         let kind: OwnerKind = info.type == "Organization" ? .organization : .user
@@ -453,11 +453,14 @@ public actor GitHubProvider: PRProvider {
         try await send(url, query: query, accept: accept, body: body).data
     }
 
-    private func send(
+    /// Met `checked: false` zonder de status te controleren (de beveiligingsgegevens lezen 403
+    /// en 404 zelf).
+    func send(
         _ url: URL,
         query: [URLQueryItem] = [],
         accept: String = "application/vnd.github+json",
-        body: Data? = nil
+        body: Data? = nil,
+        checked: Bool = true
     ) async throws -> (data: Data, response: HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
@@ -472,7 +475,7 @@ public actor GitHubProvider: PRProvider {
         request.setValue(accept, forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (data, response) = try await http.send(request)
-        try HTTPStatus.check(response, now: now())
+        if checked { try HTTPStatus.check(response, now: now()) }
         return (data, response)
     }
 }

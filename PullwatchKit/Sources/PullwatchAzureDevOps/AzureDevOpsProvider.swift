@@ -3,12 +3,12 @@ import PullwatchCore
 
 public actor AzureDevOpsProvider: PRProvider {
     private let accountId: UUID
-    private let organization: String
+    let organization: String
     private let tokenSource: any TokenSource
     private let authMethod: AuthMethod
     private let http: any HTTPClient
-    private let now: @Sendable () -> Date
-    private let pageSize = 100
+    let now: @Sendable () -> Date
+    let pageSize = 100
     private var projectCache: (names: [String], fetchedAt: Date)?
     /// Het e-mailadres (`uniqueName`) van de auteur per PR (dedupKey), uit de laatste lijst, zodat
     /// `coAuthors(of:)` de eigen commits van de auteur herkent.
@@ -32,7 +32,7 @@ public actor AzureDevOpsProvider: PRProvider {
         self.now = now
     }
 
-    private var baseURL: URL {
+    var baseURL: URL {
         URL(string: "https://dev.azure.com")!.appending(path: organization)
     }
 
@@ -400,6 +400,18 @@ public actor AzureDevOpsProvider: PRProvider {
         query: [URLQueryItem] = [],
         body: Data? = nil
     ) async throws -> T {
+        let (data, response) = try await send(url, apiVersion: apiVersion, query: query, body: body)
+        try HTTPStatus.check(response, now: now())
+        return try JSONDecoding.decode(T.self, from: data)
+    }
+
+    /// Het verzoek met autorisatie en api-version, zonder de status te controleren.
+    func send(
+        _ url: URL,
+        apiVersion: String,
+        query: [URLQueryItem] = [],
+        body: Data? = nil
+    ) async throws -> (Data, HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         components.queryItems = query + [URLQueryItem(name: "api-version", value: apiVersion)]
         var request = URLRequest(url: components.url!)
@@ -411,9 +423,7 @@ public actor AzureDevOpsProvider: PRProvider {
         let authorization = try await authorizationHeader()
         request.setValue(authorization, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await http.send(request)
-        try HTTPStatus.check(response, now: now())
-        return try JSONDecoding.decode(T.self, from: data)
+        return try await http.send(request)
     }
 }
 
