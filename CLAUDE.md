@@ -44,10 +44,14 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
   the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` (debug only),
   `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
-  value). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
+  value), `AppLanguage` (the language choice in General: follow macOS or a
+  fixed language through `AppleLanguages`, applied by relaunching). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
   (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
-  Statistics), `SettingsView` (the Settings window: Accounts and General),
-  `AccountEditor`, the section views, and `Components/`. `Localizable.xcstrings`
+  Statistics), `SettingsView` (the Settings window: Accounts, General with the
+  language choice, and Sources), `SourcesSettingsView` (the Sources tab:
+  every outgoing connection, switches for the data sources, **Copy
+  overview**), `AccountEditor`, the section views, and `Components/`
+  (`SourceStatusParts`: the "Niet gecontroleerd: bron … staat uit" texts). `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
   app icon, an Icon Composer bundle (`icon.json` plus one SVG per layer in
@@ -72,7 +76,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   notification planning, filters, seen state), `History/` (history,
   statistics, repo overview), `Versions/` (the version and vulnerability
   checks: stack and dependency detection, package registries, end-of-life,
-  OSV), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
+  OSV; `DataSource` is the catalogue of data sources that can be switched
+  off, `SourcesOverview` lists every connection for the Sources tab and its
+  copied overview), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
   store, Keychain, logging, localisation). `PullwatchGitHub/`:
   `GitHubProvider`, the GitHub App device flow and token store
   (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
