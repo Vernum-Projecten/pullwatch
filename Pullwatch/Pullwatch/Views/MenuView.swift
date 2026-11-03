@@ -28,13 +28,13 @@ struct MenuView: View {
             if model.config.pollableAccounts.isEmpty {
                 SetupPrompt { MenuPanel.close(); model.show(.onboarding) }
             } else {
-                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: model.menuPullRequests, open: model.open) { item in
+                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: model.menuPullRequests, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
                     MenuPanel.close()
                     model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                     model.show(.main)
                 }
                 if model.hasTags {
-                    RecentSection(title: "Tags", empty: nil, items: model.menuTags, open: model.open) { item in
+                    RecentSection(title: "Tags", empty: nil, items: model.menuTags, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
                         MenuPanel.close()
                         model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         model.show(.main)
@@ -162,6 +162,7 @@ private struct RecentSection: View {
     let empty: LocalizedStringKey?
     let items: [HistoryItem]
     let open: (HistoryItem) -> Void
+    let setRead: (HistoryItem, Bool) -> Void
     let openRepo: (HistoryItem) -> Void
 
     var body: some View {
@@ -175,6 +176,7 @@ private struct RecentSection: View {
             ForEach(items) { item in
                 RecentRow(item: item) { open(item) }
                     .contextMenu {
+                        Button(item.isRead ? "Markeer als ongelezen" : "Markeer als gelezen") { setRead(item, !item.isRead) }
                         Button("Open repo \(item.entry.repo)") { openRepo(item) }
                     }
             }

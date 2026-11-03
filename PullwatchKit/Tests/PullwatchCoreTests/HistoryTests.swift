@@ -28,6 +28,24 @@ import PullwatchTestSupport
         #expect(history.latest(.pullRequest, limit: 2).allSatisfy { $0.entry.kind == .pullRequest })
     }
 
+    @Test func setReadMarksOnlyTheGivenItemsBothWays() {
+        var history = History()
+        history.add(pullRequests: [.fixture(number: 1), .fixture(number: 2)], tags: [.fixture(name: "v1")], at: t0)
+        let ids = history.items.map(\.id)
+
+        let first = history.setRead([ids[0], ids[1]], true)
+        #expect(first)
+        #expect(history.unreadCount == 1)
+        let again = history.setRead([ids[0]], true)
+        #expect(!again, "al gelezen: niets veranderd")
+
+        let unread = history.setRead([ids[0]], false)
+        #expect(unread)
+        #expect(history.unreadCount == 2)
+        let unknown = history.setRead(["onbekend"], true)
+        #expect(!unknown)
+    }
+
     @Test func unreadCountPerKind() {
         var history = History()
         history.add(pullRequests: [.fixture(number: 1), .fixture(number: 2)], tags: [.fixture(name: "v1")], at: t0)

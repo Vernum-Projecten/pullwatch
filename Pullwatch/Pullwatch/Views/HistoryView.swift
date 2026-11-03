@@ -72,10 +72,19 @@ struct HistoryView: View {
             }
             .width(76)
             TableColumn("Titel", value: \.entry.title) { item in
-                Text(verbatim: item.entry.title)
-                    .fontWeight(item.isRead ? .regular : .semibold)
-                    .lineLimit(1)
-                    .help(item.entry.title)
+                // Zoals Mail en het menupaneel: een blauwe stip voor ongelezen, op een vaste plek.
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(item.isRead ? AnyShapeStyle(.clear) : AnyShapeStyle(.tint))
+                        .frame(width: 7, height: 7)
+                        .accessibilityHidden(true)
+                    Text(verbatim: item.entry.title)
+                        .fontWeight(item.isRead ? .regular : .semibold)
+                        .lineLimit(1)
+                        .help(item.entry.title)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
             }
             .width(min: 180, ideal: 340)
             TableColumn("Repo", value: \.entry.repo) { item in
@@ -99,6 +108,10 @@ struct HistoryView: View {
         .contextMenu(forSelectionType: HistoryItem.ID.self) { ids in
             HistoryContextMenu(
                 count: ids.count,
+                hasUnread: rows.contains { ids.contains($0.id) && !$0.isRead },
+                visibleHasUnread: rows.contains { !$0.isRead },
+                setRead: { model.setRead(ids, $0) },
+                markAllRead: { model.setRead(Set(rows.map(\.id)), true) },
                 repo: repo(of: ids),
                 author: rows.first { ids.contains($0.id) }?.entry.author,
                 open: { open(ids) },
@@ -150,11 +163,22 @@ struct HistoryView: View {
         .navigationTitle(groupName.map { Text(verbatim: $0) } ?? Text(kind == .pullRequest ? "PR's" : "Tags"))
         .navigationSubtitle(subtitle)
         .toolbar {
-            HistoryToolbar(model: model, selectedRepo: repo(of: selection))
+            HistoryToolbar(
+                model: model,
+                selectedRepo: repo(of: selection),
+                markAllRead: { model.setRead(Set(rows.map(\.id)), true) },
+                hasUnread: rows.contains { !$0.isRead }
+            )
         }
         .onChange(of: query, initial: true) { recompute() }
         .onChange(of: model.history) { recompute() }
         .focusedSceneValue(\.browserTarget, .history(rows.filter { selection.contains($0.id) }.map(\.id)))
+        .focusedSceneValue(\.readTarget, ReadTarget(
+            selected: Set(rows.filter { selection.contains($0.id) }.map(\.id)),
+            visible: Set(rows.map(\.id)),
+            selectionHasUnread: rows.contains { selection.contains($0.id) && !$0.isRead },
+            visibleHasUnread: rows.contains { !$0.isRead }
+        ))
         .focusedSceneValue(\.repoTarget, repo(of: selection).map {
             RepoTarget(id: model.repoId(accountId: $0.accountId, repo: $0.repo), isOpen: false)
         })
@@ -195,8 +219,14 @@ private struct HistoryTokenLabel: View {
     }
 }
 
+/// Rechtermuisklik op de lijst: op rijen openen, gelezen of ongelezen (zoals Mail: wat de
+/// selectie nog niet is), de repo en de auteur; op een lege plek alles als gelezen.
 private struct HistoryContextMenu: View {
     let count: Int
+    let hasUnread: Bool
+    let visibleHasUnread: Bool
+    let setRead: (Bool) -> Void
+    let markAllRead: () -> Void
     let repo: HistoryRepo?
     let author: String?
     let open: () -> Void
@@ -204,8 +234,11 @@ private struct HistoryContextMenu: View {
     let filterAuthor: (String) -> Void
 
     var body: some View {
-        Button("Open in browser", action: open)
-            .disabled(count == 0)
+        if count > 0 {
+            Button("Open in browser", action: open)
+            Button(hasUnread ? "Markeer als gelezen" : "Markeer als ongelezen") { setRead(hasUnread) }
+            Divider()
+        }
         if let repo {
             Button("Open \(repo.repo)") { showRepo(repo) }
         }
@@ -216,6 +249,10 @@ private struct HistoryContextMenu: View {
                 Text("Alleen van \(author)", comment: "Auteur")
             }
         }
+        if count == 0 {
+            Button("Alles als gelezen markeren", action: markAllRead)
+                .disabled(!visibleHasUnread)
+        }
     }
 }
 
@@ -224,8 +261,17 @@ private struct HistoryContextMenu: View {
 private struct HistoryToolbar: ToolbarContent {
     let model: AppModel
     let selectedRepo: HistoryRepo?
+    let markAllRead: () -> Void
+    let hasUnread: Bool
 
     var body: some ToolbarContent {
+        ToolbarItem {
+            Button(action: markAllRead) {
+                Label("Alles als gelezen markeren", systemImage: "envelope.open")
+            }
+            .disabled(!hasUnread)
+            .help("Markeert alles in deze lijst als gelezen (⌘K)")
+        }
         ToolbarItem {
             Button {
                 Task { await model.refetchHistory() }

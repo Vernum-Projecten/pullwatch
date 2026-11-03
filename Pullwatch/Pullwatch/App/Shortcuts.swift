@@ -19,7 +19,18 @@ struct RepoTarget: Equatable {
     let isOpen: Bool
 }
 
+/// Wat de lijst van de geschiedenis toont en selecteert, voor gelezen en ongelezen.
+struct ReadTarget: Equatable {
+    let selected: Set<String>
+    /// Wat de lijst nu toont (na zoeken en filters).
+    let visible: Set<String>
+    /// Zit er in de selectie iets ongelezens? Dan markeert de opdracht als gelezen, anders als ongelezen.
+    let selectionHasUnread: Bool
+    let visibleHasUnread: Bool
+}
+
 extension FocusedValues {
+    @Entry var readTarget: ReadTarget?
     @Entry var browserTarget: BrowserTarget?
     @Entry var repoTarget: RepoTarget?
     /// De focus van het zoekveld van het zichtbare onderdeel, voor ⌘F.
@@ -50,6 +61,7 @@ struct ShortcutCommands: Commands {
     let model: AppModel
     @FocusedValue(\.browserTarget) private var browserTarget
     @FocusedValue(\.repoTarget) private var repoTarget
+    @FocusedValue(\.readTarget) private var readTarget
     @FocusedValue(\.searchFocus) private var searchFocus
 
     var body: some Commands {
@@ -72,6 +84,17 @@ struct ShortcutCommands: Commands {
             }
             .keyboardShortcut("o")
             .disabled(browserTarget == nil || browserTarget == .history([]))
+            // Zoals Mail: ⇧⌘U wisselt de selectie tussen gelezen en ongelezen.
+            Button(readTarget?.selectionHasUnread == false ? "Markeer als ongelezen" : "Markeer als gelezen") {
+                if let readTarget { model.setRead(readTarget.selected, readTarget.selectionHasUnread) }
+            }
+            .keyboardShortcut("u", modifiers: [.command, .shift])
+            .disabled(readTarget?.selected.isEmpty ?? true)
+            Button("Alles als gelezen markeren") {
+                if let readTarget { model.setRead(readTarget.visible, true) }
+            }
+            .keyboardShortcut("k")
+            .disabled(!(readTarget?.visibleHasUnread ?? false))
             Divider()
             Button("Open de pagina van de repo") {
                 if let repoTarget { model.showRepo(id: repoTarget.id) }
