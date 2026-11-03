@@ -21,6 +21,8 @@ public enum PackageRegistry {
             string = "https://pypi.org/pypi/\(name)/json"
         case "crates.io":
             string = "https://crates.io/api/v1/crates/\(name)"
+        case "RubyGems":
+            string = "https://rubygems.org/api/v1/versions/\(name)/latest.json"
         default:
             return nil
         }
@@ -66,6 +68,12 @@ public enum PackageRegistry {
                 let crate: Crate
             }
             return try JSONDecoding.decode(Response.self, from: data).crate.max_stable_version
+        case "RubyGems":
+            // `{"version":"7.2.1"}`; "unknown" voor een onbekende gem. Een pre-release heeft letters
+            // in de versie ("8.0.0.beta1").
+            struct Info: Decodable { let version: String }
+            let version = try JSONDecoding.decode(Info.self, from: data).version
+            return version.contains(where: \.isLetter) ? nil : version
         default:
             return nil
         }

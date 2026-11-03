@@ -50,6 +50,21 @@ import PullwatchTestSupport
         #expect(try latest("crates.io", #"{"crate":{"max_stable_version":"1.0.215","max_version":"1.1.0-beta"}}"#) == "1.0.215")
     }
 
+    @Test func rubyGemsReadsLatestAndSkipsPrereleases() throws {
+        #expect(PackageRegistry.url(ecosystem: "RubyGems", name: "rails")?.absoluteString
+            == "https://rubygems.org/api/v1/versions/rails/latest.json")
+        #expect(try latest("RubyGems", #"{"version":"7.2.1"}"#) == "7.2.1")
+        #expect(try latest("RubyGems", #"{"version":"8.0.0.beta1"}"#) == nil)
+        #expect(try latest("RubyGems", #"{"version":"unknown"}"#) == nil)
+    }
+
+    @Test func fetchesRubyGemsLatest() async {
+        let http = MockHTTPClient()
+        http.on("rubygems.org/api/v1/versions/nokogiri/latest.json", body: #"{"version":"1.16.7"}"#)
+        #expect(await PackageRegistry.latest(ecosystem: "RubyGems", name: "nokogiri", http: http) == "1.16.7")
+        #expect(http.requests.count == 1)
+    }
+
     @Test func fetchReturnsNilOnNotFound() async {
         let http = MockHTTPClient()
         http.on("proxy.golang.org", status: 404, body: "not found")

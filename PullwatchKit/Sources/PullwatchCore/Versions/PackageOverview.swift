@@ -91,6 +91,7 @@ public enum PackageVersions {
         case "NuGet": "nuget"
         case "PyPI": "pypi"
         case "crates.io": "cargo"
+        case "RubyGems": "gem"
         case "SwiftURL": "swift"
         default: ecosystem
         }

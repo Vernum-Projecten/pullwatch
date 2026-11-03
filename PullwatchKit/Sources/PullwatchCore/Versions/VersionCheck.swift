@@ -468,10 +468,18 @@ public struct VersionChecker: Sendable {
         }?.name
     }
 
+    /// De bestanden die een scan leest, hoogstens `StackDetector.maxFiles` (één verzoek per bestand).
+    /// Bij meer gaan lockfiles voor: zonder lockfile geen CVE's; de volgorde van de lijst blijft.
+    static func selectedFiles(_ paths: [String]) -> [String] {
+        let relevant = paths.filter { StackDetector.isRelevant($0) || (DependencyDetector.isRelevant($0) && !StackDetector.isIgnored($0)) }
+        guard relevant.count > StackDetector.maxFiles else { return relevant }
+        let isLock = { (path: String) in DependencyDetector.isLockfile(path.split(separator: "/").last.map(String.init) ?? path) }
+        let chosen = Set((relevant.filter(isLock) + relevant.filter { !isLock($0) }).prefix(StackDetector.maxFiles))
+        return relevant.filter(chosen.contains)
+    }
+
     private static func scan(repo: String, ref: String?, provider: any PRProvider) async throws -> Scan {
-        let paths = try await provider.filePaths(in: repo, ref: ref)
-            .filter { StackDetector.isRelevant($0) || (DependencyDetector.isRelevant($0) && !StackDetector.isIgnored($0)) }
-            .prefix(StackDetector.maxFiles)
+        let paths = selectedFiles(try await provider.filePaths(in: repo, ref: ref))
         var scan = Scan()
         var replacedGoModules: Set<String> = []
         var dependencyFiles: [(path: String, content: String)] = []
