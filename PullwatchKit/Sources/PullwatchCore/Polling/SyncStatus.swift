@@ -80,3 +80,18 @@ public enum SyncStatus: Equatable, Sendable {
         return .idle
     }
 }
+
+/// Voortgang van een check over meer repo's: hoeveel er klaar zijn van hoeveel; `total == 0`
+/// is nog niet bekend hoeveel. Equatable, zodat een gelijke stand niets opnieuw laat tekenen.
+public struct CheckProgress: Equatable, Sendable {
+    public var done: Int
+    public var total: Int
+
+    public init(done: Int, total: Int) {
+        self.done = done
+        self.total = total
+    }
+
+    /// Net begonnen: nog niets gecheckt en nog niet bekend hoeveel.
+    public static let starting = CheckProgress(done: 0, total: 0)
+}
