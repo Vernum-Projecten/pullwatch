@@ -81,6 +81,35 @@
         }
       }
     },
+    "%@ reageert niet op tijd": {
+      "comment": "Naam van een programma (gh, az, glab) of een server",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ hat nicht rechtzeitig geantwortet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ did not answer in time"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ n'a pas répondu à temps"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ reageert niet op tijd"
+          }
+        }
+      }
+    },
     "%@ staat al in de lijst.": {
       "comment": "Repo",
       "localizations": {
@@ -510,16 +539,16 @@
     },
     "CI-checks": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CI checks"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "CI-Checks"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CI checks"
           }
         },
         "fr": {
@@ -624,16 +653,16 @@
     },
     "De checks (CI) van pull requests: hoeveel er geslaagd, mislukt of nog bezig zijn, en de melding als die van je eigen PR mislukken": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The checks (CI) of pull requests: how many passed, failed or are still running, and the notification when those of your own PR fail"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Checks (CI) von Pull Requests: wie viele bestanden, fehlgeschlagen oder noch in Arbeit sind, und die Mitteilung, wenn die deines eigenen PR fehlschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The checks (CI) of pull requests: how many passed, failed or are still running, and the notification when those of your own PR fail"
           }
         },
         "fr": {
@@ -1363,6 +1392,34 @@
         }
       }
     },
+    "OSV: het aantal resultaten (%lld) past niet bij het aantal vragen (%lld)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OSV: Die Anzahl der Ergebnisse (%1$lld) passt nicht zur Anzahl der Anfragen (%2$lld)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OSV: the number of results (%1$lld) does not match the number of queries (%2$lld)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OSV : le nombre de résultats (%1$lld) ne correspond pas au nombre de requêtes (%2$lld)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OSV: het aantal resultaten (%1$lld) past niet bij het aantal vragen (%2$lld)"
+          }
+        }
+      }
+    },
     "Onverwacht antwoord: %@": {
       "localizations": {
         "de": {
@@ -1568,16 +1625,16 @@
     "Pull requests": {
       "comment": "Groep van bronnen",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull requests"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pull Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests"
           }
         },
         "fr": {
@@ -1930,6 +1987,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op"
+          }
+        }
+      }
+    },
+    "geen HTTP-antwoord": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "keine HTTP-Antwort"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no HTTP response"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pas de réponse HTTP"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geen HTTP-antwoord"
           }
         }
       }

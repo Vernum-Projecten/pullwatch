@@ -85,6 +85,62 @@
         }
       }
     },
+    "GraphQL-antwoord zonder co-auteurs en checks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL-Antwort ohne Co-Autoren und Checks"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL response without co-authors and checks"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réponse GraphQL sans co-auteurs ni checks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL-antwoord zonder co-auteurs en checks"
+          }
+        }
+      }
+    },
+    "GraphQL-antwoord zonder gegevens": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL-Antwort ohne Daten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL response without data"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réponse GraphQL sans données"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GraphQL-antwoord zonder gegevens"
+          }
+        }
+      }
+    },
     "Inloggen bij GitHub is in deze versie nog niet ingesteld.": {
       "localizations": {
         "de": {

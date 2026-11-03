@@ -8,11 +8,11 @@ import Testing
         #expect(output == ProcessOutput(status: 0, stdout: "hello\n", stderr: ""))
     }
 
-    @Test func timeoutTerminatesAndThrowsNetworkError() async {
+    @Test func `A timeout terminates the process and names the command`() async {
         let runner = SystemProcessRunner(timeout: .milliseconds(300))
         let clock = ContinuousClock()
         let start = clock.now
-        await #expect(throws: ProviderError.network("sh reageert niet (timeout)")) {
+        await #expect(throws: ProviderError.timeout(command: "sh")) {
             try await runner.run(URL(filePath: "/bin/sh"), ["-c", "sleep 5"])
         }
         #expect(clock.now - start < .seconds(1))

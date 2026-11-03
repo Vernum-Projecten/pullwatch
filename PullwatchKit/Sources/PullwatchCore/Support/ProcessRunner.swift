@@ -116,7 +116,7 @@ private final class ProcessRun: Sendable {
                 } catch {
                     return
                 }
-                stop(.failure(ProviderError.network("\(executable.lastPathComponent) reageert niet (timeout)")))
+                stop(.failure(ProviderError.timeout(command: executable.lastPathComponent)))
             }
         }
     }

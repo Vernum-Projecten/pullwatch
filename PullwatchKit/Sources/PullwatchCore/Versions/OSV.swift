@@ -226,7 +226,9 @@ public enum OSV {
             let (data, response) = try await http.send(request)
             try HTTPStatus.check(response, now: now)
             let decoded = try JSONDecoding.decode(Response.self, from: data)
-            guard decoded.results.count == chunk.count else { throw ProviderError.decoding("OSV: \(decoded.results.count) resultaten voor \(chunk.count) queries") }
+            guard decoded.results.count == chunk.count else {
+                throw ProviderError.decoding(String(localized: "OSV: het aantal resultaten (\(decoded.results.count)) past niet bij het aantal vragen (\(chunk.count))", bundle: .localizedCore))
+            }
             ids += decoded.results.map { ($0.vulns ?? []).map(\.id) }
         }
         return ids

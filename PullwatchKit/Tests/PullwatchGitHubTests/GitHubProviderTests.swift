@@ -324,6 +324,25 @@ import PullwatchTestSupport
         #expect(try await makeProvider(http).datedTags(in: "acme/api", limit: 1).map(\.name) == ["v5.6.0-rc10"])
     }
 
+    @Test func `Tags without data and without a message say so in the chosen language`() async {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: "{}")
+        let expected = String(localized: "GraphQL-antwoord zonder gegevens", bundle: .localizedGitHub)
+
+        await #expect(throws: ProviderError.decoding(expected)) {
+            try await makeProvider(http).datedTags(in: "acme/api", limit: 50)
+        }
+    }
+
+    @Test func `Tags without data keep the message from GitHub`() async {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: #"{"errors":[{"type":"INTERNAL","message":"Something went wrong"}]}"#)
+
+        await #expect(throws: ProviderError.decoding("GraphQL: Something went wrong")) {
+            try await makeProvider(http).datedTags(in: "acme/api", limit: 50)
+        }
+    }
+
     @Test func datedTagsOfMissingRepoAreEmpty() async throws {
         let http = MockHTTPClient()
         http.on("api.github.com/graphql", body: #"{"data":{"r0":null},"errors":[{"type":"NOT_FOUND"}]}"#)

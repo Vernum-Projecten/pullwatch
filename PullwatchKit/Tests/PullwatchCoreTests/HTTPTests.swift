@@ -50,6 +50,32 @@ import Testing
         #expect(DateParsing.parse("garbage") == nil)
     }
 
+    @Test func `An HTTP timeout names the host`() throws {
+        let request = URLRequest(url: try #require(URL(string: "https://api.github.com/graphql")))
+        #expect(URLSessionHTTPClient.providerError(for: URLError(.timedOut), request: request) == .timeout(command: "api.github.com"))
+    }
+
+    @Test func `Another URL error stays a network error`() throws {
+        let request = URLRequest(url: try #require(URL(string: "https://api.github.com/graphql")))
+        let error = URLError(.notConnectedToInternet)
+        #expect(URLSessionHTTPClient.providerError(for: error, request: request) == .network(error.localizedDescription))
+    }
+
+    @Test func `A provider error passes through unchanged`() throws {
+        let request = URLRequest(url: try #require(URL(string: "https://api.github.com/graphql")))
+        #expect(URLSessionHTTPClient.providerError(for: ProviderError.unauthorized, request: request) == .unauthorized)
+    }
+
+    @Test(arguments: [
+        ("nl", "geen HTTP-antwoord"),
+        ("en", "no HTTP response"),
+        ("de", "keine HTTP-Antwort"),
+        ("fr", "pas de réponse HTTP"),
+    ])
+    func `The missing HTTP response is translated`(language: String, expected: String) {
+        #expect(String(localized: "geen HTTP-antwoord", bundle: .core(for: language)) == expected)
+    }
+
     @Test func decodingErrorBecomesProviderError() {
         struct Thing: Decodable { let name: String }
         #expect(throws: ProviderError.self) {
