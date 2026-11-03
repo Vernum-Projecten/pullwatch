@@ -4,7 +4,7 @@ import os
 import PullwatchCore
 import UserNotifications
 
-private let logger = Logger(subsystem: "nl.torrisi.pullwatch", category: "app")
+private let logger = Log(category: "app")
 
 @MainActor
 @Observable
@@ -199,7 +199,7 @@ final class AppModel {
     @ObservationIgnored private let versionHistoryStore = JSONFileStore<VersionHistory>(url: AppPaths.file("version-history.json"))
     @ObservationIgnored private let secrets = KeychainStore()
     @ObservationIgnored private let engine = PollEngine(
-        makeProvider: { ProviderFactory.make($0) },
+        makeProvider: { ProviderFactory.make($0, http: AppModel.networking) },
         store: JSONFileStore<SeenState>(url: AppPaths.file("seen.json"))
     )
     @ObservationIgnored private let notifier = Notifier.shared
@@ -256,9 +256,9 @@ final class AppModel {
         let target = url.deletingLastPathComponent().appending(path: "\(url.lastPathComponent).corrupt-\(timestamp)")
         do {
             try FileManager.default.moveItem(at: url, to: target)
-            logger.notice("onleesbaar bestand bewaard als \(target.lastPathComponent, privacy: .public)")
+            logger.notice("onleesbaar bestand bewaard als \(target.lastPathComponent)")
         } catch {
-            logger.error("opzij zetten van \(url.lastPathComponent, privacy: .public) mislukt: \(error.localizedDescription)")
+            logger.error("opzij zetten van \(url.lastPathComponent) mislukt: \(error.localizedDescription)")
         }
     }
 
@@ -336,7 +336,7 @@ final class AppModel {
     func checkVersions(automatic: Bool = false) async {
         guard versionCheck == nil else { return }
         versionCheck = (0, 0)
-        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0) })
+        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) })
         let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
         }
@@ -380,7 +380,7 @@ final class AppModel {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
-        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0) }).run(account: account, repo: repo.repo)
+        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }).run(account: account, repo: repo.repo)
         refreshingRepos.remove(repo.id)
         guard let report = versionReport else { return }
         versionReport = report.replacing(fresh, latest: latest)
@@ -483,8 +483,27 @@ final class AppModel {
         return status
     }
 
-    /// De Pullwatch GitHub App uit `App.xcconfig`; niet ingesteld = geen "Inloggen met GitHub".
+    /// De Pullwatch GitHub App uit de xcconfig; niet ingesteld = geen "Inloggen met GitHub".
     let gitHubApp = GitHubAppConfig.main
+
+    /// Alle netwerkverkeer van de app; in debug-builds met `-PullwatchFakeGitHub` een
+    /// nagespeeld GitHub (`FakeGitHub`), zodat de UI-tests de hele inlog-flow doorlopen.
+    nonisolated static let networking: any HTTPClient = {
+        #if DEBUG
+        if FakeGitHub.isEnabled { return FakeGitHub.shared }
+        #endif
+        return URLSessionHTTPClient()
+    }()
+    var http: any HTTPClient { Self.networking }
+
+    /// Een provider voor een account, via het netwerk van de app.
+    func provider(for account: Account, pat: String? = nil) -> any PRProvider {
+        ProviderFactory.make(account, pat: pat, secrets: secrets, http: http, gitHubApp: gitHubApp)
+    }
+
+    private var deviceFlow: GitHubDeviceFlow {
+        GitHubDeviceFlow(config: gitHubApp, http: http, second: FakeGitHubTiming.deviceSecond)
+    }
 
     /// Hoe een nieuw account standaard inlogt: GitHub via de GitHub App (als die er is),
     /// Azure DevOps via `az login`.
@@ -498,28 +517,28 @@ final class AppModel {
 
     /// Stap 1 van inloggen met GitHub: de code die iemand op github.com intypt.
     func startGitHubSignIn() async throws -> DeviceCode {
-        try await GitHubDeviceFlow(config: gitHubApp).start()
+        try await deviceFlow.start()
     }
 
     /// Stap 2: wacht tot de code is goedgekeurd en bewaart de tokens bij dit account.
     func finishGitHubSignIn(_ code: DeviceCode, accountId: UUID) async throws {
-        let tokens = try await GitHubDeviceFlow(config: gitHubApp).waitForTokens(code)
+        let tokens = try await deviceFlow.waitForTokens(code)
         try GitHubAppTokenStore(accountId: accountId, secrets: secrets).save(tokens)
     }
 
     /// Wie er met de GitHub App is ingelogd bij dit account; nil als dat (nog) niet lukt.
     func gitHubLogin(_ accountId: UUID) async -> String? {
         let account = Account(id: accountId, kind: .gitHub, organization: "", authMethod: .gitHubApp)
-        return try? await ProviderFactory.make(account, secrets: secrets, gitHubApp: gitHubApp).currentUserId()
+        return try? await provider(for: account).currentUserId()
     }
 
     /// De accounts en organisaties waar de GitHub App is geïnstalleerd, eigen account eerst.
-    func gitHubInstallationOwners(_ accountId: UUID) async throws -> [String] {
+    func gitHubInstallationOwners(_ accountId: UUID) async throws -> [GitHubOwner] {
         let tokens = GitHubAppTokenSource(
-            flow: GitHubDeviceFlow(config: gitHubApp),
+            flow: deviceFlow,
             store: GitHubAppTokenStore(accountId: accountId, secrets: secrets)
         )
-        return try await GitHubProvider(accountId: accountId, owner: "", tokenSource: tokens, http: URLSessionHTTPClient())
+        return try await GitHubProvider(accountId: accountId, owner: "", tokenSource: tokens, http: http)
             .installationOwners()
     }
 

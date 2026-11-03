@@ -125,8 +125,14 @@ private struct AddAccountSheet: View {
 private struct GeneralSettingsView: View {
     let model: AppModel
     @State private var language = AppLanguage.current
+    @State private var logLevel = Log.minimum
 
     private let intervals = [60, 120, 300, 600, 900]
+
+    private func openConsole() {
+        let console = URL(filePath: "/System/Applications/Utilities/Console.app")
+        NSWorkspace.shared.openApplication(at: console, configuration: NSWorkspace.OpenConfiguration())
+    }
 
     private func nearestInterval(_ value: Int) -> Int {
         intervals.min { abs($0 - value) < abs($1 - value) } ?? value
@@ -181,6 +187,22 @@ private struct GeneralSettingsView: View {
                     .disabled(model.isCheckingForUpdates)
             }
             LaunchAtLoginToggle()
+            LabeledContent {
+                HStack {
+                    Picker("Logniveau", selection: $logLevel) {
+                        ForEach(LogLevel.allCases) { level in
+                            Text(verbatim: level.name).tag(level)
+                        }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                    Button("Open Console") { openConsole() }
+                }
+            } label: {
+                Text("Logniveau")
+                Text("Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.")
+            }
+            .onChange(of: logLevel) { _, level in Log.minimum = level }
             Picker("Taal", selection: $language) {
                 ForEach(AppLanguage.allCases) { language in
                     Text(verbatim: language.name).tag(language)

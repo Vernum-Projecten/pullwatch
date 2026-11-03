@@ -101,7 +101,9 @@ struct OnboardingView: View {
 private struct WelcomeStep: View {
     var body: some View {
         VStack(spacing: 18) {
-            Image(nsImage: NSApp.applicationIconImage)
+            // Uit de eigen bundle: `applicationIconImage` geeft het icoon dat macOS voor deze
+            // bundle id onthouden heeft, bijvoorbeeld van een oudere versie in Programma's.
+            Image(nsImage: NSImage(named: "AppIcon") ?? NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 96, height: 96)
                 .accessibilityHidden(true)

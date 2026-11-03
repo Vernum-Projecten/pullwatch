@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-private let logger = Logger(subsystem: "nl.torrisi.pullwatch", category: "engine")
+private let logger = Log(category: "engine")
 
 public enum AccountState: Equatable, Sendable {
     case idle
@@ -347,7 +347,7 @@ public actor PollEngine {
             schedule.nextTagDue = t + Self.tagInterval
         }
         if let tagError = fetched.tagError {
-            logger.warning("tags ophalen mislukt voor \(account.displayName, privacy: .public): \(tagError.userMessage, privacy: .public)")
+            logger.warning("tags ophalen mislukt voor \(account.displayName): \(tagError.userMessage)")
         }
         schedules[account.id] = schedule
         statuses[account.id] = .ok(lastPoll: t)
@@ -374,7 +374,7 @@ public actor PollEngine {
             } else {
                 schedule.nextSyncDue = t + Self.tagInterval
             }
-            logger.warning("geschiedenis-sync mislukt voor \(account.displayName, privacy: .public): \(error.userMessage, privacy: .public)")
+            logger.warning("geschiedenis-sync mislukt voor \(account.displayName): \(error.userMessage)")
             return ([], [])
         }
         guard let synced = fetched.synced else { return ([], []) }
@@ -425,7 +425,7 @@ public actor PollEngine {
         guard let tags = fetched.tags else { return [] }
         let tagsByRepo = Dictionary(grouping: tags) { $0.repo.lowercased() }
         if !fetched.unavailableTagRepos.isEmpty {
-            logger.warning("tags overgeslagen voor \(account.displayName, privacy: .public): \(fetched.unavailableTagRepos.sorted().joined(separator: ", "), privacy: .public) (niet gevonden of geen toegang)")
+            logger.warning("tags overgeslagen voor \(account.displayName): \(fetched.unavailableTagRepos.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }
         var fresh: [Tag] = []
         // Onbereikbare repo's niet als geseed markeren of verversen: anders worden hun bestaande
@@ -471,7 +471,7 @@ public actor PollEngine {
         } else {
             statuses[account.id] = .failed(error, since: t)
         }
-        logger.warning("poll mislukt voor \(account.displayName, privacy: .public): \(error.userMessage, privacy: .public)")
+        logger.warning("poll mislukt voor \(account.displayName): \(error.userMessage)")
 
         guard error == .unauthorized else { return false }
         userIds[account.id] = nil
