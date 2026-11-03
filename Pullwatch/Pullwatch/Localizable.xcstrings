@@ -2803,28 +2803,6 @@
         }
       }
     },
-    "Je kunt meldingen later aanzetten in Systeeminstellingen → Meldingen → Pullwatch.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Du kannst Mitteilungen später in Systemeinstellungen → Mitteilungen → Pullwatch aktivieren."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can turn notifications on later in System Settings → Notifications → Pullwatch."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vous pourrez activer les notifications plus tard dans Réglages Système → Notifications → Pullwatch."
-          }
-        }
-      }
-    },
     "Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is": {
       "localizations": {
         "de": {
@@ -3397,24 +3375,24 @@
         }
       }
     },
-    "Meldingen toestaan": {
+    "Meldingen staan uit. Zet ze aan in Systeeminstellingen om nieuwe PR's en tags te zien zodra ze er zijn.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mitteilungen erlauben"
+            "value": "Mitteilungen sind aus. Aktiviere sie in den Systemeinstellungen, um neue PRs und Tags sofort zu sehen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow Notifications"
+            "value": "Notifications are off. Turn them on in System Settings to see new PRs and tags as soon as they appear."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Autoriser les notifications"
+            "value": "Les notifications sont désactivées. Activez-les dans Réglages Système pour voir les nouvelles PR et les nouveaux tags dès leur apparition."
           }
         }
       }
@@ -4027,6 +4005,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open %@"
+          }
+        }
+      }
+    },
+    "Open Systeeminstellingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemeinstellungen öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Réglages Système"
           }
         }
       }
@@ -4858,6 +4858,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch instellingen"
+          }
+        }
+      }
+    },
+    "Pullwatch meldt een nieuwe PR of tag zodra die er is.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch meldet einen neuen PR oder Tag, sobald er da ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch tells you about a new PR or tag as soon as it appears."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch vous signale une nouvelle PR ou un nouveau tag dès son apparition."
           }
         }
       }
@@ -5858,28 +5880,6 @@
         }
       }
     },
-    "Uit": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aus"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Off"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Désactivées"
-          }
-        }
-      }
-    },
     "Verbonden als %@": {
       "comment": "Naam van de ingelogde gebruiker",
       "localizations": {
@@ -6207,6 +6207,28 @@
         }
       }
     },
+    "Vragen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander"
+          }
+        }
+      }
+    },
     "Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.": {
       "localizations": {
         "de": {
@@ -6247,6 +6269,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Où se trouvent les dépôts que vous voulez suivre ? Vous pourrez ajouter d’autres comptes plus tard dans les Réglages."
+          }
+        }
+      }
+    },
+    "Wachten op je antwoord in de melding van macOS…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte auf deine Antwort im macOS-Dialog …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for your answer in the macOS prompt…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente de votre réponse dans la fenêtre de macOS…"
           }
         }
       }

@@ -1,6 +1,7 @@
 import AppKit
 import PullwatchCore
 import SwiftUI
+import UserNotifications
 
 /// Welkomstvenster bij de eerste start. Pullwatch heeft geen Dock-icoon en geen venster, dus
 /// zonder dit lijkt de app na het openen niet te starten. Drie stappen: wat Pullwatch doet en
@@ -213,7 +214,6 @@ private struct ProviderChoice: View {
 
 private struct FinishStep: View {
     let model: AppModel
-    @State private var asked = false
 
     var body: some View {
         VStack(spacing: 18) {
@@ -221,35 +221,7 @@ private struct FinishStep: View {
                 .font(.title2.weight(.semibold))
             Form {
                 Section {
-                    HStack(alignment: .firstTextBaseline) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Meldingen")
-                            Text("Pullwatch meldt een nieuwe PR of tag zodra die er is. macOS vraagt één keer om toestemming.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        if asked {
-                            if model.notificationsAllowed {
-                                Label("Aan", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                            } else {
-                                Label("Uit", systemImage: "bell.slash").foregroundStyle(.orange)
-                            }
-                        } else {
-                            Button("Meldingen toestaan") {
-                                Task {
-                                    await model.requestNotifications()
-                                    asked = true
-                                }
-                            }
-                            .accessibilityIdentifier("onboarding.allowNotifications")
-                        }
-                    }
-                    if asked && !model.notificationsAllowed {
-                        Text("Je kunt meldingen later aanzetten in Systeeminstellingen → Meldingen → Pullwatch.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    NotificationPermissionRow(model: model)
                     LaunchAtLoginToggle()
                 }
             }
@@ -264,5 +236,81 @@ private struct FinishStep: View {
         .padding(32)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.finish")
+    }
+}
+
+/// Meldingen zoals macOS-apps het doen: de vraag van macOS komt vanzelf zodra deze stap
+/// verschijnt, de rij wacht op het antwoord, en bij "Niet toestaan" (of eerder uitgezet) opent
+/// een knop de meldingsinstellingen van Pullwatch. Terug uit Systeeminstellingen ziet de rij
+/// de nieuwe stand vanzelf.
+struct NotificationPermissionRow: View {
+    let model: AppModel
+    @State private var status: UNAuthorizationStatus?
+    @State private var asking = false
+
+    /// UI-tests slaan de vraag over: die zou een echt systeemvenster openen.
+    private var requestsByItself: Bool { !UserDefaults.standard.bool(forKey: "PullwatchSkipNotificationRequest") }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Meldingen")
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            trailing
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding.notifications")
+        .task {
+            status = await model.notificationStatus()
+            if status == .notDetermined && requestsByItself {
+                asking = true
+                await model.requestNotifications()
+                asking = false
+            }
+            // Blijft kijken, zodat een wijziging in Systeeminstellingen hier meteen te zien is.
+            while !Task.isCancelled {
+                status = await model.notificationStatus()
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
+    private var detail: LocalizedStringKey {
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            "Pullwatch meldt een nieuwe PR of tag zodra die er is."
+        case .denied:
+            "Meldingen staan uit. Zet ze aan in Systeeminstellingen om nieuwe PR's en tags te zien zodra ze er zijn."
+        default:
+            asking ? "Wachten op je antwoord in de melding van macOS…" : "Pullwatch meldt een nieuwe PR of tag zodra die er is. macOS vraagt één keer om toestemming."
+        }
+    }
+
+    @ViewBuilder private var trailing: some View {
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            Label("Aan", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        case .denied:
+            Button("Open Systeeminstellingen") { Notifier.openSystemSettings() }
+                .accessibilityIdentifier("onboarding.openNotificationSettings")
+        default:
+            if asking {
+                ProgressView().controlSize(.small)
+            } else {
+                Button("Vragen") {
+                    Task {
+                        asking = true
+                        await model.requestNotifications()
+                        asking = false
+                    }
+                }
+                .accessibilityIdentifier("onboarding.allowNotifications")
+            }
+        }
     }
 }
