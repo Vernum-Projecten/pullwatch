@@ -94,6 +94,17 @@ struct PullwatchApp: App {
             SettingsView(model: model)
                 .countsAsOpenWindow("settings")
         }
+
+        #if DEBUG
+        // Alleen voor schermafbeeldingen (`-PullwatchMenuPreview YES`): het menupaneel als gewoon
+        // venster, want een MenuBarExtra laat zich niet vanzelf openen.
+        Window(Text(verbatim: "Menu"), id: "menu-preview") {
+            MenuView(model: model)
+                .onAppear { SnapshotCamera.shoot("menu", windowId: "menu-preview") }
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(UserDefaults.standard.bool(forKey: "PullwatchMenuPreview") ? .presented : .suppressed)
+        #endif
     }
 }
 
@@ -114,7 +125,7 @@ private struct MenuBarLabel: View {
                 Image(.menuBarIcon)
                     .accessibilityLabel(Text(verbatim: "Pullwatch"))
             }
-            if model.history.unreadCount > 0 {
+            if model.unreadCount > 0 {
                 Image(systemName: "circle.fill")
                     .imageScale(.small)
                     .accessibilityLabel(Text("Ongelezen"))

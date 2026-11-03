@@ -30,8 +30,16 @@ final class AppModel {
         didSet { recomputeRepoSummaries() }
     }
     private(set) var history: History {
-        didSet { recomputeRepoSummaries() }
+        didSet {
+            recomputeRepoSummaries()
+            recomputeMenu()
+        }
     }
+    /// Voor het menu, bijgewerkt als de geschiedenis verandert (niet bij elke keer tekenen).
+    private(set) var menuPullRequests: [HistoryItem] = []
+    private(set) var menuTags: [HistoryItem] = []
+    private(set) var hasTags = false
+    private(set) var unreadCount = 0
     private(set) var statuses: [UUID: AccountState] = [:]
     private(set) var notificationsAllowed = true
     /// Voortgang van "Opnieuw ophalen"; `nil` als er niets loopt.
@@ -105,6 +113,17 @@ final class AppModel {
     /// lijsten en repo-pagina lezen ze bij elke schermupdate.
     private(set) var repoSummaries: [RepoSummary] = []
     private(set) var packageSummaries: [PackageSummary] = []
+
+    private func recomputeMenu() {
+        let pullRequests = history.latest(.pullRequest, limit: 5)
+        if pullRequests != menuPullRequests { menuPullRequests = pullRequests }
+        let tags = history.latest(.tag, limit: 5)
+        if tags != menuTags { menuTags = tags }
+        let anyTags = history.items.contains { $0.entry.kind == .tag }
+        if anyTags != hasTags { hasTags = anyTags }
+        let unread = history.unreadCount
+        if unread != unreadCount { unreadCount = unread }
+    }
 
     private func recomputeRepoSummaries() {
         repoSummaries = RepoOverview.summaries(
@@ -272,6 +291,8 @@ final class AppModel {
         var needsSave = initial.needsSave
         if history.prune(now: Date(), retention: config.historyRetention) { needsSave = true }
         if needsSave { saveHistory() }
+        // In init loopt didSet niet: het menu hier één keer vullen.
+        recomputeMenu()
 
         do {
             versionReport = try versionStore.load()
