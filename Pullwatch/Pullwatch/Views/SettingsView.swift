@@ -105,10 +105,11 @@ private struct AddAccountSheet: View {
     let model: AppModel
     let draft: Account
     let onClose: (_ saved: Bool) -> Void
+    @State private var saveAction = AccountSaveAction()
 
     var body: some View {
         VStack(spacing: 0) {
-            AccountEditor(model: model, original: draft) { onClose(true) }
+            AccountEditor(model: model, original: draft, saveAction: saveAction) { onClose(true) }
             Divider()
             HStack {
                 Button("Annuleren", role: .cancel) {
@@ -117,7 +118,9 @@ private struct AddAccountSheet: View {
                 }
                 .keyboardShortcut(.cancelAction)
                 Spacer()
+                AddButton(action: saveAction)
             }
+            .controlSize(.large)
             .padding(12)
         }
         .frame(minWidth: 560, minHeight: 560)

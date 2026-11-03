@@ -1980,6 +1980,28 @@
         }
       }
     },
+    "De menubalk, met het Pullwatch-icoon rechtsboven naast de klok": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Menüleiste, mit dem Pullwatch-Symbol oben rechts neben der Uhr"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The menu bar, with the Pullwatch icon at the top right next to the clock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La barre des menus, avec l’icône de Pullwatch en haut à droite près de l’horloge"
+          }
+        }
+      }
+    },
     "Downloaden": {
       "localizations": {
         "de": {
@@ -5164,28 +5186,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch ne voit que les dépôts où l’app est installée : sur votre propre compte ou sur une organisation (où un propriétaire l’installe ou approuve votre demande)."
-          }
-        }
-      }
-    },
-    "Pullwatch-icoon": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch-Symbol"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch icon"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Icône de Pullwatch"
           }
         }
       }

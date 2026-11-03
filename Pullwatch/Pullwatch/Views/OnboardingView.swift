@@ -9,11 +9,23 @@ import UserNotifications
 struct OnboardingView: View {
     let model: AppModel
 
-    enum Step { case welcome, account, finish }
+    enum Step: CaseIterable {
+        case welcome, account, finish
+
+        var previous: Step? {
+            switch self {
+            case .welcome: nil
+            case .account: .welcome
+            case .finish: .account
+            }
+        }
+    }
 
     @State private var step = Step.welcome
     /// Het account dat nu wordt ingesteld; staat pas in de config na Toevoegen.
     @State private var draft: Account?
+    /// De Toevoegen-knop van het concept, in de voetbalk.
+    @State private var saveAction = AccountSaveAction()
     @Environment(\.dismissWindow) private var dismissWindow
 
     var body: some View {
@@ -22,7 +34,7 @@ struct OnboardingView: View {
                 switch step {
                 case .welcome: WelcomeStep()
                 case .account:
-                    AccountStep(model: model, draft: $draft) {
+                    AccountStep(model: model, draft: $draft, saveAction: saveAction) {
                         draft = nil
                         step = .finish
                     }
@@ -32,46 +44,23 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Divider()
-            footer.padding(16)
+            OnboardingFooter(step: step, canContinue: !model.config.pollableAccounts.isEmpty, draftSave: draft == nil ? nil : saveAction) { action in
+                switch action {
+                case .back: back()
+                case .start: step = .account
+                case .skip, .next: step = .finish
+                case .done: finish()
+                }
+            }
+            .padding(16)
         }
-        .frame(minWidth: 640, minHeight: 600)
+        // Een vast formaat, zoals een installatie-assistent; het account-formulier scrolt zelf.
+        .frame(width: 700, height: 660)
         #if DEBUG
         .onAppear { SnapshotCamera.shoot("onboarding-welcome", windowId: "onboarding") }
         .onChange(of: step) { _, step in SnapshotCamera.shoot("onboarding-\(step)", windowId: "onboarding") }
         .onChange(of: model.config.accounts.count) { _, _ in SnapshotCamera.shoot("onboarding-account-editor", windowId: "onboarding") }
         #endif
-    }
-
-    private var footer: some View {
-        HStack {
-            if step != .welcome {
-                Button("Terug") { back() }
-                    .accessibilityIdentifier("onboarding.back")
-            }
-            Spacer()
-            switch step {
-            case .welcome:
-                Button("Aan de slag") { step = .account }
-                    .keyboardShortcut(.defaultAction)
-                    .accessibilityIdentifier("onboarding.start")
-            case .account:
-                if draft != nil {
-                    // Het concept heeft zijn eigen Toevoegen-knop.
-                    EmptyView()
-                } else if model.config.pollableAccounts.isEmpty {
-                    Button("Later instellen") { step = .finish }
-                        .accessibilityIdentifier("onboarding.skip")
-                } else {
-                    Button("Volgende") { step = .finish }
-                        .keyboardShortcut(.defaultAction)
-                        .accessibilityIdentifier("onboarding.next")
-                }
-            case .finish:
-                Button("Klaar") { finish() }
-                    .keyboardShortcut(.defaultAction)
-                    .accessibilityIdentifier("onboarding.done")
-            }
-        }
     }
 
     /// Terug: van een half ingesteld account naar de keuze GitHub of Azure DevOps (het concept
@@ -86,7 +75,7 @@ struct OnboardingView: View {
             } else {
                 step = .welcome
             }
-        case .finish: step = .account
+        case .finish: step = step.previous ?? .account
         }
     }
 
@@ -95,6 +84,71 @@ struct OnboardingView: View {
         model.completeOnboarding()
         dismissWindow(id: "onboarding")
         if !model.config.pollableAccounts.isEmpty { model.show(.main) }
+    }
+}
+
+/// De knoppen onder elke stap: Terug links, de volgende stap rechts (de standaardknop, Return).
+private struct OnboardingFooter: View {
+    enum Action { case back, start, skip, next, done }
+
+    let step: OnboardingView.Step
+    /// Er is al een account, dus "Volgende" in plaats van "Later instellen".
+    let canContinue: Bool
+    /// Een account wordt ingesteld: dan staat hier Toevoegen, grijs tot het account af is.
+    let draftSave: AccountSaveAction?
+    let perform: (Action) -> Void
+
+    var body: some View {
+        HStack {
+            if step.previous != nil {
+                Button("Terug") { perform(.back) }
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityIdentifier("onboarding.back")
+            }
+            Spacer()
+            switch step {
+            case .welcome:
+                Button("Aan de slag") { perform(.start) }
+                    .keyboardShortcut(.defaultAction)
+                    .accessibilityIdentifier("onboarding.start")
+            case .account where draftSave != nil:
+                if let draftSave {
+                    AddButton(action: draftSave)
+                }
+            case .account where canContinue:
+                Button("Volgende") { perform(.next) }
+                    .keyboardShortcut(.defaultAction)
+                    .accessibilityIdentifier("onboarding.next")
+            case .account:
+                Button("Later instellen") { perform(.skip) }
+                    .accessibilityIdentifier("onboarding.skip")
+            case .finish:
+                Button("Klaar") { perform(.done) }
+                    .keyboardShortcut(.defaultAction)
+                    .accessibilityIdentifier("onboarding.done")
+            }
+        }
+        .controlSize(.large)
+    }
+}
+
+/// Toevoegen in een voetbalk: grijs met de reden ernaast zolang het account niet af is, daarna
+/// de blauwe standaardknop (ook met Return).
+struct AddButton: View {
+    let action: AccountSaveAction
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if let error = action.error {
+                Text(error).font(.caption).foregroundStyle(.red)
+            } else if let reason = action.blockedReason {
+                Text(reason).font(.caption).foregroundStyle(.secondary)
+            }
+            Button("Toevoegen") { action.save() }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!action.canSave)
+                .accessibilityIdentifier("account.save")
+        }
     }
 }
 
@@ -131,35 +185,38 @@ private struct WelcomeStep: View {
 }
 
 /// Een nagetekende menubalk met het Pullwatch-icoon gemarkeerd, zodat je weet waar je moet kijken.
+/// Tekststijlen in plaats van vaste maten, zodat hij meegroeit met grotere tekst; voor VoiceOver
+/// één beschrijving in plaats van losse symbolen.
 struct MenuBarHint: View {
     var body: some View {
         HStack(spacing: 14) {
-            Spacer()
-            Image(systemName: "arrow.triangle.pull")
-                .font(.system(size: 15, weight: .semibold))
+            Spacer(minLength: 0)
+            Image(systemName: AppModel.menuBarSymbolName)
+                .fontWeight(.semibold)
                 .padding(6)
-                .background(Circle().fill(Color.accentColor.opacity(0.18)))
-                .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
-                .accessibilityLabel(Text("Pullwatch-icoon"))
+                .background(Circle().fill(.tint.opacity(0.18)))
+                .overlay(Circle().strokeBorder(.tint, lineWidth: 2))
             Image(systemName: "wifi")
             Image(systemName: "battery.75percent")
             Image(systemName: "switch.2")
             Text(Date.now, format: .dateTime.weekday(.abbreviated).hour().minute())
                 .monospacedDigit()
         }
-        .font(.system(size: 13))
-        .foregroundStyle(.primary)
+        .font(.body)
         .padding(.horizontal, 14)
-        .frame(width: 420, height: 34)
-        .background(.bar, in: RoundedRectangle(cornerRadius: 8))
+        .padding(.vertical, 6)
+        .frame(maxWidth: 440)
+        .background(.bar, in: .rect(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("De menubalk, met het Pullwatch-icoon rechtsboven naast de klok"))
     }
 }
 
 private struct AccountStep: View {
     let model: AppModel
     @Binding var draft: Account?
+    let saveAction: AccountSaveAction
     let onAdded: () -> Void
 
     var body: some View {
@@ -174,7 +231,7 @@ private struct AccountStep: View {
                      : "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
-                AccountEditor(model: model, original: account, onSaved: onAdded).id(account.id)
+                AccountEditor(model: model, original: account, saveAction: saveAction, onSaved: onAdded).id(account.id)
             } else {
                 let added = model.config.pollableAccounts
                 if !added.isEmpty {
@@ -256,7 +313,9 @@ private struct FinishStep: View {
                 }
             }
             .formStyle(.grouped)
-            .frame(maxWidth: 520, maxHeight: 220)
+            .scrollDisabled(true)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 540)
             MenuBarHint()
             Text("Klik voortaan op het icoon in de menubalk voor je PR's en tags, of open Pullwatch opnieuw voor het hoofdvenster.")
                 .multilineTextAlignment(.center)
@@ -282,31 +341,29 @@ struct NotificationPermissionRow: View {
     private var requestsByItself: Bool { !UserDefaults.standard.bool(forKey: "PullwatchSkipNotificationRequest") }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Meldingen")
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
+        LabeledContent {
             trailing
+        } label: {
+            Text("Meldingen")
+            Text(detail)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.notifications")
         .task {
             status = await model.notificationStatus()
-            if status == .notDetermined && requestsByItself {
-                asking = true
-                await model.requestNotifications()
-                asking = false
-            }
-            // Blijft kijken, zodat een wijziging in Systeeminstellingen hier meteen te zien is.
-            while !Task.isCancelled {
+            if status == .notDetermined && requestsByItself { await ask() }
+            // Terug uit Systeeminstellingen: de nieuwe stand meteen laten zien.
+            for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
                 status = await model.notificationStatus()
-                try? await Task.sleep(for: .seconds(1))
             }
         }
+    }
+
+    private func ask() async {
+        asking = true
+        await model.requestNotifications()
+        status = await model.notificationStatus()
+        asking = false
     }
 
     private var detail: LocalizedStringKey {
@@ -332,13 +389,7 @@ struct NotificationPermissionRow: View {
             if asking {
                 ProgressView().controlSize(.small)
             } else {
-                Button("Vragen") {
-                    Task {
-                        asking = true
-                        await model.requestNotifications()
-                        asking = false
-                    }
-                }
+                Button("Vragen") { Task { await ask() } }
                 .accessibilityIdentifier("onboarding.allowNotifications")
             }
         }
