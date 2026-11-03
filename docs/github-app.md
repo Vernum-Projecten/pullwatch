@@ -35,6 +35,21 @@ Apps**, **New GitHub App**:
 | Pull requests | Read-only | find new, merged and closed pull requests (`search/issues`) |
 | Contents | Read-only | list tags; read files for the version and vulnerability checks (`git/trees`, `contents`) |
 | Metadata | Read-only | required by GitHub; lists the repositories (`user/repos`, `orgs/{org}/repos`) |
+| Repository security advisories | Read-only | the advisories a repository publishes about itself, on its page in Pullwatch (`repos/{owner}/{repo}/security-advisories?state=published`) |
+| Code scanning alerts | Read-only, optional | open CodeQL and other code scanning alerts on the repository page, in its findings and health, and (when turned on) a notification for a new critical or high one (`repos/{owner}/{repo}/code-scanning/alerts?state=open`) |
+| Secret scanning alerts | Read-only, optional | only the number of open secrets, with a link to GitHub; Pullwatch asks with `hide_secret=true` and never reads a secret (`repos/{owner}/{repo}/secret-scanning/alerts?state=open`) |
+
+Without the two optional permissions Pullwatch works as before: the
+repository page shows **Needs permission** next to Code scanning or Secret
+scanning, quietly, and nothing else changes. Add them only if the people who
+use Pullwatch want those alerts in it.
+
+The details of GitHub's own advisories (severity, CVSS score and vector,
+CWE, the page on `github.com/advisories`) for the vulnerabilities Pullwatch
+finds come from the public GitHub Advisory Database (`GET /advisories/{ghsa_id}`,
+and `GET /advisories?cve_id=` when OSV only knows the CVE). That needs no
+permission; Pullwatch sends the app's token for the higher rate limit, and
+fetches each advisory once, not per repository or per check.
 
 No organisation permissions, no account permissions, no events.
 
@@ -97,7 +112,7 @@ installation page fixes that without signing in again.
 ## 4. What the token can do
 
 The token is a user-to-server token: it acts as the person who signed in,
-limited to the three read-only permissions above, and to repositories where
+limited to the read-only permissions above, and to repositories where
 both that person and the installation have access. Pullwatch cannot write
 anything, comment, merge or change settings.
 
@@ -111,6 +126,39 @@ uninstall the installation.
 
 - **More permissions**: changing a permission makes every installation ask
   its owner to accept the change before it applies. Ask only for read-only
-  access, and only when a feature needs it.
+  access, and only when a feature needs it. The next section says what the
+  owner sees.
 - **A new client id** (a second app, or a recreated one) signs everyone out
   at their next refresh; avoid it.
+
+## 6. When the app asks for a new permission
+
+Saving a permission change on the app's **Permissions & events** page (with
+a short note on why) does not give it to anyone yet. GitHub emails the owner
+of every installation, and each installation keeps the old permissions until
+its owner accepts:
+
+- **On a personal account**: GitHub, **Settings**, **Applications**,
+  **Installed GitHub Apps**, **Configure** next to Pullwatch, then
+  **Review request** and **Accept new permissions**.
+- **On an organisation**: an owner opens the organisation's **Settings**,
+  **GitHub Apps**, **Configure** next to Pullwatch, then **Review request**
+  and **Accept new permissions**.
+
+The installation page is also reachable from the app's public link,
+`https://github.com/apps/<slug>/installations/new`, which lists the accounts
+where it is installed.
+
+Until an owner accepts, GitHub answers 403 for the new data. Pullwatch does
+not treat that as an error: the account keeps working, and the repository
+page shows **Needs permission** next to that kind with an **Approve** link to
+the installations page (`github.com/settings/installations`, or
+`github.com/organizations/<org>/settings/installations` for an
+organisation). A feature GitHub has turned off for a repository (no code
+scanning set up, secret scanning disabled) shows as **Off**. The next daily
+check, or **Check** on the repository page, reads the data once the owner
+has accepted.
+
+The test app **TEST Pullwatch** and the release app **Pullwatch** each have
+their own permissions: a change to one has to be made on the other as well,
+and its installations accept it separately.

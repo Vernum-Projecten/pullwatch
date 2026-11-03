@@ -7,6 +7,8 @@ public struct Vulnerability: Codable, Hashable, Sendable {
     public let id: String
     /// CVE-nummer als OSV er een kent.
     public let cve: String?
+    /// Id in de GitHub Advisory Database ("GHSA-…"): `id` zelf of een alias; nil als OSV er geen kent.
+    public let ghsa: String?
     public let summary: String?
     /// "LOW", "MODERATE", "HIGH" of "CRITICAL" (GitHub-advisories); nil als OSV geen ernst geeft.
     public let severity: String?
@@ -23,12 +25,13 @@ public struct Vulnerability: Codable, Hashable, Sendable {
     public let via: [String]
 
     public init(
-        id: String, cve: String?, summary: String?, severity: String?, ecosystem: String,
+        id: String, cve: String?, ghsa: String? = nil, summary: String?, severity: String?, ecosystem: String,
         package: String, version: String, fixedIn: String?, source: String,
         workspace: String? = nil, scope: DependencyScope = .unknown, kind: DependencyKind = .runtime, via: [String] = []
     ) {
         self.id = id
         self.cve = cve
+        self.ghsa = ghsa ?? (id.hasPrefix("GHSA-") ? id : nil)
         self.summary = summary
         self.severity = severity
         self.ecosystem = ecosystem
@@ -43,7 +46,7 @@ public struct Vulnerability: Codable, Hashable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, cve, summary, severity, ecosystem, package, version, fixedIn, source, workspace, scope, kind, via
+        case id, cve, ghsa, summary, severity, ecosystem, package, version, fixedIn, source, workspace, scope, kind, via
     }
 
     /// versions.json van vóór de installs heeft geen workspace, scope, soort en via.
@@ -52,6 +55,7 @@ public struct Vulnerability: Codable, Hashable, Sendable {
         self.init(
             id: try c.decode(String.self, forKey: .id),
             cve: try c.decodeIfPresent(String.self, forKey: .cve),
+            ghsa: try c.decodeIfPresent(String.self, forKey: .ghsa),
             summary: try c.decodeIfPresent(String.self, forKey: .summary),
             severity: try c.decodeIfPresent(String.self, forKey: .severity),
             ecosystem: try c.decode(String.self, forKey: .ecosystem),
@@ -223,6 +227,7 @@ public enum OSV {
                 result.append(Vulnerability(
                     id: id,
                     cve: record?.aliases.first { $0.hasPrefix("CVE-") } ?? (id.hasPrefix("CVE-") ? id : nil),
+                    ghsa: id.hasPrefix("GHSA-") ? id : record?.aliases.first { $0.hasPrefix("GHSA-") },
                     summary: record?.summary,
                     severity: record?.severity,
                     ecosystem: dependency.ecosystem,

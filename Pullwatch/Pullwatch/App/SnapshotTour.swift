@@ -70,6 +70,12 @@ enum SnapshotTour {
             for page in 1...4 {
                 steps.append(("repo-detail-\(page + 1)", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: Double(page)) }))
             }
+            // Een repo met een eigen advies bij "Beveiliging op GitHub".
+            if let linguist = model.repoSummaries.first(where: { $0.repo.hasSuffix("/linguist") && $0.id != repo.id }) {
+                steps.append(("repo-detail-linguist", { model.showRepo(id: linguist.id) }))
+                steps.append(("repo-detail-linguist-2", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: 1) }))
+                steps.append(("repo-detail-back", { model.showRepo(id: repo.id) }))
+            }
             steps.append(("repo-stats", { model.showStats(repoId: repo.id) }))
             steps.append(("repo-history-token", { model.showHistory(.pullRequest, repo: HistoryRepo(accountId: repo.accountId, repo: repo.repo)) }))
         }

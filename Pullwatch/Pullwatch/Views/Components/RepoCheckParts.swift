@@ -38,6 +38,8 @@ struct VulnerabilityList: View {
     /// Klik op een package dat in Afhankelijkheden staat; nil laat het package als tekst staan.
     var showPackage: ((String) -> Void)? = nil
     var knownPackages: Set<String> = []
+    /// GitHubs advies per `Vulnerability.id` (`RepoSummary.advisories`).
+    var gitHubAdvisories: [String: GitHubAdvisory] = [:]
 
     @State private var isExpanded = true
 
@@ -55,6 +57,7 @@ struct VulnerabilityList: View {
             ForEach(advisories) { advisory in
                 AdvisoryRow(
                     advisory: advisory,
+                    gitHub: gitHubAdvisories[advisory.first.id],
                     location: repo.location(of: advisory.first),
                     showsWorkspace: showsWorkspace,
                     showPackage: knownPackages.contains(advisory.first.package) ? showPackage : nil
@@ -78,6 +81,8 @@ struct VulnerabilityList: View {
 /// install de versie, plek en keten, en onderaan wat je moet bijwerken.
 private struct AdvisoryRow: View {
     let advisory: Advisory
+    /// GitHubs eigen gegevens (ernst, CVSS, CWE's); nil zonder advies in de Advisory Database.
+    let gitHub: GitHubAdvisory?
     let location: VulnerabilityLocation?
     let showsWorkspace: Bool
     var showPackage: ((String) -> Void)? = nil
@@ -92,8 +97,18 @@ private struct AdvisoryRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                Pill(text: Vulnerability.severityLabel(vulnerability.severity), tint: Vulnerability.severityColor(vulnerability.severity))
-                Link(vulnerability.cve ?? vulnerability.id, destination: vulnerability.url)
+                let severity = gitHub?.severity ?? vulnerability.severity
+                Pill(text: Vulnerability.severityLabel(severity), tint: Vulnerability.severityColor(severity))
+                if let cvss = gitHub?.cvss {
+                    Pill(text: "CVSS \(cvss.score.formatted(.number.precision(.fractionLength(1))))", tint: Vulnerability.severityColor(severity))
+                        .help(Text(verbatim: cvss.vector ?? ""))
+                }
+                Link(vulnerability.cve ?? gitHub?.cveId ?? vulnerability.id, destination: vulnerability.url)
+                    .help("Open bij OSV.dev")
+                if let ghsa = vulnerability.ghsa ?? gitHub?.ghsaId, ghsa != vulnerability.cve ?? gitHub?.cveId ?? vulnerability.id {
+                    Link(ghsa, destination: gitHub?.url ?? GitHubAdvisory.pageURL(ghsaId: ghsa))
+                        .help("Open in de GitHub Advisory Database")
+                }
                 if let showPackage {
                     Button(vulnerability.package) { showPackage(vulnerability.package) }
                         .buttonStyle(.link)
@@ -114,8 +129,11 @@ private struct AdvisoryRow: View {
                         .help(Text(location.help))
                 }
             }
-            if let summary = vulnerability.summary {
+            if let summary = vulnerability.summary ?? gitHub?.summary {
                 Text(verbatim: summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            }
+            if let cweText = gitHub?.cweText {
+                Text(verbatim: cweText).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
             ForEach(advisory.installs, id: \.installId) { install in
                 InstallLine(
@@ -328,9 +346,10 @@ extension RepoVersions {
         return inRelease ? .alsoInRelease(tag: release.tag) : .mainOnly
     }
 
-    /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace en kwetsbaarheden
-    /// per advies, met waar en hoe elke install erin komt.
-    var clipboardText: String {
+    /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace, kwetsbaarheden
+    /// per advies (met GitHubs ernst, CVSS en CWE's), met waar en hoe elke install erin komt, en de
+    /// beveiligingsmeldingen van de dienst.
+    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:]) -> String {
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
         for component in components {
@@ -362,13 +381,16 @@ extension RepoVersions {
             lines.append(String(localized: "Kwetsbaarheden:"))
             for advisory in advisories {
                 let v = advisory.first
-                var line = "- \(v.cve ?? v.id)"
+                let found = gitHub[v.id]
+                var line = "- \(v.identifiers(found))"
                 if let location = location(of: v) { line += " {\(String(localized: location.label))}" }
-                if let severity = v.severity { line += " [\(String(localized: Vulnerability.severityLabel(severity)))]" }
+                if let severity = v.severityText(found) { line += " [\(severity)]" }
                 line += " \(v.package)"
-                if let summary = v.summary { line += ": \(summary)" }
-                line += " (\(v.url.absoluteString))"
+                if let summary = v.summary ?? found?.summary { line += ": \(summary)" }
+                line += " (\((found?.url ?? v.url).absoluteString))"
                 lines.append(line)
+                if let vector = found?.cvss?.vector { lines.append("    \(vector)") }
+                if let cweText = found?.cweText { lines.append("    \(cweText)") }
                 for install in advisory.installs {
                     var installLine = "    \(install.version)"
                     if let fixedIn = install.fixedIn { installLine += " → \(fixedIn)" }
@@ -380,6 +402,7 @@ extension RepoVersions {
                 }
             }
         }
+        if let security { lines += security.clipboardLines }
         return lines.joined(separator: "\n")
     }
 }

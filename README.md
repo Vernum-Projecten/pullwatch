@@ -97,6 +97,10 @@ The same check looks up known vulnerabilities via [OSV.dev](https://osv.dev) for
 
 If a repository has tags, the newest version tag is checked too (pre-releases like `-rc1` only if there is nothing else). Each vulnerability on the default branch is marked as also in that release or new since it. Anything already fixed on the default branch is not reported.
 
+Each vulnerability also shows its GitHub Advisory Database entry: the GHSA id next to the CVE, GitHub's severity with the CVSS score and vector, the CWE names and a link to `github.com/advisories`, on the repository page, in the copied text and in notifications. Pullwatch fetches each advisory once from the public advisories API (`api.github.com/advisories`, with a GitHub account's token when there is one) and keeps it with the check.
+
+The repository page also shows what the service itself knows, read with the same daily check and **Check**, never on every poll. On GitHub: the advisories the repository publishes about itself, open code scanning alerts (CodeQL and other tools, with file and line) and the number of open secret scanning alerts (never the secret). On Azure DevOps: open Advanced Security alerts (code and dependencies, and the number of secrets). Open critical and high alerts count in the repository's findings and health; a notification for a new one is off by default (Settings → General). When a kind is turned off for a repository, or the GitHub App or token may not read it, the page says **Off** or **Needs permission** with a link, and nothing fails.
+
 The check runs once a day (can be turned off under Settings → General) and on **Alles checken**; on a repository page, **Check** re-checks just that repository and the copy button puts its versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Repo** (or right-click a row) opens the page of that repository.
 
 ### Dependencies per package
@@ -110,8 +114,8 @@ The check runs once a day (can be turned off under Settings → General) and on 
 
 ### PAT scopes
 
-- Azure DevOps: **Code (Read)** (also covers tags) and **Project and Team (Read)** (the project list comes from `/_apis/projects`).
-- GitHub (fine-grained): **Pull requests: Read** and **Metadata: Read** on the repositories you want, plus **Contents: Read** for the dependency check. Classic: `repo`.
+- Azure DevOps: **Code (Read)** (also covers tags) and **Project and Team (Read)** (the project list comes from `/_apis/projects`); optionally **Advanced Security (Read)** for its alerts.
+- GitHub (fine-grained): **Pull requests: Read** and **Metadata: Read** on the repositories you want, plus **Contents: Read** for the dependency check and **Repository security advisories: Read** for the repository's own advisories; optionally **Code scanning alerts: Read** and **Secret scanning alerts: Read**. Classic: `repo` (with `security_events` for the alerts).
 
 ## Known quirks
 

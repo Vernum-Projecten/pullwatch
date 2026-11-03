@@ -215,6 +215,8 @@ enum RepoFinding: Hashable, Identifiable {
     case unchecked
     case failed
     case vulnerabilities(Int)
+    /// Open critical- en high-meldingen van code scanning of Advanced Security.
+    case securityAlerts(Int)
     case endOfLife(label: String, version: String)
     case runtimeBehind(label: String, version: String)
     case packageUpdates(Int)
@@ -227,6 +229,7 @@ enum RepoFinding: Hashable, Identifiable {
         case .unchecked: "nog niet gecheckt"
         case .failed: "check mislukt"
         case .vulnerabilities(let count): "\(count) CVE's"
+        case .securityAlerts(let count): "\(count) open meldingen"
         case .endOfLife(let label, let version): "\(label) \(version) EOL"
         case .runtimeBehind(let label, let version): "\(label) \(version) achter"
         case .packageUpdates(let count): "\(count) nieuwe versies"
@@ -237,7 +240,7 @@ enum RepoFinding: Hashable, Identifiable {
     var tint: Color {
         switch self {
         case .unchecked, .failed: .secondary
-        case .vulnerabilities, .endOfLife: .red
+        case .vulnerabilities, .securityAlerts, .endOfLife: .red
         case .runtimeBehind, .packageUpdates: .orange
         case .current: .green
         }
@@ -248,6 +251,7 @@ enum RepoFinding: Hashable, Identifiable {
         if versions.error != nil { return [.failed] }
         var findings: [RepoFinding] = []
         if !versions.vulnerabilities.isEmpty { findings.append(.vulnerabilities(versions.advisoryCount)) }
+        if !summary.seriousSecurityAlerts.isEmpty { findings.append(.securityAlerts(summary.seriousSecurityAlerts.count)) }
         if let worst = versions.components.filter({ $0.status == .eol || $0.status == .behind }).max(by: { $0.status < $1.status }) {
             findings.append(worst.status == .eol
                             ? .endOfLife(label: worst.label, version: worst.version)
@@ -316,9 +320,13 @@ struct RepoDetailView: View {
             }
             RepoControlSection(
                 versions: summary.versions,
+                gitHubAdvisories: summary.advisories,
                 knownPackages: Set(model.packageSummaries.map(\.label)),
                 showPackage: { model.showPackage($0) }
             )
+            if let security = summary.versions?.security {
+                RepoSecuritySection(scan: security, provider: account?.kind ?? .gitHub)
+            }
             RepoPackageUpdatesSection(updates: summary.packageUpdates, repoId: summary.id, isChecked: summary.versions != nil)
             if let versions = summary.versions, versions.error == nil {
                 RepoPackagesSections(
@@ -446,6 +454,7 @@ private struct PullRequestRow: View {
 
 private struct RepoControlSection: View {
     let versions: RepoVersions?
+    let gitHubAdvisories: [String: GitHubAdvisory]
     let knownPackages: Set<String>
     let showPackage: (String) -> Void
 
@@ -473,7 +482,9 @@ private struct RepoControlSection: View {
                     Text(verbatim: vulnerabilityError).foregroundStyle(.orange)
                 }
                 if !versions.vulnerabilities.isEmpty {
-                    VulnerabilityList(repo: versions, showPackage: showPackage, knownPackages: knownPackages)
+                    VulnerabilityList(
+                        repo: versions, showPackage: showPackage, knownPackages: knownPackages, gitHubAdvisories: gitHubAdvisories
+                    )
                 }
             } else {
                 Text("Nog niet gecheckt").foregroundStyle(.secondary)
@@ -583,7 +594,7 @@ private struct RepoDetailToolbar: ToolbarContent {
             }
             .help("Open de statistieken van deze repo")
             if let versions = summary.versions {
-                CopyVersionsButton(text: versions.clipboardText)
+                CopyVersionsButton(text: versions.clipboardText(advisories: summary.advisories))
             }
         }
     }

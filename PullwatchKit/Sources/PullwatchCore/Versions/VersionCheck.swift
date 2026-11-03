@@ -63,6 +63,9 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Packages die de repo nergens zelf vraagt (alleen transitief, of zonder manifest om het te
     /// bepalen), met hun installs; voor de repo-pagina en "alleen transitief" in Versies.
     public let otherPackages: [PackageUse]
+    /// Beveiligingsgegevens van de dienst zelf (code scanning, geheimen, eigen adviezen, Advanced
+    /// Security); nil als de dienst die niet kent of het ophalen mislukte.
+    public let security: SecurityScan?
 
     public var id: String { "\(accountId.uuidString)/\(repo)" }
 
@@ -96,7 +99,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         vulnerabilityError: String? = nil,
         release: ReleaseVersions? = nil,
         packages: [PackageUse] = [],
-        otherPackages: [PackageUse] = []
+        otherPackages: [PackageUse] = [],
+        security: SecurityScan? = nil
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -107,10 +111,11 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         self.release = release
         self.packages = packages
         self.otherPackages = otherPackages
+        self.security = security
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages, otherPackages
+        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages, otherPackages, security
     }
 
     /// versions.json van vóór de CVE-check heeft geen `vulnerabilities`.
@@ -125,6 +130,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         release = try c.decodeIfPresent(ReleaseVersions.self, forKey: .release)
         packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
         otherPackages = try c.decodeIfPresent([PackageUse].self, forKey: .otherPackages) ?? []
+        security = try c.decodeIfPresent(SecurityScan.self, forKey: .security)
     }
 }
 
@@ -134,10 +140,20 @@ public struct VersionReport: Codable, Equatable, Sendable {
     public let repos: [RepoVersions]
     /// Nieuwste versie per package (`PackageUse.key`) over alle repo's.
     public let latestPackages: [String: PackageLatest]
+    /// Adviezen uit de GitHub Advisory Database per GHSA-id, één keer opgehaald voor alle repo's
+    /// en checks (`VersionChecker.completingAdvisories`).
+    public let advisories: [String: GitHubAdvisory]
+    /// GHSA-ids en CVE's waar GitHub geen advies voor had, met het moment van vragen.
+    public let advisoryMisses: [String: Date]
 
-    public init(checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:]) {
+    public init(
+        checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:],
+        advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:]
+    ) {
         self.checkedAt = checkedAt
         self.latestPackages = latestPackages
+        self.advisories = advisories
+        self.advisoryMisses = advisoryMisses
         self.repos = repos.sorted {
             if $0.severity != $1.severity { return $0.severity > $1.severity }
             if $0.advisoryCount != $1.advisoryCount { return $0.advisoryCount > $1.advisoryCount }
@@ -146,7 +162,7 @@ public struct VersionReport: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case checkedAt, repos, latestPackages
+        case checkedAt, repos, latestPackages, advisories, advisoryMisses
     }
 
     /// versions.json van vóór het package-overzicht heeft geen `latestPackages`.
@@ -155,6 +171,8 @@ public struct VersionReport: Codable, Equatable, Sendable {
         checkedAt = try c.decode(Date.self, forKey: .checkedAt)
         repos = try c.decode([RepoVersions].self, forKey: .repos)
         latestPackages = try c.decodeIfPresent([String: PackageLatest].self, forKey: .latestPackages) ?? [:]
+        advisories = try c.decodeIfPresent([String: GitHubAdvisory].self, forKey: .advisories) ?? [:]
+        advisoryMisses = try c.decodeIfPresent([String: Date].self, forKey: .advisoryMisses) ?? [:]
     }
 }
 
@@ -165,7 +183,9 @@ extension VersionReport {
         let merged = latestPackages.merging(latest) { old, new in PackageLatest.keepsOld(old, over: new) ? old : new }
         // Een repo die bij de laatste volledige check nog niet gevolgd werd, komt erbij.
         let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
-        return VersionReport(checkedAt: checkedAt, repos: replaced, latestPackages: merged)
+        return VersionReport(
+            checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses
+        )
     }
 
     /// Vervangt of voegt meerdere repo's toe (`runMissing`), zoals `replacing(_:latest:)`.
@@ -210,9 +230,9 @@ extension VersionReport {
 /// Leest per gevolgde repo de projectbestanden, vergelijkt de gevonden versies met endoflife.date
 /// en zoekt bekende kwetsbaarheden in de packages via OSV.dev.
 public struct VersionChecker: Sendable {
-    private let makeProvider: @Sendable (Account) -> any PRProvider
-    private let http: any HTTPClient
-    private let now: @Sendable () -> Date
+    let makeProvider: @Sendable (Account) -> any PRProvider
+    let http: any HTTPClient
+    let now: @Sendable () -> Date
 
     public init(
         makeProvider: @escaping @Sendable (Account) -> any PRProvider,
@@ -287,10 +307,10 @@ public struct VersionChecker: Sendable {
         let total = targets.reduce(0) { $0 + $1.repos.count }
         let counter = Counter()
         await progress(0, total)
-        let scanned = await withTaskGroup(of: [(accountId: UUID, repo: String, found: Result<RepoScan, any Error>)].self) { group in
+        let scanned = await withTaskGroup(of: [ScannedRepo].self) { group in
             for target in targets {
                 group.addTask {
-                    var out: [(accountId: UUID, repo: String, found: Result<RepoScan, any Error>)] = []
+                    var out: [ScannedRepo] = []
                     for repo in target.repos {
                         let found: Result<RepoScan, any Error>
                         do {
@@ -298,7 +318,9 @@ public struct VersionChecker: Sendable {
                         } catch {
                             found = .failure(error)
                         }
-                        out.append((target.account.id, repo, found))
+                        // Code scanning, geheimen, eigen adviezen: los van de bestanden, ook als die mislukten.
+                        let security = try? await target.provider.securityAlerts(in: repo)
+                        out.append(ScannedRepo(accountId: target.account.id, repo: repo, found: found, security: security))
                         await progress(await counter.increment(), total)
                     }
                     return out
@@ -395,7 +417,9 @@ public struct VersionChecker: Sendable {
         for item in scanned {
             switch item.found {
             case .failure(let error):
-                results.append(RepoVersions(accountId: item.accountId, repo: item.repo, components: [], error: Self.message(error)))
+                results.append(RepoVersions(
+                    accountId: item.accountId, repo: item.repo, components: [], error: Self.message(error), security: item.security
+                ))
             case .success(let repoScan):
                 let release = repoScan.release.map { tag, found in
                     switch found {
@@ -413,7 +437,8 @@ public struct VersionChecker: Sendable {
                     vulnerabilityError: repoScan.main.dependencies.isEmpty ? nil : osvError,
                     release: release,
                     packages: repoScan.main.directDependencies,
-                    otherPackages: repoScan.main.otherPackages
+                    otherPackages: repoScan.main.otherPackages,
+                    security: item.security
                 ))
             }
         }
@@ -421,6 +446,13 @@ public struct VersionChecker: Sendable {
     }
 
     static let registryConcurrency = 8
+
+    struct ScannedRepo: Sendable {
+        let accountId: UUID
+        let repo: String
+        let found: Result<RepoScan, any Error>
+        let security: SecurityScan?
+    }
 
     struct Scan: Sendable {
         var versions: [DetectedVersion] = []

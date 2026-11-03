@@ -1,6 +1,7 @@
 import Foundation
 
-/// Hoe een repo ervoor staat: rood (CVE's of EOL), oranje (runtime achter of packages met een nieuwe
+/// Hoe een repo ervoor staat: rood (CVE's, EOL of open critical- en high-meldingen van code
+/// scanning of Advanced Security), oranje (runtime achter of packages met een nieuwe
 /// versie), groen, of grijs (nog niet gecheckt of de check mislukte).
 public enum RepoHealth: Hashable, Sendable {
     case problem, behind, ok, unknown
@@ -27,10 +28,15 @@ public struct RepoSummary: Hashable, Sendable, Identifiable {
     public let openPullRequests: Int
     public let latestTag: String?
     public let packageUpdates: [PackageSummary]
+    /// GitHubs advies per kwetsbaarheid (`Vulnerability.id`), uit de Advisory Database.
+    public let advisories: [String: GitHubAdvisory]
+
+    /// Open critical- en high-meldingen van de dienst zelf.
+    public var seriousSecurityAlerts: [SecurityAlert] { versions?.security?.seriousAlerts ?? [] }
 
     public var health: RepoHealth {
         guard let versions, versions.error == nil else { return .unknown }
-        if !versions.vulnerabilities.isEmpty || versions.worstStatus == .eol { return .problem }
+        if !versions.vulnerabilities.isEmpty || versions.worstStatus == .eol || !seriousSecurityAlerts.isEmpty { return .problem }
         if versions.worstStatus == .behind || !packageUpdates.isEmpty { return .behind }
         return .ok
     }
@@ -80,13 +86,24 @@ public enum RepoOverview {
                 openPullRequests: items.filter { $0.entry.prState == .open }.count,
                 latestTag: items.filter { $0.entry.kind == .tag }.max { $0.detectedAt < $1.detectedAt }?.entry.title
                     ?? entry.versions?.release?.tag,
-                packageUpdates: updatesByRepo[id] ?? []
+                packageUpdates: updatesByRepo[id] ?? [],
+                advisories: Self.advisories(of: entry.versions, in: report)
             )
         }
         .sorted {
             if $0.health.rank != $1.health.rank { return $0.health.rank < $1.health.rank }
             return $0.repo.localizedCaseInsensitiveCompare($1.repo) == .orderedAscending
         }
+    }
+
+    /// GitHubs advies bij elke kwetsbaarheid van de repo, ook die van de laatste release.
+    static func advisories(of versions: RepoVersions?, in report: VersionReport?) -> [String: GitHubAdvisory] {
+        guard let versions, let report, !report.advisories.isEmpty else { return [:] }
+        var result: [String: GitHubAdvisory] = [:]
+        for vulnerability in versions.vulnerabilities + (versions.release?.vulnerabilities ?? []) where result[vulnerability.id] == nil {
+            result[vulnerability.id] = report.advisory(for: vulnerability)
+        }
+        return result
     }
 
     /// Projecten met als teller het aantal repo's met CVE's of EOL.

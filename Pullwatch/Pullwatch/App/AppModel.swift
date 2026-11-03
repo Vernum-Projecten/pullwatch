@@ -542,13 +542,21 @@ final class AppModel {
             return
         }
         let previous = versionReport
-        let report = fresh.carryingSeenDates(from: previous)
+        // GitHubs adviezen: wat de vorige check al had blijft, alleen nieuwe GHSA-ids gaan de deur uit.
+        let report = await checker.completingAdvisories(
+            of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous),
+            accounts: config.pollableAccounts
+        )
         // Een volledige check dekt alles wat nu gevolgd wordt.
         lastFollowScope = Dictionary(config.pollableAccounts.map { ($0.id, $0.filterSettings) }, uniquingKeysWith: { first, _ in first })
         versionReport = report
         if automatic {
             let new = report.newVulnerabilities(since: previous)
-            if !new.isEmpty { notifier.deliverVulnerabilities(new) }
+            if !new.isEmpty { notifier.deliverVulnerabilities(new, report: report) }
+            if config.notifySecurityAlerts {
+                let alerts = report.newSecurityAlerts(since: previous)
+                if !alerts.isEmpty { notifier.deliverSecurityAlerts(alerts) }
+            }
             if config.notifyPackageUpdates {
                 notifier.deliverPackageUpdates(report.newPackageVersions(since: previous))
             }
@@ -578,10 +586,16 @@ final class AppModel {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
-        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking).run(account: account, repo: repo.repo)
+        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
+        let (fresh, latest) = await checker.run(account: account, repo: repo.repo)
+        guard let report = versionReport else {
+            refreshingRepos.remove(repo.id)
+            return
+        }
+        let updated = await checker.completingAdvisories(of: report.replacing(fresh, latest: latest), accounts: config.pollableAccounts)
         refreshingRepos.remove(repo.id)
-        guard let report = versionReport else { return }
-        versionReport = report.replacing(fresh, latest: latest)
+        // Tijdens het opzoeken kan een andere check het rapport vervangen hebben; dan alleen de repo.
+        versionReport = versionReport == report ? updated : versionReport?.replacing(fresh, latest: latest)
         saveVersions(versionReport!)
     }
 
@@ -639,7 +653,10 @@ final class AppModel {
             let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos
             guard !repos.isEmpty, let report = versionReport else { return }
             logger.notice("\(repos.count) net gevolgde repo's gecheckt")
-            versionReport = report.replacing(repos, latest: fresh.latest)
+            let updated = await checker.completingAdvisories(
+                of: report.replacing(repos, latest: fresh.latest), accounts: config.pollableAccounts
+            )
+            versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest)
             saveVersions(versionReport!)
         }
         versionTask = task
@@ -874,6 +891,14 @@ final class AppModel {
         get { config.notifyPackageUpdates }
         set {
             config.notifyPackageUpdates = newValue
+            saveConfig()
+        }
+    }
+
+    var notifiesSecurityAlerts: Bool {
+        get { config.notifySecurityAlerts }
+        set {
+            config.notifySecurityAlerts = newValue
             saveConfig()
         }
     }

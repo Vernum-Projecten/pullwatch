@@ -276,10 +276,13 @@ private struct GeneralSettingsView: View {
                 Toggle("Elke dag afhankelijkheden en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
                 Toggle("Melding bij een nieuwe versie", isOn: $model.notifiesPackageUpdates)
                     .disabled(!model.checksVersionsDaily)
+                Toggle("Melding bij een nieuwe kritieke of hoge beveiligingsmelding", isOn: $model.notifiesSecurityAlerts)
+                    .disabled(!model.checksVersionsDaily)
+                    .help("Code scanning op GitHub en Advanced Security op Azure DevOps, per repo")
             } header: {
                 Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {
-                Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie.")
+                Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie of beveiligingsmelding.")
             }
 
             Section {

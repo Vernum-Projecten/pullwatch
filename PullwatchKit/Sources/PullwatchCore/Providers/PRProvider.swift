@@ -35,12 +35,23 @@ public protocol PRProvider: Sendable {
     func fileContent(in repo: String, path: String, ref: String?) async throws -> String
     /// Gooi gecachte tokens weg (na een 401).
     func invalidateCredentials() async
+    /// De beveiligingsgegevens van de dienst zelf voor één repo: code scanning, het aantal open
+    /// geheimen en eigen adviezen (GitHub), of Advanced Security (Azure DevOps). Wat niet aan staat
+    /// of niet mag, staat als `SecurityFeed` in het resultaat, niet als fout. nil: deze dienst kent
+    /// zoiets niet.
+    func securityAlerts(in repo: String) async throws -> SecurityScan?
+    /// Token voor de openbare GitHub Advisory Database (hogere rate limit); nil zonder GitHub.
+    func advisoryDatabaseToken() async -> String?
 }
 
 extension PRProvider {
     public func tags(in repos: [String], unchanged: [String: String]) async throws -> TagFetch {
         try await tags(in: repos)
     }
+
+    public func securityAlerts(in repo: String) async throws -> SecurityScan? { nil }
+
+    public func advisoryDatabaseToken() async -> String? { nil }
 
     public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
 

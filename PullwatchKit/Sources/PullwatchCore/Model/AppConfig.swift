@@ -12,6 +12,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var checkForUpdates: Bool
     /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
     public var notifyPackageUpdates: Bool
+    /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
+    /// Standaard uit: die meldingen staan ook bij GitHub of Azure DevOps.
+    public var notifySecurityAlerts: Bool
     /// Het welkomstvenster is afgerond of overgeslagen. Staat in de config (niet in de defaults),
     /// zodat een eigen datamap (`-PullwatchDataDirectory`, de UI-tests) er los van staat.
     public var onboardingCompleted: Bool
@@ -23,6 +26,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         autoVersionCheck: Bool = true,
         checkForUpdates: Bool = true,
         notifyPackageUpdates: Bool = true,
+        notifySecurityAlerts: Bool = false,
         onboardingCompleted: Bool = false
     ) {
         self.accounts = accounts
@@ -31,6 +35,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.autoVersionCheck = autoVersionCheck
         self.checkForUpdates = checkForUpdates
         self.notifyPackageUpdates = notifyPackageUpdates
+        self.notifySecurityAlerts = notifySecurityAlerts
         self.onboardingCompleted = onboardingCompleted
     }
 
@@ -42,6 +47,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         autoVersionCheck = try c.decodeIfPresent(Bool.self, forKey: .autoVersionCheck) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
         notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
+        notifySecurityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
     }
 

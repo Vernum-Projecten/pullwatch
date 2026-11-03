@@ -190,7 +190,9 @@ extension VersionReport {
                 latest[key] = old
             }
         }
-        return VersionReport(checkedAt: checkedAt, repos: repos, latestPackages: latest)
+        return VersionReport(
+            checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses
+        )
     }
 
     /// Packages en runtime-cycli waarvan de nieuwste versie veranderde sinds `previous` en waar een
