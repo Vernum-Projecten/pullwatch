@@ -22,6 +22,9 @@ struct MenuView: View {
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
             }
+            if let mute = model.recentMute {
+                MuteBanner(mute: mute, undo: model.undoMute, dismiss: model.dismissMute)
+            }
 
             Divider()
 
@@ -133,6 +136,34 @@ private struct UpdateBanner: View {
             }
         }
         .font(.callout)
+    }
+}
+
+/// Na "Repo dempen" op een melding: welke repo nu stil is, met Ongedaan maken.
+private struct MuteBanner: View {
+    let mute: RepositoryMute
+    let undo: () -> Void
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack {
+            Label {
+                Text("Meldingen van \(mute.repo) staan uit", comment: "Na Repo dempen op een melding; repo")
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            } icon: {
+                Image(systemName: "bell.slash")
+            }
+            Spacer()
+            Button("Ongedaan maken", action: undo)
+            Button("Sluiten", systemImage: "xmark", action: dismiss)
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .help("Sluiten")
+        }
+        .font(.callout)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("menu.muteBanner")
     }
 }
 

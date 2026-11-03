@@ -1,4 +1,5 @@
 import AppKit
+import PullwatchCore
 import SwiftUI
 import UserNotifications
 
@@ -118,6 +119,16 @@ struct PullwatchApp: App {
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(UserDefaults.standard.bool(forKey: "PullwatchMenuPreview") ? .presented : .suppressed)
+
+        // Alleen voor schermafbeeldingen (`-PullwatchNotificationPreview YES`, met
+        // `-PullwatchSkipNotificationRequest YES`): elke soort melding zoals de builder hem maakt,
+        // getekend in een venster in plaats van verstuurd.
+        Window(Text(verbatim: "Notifications"), id: "notification-preview") {
+            NotificationPreviewGallery()
+                .onAppear { SnapshotCamera.shoot("notifications", windowId: "notification-preview") }
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(UserDefaults.standard.bool(forKey: "PullwatchNotificationPreview") ? .presented : .suppressed)
         #endif
     }
 }
@@ -139,7 +150,7 @@ private struct MenuBarLabel: View {
                 Image(.menuBarIcon)
                     .accessibilityLabel(Text(verbatim: "Pullwatch"))
             }
-            if model.unreadCount > 0 {
+            if model.unreadCount > 0 && model.config.notifications.menuBarDot {
                 Image(systemName: "circle.fill")
                     .imageScale(.small)
                     .accessibilityLabel(Text("Ongelezen"))
@@ -157,3 +168,23 @@ private struct MenuBarLabel: View {
         }
     }
 }
+
+#if DEBUG
+/// Elke soort melding onder elkaar, ook met de stille uren en de samenvatting boven de grens.
+private struct NotificationPreviewGallery: View {
+    private let samples = NotificationSamples(builder: NotificationContentBuilder())
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(NotificationKind.allCases) { kind in
+                if let content = samples.content(for: kind) {
+                    NotificationPreview(content: content)
+                }
+            }
+            NotificationPreview(content: samples.summary)
+        }
+        .padding(16)
+        .frame(width: 420)
+    }
+}
+#endif

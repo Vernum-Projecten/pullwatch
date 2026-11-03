@@ -58,7 +58,7 @@
       }
     },
     "%@ %@ beschikbaar": {
-      "comment": "Package, versie",
+      "comment": "Meldingstitel; package, versie",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -88,10 +88,10 @@
     },
     "%@ %@ vraagt %@ %@; de repo gebruikt %@. Werk eerst %@ bij.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$@ vraagt %3$@ %4$@; de repo gebruikt %5$@. Werk eerst %6$@ bij."
+            "state": "translated",
+            "value": "%1$@ %2$@ braucht %3$@ %4$@; das Repository nutzt %5$@. Aktualisiere zuerst %6$@."
           }
         },
         "en": {
@@ -100,26 +100,26 @@
             "value": "%1$@ %2$@ needs %3$@ %4$@; the repository uses %5$@. Update %6$@ first."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ %2$@ braucht %3$@ %4$@; das Repository nutzt %5$@. Aktualisiere zuerst %6$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ %2$@ demande %3$@ %4$@ ; le dépôt utilise %5$@. Mettez d’abord %6$@ à jour."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ vraagt %3$@ %4$@; de repo gebruikt %5$@. Werk eerst %6$@ bij."
           }
         }
       }
     },
     "%@ %@ vraagt %@ %@; deze workspace heeft %@. Werk eerst %@ bij.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$@ vraagt %3$@ %4$@; deze workspace heeft %5$@. Werk eerst %6$@ bij."
+            "state": "translated",
+            "value": "%1$@ %2$@ braucht %3$@ %4$@; dieser Workspace hat %5$@. Aktualisiere zuerst %6$@."
           }
         },
         "en": {
@@ -128,26 +128,26 @@
             "value": "%1$@ %2$@ needs %3$@ %4$@; this workspace has %5$@. Update %6$@ first."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ %2$@ braucht %3$@ %4$@; dieser Workspace hat %5$@. Aktualisiere zuerst %6$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ %2$@ demande %3$@ %4$@ ; cet espace de travail a %5$@. Mettez d’abord %6$@ à jour."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ vraagt %3$@ %4$@; deze workspace heeft %5$@. Werk eerst %6$@ bij."
           }
         }
       }
     },
     "%@ %@ wordt tegengehouden door %@, dat %@ vraagt. Werk eerst %@ bij naar %@.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$@ wordt tegengehouden door %3$@, dat %4$@ vraagt. Werk eerst %5$@ bij naar %6$@."
+            "state": "translated",
+            "value": "%1$@ %2$@ wird von %3$@ zurückgehalten, das %4$@ verlangt. Aktualisiere zuerst %5$@ auf %6$@."
           }
         },
         "en": {
@@ -156,16 +156,74 @@
             "value": "%1$@ %2$@ is held back by %3$@, which asks for %4$@. Update %5$@ to %6$@ first."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ est bloqué par %3$@, qui demande %4$@. Mettez d’abord %5$@ à jour vers %6$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@ wordt tegengehouden door %3$@, dat %4$@ vraagt. Werk eerst %5$@ bij naar %6$@."
+          }
+        }
+      }
+    },
+    "%@ %@, nog niet opgelost": {
+      "comment": "Melding van een kwetsbaarheid; package, versie",
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ %2$@ wird von %3$@ zurückgehalten, das %4$@ verlangt. Aktualisiere zuerst %5$@ auf %6$@."
+            "value": "%1$@ %2$@, noch nicht behoben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, not fixed yet"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ %2$@ est bloqué par %3$@, qui demande %4$@. Mettez d’abord %5$@ à jour vers %6$@."
+            "value": "%1$@ %2$@, pas encore corrigé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@, nog niet opgelost"
+          }
+        }
+      }
+    },
+    "%@ %@, opgelost in %@": {
+      "comment": "Melding van een kwetsbaarheid; package, versie, versie met de oplossing",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, behoben in %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, fixed in %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, corrigé dans %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ %2$@, opgelost in %3$@"
           }
         }
       }
@@ -385,10 +443,10 @@
     },
     "%@ valt binnen %@: alleen de lockfile verandert.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ valt binnen %2$@: alleen de lockfile verandert."
+            "state": "translated",
+            "value": "%1$@ liegt in %2$@: nur die Lockfile ändert sich."
           }
         },
         "en": {
@@ -397,26 +455,26 @@
             "value": "%1$@ is within %2$@: only the lockfile changes."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ liegt in %2$@: nur die Lockfile ändert sich."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ est dans %2$@ : seul le fichier lock change."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ valt binnen %2$@: alleen de lockfile verandert."
           }
         }
       }
     },
     "%@ valt buiten %@: pas eerst het manifest aan.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ valt buiten %2$@: pas eerst het manifest aan."
+            "state": "translated",
+            "value": "%1$@ liegt außerhalb von %2$@: ändere zuerst das Manifest."
           }
         },
         "en": {
@@ -425,26 +483,26 @@
             "value": "%1$@ is outside %2$@: change the manifest first."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ liegt außerhalb von %2$@: ändere zuerst das Manifest."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ est hors de %2$@ : modifiez d’abord le manifeste."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ valt buiten %2$@: pas eerst het manifest aan."
           }
         }
       }
     },
     "%@ vraagt %@ %@; de repo gebruikt %@ %@.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ vraagt %2$@ %3$@; de repo gebruikt %4$@ %5$@."
+            "state": "translated",
+            "value": "%1$@ braucht %2$@ %3$@; das Repository nutzt %4$@ %5$@."
           }
         },
         "en": {
@@ -453,26 +511,26 @@
             "value": "%1$@ needs %2$@ %3$@; the repository uses %4$@ %5$@."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ braucht %2$@ %3$@; das Repository nutzt %4$@ %5$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ demande %2$@ %3$@ ; le dépôt utilise %4$@ %5$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ vraagt %2$@ %3$@; de repo gebruikt %4$@ %5$@."
           }
         }
       }
     },
     "%@ vraagt %@ %@; deze workspace heeft %@.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "%1$@ vraagt %2$@ %3$@; deze workspace heeft %4$@."
+            "state": "translated",
+            "value": "%1$@ braucht %2$@ %3$@; dieser Workspace hat %4$@."
           }
         },
         "en": {
@@ -481,16 +539,16 @@
             "value": "%1$@ needs %2$@ %3$@; this workspace has %4$@."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ braucht %2$@ %3$@; dieser Workspace hat %4$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ demande %2$@ %3$@ ; cet espace de travail a %4$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ vraagt %2$@ %3$@; deze workspace heeft %4$@."
           }
         }
       }
@@ -671,191 +729,6 @@
         }
       }
     },
-    "%@: PR completed": {
-      "comment": "Meldingstitel; repo. Completed is de Azure DevOps-term voor gemerged",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: PR abgeschlossen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: PR completed"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : PR terminée"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: PR completed"
-          }
-        }
-      }
-    },
-    "%@: nieuwe PR": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neuer PR"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new PR"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouvelle PR"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: nieuwe PR"
-          }
-        }
-      }
-    },
-    "%@: nieuwe beveiligingsmelding": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neue Sicherheitswarnung"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new security alert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouvelle alerte de sécurité"
-          }
-        }
-      }
-    },
-    "%@: nieuwe kwetsbaarheid": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neue Schwachstelle"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new vulnerability"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouvelle vulnérabilité"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: nieuwe kwetsbaarheid"
-          }
-        }
-      }
-    },
-    "%@: nieuwe pre-release": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neues Pre-Release"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new pre-release"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouvelle préversion"
-          }
-        }
-      }
-    },
-    "%@: nieuwe release": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neues Release"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new release"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouvelle version publiée"
-          }
-        }
-      }
-    },
-    "%@: nieuwe tag": {
-      "comment": "Meldingstitel; repo",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: neuer Tag"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: new tag"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ : nouveau tag"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@: nieuwe tag"
-          }
-        }
-      }
-    },
     "%lld CVE's": {
       "localizations": {
         "de": {
@@ -925,83 +798,6 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld CVE's"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld PR's completed": {
-      "comment": "Meldingstitel; aantal gemergde PR's",
-      "localizations": {
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR abgeschlossen"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PRs abgeschlossen"
-                }
-              }
-            }
-          }
-        },
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR completed"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PRs completed"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR terminée"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR terminées"
-                }
-              }
-            }
-          }
-        },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR completed"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld PR's completed"
                 }
               }
             }
@@ -1161,85 +957,8 @@
         }
       }
     },
-    "%lld nieuwe PR's": {
-      "comment": "Meldingstitel; aantal",
-      "localizations": {
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld neuer PR"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld neue PRs"
-                }
-              }
-            }
-          }
-        },
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld new PR"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld new PRs"
-                }
-              }
-            }
-          }
-        },
-        "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld nouvelle PR"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld nouvelles PR"
-                }
-              }
-            }
-          }
-        },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld nieuwe PR"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld nieuwe PR's"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld nieuwe beveiligingsmeldingen": {
-      "comment": "Meldingstitel; aantal",
+      "comment": "Meldingstitel; aantal in één repo",
       "localizations": {
         "de": {
           "variations": {
@@ -1316,7 +1035,7 @@
       }
     },
     "%lld nieuwe kwetsbaarheden": {
-      "comment": "Meldingstitel; aantal",
+      "comment": "Meldingstitel; aantal nieuwe kwetsbaarheden in één repo",
       "localizations": {
         "de": {
           "variations": {
@@ -1392,8 +1111,162 @@
         }
       }
     },
+    "%lld nieuwe merge requests": {
+      "comment": "Meldingstitel; aantal nieuwe merge requests in één repo (GitLab)",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neuer Merge Request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Merge Requests"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld New Merge Request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld New Merge Requests"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelle merge request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelles merge requests"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe merge request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe merge requests"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld nieuwe pull requests": {
+      "comment": "Meldingstitel; aantal nieuwe PR's in één repo",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neuer Pull Request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Pull Requests"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld New Pull Request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld New Pull Requests"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelle pull request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelles pull requests"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe pull request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe pull requests"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld nieuwe releases": {
-      "comment": "Meldingstitel; aantal",
+      "comment": "Meldingstitel; aantal nieuwe releases in één repo",
       "localizations": {
         "de": {
           "variations": {
@@ -1470,7 +1343,7 @@
       }
     },
     "%lld nieuwe tags": {
-      "comment": "Meldingstitel; aantal",
+      "comment": "Meldingstitel; aantal nieuwe tags in één repo",
       "localizations": {
         "de": {
           "variations": {
@@ -1908,8 +1781,85 @@
         }
       }
     },
+    "%lld pull requests gemerged": {
+      "comment": "Meldingstitel; aantal gemergde PR's in één repo",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Request gemergt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Requests gemergt"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Request Merged"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Requests Merged"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull request fusionnée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull requests fusionnées"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull request gemerged"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull requests gemerged"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld repo's lopen achter": {
-      "comment": "Meldingstekst; aantal repo's met een oudere versie",
+      "comment": "Ondertitel van een melding; aantal repo's met een oudere versie",
       "localizations": {
         "de": {
           "variations": {
@@ -1978,6 +1928,83 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld repo's lopen achter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld updates": {
+      "comment": "Meldingstitel; aantal nieuwe PR's, releases en tags samen in één repo",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Neuigkeit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Neuigkeiten"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Update"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Updates"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveauté"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveautés"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld update"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld updates"
                 }
               }
             }
@@ -2138,35 +2165,6 @@
         }
       }
     },
-    "+ %lld meer": {
-      "comment": "Laatste regel van een melding; aantal regels dat niet getoond wordt",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+ %lld weitere"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+ %lld more"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+ %lld de plus"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+ %lld meer"
-          }
-        }
-      }
-    },
     "Aan": {
       "localizations": {
         "de": {
@@ -2207,6 +2205,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Commencer"
+          }
+        }
+      }
+    },
+    "Aantal ongelezen op het Dock-icoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzahl ungelesener Einträge im Dock-Symbol"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread count on the Dock icon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de non lus sur l’icône du Dock"
           }
         }
       }
@@ -2512,7 +2532,31 @@
         }
       }
     },
+    "Advies-id kopiëren": {
+      "comment": "Knop op een melding van een kwetsbaarheid: zet CVE of GHSA op het klembord",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advisory-ID kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Advisory ID"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier l’identifiant de l’avis"
+          }
+        }
+      }
+    },
     "Afhankelijkheden": {
+      "comment": "Ondertitel van een melding van nieuwe versies; het onderdeel van het hoofdvenster",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3053,16 +3097,16 @@
     },
     "Alleen een melding als een repo de nieuwe versie binnen zijn bereik kan nemen, zonder manifest aan te passen of eerst iets anders bij te werken": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only notify when a repository can take the new version within its range, without changing a manifest or updating something else first"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nur benachrichtigen, wenn ein Repository die neue Version innerhalb seines Bereichs übernehmen kann, ohne das Manifest zu ändern oder vorher etwas anderes zu aktualisieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only notify when a repository can take the new version within its range, without changing a manifest or updating something else first"
           }
         },
         "fr": {
@@ -3164,16 +3208,16 @@
     },
     "Alleen voor updates die nu kunnen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only for updates you can take now"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nur für Updates, die jetzt möglich sind"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only for updates you can take now"
           }
         },
         "fr": {
@@ -3235,6 +3279,7 @@
       }
     },
     "Alles als gelezen markeren": {
+      "comment": "Knop op een melding van meerdere PR's of tags",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3542,6 +3587,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Azure CLI (az login)"
+          }
+        }
+      }
+    },
+    "Banners of meldingen, en wat het toegangsscherm toont, regelt macOS.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banner oder Hinweise und was der Sperrbildschirm zeigt, legt macOS fest."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS decides on banners or alerts, and what the lock screen shows."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS gère les bannières ou alertes, et ce qu’affiche l’écran verrouillé."
           }
         }
       }
@@ -4181,6 +4248,28 @@
         }
       }
     },
+    "De dagelijkse check staat uit onder Algemeen, dus deze meldingen komen nu niet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die tägliche Prüfung ist unter Allgemein ausgeschaltet, daher kommen diese Mitteilungen jetzt nicht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The daily check is off under General, so these notifications don’t come now."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vérification quotidienne est désactivée dans Général, ces notifications n’arrivent donc pas."
+          }
+        }
+      }
+    },
     "De eigenaar moet het nieuwe recht van de Pullwatch-app goedkeuren bij de installatie op GitHub": {
       "localizations": {
         "de": {
@@ -4784,24 +4873,24 @@
         }
       }
     },
-    "Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie of beveiligingsmelding.": {
+    "Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's. Welke meldingen dat geeft kies je onder Meldingen.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einmal am Tag liest Pullwatch die Sprach-, Framework- und Paketversionen deiner gefolgten Repositorys und meldet eine neue Schwachstelle oder (wenn eingeschaltet) eine neue Version oder Sicherheitswarnung."
+            "value": "Einmal am Tag liest Pullwatch die Sprach-, Framework- und Paketversionen deiner gefolgten Repositories. Welche Mitteilungen das gibt, wählst du unter Mitteilungen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Once a day Pullwatch reads the language, framework and package versions of the repositories you follow, and notifies you of a new vulnerability or (when turned on) a new version or security alert."
+            "value": "Once a day Pullwatch reads the language, framework and package versions of the repositories you follow. You choose which notifications that gives under Notifications."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une fois par jour, Pullwatch lit les versions des langages, frameworks et paquets des dépôts que vous suivez, et vous avertit d’une nouvelle vulnérabilité ou (si activé) d’une nouvelle version ou alerte de sécurité."
+            "value": "Une fois par jour, Pullwatch lit les versions des langages, frameworks et paquets des dépôts que tu suis. Tu choisis les notifications qui en découlent dans Notifications."
           }
         }
       }
@@ -4922,6 +5011,52 @@
         }
       }
     },
+    "Ernstige beveiligingsmelding": {
+      "comment": "Meldingstitel; code scanning of Advanced Security, ernst high",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwerwiegende Sicherheitswarnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High-Severity Security Alert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerte de sécurité grave"
+          }
+        }
+      }
+    },
+    "Ernstige kwetsbaarheid": {
+      "comment": "Meldingstitel; ernst high",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwerwiegende Sicherheitslücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High-Severity Vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilité grave"
+          }
+        }
+      }
+    },
     "Fout": {
       "localizations": {
         "de": {
@@ -5003,16 +5138,16 @@
     },
     "Geblokkeerd": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blocked"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Blockiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked"
           }
         },
         "fr": {
@@ -5524,6 +5659,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gemerged"
+          }
+        }
+      }
+    },
+    "Gemergede pull requests": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemergte Pull Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merged pull requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests fusionnées"
           }
         }
       }
@@ -6154,19 +6311,19 @@
     "In %lld repo's binnen het bereik bij te werken": {
       "comment": "Meldingstekst; aantal repo's dat de nieuwe versie nu kan nemen",
       "localizations": {
-        "nl": {
+        "de": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "In %lld repo binnen het bereik bij te werken"
+                  "value": "In %lld Repository im Bereich aktualisierbar"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "In %lld repo's binnen het bereik bij te werken"
+                  "value": "In %lld Repositorys im Bereich aktualisierbar"
                 }
               }
             }
@@ -6190,24 +6347,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "In %lld Repository im Bereich aktualisierbar"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "In %lld Repositorys im Bereich aktualisierbar"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -6224,6 +6363,46 @@
                 }
               }
             }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld repo binnen het bereik bij te werken"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld repo's binnen het bereik bij te werken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "In de stille uren komen meldingen zonder geluid binnen, en alleen in het Berichtencentrum. Focus en Niet storen stel je in bij Systeeminstellingen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In den Ruhezeiten kommen Mitteilungen ohne Ton und nur in der Mitteilungszentrale an. Fokus und Nicht stören richtest du in den Systemeinstellungen ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "During quiet hours notifications arrive without sound, and only in Notification Center. You set up Focus and Do Not Disturb in System Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant les heures calmes, les notifications arrivent sans son, et seulement dans le centre de notifications. Tu règles Concentration et Ne pas déranger dans les Réglages Système."
           }
         }
       }
@@ -6625,16 +6804,16 @@
     },
     "Kan nu bijwerken": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Can update now"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Jetzt aktualisierbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can update now"
           }
         },
         "fr": {
@@ -7009,6 +7188,52 @@
         }
       }
     },
+    "Kritieke beveiligingsmelding": {
+      "comment": "Meldingstitel; code scanning of Advanced Security",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritische Sicherheitswarnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critical Security Alert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerte de sécurité critique"
+          }
+        }
+      }
+    },
+    "Kritieke kwetsbaarheid": {
+      "comment": "Meldingstitel",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritische Sicherheitslücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critical Vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilité critique"
+          }
+        }
+      }
+    },
     "Kwetsbaarheden:": {
       "localizations": {
         "de": {
@@ -7178,6 +7403,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licence"
+          }
+        }
+      }
+    },
+    "Lichte kwetsbaarheid": {
+      "comment": "Meldingstitel; ernst low",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geringfügige Sicherheitslücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low-Severity Vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilité faible"
           }
         }
       }
@@ -7367,16 +7615,16 @@
     },
     "Major-update": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Major update"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Major-Update"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major update"
           }
         },
         "fr": {
@@ -7389,16 +7637,16 @@
     },
     "Major-update binnen bereik": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Major update within range"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Major-Update im Bereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Major update within range"
           }
         },
         "fr": {
@@ -7411,16 +7659,16 @@
     },
     "Manifest aanpassen nodig": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Needs a manifest change"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Manifest muss geändert werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a manifest change"
           }
         },
         "fr": {
@@ -7432,6 +7680,7 @@
       }
     },
     "Markeer als gelezen": {
+      "comment": "Knop op een melding",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -7497,6 +7746,29 @@
         }
       }
     },
+    "Matige kwetsbaarheid": {
+      "comment": "Meldingstitel; ernst moderate",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mittlere Sicherheitslücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moderate Vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilité modérée"
+          }
+        }
+      }
+    },
     "Melding": {
       "localizations": {
         "de": {
@@ -7537,50 +7809,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notifier quand une PR est fusionnée"
-          }
-        }
-      }
-    },
-    "Melding bij een nieuwe kritieke of hoge beveiligingsmelding": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mitteilung bei einer neuen kritischen oder hohen Sicherheitswarnung"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notify on a new critical or high security alert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notification pour une nouvelle alerte de sécurité critique ou élevée"
-          }
-        }
-      }
-    },
-    "Melding bij een nieuwe versie": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei neuer Version benachrichtigen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notify about a new version"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notifier d’une nouvelle version"
           }
         }
       }
@@ -7729,24 +7957,92 @@
         }
       }
     },
-    "Minor-update binnen bereik": {
+    "Meldingen van %@ staan uit": {
+      "comment": "Na Repo dempen op een melding; repo",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungen von %@ sind aus"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Minor update within range"
+            "value": "Notifications from %@ are off"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les notifications de %@ sont désactivées"
+          }
+        }
+      }
+    },
+    "Merge request gemerged": {
+      "comment": "Meldingstitel; GitLab",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Request gemergt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Request Merged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge request fusionnée"
+          }
+        }
+      }
+    },
+    "Minor-update binnen bereik": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Minor-Update im Bereich"
           }
         },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minor update within range"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Mise à jour mineure dans la plage"
+          }
+        }
+      }
+    },
+    "Na de dagelijkse check van je gevolgde repo's.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach der täglichen Prüfung deiner gefolgten Repositories."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the daily check of the repositories you follow."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après la vérification quotidienne des dépôts que tu suis."
           }
         }
       }
@@ -7917,6 +8213,233 @@
         }
       }
     },
+    "Nieuwe beveiligingsmelding": {
+      "comment": "Meldingstitel; code scanning of Advanced Security",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Sicherheitswarnung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Security Alert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle alerte de sécurité"
+          }
+        }
+      }
+    },
+    "Nieuwe concept-merge request": {
+      "comment": "Meldingstitel; GitLab",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Entwurf eines Merge Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Draft Merge Request"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle merge request en brouillon"
+          }
+        }
+      }
+    },
+    "Nieuwe concept-pull request": {
+      "comment": "Meldingstitel; een PR die nog concept (draft) is",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Entwurf eines Pull Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Draft Pull Request"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle pull request en brouillon"
+          }
+        }
+      }
+    },
+    "Nieuwe kritieke of hoge beveiligingsmeldingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue kritische oder hohe Sicherheitswarnungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New critical or high security alerts"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles alertes de sécurité critiques ou graves"
+          }
+        }
+      }
+    },
+    "Nieuwe kwetsbaarheden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Sicherheitslücken"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles vulnérabilités"
+          }
+        }
+      }
+    },
+    "Nieuwe kwetsbaarheid": {
+      "comment": "Meldingstitel; ernst onbekend",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Sicherheitslücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle vulnérabilité"
+          }
+        }
+      }
+    },
+    "Nieuwe merge request": {
+      "comment": "Meldingstitel; GitLab",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Merge Request"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Merge Request"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle merge request"
+          }
+        }
+      }
+    },
+    "Nieuwe pre-release %@": {
+      "comment": "Meldingstitel; tagnaam",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Vorab-Release %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Pre-release %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle préversion %@"
+          }
+        }
+      }
+    },
+    "Nieuwe pull request": {
+      "comment": "Meldingstitel",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Pull Request"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Pull Request"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle pull request"
+          }
+        }
+      }
+    },
+    "Nieuwe pull requests": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Pull Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New pull requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles pull requests"
+          }
+        }
+      }
+    },
     "Nieuwe pull requests en tags uit GitHub en Azure DevOps in je menubalk.": {
       "localizations": {
         "de": {
@@ -7983,6 +8506,51 @@
         }
       }
     },
+    "Nieuwe release %@": {
+      "comment": "Meldingstitel; tagnaam",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Release %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Release %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle version %@"
+          }
+        }
+      }
+    },
+    "Nieuwe releases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Releases"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New releases"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles versions publiées"
+          }
+        }
+      }
+    },
     "Nieuwe repositories": {
       "localizations": {
         "de": {
@@ -8001,6 +8569,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nouveaux dépôts"
+          }
+        }
+      }
+    },
+    "Nieuwe tag %@": {
+      "comment": "Meldingstitel; tagnaam",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tag %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tag %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau tag %@"
           }
         }
       }
@@ -8049,18 +8640,62 @@
         }
       }
     },
-    "Nieuwere versie": {
+    "Nieuwe tags zonder release": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Tags ohne Release"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Newer version"
+            "value": "New tags without a release"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveaux tags sans version publiée"
+          }
+        }
+      }
+    },
+    "Nieuwe versies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles versions"
+          }
+        }
+      }
+    },
+    "Nieuwere versie": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neuere Version"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer version"
           }
         },
         "fr": {
@@ -8073,16 +8708,16 @@
     },
     "Nieuwere versie, status onbekend": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Newer version, status unknown"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neuere Version, Status unbekannt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer version, status unknown"
           }
         },
         "fr": {
@@ -8095,16 +8730,16 @@
     },
     "Nieuwste die nu kan: %@": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Newest you can use now: %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neueste, die jetzt geht: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newest you can use now: %@"
           }
         },
         "fr": {
@@ -8389,6 +9024,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onbekend"
+          }
+        }
+      }
+    },
+    "Ongedaan maken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widerrufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }
@@ -9695,22 +10352,44 @@
     },
     "Patch-update binnen bereik": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Patch update within range"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Patch-Update im Bereich"
           }
         },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patch update within range"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Correctif dans la plage"
+          }
+        }
+      }
+    },
+    "Per repo zet je meldingen uit met de bel bij de repo, of met Repo dempen op een melding. Meer dan 20 tegelijk worden één melding per repo.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro Repository schaltest du Mitteilungen mit der Glocke daneben aus, oder mit Repository stummschalten in einer Mitteilung. Mehr als 20 auf einmal werden zu einer Mitteilung pro Repository."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn notifications off per repository with the bell next to it, or with Mute Repository on a notification. More than 20 at once become one notification per repository."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactive les notifications d’un dépôt avec la cloche à côté, ou avec Mettre le dépôt en sourdine sur une notification. Plus de 20 à la fois deviennent une notification par dépôt."
           }
         }
       }
@@ -9931,6 +10610,52 @@
         }
       }
     },
+    "Pull request afgerond": {
+      "comment": "Meldingstitel; Azure DevOps noemt mergen completed",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request abgeschlossen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request Completed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request terminée"
+          }
+        }
+      }
+    },
+    "Pull request gemerged": {
+      "comment": "Meldingstitel",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request gemergt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request Merged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request fusionnée"
+          }
+        }
+      }
+    },
     "Pull request, draft": {
       "localizations": {
         "de": {
@@ -10067,6 +10792,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pull requests"
+          }
+        }
+      }
+    },
+    "Pull requests en tags": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests und Tags"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests and tags"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests et tags"
           }
         }
       }
@@ -10473,6 +11220,28 @@
         }
       }
     },
+    "Pullwatch staat alleen in het Dock zolang er een venster open is": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ist nur im Dock, solange ein Fenster offen ist"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch is only in the Dock while a window is open"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch n’est dans le Dock que lorsqu’une fenêtre est ouverte"
+          }
+        }
+      }
+    },
     "Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).": {
       "localizations": {
         "de": {
@@ -10617,6 +11386,29 @@
         }
       }
     },
+    "Repo dempen": {
+      "comment": "Knop op een melding: geen meldingen meer van deze soort voor deze repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository stummschalten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute Repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre le dépôt en sourdine"
+          }
+        }
+      }
+    },
     "Repo niet gevonden": {
       "localizations": {
         "de": {
@@ -10736,6 +11528,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recherche des dépôts…"
+          }
+        }
+      }
+    },
+    "Repopagina openen": {
+      "comment": "Knop op een melding: opent de pagina van de repo in Pullwatch",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository-Seite öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Repository Page"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la page du dépôt"
           }
         }
       }
@@ -11023,6 +11838,28 @@
         }
       }
     },
+    "Sluiten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
+          }
+        }
+      }
+    },
     "Soort": {
       "localizations": {
         "de": {
@@ -11201,6 +12038,72 @@
         }
       }
     },
+    "Stijl, geluid en voorbeelden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stil, Ton und Vorschauen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style, sound and previews"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style, son et aperçus"
+          }
+        }
+      }
+    },
+    "Stille uren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhezeiten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hours"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heures calmes"
+          }
+        }
+      }
+    },
+    "Stip in de menubalk bij ongelezen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punkt in der Menüleiste bei Ungelesenem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dot in the menu bar for unread items"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point dans la barre des menus pour les non-lus"
+          }
+        }
+      }
+    },
     "Stop Pullwatch": {
       "localizations": {
         "de": {
@@ -11263,6 +12166,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arrête la récupération ; ce qui est déjà arrivé reste"
+          }
+        }
+      }
+    },
+    "Systeeminstellingen openen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemeinstellungen öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les Réglages Système"
           }
         }
       }
@@ -11785,6 +12710,51 @@
         }
       }
     },
+    "Toon in Pullwatch": {
+      "comment": "Knop op een melding van een kwetsbaarheid: opent Afhankelijkheden",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Pullwatch zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher dans Pullwatch"
+          }
+        }
+      }
+    },
+    "Tot": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À"
+          }
+        }
+      }
+    },
     "Transitief": {
       "localizations": {
         "de": {
@@ -11967,16 +12937,16 @@
     },
     "Update beschikbaar": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Update available"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Update verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update available"
           }
         },
         "fr": {
@@ -11989,16 +12959,16 @@
     },
     "Update binnen bereik": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Update within range"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Update im Bereich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update within range"
           }
         },
         "fr": {
@@ -12011,16 +12981,16 @@
     },
     "Update buiten bereik": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Update outside range"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Update außerhalb des Bereichs"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update outside range"
           }
         },
         "fr": {
@@ -12081,6 +13051,28 @@
         }
       }
     },
+    "Van": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De"
+          }
+        }
+      }
+    },
     "Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.": {
       "localizations": {
         "de": {
@@ -12105,10 +13097,10 @@
     },
     "Vastgehouden op %@ door %@, dat %@ vraagt. Nog geen versie van %@ laat %@ toe.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Nog geen versie van %4$@ laat %5$@ toe."
+            "state": "translated",
+            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Noch keine Version von %4$@ erlaubt %5$@."
           }
         },
         "en": {
@@ -12117,26 +13109,26 @@
             "value": "Held at %1$@ by %2$@, which asks for %3$@. No version of %4$@ allows %5$@ yet."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Noch keine Version von %4$@ erlaubt %5$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Bloqué à %1$@ par %2$@, qui demande %3$@. Aucune version de %4$@ n’autorise encore %5$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Nog geen versie van %4$@ laat %5$@ toe."
           }
         }
       }
     },
     "Vastgehouden op %@ door %@, dat %@ vraagt. Werk eerst %@ bij naar %@.": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Werk eerst %4$@ bij naar %5$@."
+            "state": "translated",
+            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Aktualisiere zuerst %4$@ auf %5$@."
           }
         },
         "en": {
@@ -12145,16 +13137,16 @@
             "value": "Held at %1$@ by %2$@, which asks for %3$@. Update %4$@ to %5$@ first."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei %1$@ gehalten von %2$@, das %3$@ verlangt. Aktualisiere zuerst %4$@ auf %5$@."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Bloqué à %1$@ par %2$@, qui demande %3$@. Mettez d’abord %4$@ à jour vers %5$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Werk eerst %4$@ bij naar %5$@."
           }
         }
       }
@@ -13198,10 +14190,10 @@
     },
     "Werk %@ bij naar %@; dat valt binnen het bereik, alleen de lockfile verandert": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "Werk %1$@ bij naar %2$@; dat valt binnen het bereik, alleen de lockfile verandert"
+            "state": "translated",
+            "value": "Aktualisiere %1$@ auf %2$@; das liegt im Bereich, nur die Lockfile ändert sich"
           }
         },
         "en": {
@@ -13210,26 +14202,26 @@
             "value": "Update %1$@ to %2$@; that is within range, only the lockfile changes"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktualisiere %1$@ auf %2$@; das liegt im Bereich, nur die Lockfile ändert sich"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Mettez à jour %1$@ vers %2$@ ; c’est dans la plage, seul le fichier lock change"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij naar %2$@; dat valt binnen het bereik, alleen de lockfile verandert"
           }
         }
       }
     },
     "Werk %@ bij naar %@; dat valt buiten het bereik, pas het manifest aan": {
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
-            "state": "new",
-            "value": "Werk %1$@ bij naar %2$@; dat valt buiten het bereik, pas het manifest aan"
+            "state": "translated",
+            "value": "Aktualisiere %1$@ auf %2$@; das liegt außerhalb des Bereichs, ändere das Manifest"
           }
         },
         "en": {
@@ -13238,16 +14230,16 @@
             "value": "Update %1$@ to %2$@; that is outside the range, change the manifest"
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktualisiere %1$@ auf %2$@; das liegt außerhalb des Bereichs, ändere das Manifest"
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Mettez à jour %1$@ vers %2$@ ; c’est hors de la plage, modifiez le manifeste"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij naar %2$@; dat valt buiten het bereik, pas het manifest aan"
           }
         }
       }
@@ -13276,28 +14268,6 @@
           "stringUnit": {
             "state": "new",
             "value": "Werk %1$@ bij, zodat het %2$@ %3$@ of nieuwer binnenhaalt"
-          }
-        }
-      }
-    },
-    "Zie Afhankelijkheden in het hoofdvenster": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Siehe Abhängigkeiten im Hauptfenster"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "See Dependencies in the main window"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voir Dépendances dans la fenêtre principale"
           }
         }
       }
@@ -13747,6 +14717,229 @@
           "stringUnit": {
             "state": "translated",
             "value": "par %@"
+          }
+        }
+      }
+    },
+    "door %@ en %@": {
+      "comment": "Wie de PR maakte en de enige co-auteur",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "von %1$@ und %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by %1$@ and %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "par %1$@ et %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "door %1$@ en %2$@"
+          }
+        }
+      }
+    },
+    "door %@ en %lld anderen": {
+      "comment": "Wie de PR maakte; aantal co-auteurs",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "von %1$@ und %#@count@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg weiteren Person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg weiteren Personen"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by %1$@ and %#@count@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg other"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg others"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "par %1$@ et %#@count@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg autre personne"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg autres personnes"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "door %1$@ en %#@count@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ander"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg anderen"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "en nog %lld": {
+      "comment": "Laatste regel van een melding; aantal regels dat niet getoond wordt",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "und %lld weitere"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "und %lld weitere"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "and %lld more"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "and %lld more"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "et %lld de plus"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "et %lld de plus"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "en nog %lld"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "en nog %lld"
+                }
+              }
+            }
           }
         }
       }

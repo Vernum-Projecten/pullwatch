@@ -88,16 +88,21 @@ import PullwatchTestSupport
         #expect(Tag.fixture(name: "v2", release: release).releaseTitle == "Versie 2")
     }
 
-    @Test func releasesAndTagsAreSummarisedApart() {
+    @Test func releasesComeBeforeTagsAndKeepTheirOwnKind() {
         let releases = (1...4).map { Tag.fixture(repo: "p/r", name: "v\($0)", release: ReleaseInfo(title: "R\($0)", url: release.url)) }
         let plain = Tag.fixture(repo: "p/r", name: "nightly")
 
-        let plans = NotificationPlanner.plan(pullRequests: [], tags: releases + [plain])
+        let plans = NotificationPlanner.plan(pullRequests: [], tags: [plain] + releases)
 
-        #expect(plans == [
-            .summary(kind: .release, count: 4, lines: ["p/r: R1", "p/r: R2", "p/r: R3"]),
-            .tag(plain),
-        ])
+        #expect(plans == releases.map { .single(.tag($0)) } + [.single(.tag(plain))])
+        let kinds: [NotificationKind?] = plans.map { plan in
+            if case .single(let item) = plan { item.kind } else { nil }
+        }
+        #expect(kinds == [.release, .release, .release, .release, .tag])
+        // Releases staan los aan of uit van tags.
+        var settings = NotificationSettings()
+        settings.releases = false
+        #expect(NotificationPlanner.plan(pullRequests: [], tags: [plain] + releases, settings: settings) == [.single(.tag(plain))])
     }
 
     @Test func oldSeenStateDecodesWithoutFingerprints() throws {

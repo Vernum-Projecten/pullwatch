@@ -77,6 +77,20 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
     /// Repo's die het package alleen transitief hebben: niet zelf bij te werken, dus nooit "achter".
     public let transitiveOnly: [PackageUser]
 
+    public init(
+        id: String, label: String, kind: String, latest: String?, since: Date?,
+        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser]
+    ) {
+        self.id = id
+        self.label = label
+        self.kind = kind
+        self.latest = latest
+        self.since = since
+        self.behind = behind
+        self.current = current
+        self.transitiveOnly = transitiveOnly
+    }
+
     public var state: State {
         guard latest != nil else { return .unchecked }
         return behind.isEmpty ? .current : .updateAvailable
