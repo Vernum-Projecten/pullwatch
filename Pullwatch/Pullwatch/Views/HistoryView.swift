@@ -393,7 +393,7 @@ private struct HistoryToolbar: ToolbarContent {
         }
         ToolbarItem {
             Button {
-                Task { await polling.refetchHistory() }
+                polling.startRefetch()
             } label: {
                 Label("Opnieuw ophalen", systemImage: "arrow.clockwise")
             }

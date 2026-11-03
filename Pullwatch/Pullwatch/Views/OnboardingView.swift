@@ -506,6 +506,8 @@ struct NotificationPermissionRow: View {
     @Environment(NotificationsModel.self) private var notifications
     @State private var status: UNAuthorizationStatus?
     @State private var asking = false
+    /// Telt de klikken op Vragen; de vraag loopt in een `.task` van deze rij, die hem bezit.
+    @State private var askRequests = 0
 
     /// UI-tests slaan de vraag over: die zou een echt systeemvenster openen.
     private var requestsByItself: Bool { !UserDefaults.standard.bool(forKey: "PullwatchSkipNotificationRequest") }
@@ -526,6 +528,9 @@ struct NotificationPermissionRow: View {
             for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
                 status = await notifications.notificationStatus()
             }
+        }
+        .task(id: askRequests) {
+            if askRequests > 0 { await ask() }
         }
     }
 
@@ -559,7 +564,7 @@ struct NotificationPermissionRow: View {
             if asking {
                 ProgressView().controlSize(.small)
             } else {
-                Button("Vragen") { Task { await ask() } }
+                Button("Vragen") { askRequests += 1 }
                 .accessibilityIdentifier("onboarding.allowNotifications")
             }
         }

@@ -35,7 +35,11 @@ final class VersionsModel {
     @ObservationIgnored var didChangeReport: () -> Void = {}
     @ObservationIgnored var didChangeSeenPackages: () -> Void = {}
 
-    @ObservationIgnored private var versionTask: Task<Void, Never>?
+    /// De check over alle (of alleen de net gevolgde) repo's die nu loopt: één tegelijk, en
+    /// `cancelCheck()` stopt hem.
+    @ObservationIgnored private var checkTask: Task<Void, Never>?
+    /// De losse checks van één repo die nu lopen, op `RepoVersions.id`.
+    @ObservationIgnored private var repoTasks: [String: Task<Void, Never>] = [:]
     /// Vroegste moment voor de volgende automatische versiecheck (na een mislukte of lopende poging).
     @ObservationIgnored private var nextAutoVersionAttempt: Date?
     /// Wat er per account gevolgd werd bij de laatste check van net gevolgde repo's.
@@ -43,8 +47,6 @@ final class VersionsModel {
     /// Repo's (`Account.repoKey`) die al een keer los gecheckt zijn, zodat een repo die steeds
     /// mislukt of niet in de lijst van de dienst staat niet elke poll opnieuw gaat.
     @ObservationIgnored private var attemptedNewRepos: Set<String> = []
-    /// Loopt `checkNewRepos`; de balk verschijnt pas als er echt repo's te checken zijn.
-    @ObservationIgnored private var isCheckingNewRepos = false
     /// De metadata uit de registers van het huidige rapport, één keer gelezen, en per repo de
     /// context voor de blokkades; opnieuw bij een nieuw rapport.
     @ObservationIgnored private var registryIndex = RegistryIndex.empty
@@ -104,7 +106,7 @@ final class VersionsModel {
 
     /// Stopt de check die de balk onderin toont; repo's die al gecheckt zijn blijven.
     func cancelCheck() {
-        versionTask?.cancel()
+        checkTask?.cancel()
     }
 
     /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat.
@@ -114,20 +116,23 @@ final class VersionsModel {
         if let nextAutoVersionAttempt, now < nextAutoVersionAttempt { return }
         if let last = versionReport?.checkedAt, now.timeIntervalSince(last) < VersionReport.autoInterval { return }
         nextAutoVersionAttempt = now + VersionReport.autoRetryInterval
-        Task { await checkVersions(automatic: true) }
+        startCheck(automatic: true)
     }
 
     /// Leest per gevolgde repo de taal- en frameworkversies, vergelijkt ze met endoflife.date en zoekt CVE's.
     /// Automatisch: een volledig mislukte check (bv. offline) overschrijft het vorige resultaat niet,
-    /// en nieuwe CVE's ten opzichte van de vorige check geven een melding.
-    func checkVersions(automatic: Bool = false) async {
-        guard versionCheck == nil, refreshingRepos.isEmpty else { return }
+    /// en nieuwe CVE's ten opzichte van de vorige check geven een melding. Niet als er al een
+    /// check loopt, ook niet een van één repo.
+    func startCheck(automatic: Bool = false) {
+        guard checkTask == nil, versionCheck == nil, refreshingRepos.isEmpty else { return }
         versionCheck = .starting
-        let task = Task { await runVersionCheck(automatic: automatic) }
-        versionTask = task
-        await task.value
-        versionTask = nil
-        versionCheck = nil
+        checkTask = Task {
+            defer {
+                checkTask = nil
+                versionCheck = nil
+            }
+            await runVersionCheck(automatic: automatic)
+        }
     }
 
     private func runVersionCheck(automatic: Bool) async {
@@ -178,21 +183,28 @@ final class VersionsModel {
         }
     }
 
-    /// Checkt één repo opnieuw en vervangt alleen die regel; geen meldingen.
-    func refreshVersions(of repo: RepoSummary) async {
-        guard versionCheck == nil, !refreshingRepos.contains(repo.id),
+    /// Checkt één repo opnieuw en vervangt alleen die regel; geen meldingen. Niet tijdens een
+    /// check van alle repo's, en per repo één tegelijk.
+    func startRefresh(of repo: RepoSummary) {
+        guard checkTask == nil, versionCheck == nil, repoTasks[repo.id] == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
+        repoTasks[repo.id] = Task {
+            defer {
+                repoTasks[repo.id] = nil
+                refreshingRepos.remove(repo.id)
+            }
+            await runRefresh(of: repo, account: account)
+        }
+    }
+
+    private func runRefresh(of repo: RepoSummary, account: Account) async {
         let checker = services.versionChecker(metadataCache: versionReport?.packageMetadata ?? [:])
         let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
-        guard let report = versionReport else {
-            refreshingRepos.remove(repo.id)
-            return
-        }
+        guard let report = versionReport else { return }
         let updated = await checker.completingAdvisories(
             of: report.replacing(fresh, latest: latest, metadata: metadata), accounts: config.pollableAccounts
         )
-        refreshingRepos.remove(repo.id)
         // Tijdens het opzoeken kan een andere check het rapport vervangen hebben; dan alleen de repo.
         versionReport = versionReport == report ? updated : versionReport?.replacing(fresh, latest: latest, metadata: metadata)
         save(versionReport!)
@@ -210,39 +222,37 @@ final class VersionsModel {
     /// gevolgd, of nieuw bij de dienst) krijgen meteen hun check, niet pas bij de dagelijkse.
     /// Alleen met de dagelijkse check aan en als er al een rapport is (anders doet die alles).
     func startNewRepoVersionCheckIfNeeded(after result: PollResult) {
-        guard config.autoVersionCheck, versionCheck == nil, !isCheckingNewRepos, refreshingRepos.isEmpty,
+        guard config.autoVersionCheck, checkTask == nil, versionCheck == nil, refreshingRepos.isEmpty,
               let report = versionReport else { return }
         let accounts = config.pollableAccounts
         guard NewRepoVersionCheck.isNeeded(
             after: result, accounts: accounts, report: report, attempted: attemptedNewRepos, lastScope: lastFollowScope
         ) else { return }
         lastFollowScope = NewRepoVersionCheck.scope(of: accounts)
-        Task { await checkNewRepos() }
+        // De balk verschijnt pas als er echt repo's te checken zijn (de eerste voortgang).
+        checkTask = Task {
+            defer {
+                checkTask = nil
+                versionCheck = nil
+            }
+            await runNewRepoCheck(from: report)
+        }
     }
 
-    private func checkNewRepos() async {
-        guard versionCheck == nil, !isCheckingNewRepos, let start = versionReport else { return }
-        isCheckingNewRepos = true
-        defer { isCheckingNewRepos = false }
-        let task = Task {
-            let checker = services.versionChecker(metadataCache: start.packageMetadata)
-            let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
-                self.versionCheck = CheckProgress(done: done, total: total)
-            }
-            attemptedNewRepos.formUnion(fresh.repos.map { Account.repoKey(accountId: $0.accountId, repo: $0.repo) })
-            let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos
-            guard !repos.isEmpty, let report = versionReport else { return }
-            logger.notice("\(repos.count) net gevolgde repo's gecheckt")
-            let updated = await checker.completingAdvisories(
-                of: report.replacing(repos, latest: fresh.latest, metadata: fresh.metadata), accounts: config.pollableAccounts
-            )
-            versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest, metadata: fresh.metadata)
-            save(versionReport!)
+    private func runNewRepoCheck(from start: VersionReport) async {
+        let checker = services.versionChecker(metadataCache: start.packageMetadata)
+        let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
+            self.versionCheck = CheckProgress(done: done, total: total)
         }
-        versionTask = task
-        await task.value
-        versionTask = nil
-        versionCheck = nil
+        attemptedNewRepos.formUnion(fresh.repos.map { Account.repoKey(accountId: $0.accountId, repo: $0.repo) })
+        let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos
+        guard !repos.isEmpty, let report = versionReport else { return }
+        logger.notice("\(repos.count) net gevolgde repo's gecheckt")
+        let updated = await checker.completingAdvisories(
+            of: report.replacing(repos, latest: fresh.latest, metadata: fresh.metadata), accounts: config.pollableAccounts
+        )
+        versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest, metadata: fresh.metadata)
+        save(versionReport!)
     }
 
     // MARK: - Meldingen

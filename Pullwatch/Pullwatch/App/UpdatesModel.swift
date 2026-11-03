@@ -24,6 +24,8 @@ final class UpdatesModel {
     /// Sparkle, als de build een openbare sleutel heeft; anders alleen de melding met downloadknop.
     @ObservationIgnored let updater = Updater()
     @ObservationIgnored private var nextUpdateCheck: Date?
+    /// De check die nu loopt (vanzelf of met "Nu controleren"); één tegelijk.
+    @ObservationIgnored private var checkTask: Task<Void, Never>?
     @ObservationIgnored private let services: AppServices
     @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private let notifications: NotificationsModel
@@ -64,13 +66,22 @@ final class UpdatesModel {
         guard config.checkForUpdates, !isCheckingForUpdates else { return }
         if let nextUpdateCheck, Date() < nextUpdateCheck { return }
         nextUpdateCheck = Date() + 3600
-        Task { await checkForUpdates(manual: false) }
+        startCheck(manual: false)
+    }
+
+    /// Start een check, tenzij er al een loopt.
+    func startCheck(manual: Bool) {
+        guard checkTask == nil else { return }
+        checkTask = Task {
+            defer { checkTask = nil }
+            await checkForUpdates(manual: manual)
+        }
     }
 
     /// Kijkt op GitHub naar een nieuwere release. Automatisch: één melding per nieuwe versie.
     /// Met Sparkle uit de appcast (en met "Nu controleren" meteen Sparkle's venster); zonder
     /// sleutel uit de nieuwste release, met de DMG als download.
-    func checkForUpdates(manual: Bool) async {
+    private func checkForUpdates(manual: Bool) async {
         guard !isCheckingForUpdates else { return }
         isCheckingForUpdates = true
         defer { isCheckingForUpdates = false }

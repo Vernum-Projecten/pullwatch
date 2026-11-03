@@ -114,6 +114,15 @@ CI treats warnings as errors.
   (`ProcessRunner` turns `terminationHandler` and `readabilityHandler` into
   streams). Not `FileHandle.bytes` on a pipe: with several processes at once
   it can miss the end of the output and hang until the timeout.
+- **Every long-running job has one owning task**, stored on the model that
+  runs it (`VersionsModel.checkTask`, `PollingModel.refreshTask`,
+  `UpdatesModel.checkTask`, the loop and wake tasks of `AppModel`), started
+  by a `start…()` method that refuses a second one and cleared in a `defer`
+  inside the task. A view calls `versions.startCheck()`, never
+  `Task { await versions.check() }`: an unowned task cannot be cancelled or
+  told apart from the next one. A task a view needs for its own lifetime
+  goes in `.task` or `.task(id:)`. A stream of events (notification clicks)
+  is an `AsyncStream` with one consumer, not a callback property.
 - Cancellation is cooperative. A long call takes
   `withTaskCancellationHandler` to stop its work (terminate the process,
   cancel the request); a loop checks `Task.isCancelled` or calls

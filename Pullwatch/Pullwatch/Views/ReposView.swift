@@ -141,7 +141,7 @@ struct ReposView: View {
                     Button("Open in browser") { NSWorkspace.shared.open(url) }
                 }
                 Button("Check deze repo opnieuw") {
-                    Task { await versions.refreshVersions(of: summary) }
+                    versions.startRefresh(of: summary)
                 }
                 .disabled(versions.versionCheck != nil || versions.versionReport == nil)
             }
@@ -214,7 +214,7 @@ struct CheckAllToolbarItem: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItem {
             Button {
-                Task { await versions.checkVersions() }
+                versions.startCheck()
             } label: {
                 Label("Alles checken", systemImage: "checkmark.shield")
             }

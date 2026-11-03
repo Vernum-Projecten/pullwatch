@@ -24,6 +24,13 @@ final class AppModel {
 
     @ObservationIgnored private var loopTask: Task<Void, Never>?
     @ObservationIgnored private var wakeTask: Task<Void, Never>?
+    /// Klikken op meldingen, zolang de app draait.
+    @ObservationIgnored private var responseTask: Task<Void, Never>?
+    /// De vraag om meldingen bij het opstarten.
+    @ObservationIgnored private var permissionTask: Task<Void, Never>?
+    #if DEBUG
+    @ObservationIgnored private var tourTask: Task<Void, Never>?
+    #endif
 
     private init() {
         let services = AppServices()
@@ -75,7 +82,11 @@ final class AppModel {
         updates.start()
         let notifier = services.notifier
         notifier.registerCategories()
-        notifier.onResponse = { [weak self] action, payload in self?.handleNotification(action, payload) }
+        responseTask = Task { [weak self] in
+            for await response in notifier.responses {
+                self?.handleNotification(response.action, response.payload)
+            }
+        }
 
         wakeTask = Task { [weak self] in
             for await _ in NSWorkspace.shared.notificationCenter.notifications(named: NSWorkspace.didWakeNotification) {
@@ -97,11 +108,11 @@ final class AppModel {
         // Bij een eerste start vraagt het welkomstvenster om meldingen, met uitleg erbij;
         // anders zoals altijd bij het opstarten (macOS vraagt het maar één keer).
         if !accounts.needsOnboarding {
-            Task { [weak self] in await self?.notifications.requestNotifications() }
+            permissionTask = Task { [weak self] in await self?.notifications.requestNotifications() }
         }
 
         #if DEBUG
-        Task { [weak self] in
+        tourTask = Task { [weak self] in
             if let self { await SnapshotTour.runIfRequested(self) }
         }
         #endif
@@ -156,14 +167,14 @@ final class AppModel {
     /// ⌘R: de geopende repo opnieuw checken, in PR's, Tags en Statistieken pollen, anders alles checken.
     func refreshCurrent() {
         if case .repo(let id)? = router.path.last, let summary = overview.repoSummariesById[id] {
-            Task { await versions.refreshVersions(of: summary) }
+            versions.startRefresh(of: summary)
             return
         }
         switch router.mainSection {
         case .repos, .dependencies:
-            Task { await versions.checkVersions() }
+            versions.startCheck()
         case .pullRequests, .tags, .stats:
-            Task { await polling.refreshNow() }
+            polling.refresh()
         }
     }
 
@@ -186,7 +197,7 @@ final class AppModel {
     /// Volgen en meldingen van één repo, direct opgeslagen; daarna meteen pollen.
     func setWatch(_ set: WatchSet, repo: String, accountId: UUID) {
         guard accounts.setWatch(set, repo: repo, accountId: accountId) else { return }
-        Task { await polling.refreshNow() }
+        polling.refresh()
     }
 
     /// Bewaart een account (`AccountsModel.saveAccount`) en pollt kort daarna.
