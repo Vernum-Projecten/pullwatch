@@ -25,8 +25,8 @@ Set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` when
 
 ## Follow the code that is there
 
-This is Alessandro's codebase; changes go back to him as pull requests, so
-they read like his code.
+This is Alessandro's codebase; our work goes back to him as one combined
+pull request at the end, so it reads like his code.
 
 - **Comments and design documents are Dutch**, like the rest of the code and
   `docs/superpowers/`. Commit subjects, PR titles and issues are English.

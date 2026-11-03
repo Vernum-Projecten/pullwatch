@@ -12,13 +12,18 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 - `upstream` = `alessandro823/pullwatch`, Alessandro's repository and the
   source of truth. We have read access only.
-- `origin` = `Vernum-Projecten/pullwatch`, our fork. Branches, issues and
-  their relations live here; every change goes back to upstream as a pull
-  request from a fork branch.
+- `origin` = `Vernum-Projecten/pullwatch`, our fork. Branches, issues,
+  their relations and pull requests all live here: each change merges into
+  the fork's `main` through a pull request in the fork
+  (`gh pr create --repo Vernum-Projecten/pullwatch --base main`).
+- **No pull request goes to upstream until all our work is done.** Then the
+  fork's `main` goes to Alessandro as one combined pull request. Never open
+  a pull request against `alessandro823/pullwatch` before the owner says so.
 - `gh repo set-default Vernum-Projecten/pullwatch` once per clone, so `gh`
   and `scripts/gh/*` act on the fork, not on upstream.
-- Before starting a branch: `git fetch upstream && git switch main && git
-  merge --ff-only upstream/main && git push origin main`.
+- When Alessandro pushes new work: `git fetch upstream`, then merge
+  `upstream/main` into the fork's `main` through a pull request in the fork,
+  so the final pull request stays mergeable.
 
 ## Repository map
 
@@ -53,8 +58,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 ## Hard rules
 
-- **Never push to upstream.** Push to `origin` and open a pull request; the
-  Claude Bash hook refuses a push to upstream.
+- **Never push to upstream.** Push to `origin` and open a pull request in
+  the fork; the Claude Bash hook refuses a push to upstream.
 - **No secrets in the tree.** Tokens live in the Keychain; the Developer ID
   certificate, the notarisation credentials and (later) Sparkle's private
   key are Alessandro's and live in Actions secrets and his Keychain. The
@@ -107,7 +112,8 @@ exactly one work-kind label (`documentation`, `chore`, `refactor`, `perf`,
 (`scripts/gh/rel.sh parent <child> <epic>`); order is `rel.sh blocked-by`.
 Read an issue with `gh issue view <n> --json title,body,comments`.
 
-A change lands through a PR on a conventional-type branch (a Bug is `fix/`,
+A change lands in the fork's `main` through a PR in the fork, on a
+conventional-type branch (a Bug is `fix/`,
 a Feature `feat/`, a Task its work kind), with conventional commit subjects
 in English (`feat: …`, `fix: …`), as upstream's history does. The PR body
 says what changed and why, and links the fork issue. Prefer what

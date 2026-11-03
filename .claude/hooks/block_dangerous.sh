@@ -5,7 +5,7 @@
 #   - rm -rf outside the temp directory
 #   - force-pushes touching main, and bare force-pushes
 #   - any push to the upstream repository (alessandro823/pullwatch): work
-#     goes to the fork and reaches upstream as a pull request
+#     goes to the fork; upstream gets one combined pull request at the end
 #   - security commands that would export or delete signing identities
 
 set -euo pipefail
