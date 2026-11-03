@@ -24,14 +24,14 @@ struct AccountEditor: View {
     @State private var draft: Account
     @State private var pat = ""
     @State private var connectionMessage: String?
-    @State private var availableRepos: [String] = []
-    @State private var repoSearch = ""
+    /// De repositories van de dienst; nil zolang ze laden.
+    @State private var availableRepos: [String]?
     @State private var repoError: String?
-    @State private var loadingRepos = false
+    /// Opnieuw laden met de knop.
+    @State private var reloadCount = 0
     @State private var storedPAT = false
     @State private var saveError: String?
     @State private var testTask: Task<Void, Never>?
-    @State private var reposTask: Task<Void, Never>?
     /// Accounts waarmee `gh` is ingelogd; leeg tot ze geladen zijn.
     @State private var ghAccounts: [String] = []
     /// Inloggen met GitHub voor dit account (code, goedkeuring, installaties); nil bij een
@@ -70,15 +70,20 @@ struct AccountEditor: View {
 
     var body: some View {
         Form {
-            Section("Account") {
-                Picker("Authenticatie", selection: $draft.authMethod) {
-                    if offersGitHubApp {
-                        Text("Inloggen met GitHub").tag(AuthMethod.gitHubApp)
+            Section("Inloggen") {
+                if isNew {
+                    Picker("Authenticatie", selection: $draft.authMethod) {
+                        if offersGitHubApp {
+                            Text("Inloggen met GitHub").tag(AuthMethod.gitHubApp)
+                        }
+                        Text("Personal Access Token").tag(AuthMethod.pat)
+                        if offersCLI {
+                            Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
+                        }
                     }
-                    Text("Personal Access Token").tag(AuthMethod.pat)
-                    if offersCLI {
-                        Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
-                    }
+                } else {
+                    // Een bestaand account houdt zijn manier van inloggen; anders opnieuw toevoegen.
+                    LabeledContent("Authenticatie") { Text(methodName) }
                 }
                 if draft.authMethod == .gitHubApp, let signIn {
                     GitHubSignInRow(signIn: signIn)
@@ -104,6 +109,12 @@ struct AccountEditor: View {
                         storedPAT ? String(localized: "Opgeslagen, laat leeg om te behouden") : String(localized: "Token"),
                         text: $pat
                     )
+                    if !isNew && !pat.isEmpty {
+                        HStack {
+                            Spacer()
+                            Button("Token bewaren") { save() }
+                        }
+                    }
                 }
                 if draft.authMethod != .gitHubApp {
                 HStack {
@@ -125,79 +136,20 @@ struct AccountEditor: View {
                 }
             }
 
-            Section("Meldingen") {
+            Section {
                 Toggle("Draft-PR's meenemen", isOn: $draft.includeDrafts)
                 Toggle("Eigen PR's verbergen", isOn: $draft.hideOwn)
+            } header: {
+                Text("Welke PR's tellen mee")
+            } footer: {
+                Text("Geldt overal: in het menu, de geschiedenis en de meldingen.")
             }
 
-            Section("Repositories") {
-                Picker("Nieuwe repo's volgen", selection: $draft.newRepoDefault) {
-                    Text("Niets").tag(NewRepoDefault.none)
-                    Text("PR's").tag(NewRepoDefault.prs)
-                }
-
-                HStack {
-                    TextField("Zoeken", text: $repoSearch)
-                    Button(loadingRepos ? "Laden…" : "Repos laden") {
-                        reposTask?.cancel()
-                        reposTask = Task { await loadRepos() }
-                    }
-                    .disabled(!hasRequiredFields || reposTask != nil)
-                }
-                if let repoError {
-                    Text(repoError).font(.caption).foregroundStyle(.red)
-                }
-                ScrollView {
-                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
-                        GridRow {
-                            Text("Repo").font(.caption).foregroundStyle(.secondary)
-                            HStack(spacing: 4) {
-                                Toggle("Alle PR's", sources: filteredRepos.map { binding(for: $0, \.prs) }, isOn: \.self)
-                                    .tint(ItemKind.pullRequest.color)
-                                    .help("PR's aan/uit voor alle zichtbare repo's")
-                                    .disabled(filteredRepos.isEmpty)
-                                Text("PR's").font(.caption).foregroundStyle(ItemKind.pullRequest.color)
-                                AllNotifyButton(sources: filteredRepos.map { binding(for: $0, \.notifyPRs) })
-                            }
-                            HStack(spacing: 4) {
-                                Toggle("Alle tags", sources: filteredRepos.map { binding(for: $0, \.tags) }, isOn: \.self)
-                                    .tint(ItemKind.tag.color)
-                                    .help("Tags aan/uit voor alle zichtbare repo's")
-                                    .disabled(filteredRepos.isEmpty)
-                                Text("Tags").font(.caption).foregroundStyle(ItemKind.tag.color)
-                                AllNotifyButton(sources: filteredRepos.map { binding(for: $0, \.notifyTags) })
-                            }
-                            HStack(spacing: 4) {
-                                Toggle("Alle completed", sources: filteredRepos.map { binding(for: $0, \.completed) }, isOn: \.self)
-                                    .tint(PRState.merged.color)
-                                    .help("Completed aan/uit voor alle zichtbare repo's")
-                                    .disabled(filteredRepos.isEmpty)
-                                Text("Completed").font(.caption).foregroundStyle(PRState.merged.color)
-                                AllNotifyButton(sources: filteredRepos.map { binding(for: $0, \.notifyCompleted) })
-                            }
-                            .help("Melding als een PR in deze repo gemerged wordt (binnen ~15 minuten)")
-                        }
-                        Divider()
-                        ForEach(filteredRepos, id: \.self) { repo in
-                            GridRow {
-                                Text(repo)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                watchCell(repo, \.prs, notify: \.notifyPRs, tint: ItemKind.pullRequest.color)
-                                watchCell(repo, \.tags, notify: \.notifyTags, tint: ItemKind.tag.color)
-                                watchCell(repo, \.completed, notify: \.notifyCompleted, tint: PRState.merged.color)
-                            }
-                        }
-                    }
-                    .toggleStyle(.checkbox)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(minHeight: 140)
+            if draft.isComplete {
+                RepoFollowList(account: $draft, available: availableRepos, error: repoError) { reloadCount += 1 }
             }
 
-            if saveAction == nil {
+            if isNew && saveAction == nil {
             VStack(alignment: .trailing, spacing: 4) {
                 if let validationMessage {
                     Text(validationMessage).font(.caption).foregroundStyle(.secondary)
@@ -269,14 +221,16 @@ struct AccountEditor: View {
         .onChange(of: signIn?.login) { _, login in
             if let login { draft.login = login }
         }
-        .onChange(of: draft.owners) { _, owners in
-            guard draft.authMethod == .gitHubApp, !owners.isEmpty else { return }
-            reposTask?.cancel()
-            reposTask = Task { await loadRepos() }
+        // Bestaand account: elke wijziging meteen bewaren (geen Opslaan in Instellingen).
+        .onChange(of: draft) { _, account in
+            if !isNew { model.updateAccount(account) }
+        }
+        // De repositories laden vanzelf, opnieuw als de plekken of het inloggen veranderen.
+        .task(id: RepoLoad(owners: draft.owners, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
+            await loadRepos()
         }
         .onDisappear {
             testTask?.cancel()
-            reposTask?.cancel()
         }
     }
 
@@ -307,38 +261,6 @@ struct AccountEditor: View {
         }
     }
 
-    private var filteredRepos: [String] {
-        let sorted = Account.mergedRepoNames(available: availableRepos, configured: Array(draft.repoWatch.keys))
-        guard !repoSearch.isEmpty else { return sorted }
-        return sorted.filter { $0.localizedCaseInsensitiveContains(repoSearch) }
-    }
-
-    /// Vinkje voor volgen plus belletje voor de melding; het belletje doet pas iets als je volgt.
-    private func watchCell(
-        _ repo: String,
-        _ field: WritableKeyPath<WatchSet, Bool>,
-        notify: WritableKeyPath<WatchSet, Bool>,
-        tint: Color
-    ) -> some View {
-        HStack(spacing: 4) {
-            Toggle("Volgen", isOn: binding(for: repo, field))
-                .tint(tint)
-            NotifyButton(isOn: binding(for: repo, notify))
-                .disabled(!draft.watch(for: repo)[keyPath: field])
-        }
-    }
-
-    private func binding(for repo: String, _ field: WritableKeyPath<WatchSet, Bool>) -> Binding<Bool> {
-        Binding(
-            get: { draft.watch(for: repo)[keyPath: field] },
-            set: { isOn in
-                var watch = draft.watch(for: repo)
-                watch[keyPath: field] = isOn
-                draft.setWatch(watch, for: repo)
-            }
-        )
-    }
-
     private func provider() -> any PRProvider {
         model.provider(for: draft, pat: pat.isEmpty ? nil : pat)
     }
@@ -359,15 +281,31 @@ struct AccountEditor: View {
         }
     }
 
-    private func loadRepos() async {
-        loadingRepos = true
-        repoError = nil
-        defer {
-            loadingRepos = false
-            reposTask = nil
+    /// Wanneer de repositories opnieuw moeten laden.
+    private struct RepoLoad: Equatable {
+        let owners: [String]
+        let method: AuthMethod
+        let cliUser: String?
+        let hasNewToken: Bool
+        let signedIn: Bool
+        let reload: Int
+    }
+
+    private var methodName: LocalizedStringKey {
+        switch draft.authMethod {
+        case .gitHubApp: "Inloggen met GitHub"
+        case .pat: "Personal Access Token"
+        case .cli: draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)"
         }
+    }
+
+    private func loadRepos() async {
+        guard draft.isComplete, draft.authMethod != .gitHubApp || signIn?.isSignedIn == true,
+              draft.authMethod != .pat || storedPAT || !pat.isEmpty else { return }
+        availableRepos = nil
+        repoError = nil
         do {
-            let repos = try await provider().listRepos()
+            let repos = try await model.repositories(for: draft, pat: pat.isEmpty ? nil : pat)
             if Task.isCancelled { return }
             availableRepos = repos
         } catch let error as ProviderError {
@@ -377,43 +315,5 @@ struct AccountEditor: View {
             if Task.isCancelled { return }
             repoError = error.localizedDescription
         }
-    }
-}
-
-/// Belletje: wel of geen melding voor iets dat je volgt.
-private struct NotifyButton: View {
-    @Binding var isOn: Bool
-    @Environment(\.isEnabled) private var isEnabled
-
-    var body: some View {
-        Button {
-            isOn.toggle()
-        } label: {
-            Image(systemName: isOn ? "bell.fill" : "bell.slash")
-                .foregroundStyle(isOn && isEnabled ? Color.primary : Color.secondary)
-                .opacity(isEnabled ? 1 : 0.3)
-        }
-        .buttonStyle(.borderless)
-        .help(isOn ? String(localized: "Melding aan; klik om alleen te volgen zonder melding") : String(localized: "Geen melding; staat wel in menu en geschiedenis"))
-    }
-}
-
-/// Belletje in de kop: alles aan, of alles uit als alles al aan staat.
-private struct AllNotifyButton: View {
-    let sources: [Binding<Bool>]
-
-    private var allOn: Bool { sources.allSatisfy(\.wrappedValue) }
-
-    var body: some View {
-        Button {
-            let target = !allOn
-            for source in sources { source.wrappedValue = target }
-        } label: {
-            Image(systemName: allOn ? "bell.fill" : "bell.slash")
-                .foregroundStyle(.secondary)
-        }
-        .buttonStyle(.borderless)
-        .disabled(sources.isEmpty)
-        .help(allOn ? String(localized: "Meldingen uit voor alle zichtbare repo's") : String(localized: "Meldingen aan voor alle zichtbare repo's"))
     }
 }

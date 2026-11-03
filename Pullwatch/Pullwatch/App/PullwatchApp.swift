@@ -10,6 +10,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if AppModel.isTestHost { return }
         UNUserNotificationCenter.current().delegate = Notifier.shared
         AppModel.shared.start()
+        #if DEBUG
+        // Voor schermafbeeldingen: meteen de instellingen open.
+        if UserDefaults.standard.bool(forKey: "PullwatchOpenSettings") { AppModel.shared.show(.settings) }
+        #endif
     }
 
     /// De app opnieuw openen terwijl hij al draait (Finder, Spotlight, Launchpad, `open`)
@@ -98,6 +102,7 @@ struct PullwatchApp: App {
 private struct MenuBarLabel: View {
     let model: AppModel
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         HStack(spacing: 2) {
@@ -117,7 +122,11 @@ private struct MenuBarLabel: View {
         }
         .onChange(of: model.windowRequest) { _, request in
             guard let request else { return }
-            openWindow(id: request.window.rawValue)
+            if request.window == .settings {
+                openSettings()
+            } else {
+                openWindow(id: request.window.rawValue)
+            }
             NSApp.activate()
             model.windowRequest = nil
         }
