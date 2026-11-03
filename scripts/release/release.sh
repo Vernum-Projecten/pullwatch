@@ -3,15 +3,23 @@
 #
 # Bouwt Pullwatch (Release, universal) en maakt met package.sh
 # dist/Pullwatch-<versie>.dmg (met installatievenster) en dist/Pullwatch-<versie>.zip.
-# Standaard: gesigned met Developer ID (hardened runtime), genotariseerd en
-# gestapled, zodat de DMG zonder Gatekeeper-waarschuwing opent. Met
-# --unsigned: ad-hoc gesigned, voor lokaal testen.
+# Dezelfde stappen lokaal en in .github/workflows/release.yml.
+#
+# Standaard: de app gesigned met Developer ID (hardened runtime),
+# genotariseerd en gestapled, daarna verpakt, en de dmg zelf ook gesigned,
+# genotariseerd en gestapled. Zo opent de dmg zonder Gatekeeper-waarschuwing
+# en draagt de app in de zip (voor de updater) zijn eigen ticket. Met
+# --unsigned: ad-hoc gesigned, voor lokaal testen en voor CI.
 #
 # Nodig voor een gesignde release: een Developer ID Application-certificaat
-# in de Keychain en een notarytool-profiel
-# (xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>).
-# Andere waarden met SIGN_ID=… en NOTARY_PROFILE=….
-# De versie komt uit Pullwatch/App.xcconfig (MARKETING_VERSION).
+# in een Keychain in de zoeklijst, en voor notarytool een van beide:
+#   - lokaal een Keychain-profiel
+#     (xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>),
+#     ander profiel met NOTARY_PROFILE=…;
+#   - in CI een App Store Connect API-sleutel: NOTARY_KEY_FILE (pad naar de
+#     .p8), NOTARY_KEY_ID en NOTARY_ISSUER_ID.
+# Een andere identiteit met SIGN_ID=…. De versie en het buildnummer komen uit
+# Pullwatch/App.xcconfig (MARKETING_VERSION, CURRENT_PROJECT_VERSION).
 
 set -euo pipefail
 
@@ -40,12 +48,52 @@ derived="$root/build"
 app="$derived/Build/Products/Release/Pullwatch.app"
 dmg="$root/dist/Pullwatch-$version.dmg"
 
+# De inloggegevens voor notarytool: de API-sleutel als die er is (CI), anders
+# het Keychain-profiel.
+if [ -n "${NOTARY_KEY_FILE:-}" ]; then
+  : "${NOTARY_KEY_ID:?NOTARY_KEY_FILE is set, so NOTARY_KEY_ID is needed too}"
+  : "${NOTARY_ISSUER_ID:?NOTARY_KEY_FILE is set, so NOTARY_ISSUER_ID is needed too}"
+  notary_auth=(--key "$NOTARY_KEY_FILE" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID")
+else
+  notary_auth=(--keychain-profile "$NOTARY_PROFILE")
+fi
+
+# Stuurt een bestand naar Apple en wacht op het oordeel; bij een afwijzing
+# komt het logboek van Apple in de uitvoer.
+notarise() {
+  local out id
+  out="$(xcrun notarytool submit "$1" "${notary_auth[@]}" --wait --timeout 30m --output-format plist)" || true
+  id="$(plutil -extract id raw -o - - <<<"$out" 2>/dev/null || true)"
+  if [ "$(plutil -extract status raw -o - - <<<"$out" 2>/dev/null || true)" != "Accepted" ]; then
+    echo "notarisation of $1 failed:" >&2
+    printf '%s\n' "$out" >&2
+    if [ -n "$id" ]; then xcrun notarytool log "$id" "${notary_auth[@]}" >&2 || true; fi
+    exit 1
+  fi
+  echo "notarised $1 ($id)"
+}
+
+if ((sign)); then
+  security find-identity -v -p codesigning | grep -qF "$SIGN_ID" || {
+    echo "no code signing identity matching '$SIGN_ID' in the keychain search list; see docs/releasing.md" >&2
+    exit 1
+  }
+fi
+
+rm -rf "$derived/Build/Products/Release"
 xcodebuild -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -configuration Release \
   -destination 'generic/platform=macOS' -derivedDataPath "$derived" build
 
 if ((sign)); then
   codesign --force --options runtime --timestamp --sign "$SIGN_ID" "$app"
   codesign --verify --strict --verbose=2 "$app"
+  # De app eerst, zodat ook de app in de zip een gestapled ticket heeft.
+  zip="$derived/notarise.zip"
+  ditto -c -k --keepParent "$app" "$zip"
+  notarise "$zip"
+  rm -f "$zip"
+  xcrun stapler staple "$app"
+  spctl --assess --type execute --verbose=2 "$app"
 fi
 
 # Het installatievenster (achtergrond, pijl, vaste posities) en de zip voor
@@ -54,7 +102,7 @@ fi
 
 if ((sign)); then
   codesign --force --timestamp --sign "$SIGN_ID" "$dmg"
-  xcrun notarytool submit "$dmg" --keychain-profile "$NOTARY_PROFILE" --wait
+  notarise "$dmg"
   xcrun stapler staple "$dmg"
   spctl --assess --type open --context context:primary-signature --verbose "$dmg"
 fi

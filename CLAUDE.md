@@ -72,16 +72,27 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Tests/PullwatchCoreTests/`: its Swift Testing suites; `Support/` has
   `MockHTTPClient` and `MockProcessRunner`.
 - `docs/setup.md`: everything the maintainer configures outside the code
-  (signing, the GitHub App, later the release secrets), each with its steps;
+  (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
   in step with the code. `docs/superpowers/`: Alessandro's design specs and
   plans (Dutch).
-- `scripts/release/release.sh [--unsigned]`: Release build (universal), DMG,
-  and with a Developer ID also signing, notarisation and stapling.
-  `package.sh <app> <version> <out-dir>` makes `Pullwatch-<version>.dmg`
-  (the install window: background from `dmg-background.swift`, icons placed
-  by Finder through AppleScript) and `Pullwatch-<version>.zip`. The icon
-  positions in both files must match.
+- `.github/workflows/`: `ci.yml` (every pull request and push to `main`:
+  shellcheck and actionlint, `swift test`, `xcodebuild test` with the unit
+  and UI tests, `release.sh --unsigned` with a universal check; no secrets)
+  and `release.yml` (a `v*` tag: check, sign, notarise, package, draft
+  release). `.github/actionlint.yaml` names the `xcode-27` runner label.
+  `CHANGELOG.md` (Keep a Changelog) gives each release its notes.
+  `docs/releasing.md`: the release procedure and its Actions secrets.
+- `scripts/release/release.sh [--unsigned]`: Release build (universal), and
+  with a Developer ID also signing, notarisation and stapling of the app
+  and the DMG; local (notarytool profile) and in `release.yml` (API key in
+  `NOTARY_KEY_FILE`). `package.sh <app> <version> <out-dir>` makes
+  `Pullwatch-<version>.dmg` (the install window: background from
+  `dmg-background.swift`, icons placed by Finder through AppleScript) and
+  `Pullwatch-<version>.zip`. The icon positions in both files must match.
+  `check-version.sh vX.Y.Z` (tag, `MARKETING_VERSION`, build number and
+  changelog agree), `notes.sh vX.Y.Z` (the changelog section),
+  `protect-tags.sh` (the `v*` tag ruleset).
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
   (issue type, Priority, Effort), `rel.sh` (sub-issues and blocked-by),
   `labels.sh` (the label set). `scripts/dev/xcode-skills.sh` exports
@@ -168,8 +179,16 @@ it again; each issue lists the files to copy.
 
 ## Releases
 
-Today: `scripts/release/release.sh` on Alessandro's Mac (Developer ID of Code24 BV,
-notarytool profile `pullwatch`) builds a signed, notarised DMG (and a
-zip for the coming updater) that he uploads to a GitHub release `vX.Y.Z`. The app's `UpdateChecker` reads
-`releases/latest` once a day. The release lane moves to CI with Sparkle
-updates in #8 and #9.
+A tag `vX.Y.Z` on `main` runs `.github/workflows/release.yml`: it checks
+that the tag, `MARKETING_VERSION` and a dated `CHANGELOG.md` section agree,
+imports the Developer ID of Code24 BV from Actions secrets into a keychain
+of its own, runs `scripts/release/release.sh` (sign, notarise, staple,
+package) and attaches the DMG and zip to a draft release with the changelog
+section as notes. Alessandro checks the draft and publishes it; the app's
+`UpdateChecker` reads `releases/latest` once a day. The secrets are his and
+exist only in his repository: in the fork the lane stops at once and names
+the missing ones. `docs/releasing.md` has the procedure and the secret
+names. `release.sh` on his Mac (notarytool profile `pullwatch`) still makes
+the same files. Every change worth noting gets a line under `[Unreleased]`
+in `CHANGELOG.md`. Sparkle's signed appcast follows in #9 (its spot is
+marked in `release.yml`).

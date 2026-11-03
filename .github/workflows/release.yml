@@ -1,0 +1,152 @@
+name: Release
+
+# A tag vX.Y.Z on main produces a DRAFT GitHub release "Pullwatch X.Y.Z":
+# Pullwatch-X.Y.Z.dmg for people and Pullwatch-X.Y.Z.zip for the updater.
+# The app and the disk image are signed with the Developer ID, notarised and
+# stapled by scripts/release/release.sh, the same script the maintainer runs
+# on his Mac. The maintainer checks the draft and publishes it; the app's
+# update check only sees published releases. docs/releasing.md has the
+# procedure and the secrets. Without the secrets (as in a fork) the lane
+# stops in its first job and says which ones are missing.
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions: {}
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+
+jobs:
+  plan:
+    name: tag matches version and changelog, secrets present
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          bash scripts/release/check-version.sh "$TAG"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+      - name: the release secrets exist
+        env:
+          DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          missing=()
+          for name in DEVELOPER_ID_P12 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER_ID; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if ((${#missing[@]})); then
+            echo "::error title=Release secrets missing::${missing[*]} not set in $GITHUB_REPOSITORY. A signed release needs the maintainer's Developer ID and notarisation secrets; see docs/releasing.md."
+            exit 1
+          fi
+          echo "ok: every release secret is set"
+
+  build:
+    name: build, sign, notarise, package
+    needs: plan
+    runs-on: xcode-27
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # No build cache on a publishing lane: nothing an untrusted run wrote
+      # may reach a release artifact.
+      - name: the Developer ID certificate, in a keychain of its own
+        env:
+          P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          password="$(uuidgen)"
+          printf '%s' "$P12" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/developer-id.p12" -k "$keychain" -P "$P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          read -r -a existing <<<"$(security list-keychains -d user | tr -d '"' | tr '\n' ' ')"
+          security list-keychains -d user -s "$keychain" "${existing[@]}"
+          rm "$RUNNER_TEMP/developer-id.p12"
+          security find-identity -v -p codesigning "$keychain"
+      - name: release.sh (sign, notarise, staple, package)
+        env:
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          export NOTARY_KEY_FILE="$RUNNER_TEMP/notary.p8"
+          printf '%s' "$NOTARY_KEY" > "$NOTARY_KEY_FILE"
+          trap 'rm -f "$NOTARY_KEY_FILE"' EXIT
+          scripts/release/release.sh
+      # Sparkle (#9): the update feed signed with Sparkle's EdDSA key comes
+      # here, as in FerroLICENCE's release.yml: generate_appcast over the
+      # zip with secrets.SPARKLE_PRIVATE_KEY on stdin, then
+      # verify-update.swift against the public key inside the app, and
+      # appcast.xml added to dist/ and to the asset list in publish.
+      - name: the files of the release
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          for f in "Pullwatch-$VERSION.dmg" "Pullwatch-$VERSION.zip"; do
+            test -s "dist/$f" || { echo "missing dist/$f" >&2; exit 1; }
+          done
+          shasum -a 256 dist/*
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+      - name: remove the keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true
+
+  publish:
+    name: draft release with every file
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+      - name: release notes from the changelog
+        env:
+          TAG: ${{ github.ref_name }}
+        run: bash scripts/release/notes.sh "$TAG" > notes.md
+      - name: create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          assets=("dist/Pullwatch-$VERSION.dmg" "dist/Pullwatch-$VERSION.zip")
+          for f in "${assets[@]}"; do
+            test -s "$f" || { echo "missing $f" >&2; exit 1; }
+          done
+          gh release create "$TAG" --repo "$REPO" --draft --verify-tag --title "Pullwatch $VERSION" --notes-file notes.md "${assets[@]}"
+          echo "draft release $TAG created; check it and publish it on GitHub" >> "$GITHUB_STEP_SUMMARY"
