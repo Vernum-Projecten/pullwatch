@@ -1,17 +1,27 @@
 import PullwatchCore
 import SwiftUI
 
+/// Wat het zichtbare onderdeel geselecteerd heeft, voor ⌘O. Een gegeven, geen actie: de
+/// opdracht doet het werk via het model.
+enum BrowserTarget: Equatable {
+    /// PR's of tags uit de geschiedenis (gaan bij openen op gelezen).
+    case history([String])
+    case page(URL)
+}
+
+extension FocusedValues {
+    @Entry var browserTarget: BrowserTarget?
+}
+
 /// Menu "Ga" met sneltoetsen: ⌘1–5 voor de onderdelen, ⌘F zoeken, ⌘R verversen, ⌘[ terug, ⌘O openen.
 struct ShortcutCommands: Commands {
     let model: AppModel
+    @FocusedValue(\.browserTarget) private var browserTarget
 
     var body: some Commands {
         CommandMenu("Ga") {
             ForEach(Array([MainSection.pullRequests, .tags, .repos, .versions, .stats].enumerated()), id: \.element) { index, section in
-                Button(section.title) {
-                    model.mainSection = section
-                    model.openMainWindow?()
-                }
+                Button(section.title) { model.show(section) }
                 .keyboardShortcut(KeyEquivalent(Character(String(index + 1))), modifiers: .command)
             }
             Divider()
@@ -22,8 +32,11 @@ struct ShortcutCommands: Commands {
             Button("Terug") { model.goBack() }
                 .keyboardShortcut("[")
                 .disabled(model.selectedRepoId == nil)
-            Button("Open in browser") { model.openInBrowserRequest += 1 }
-                .keyboardShortcut("o")
+            Button("Open in browser") {
+                if let browserTarget { model.open(browserTarget) }
+            }
+            .keyboardShortcut("o")
+            .disabled(browserTarget == nil || browserTarget == .history([]))
         }
     }
 }

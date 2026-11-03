@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk; Instellingen staat los onderaan.
 enum MainSection: String, CaseIterable, Identifiable {
-    case pullRequests, tags, repos, versions, stats, settings
+    case pullRequests, tags, repos, versions, stats
 
     var id: Self { self }
 
@@ -14,7 +14,6 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .repos: "Repo's"
         case .versions: "Versies"
         case .stats: "Statistieken"
-        case .settings: "Instellingen"
         }
     }
 
@@ -25,7 +24,6 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .repos: "folder"
         case .versions: "shippingbox"
         case .stats: "chart.bar"
-        case .settings: "gearshape"
         }
     }
 }
@@ -54,7 +52,7 @@ struct MainView: View {
         case .tags: model.history.unreadCount(.tag)
         case .versions: model.unseenPackageUpdates
         case .repos: model.repoSummaries.filter { $0.health == .problem }.count
-        case .stats, .settings: 0
+        case .stats: 0
         }
     }
 
@@ -120,15 +118,6 @@ struct MainView: View {
                 row(.versions)
                 row(.stats)
             }
-            .safeAreaInset(edge: .bottom) {
-                // Vast onderaan, los van de inhoud; een eigen List zodat de selectie er hetzelfde uitziet.
-                List(selection: $model.sidebarSelection) {
-                    row(.settings)
-                }
-                .scrollDisabled(true)
-                .frame(height: 36)
-                .overlay(alignment: .top) { Divider() }
-            }
             .navigationSplitViewColumnWidth(min: 170, ideal: 200)
         } detail: {
             switch model.sidebarSelection {
@@ -143,7 +132,6 @@ struct MainView: View {
                 case .repos: ReposView(model: model)
                 case .versions: PackagesView(model: model)
                 case .stats: StatsView(model: model)
-                case .settings: SettingsView(model: model)
                 }
             }
         }

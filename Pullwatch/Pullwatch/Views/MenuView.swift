@@ -75,7 +75,7 @@ struct MenuView: View {
                             Button("Open repo \(item.entry.repo)") {
                                 NSApp.keyWindow?.orderOut(nil)
                                 model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
-                                model.openMainWindow?()
+                                model.show(.main)
                             }
                         }
                 }
@@ -90,7 +90,7 @@ struct MenuView: View {
                             Button("Open repo \(item.entry.repo)") {
                                 NSApp.keyWindow?.orderOut(nil)
                                 model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
-                                model.openMainWindow?()
+                                model.show(.main)
                             }
                         }
                 }
@@ -123,11 +123,18 @@ struct MenuView: View {
     }
 }
 
+/// Opent het Instellingen-venster (de Settings-scene), vooraan: de app draait in de menubalk.
 struct SettingsButton: View {
     let model: AppModel
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        OpenWindowButton(title: "Instellingen…", windowId: "main") { model.mainSection = .settings }
+        Button("Instellingen…") {
+            NSApp.keyWindow?.orderOut(nil)
+            openSettings()
+            NSApp.activate()
+        }
+        .keyboardShortcut(",")
     }
 }
 

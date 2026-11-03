@@ -7,55 +7,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Als host van de unit-tests niet pollen, melden of naar updates kijken: dat zou met
         // de echte accounts en tokens van de ontwikkelaar gebeuren.
-        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
-        _ = AppLanguage.atLaunch
+        if AppModel.isTestHost { return }
         UNUserNotificationCenter.current().delegate = Notifier.shared
         AppModel.shared.start()
-        DockIcon.shared.start()
     }
 
     /// De app opnieuw openen terwijl hij al draait (Finder, Spotlight, Launchpad, `open`)
-    /// opent het hoofdvenster; anders gebeurt er zichtbaar niets en lijkt Pullwatch kapot.
+    /// opent het hoofdvenster, of het welkomstvenster zolang er geen account is; anders gebeurt
+    /// er zichtbaar niets en lijkt Pullwatch kapot.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         let model = AppModel.shared
-        if let open = model.needsOnboarding ? model.openOnboarding : model.openMainWindow {
-            open()
-        } else {
-            NSApp.activate()
-        }
+        model.show(model.needsOnboarding ? .onboarding : .main)
         return false
     }
 }
 
-/// Toont Pullwatch in het Dock zolang er een eigen venster (instellingen, hoofdvenster)
-/// open is; zonder venster draait de app weer alleen in de menubalk.
+/// Toont Pullwatch in het Dock zolang er een eigen venster open is (hoofdvenster, welkomstvenster,
+/// instellingen); zonder venster draait de app alleen in de menubalk. Elk venster meldt zich met
+/// `.countsAsOpenWindow(_:)`; een geminimaliseerd venster blijft meetellen.
 @MainActor
-final class DockIcon {
-    static let shared = DockIcon()
-    static let windowIds = ["main", "onboarding"]
+@Observable
+final class WindowPresence {
+    static let shared = WindowPresence()
 
-    func start() {
-        let center = NotificationCenter.default
-        for name in [NSWindow.didBecomeKeyNotification, NSWindow.didMiniaturizeNotification] {
-            center.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { DockIcon.shared.update() }
-            }
-        }
-        // Bij willClose is het venster nog zichtbaar; daarom pas daarna kijken.
-        center.addObserver(forName: NSWindow.willCloseNotification, object: nil, queue: .main) { _ in
-            DispatchQueue.main.async { MainActor.assumeIsolated { DockIcon.shared.update() } }
-        }
+    private(set) var openWindows: Set<String> = [] {
+        didSet { updateActivationPolicy() }
     }
 
-    private func update() {
-        let hasWindow = NSApp.windows.contains { window in
-            (window.isVisible || window.isMiniaturized)
-                && Self.windowIds.contains { window.identifier?.rawValue.hasPrefix($0) == true }
-        }
-        let policy: NSApplication.ActivationPolicy = hasWindow ? .regular : .accessory
+    func opened(_ window: String) { openWindows.insert(window) }
+    func closed(_ window: String) { openWindows.remove(window) }
+
+    private func updateActivationPolicy() {
+        let policy: NSApplication.ActivationPolicy = openWindows.isEmpty ? .accessory : .regular
         guard NSApp.activationPolicy() != policy else { return }
         NSApp.setActivationPolicy(policy)
-        if hasWindow { NSApp.activate() }
+        if policy == .regular { NSApp.activate() }
+    }
+}
+
+extension View {
+    /// Dit venster telt mee voor het Dock-icoon zolang het open is.
+    func countsAsOpenWindow(_ window: String) -> some View {
+        onAppear { WindowPresence.shared.opened(window) }
+            .onDisappear { WindowPresence.shared.closed(window) }
     }
 }
 
@@ -72,30 +66,35 @@ struct PullwatchApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Pullwatch", id: "main") {
+        Window("Pullwatch", id: WindowID.main.rawValue) {
             MainView(model: model)
+                .countsAsOpenWindow(WindowID.main.rawValue)
         }
         .commands {
             ShortcutCommands(model: model)
-            CommandGroup(replacing: .appSettings) {
-                Button("Instellingen…") {
-                    model.mainSection = .settings
-                    model.openMainWindow?()
-                }
-                .keyboardShortcut(",")
-            }
         }
         .windowResizability(.contentMinSize)
+        .defaultLaunchBehavior(.suppressed)
 
-        Window("Welkom bij Pullwatch", id: "onboarding") {
+        Window("Welkom bij Pullwatch", id: WindowID.onboarding.rawValue) {
             OnboardingView(model: model)
+                .countsAsOpenWindow(WindowID.onboarding.rawValue)
         }
         .windowResizability(.contentMinSize)
         .defaultPosition(.center)
+        // Eerste start: meteen het welkomstvenster, anders lijkt de app niet te starten.
+        .defaultLaunchBehavior(model.opensOnboardingAtLaunch ? .presented : .suppressed)
+        .restorationBehavior(.disabled)
+
+        Settings {
+            SettingsView(model: model)
+                .countsAsOpenWindow("settings")
+        }
     }
 }
 
-/// Icoon in de menubalk. Bestaat zolang de app draait en geeft het model daarom de `openWindow`-actie.
+/// Icoon in de menubalk. Bestaat zolang de app draait, en opent daarom de vensters waar het
+/// model om vraagt (`windowRequest`): alleen een view heeft `openWindow`.
 private struct MenuBarLabel: View {
     let model: AppModel
     @Environment(\.openWindow) private var openWindow
@@ -104,23 +103,16 @@ private struct MenuBarLabel: View {
         HStack(spacing: 2) {
             Image(systemName: model.menuBarSymbol)
             if model.history.unreadCount > 0 {
-                Text("•")
+                Image(systemName: "circle.fill")
+                    .imageScale(.small)
+                    .accessibilityLabel(Text("Ongelezen"))
             }
         }
-        .onAppear {
-            model.openMainWindow = {
-                openWindow(id: "main")
-                NSApp.activate()
-            }
-            model.openOnboarding = {
-                openWindow(id: "onboarding")
-                NSApp.activate()
-            }
-            // Eerste start: meteen het welkomstvenster, anders lijkt de app niet te starten.
-            // Niet als host van de unit-tests.
-            if model.needsOnboarding && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-                model.openOnboarding?()
-            }
+        .onChange(of: model.windowRequest) { _, request in
+            guard let request else { return }
+            openWindow(id: request.window.rawValue)
+            NSApp.activate()
+            model.windowRequest = nil
         }
     }
 }

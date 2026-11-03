@@ -6,10 +6,12 @@ struct SettingsView: View {
 
     var body: some View {
         TabView {
-            AccountsSettingsView(model: model)
-                .tabItem { Label("Accounts", systemImage: "person.2") }
-            GeneralSettingsView(model: model)
-                .tabItem { Label("Algemeen", systemImage: "gearshape") }
+            Tab("Accounts", systemImage: "person.2") {
+                AccountsSettingsView(model: model)
+            }
+            Tab("Algemeen", systemImage: "gearshape") {
+                GeneralSettingsView(model: model)
+            }
         }
         .frame(minWidth: 680, minHeight: 520)
     }
@@ -124,7 +126,6 @@ private struct AddAccountSheet: View {
 
 private struct GeneralSettingsView: View {
     let model: AppModel
-    @State private var language = AppLanguage.current
     @State private var logLevel = Log.minimum
 
     private let intervals = [60, 120, 300, 600, 900]
@@ -203,19 +204,6 @@ private struct GeneralSettingsView: View {
                 Text("Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.")
             }
             .onChange(of: logLevel) { _, level in Log.minimum = level }
-            Picker("Taal", selection: $language) {
-                ForEach(AppLanguage.allCases) { language in
-                    Text(verbatim: language.name).tag(language)
-                }
-            }
-            .onChange(of: language) { _, language in AppLanguage.select(language) }
-            if language != AppLanguage.atLaunch {
-                HStack {
-                    Text("De nieuwe taal werkt na een herstart.").font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Nu herstarten") { AppLanguage.relaunch() }
-                }
-            }
         }
         .formStyle(.grouped)
     }
