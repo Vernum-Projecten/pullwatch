@@ -188,11 +188,16 @@ private struct WelcomeStep: View {
 /// Tekststijlen in plaats van vaste maten, zodat hij meegroeit met grotere tekst; voor VoiceOver
 /// één beschrijving in plaats van losse symbolen.
 struct MenuBarHint: View {
+    /// Zo hoog als de tekst ernaast, en groeit mee met grotere tekst.
+    @ScaledMetric(relativeTo: .body) private var iconHeight = 17.0
+
     var body: some View {
         HStack(spacing: 14) {
             Spacer(minLength: 0)
-            Image(systemName: AppModel.menuBarSymbolName)
-                .fontWeight(.semibold)
+            Image(.menuBarIcon)
+                .resizable()
+                .scaledToFit()
+                .frame(height: iconHeight)
                 .padding(6)
                 .background(Circle().fill(.tint.opacity(0.18)))
                 .overlay(Circle().strokeBorder(.tint, lineWidth: 2))

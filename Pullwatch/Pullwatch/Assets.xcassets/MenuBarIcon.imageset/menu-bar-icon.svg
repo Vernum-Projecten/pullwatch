@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="232 182 560 672">
+  <!-- Het pull-request-teken uit het app-icoon (AppIcon.icon/Assets/pull-request.svg), strak
+       bijgesneden voor de menubalk. Een template: macOS kleurt het voor licht, donker en geselecteerd. -->
+  <g fill="#000000">
+    <circle cx="340" cy="292" r="86"/>
+    <circle cx="340" cy="732" r="86"/>
+    <rect x="304" y="292" width="72" height="440"/>
+    <circle cx="684" cy="732" r="86"/>
+    <path d="M720 732 V412 A156 156 0 0 0 564 256 H520 V328 H564 A84 84 0 0 1 648 412 V732 Z"/>
+    <path d="M461.4 279.2 L550.6 204.8 Q566 192 566 212 L566 372 Q566 392 550.6 379.2 L461.4 304.8 Q446 292 461.4 279.2 Z"/>
+  </g>
+</svg>
