@@ -11,6 +11,8 @@ package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         let status: Int
         let headers: [String: String]
         let body: String
+        /// Alleen voor verzoeken met (`true`) of zonder (`false`) `Authorization`; nil: allebei.
+        var authorized: Bool? = nil
     }
 
     private let lock = NSLock()
@@ -22,6 +24,13 @@ package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
 
     package func on(_ substring: String, status: Int = 200, headers: [String: String] = [:], body: String) {
         lock.withLock { routes.append(Route(substring: substring, status: status, headers: headers, body: body)) }
+    }
+
+    /// Als `on`, maar alleen voor verzoeken met (`authorized: true`) of zonder token.
+    package func on(_ substring: String, authorized: Bool, status: Int = 200, headers: [String: String] = [:], body: String) {
+        lock.withLock {
+            routes.append(Route(substring: substring, status: status, headers: headers, body: body, authorized: authorized))
+        }
     }
 
     /// Antwoorden die na elkaar komen voor dezelfde route; het laatste blijft daarna gelden.
@@ -37,7 +46,10 @@ package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
                 if sequences[key]!.count > 1 { sequences[key]!.removeFirst() }
                 return Route(substring: key, status: 200, headers: [:], body: body)
             }
-            return routes.first { url.absoluteString.contains($0.substring) }
+            let authorized = request.value(forHTTPHeaderField: "Authorization") != nil
+            return routes.first { route in
+                url.absoluteString.contains(route.substring) && (route.authorized.map { $0 == authorized } ?? true)
+            }
         }
         guard let route else { throw ProviderError.network("geen mock-route voor \(url.absoluteString)") }
         let response = HTTPURLResponse(url: url, statusCode: route.status, httpVersion: nil, headerFields: route.headers)!

@@ -45,7 +45,9 @@ public enum ProviderFactory {
                 http: http
             )
         case .gitHub:
-            return GitHubProvider(accountId: account.id, owners: account.owners, tokenSource: tokens, http: http)
+            return GitHubProvider(
+                accountId: account.id, owners: account.owners, extraRepos: account.extraRepos, tokenSource: tokens, http: http
+            )
         case .gitLab:
             return GitLabProvider(
                 accountId: account.id,

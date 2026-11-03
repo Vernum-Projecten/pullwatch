@@ -4,7 +4,7 @@ import PullwatchCore
 public actor GitHubProvider: PRProvider {
     enum OwnerKind { case organization, user }
 
-    private let accountId: UUID
+    let accountId: UUID
     /// De gevolgde eigenaren: het eigen account en/of organisaties.
     private let owners: [String]
     let tokenSource: any TokenSource
@@ -14,16 +14,25 @@ public actor GitHubProvider: PRProvider {
     let pageSize = 100
     let maxPages = 10
     private var ownerKinds: [String: OwnerKind] = [:]
+    /// Losse repo's (`Account.extraRepos`) waarvan de eigenaar niet gevolgd wordt: die krijgen
+    /// een eigen zoekopdracht en mogen zonder token gelezen worden (`GitHubProvider+ExtraRepos`).
+    let extraRepos: [String]
+    /// Hoe elke losse repo te lezen is, per repo lowercased; zie `access(for:)`.
+    var repoAccess: [String: (access: RepoAccess, at: Date)] = [:]
+    /// Tot wanneer de limiet voor verzoeken zonder token op is (60 per uur, zoeken 10 per minuut).
+    var anonymousPausedUntil: Date?
 
     public init(
         accountId: UUID,
         owners: [String],
+        extraRepos: [String] = [],
         tokenSource: any TokenSource,
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.accountId = accountId
         self.owners = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        self.extraRepos = Account.reposOutside(owners: self.owners, extraRepos)
         self.tokenSource = tokenSource
         self.http = http
         self.now = now
@@ -97,11 +106,12 @@ public actor GitHubProvider: PRProvider {
         }
     }
 
-    /// De repositories van alle gevolgde eigenaren, op naam.
+    /// De repositories van alle gevolgde eigenaren en de losse repo's, op naam.
     public func listRepos() async throws -> [String] {
         var names: [String] = []
         for owner in owners { names += try await listRepos(of: owner) }
-        return Array(Set(names)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        names += await extraRepoNames()
+        return Account.mergedRepoNames(available: names, configured: [])
     }
 
     private func listRepos(of owner: String) async throws -> [String] {
@@ -133,54 +143,50 @@ public actor GitHubProvider: PRProvider {
         return names
     }
 
-    /// Open PR's bij alle gevolgde eigenaren: één zoekopdracht per eigenaar (`user:` of `org:`).
+    /// Open PR's bij alle gevolgde eigenaren: één zoekopdracht per eigenaar (`user:` of `org:`),
+    /// plus de losse repo's in gebundelde zoekopdrachten (`repo:`).
     public func openPullRequests() async throws -> [PullRequest] {
         var result: [PullRequest] = []
-        for owner in owners { result += try await openPullRequests(of: owner) }
-        return result
-    }
-
-    private func openPullRequests(of owner: String) async throws -> [PullRequest] {
-        let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
-        var result: [PullRequest] = []
-        for page in 1...maxPages {
-            let response: SearchDTO = try await get(apiBase.appending(path: "search/issues"), query: [
-                URLQueryItem(name: "q", value: "is:pr is:open \(qualifier):\(owner)"),
-                URLQueryItem(name: "per_page", value: String(pageSize)),
-                URLQueryItem(name: "page", value: String(page)),
-            ])
-            for item in response.items {
-                result.append(try makePullRequest(item))
-            }
-            if response.items.count < pageSize || result.count >= response.totalCount { break }
+        for owner in owners {
+            let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
+            result += try await searchPullRequests("is:pr is:open \(qualifier):\(owner)", byUpdate: false, limit: .max)
         }
+        result += try await extraPullRequests("is:pr is:open", byUpdate: false, limit: .max)
         return result
     }
 
-    /// Bijgewerkte PR's bij alle gevolgde eigenaren, nieuwste eerst, samen hooguit `limit`.
+    /// Bijgewerkte PR's bij alle gevolgde eigenaren en losse repo's, nieuwste eerst, samen hooguit `limit`.
     public func pullRequests(updatedSince since: Date?, limit: Int) async throws -> [PullRequest] {
+        let updated = since.map { " updated:>=" + $0.formatted(Date.ISO8601FormatStyle(timeZone: .gmt)) } ?? ""
         var result: [PullRequest] = []
-        for owner in owners { result += try await pullRequests(of: owner, updatedSince: since, limit: limit) }
-        guard owners.count > 1 else { return result }
+        for owner in owners {
+            let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
+            result += try await searchPullRequests("is:pr \(qualifier):\(owner)\(updated)", byUpdate: true, limit: limit)
+        }
+        result += try await extraPullRequests("is:pr\(updated)", byUpdate: true, limit: limit)
+        guard owners.count + (extraRepos.isEmpty ? 0 : 1) > 1 else { return result }
         // Over eigenaren heen de recentste eerst (gesloten, anders geopend), zodat de grens eerlijk is.
         return Array(result.sorted { ($0.closedAt ?? $0.createdAt) > ($1.closedAt ?? $1.createdAt) }.prefix(limit))
     }
 
-    private func pullRequests(of owner: String, updatedSince since: Date?, limit: Int) async throws -> [PullRequest] {
-        let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
-        var q = "is:pr \(qualifier):\(owner)"
-        if let since {
-            q += " updated:>=" + since.formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
-        }
+    /// Eén zoekopdracht, alle pagina's tot `limit`; `byUpdate` sorteert op laatst bijgewerkt.
+    /// `anonymous` zonder token (openbare losse repo's).
+    func searchPullRequests(_ q: String, byUpdate: Bool, limit: Int, anonymous: Bool = false) async throws -> [PullRequest] {
         var result: [PullRequest] = []
         for page in 1...maxPages {
-            let response: SearchDTO = try await get(apiBase.appending(path: "search/issues"), query: [
-                URLQueryItem(name: "q", value: q),
-                URLQueryItem(name: "sort", value: "updated"),
-                URLQueryItem(name: "order", value: "desc"),
+            var query = [URLQueryItem(name: "q", value: q)]
+            if byUpdate {
+                query += [URLQueryItem(name: "sort", value: "updated"), URLQueryItem(name: "order", value: "desc")]
+            }
+            query += [
                 URLQueryItem(name: "per_page", value: String(pageSize)),
                 URLQueryItem(name: "page", value: String(page)),
-            ])
+            ]
+            let response = try JSONDecoding.decode(
+                SearchDTO.self,
+                from: try await send(apiBase.appending(path: "search/issues"), query: query, anonymous: anonymous).data,
+                snakeCase: true
+            )
             for item in response.items {
                 result.append(try makePullRequest(item))
             }
@@ -200,6 +206,12 @@ public actor GitHubProvider: PRProvider {
     /// (GraphQL geeft dan `null`, de hele batch 401/403) komt in `unavailableRepos`.
     public func tags(in repos: [String], unchanged known: [String: String]) async throws -> TagFetch {
         var fetch = TagFetch(tags: [])
+        // Losse repo's die alleen zonder token te lezen zijn gaan via REST (GraphQL vraagt altijd
+        // een token); de rest gaat samen via GraphQL.
+        let (signed, unsigned, unavailable) = try await splitByAccess(repos)
+        fetch.unavailableRepos += unavailable
+        for repo in unsigned { await restTags(repo, into: &fetch) }
+        let repos = signed
         var changed = repos.filter { known[$0] == nil }
         let checked = repos.filter { known[$0] != nil }
         for batch in checked.chunked(Self.fingerprintBatchSize) {
@@ -221,6 +233,11 @@ public actor GitHubProvider: PRProvider {
                 fetch.fingerprints[repo] = node.fingerprint
                 fetch.tags += makeTags(repo: repo, node)
             }
+        }
+        // Een losse repo die GraphQL niet gaf: nog één keer via REST, met token en anders zonder.
+        for repo in fetch.unavailableRepos where isExtra(repo) && repos.contains(repo) {
+            fetch.unavailableRepos.removeAll { $0 == repo }
+            await restTags(repo, into: &fetch)
         }
         return fetch
     }
@@ -342,7 +359,7 @@ public actor GitHubProvider: PRProvider {
 
     /// Een tag zonder release opent de bestanden op die tag; een release-pagina bestaat dan
     /// niet. De tagnaam wordt als één padsegment gecodeerd, dus "/" wordt %2F en "+" wordt %2B.
-    private func tagTreeURL(repo: String, tag: String) -> URL? {
+    func tagTreeURL(repo: String, tag: String) -> URL? {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         guard let encoded = tag.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
         return URL(string: "https://github.com/\(repo)/tree/\(encoded)")
@@ -356,7 +373,8 @@ public actor GitHubProvider: PRProvider {
     /// gebruikers met hun foto. Een PR die niet (meer) bestaat geeft een lege lijst.
     public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] {
         var result: [String: [Person]] = [:]
-        let known = pullRequests.filter { $0.repo.split(separator: "/").count == 2 }
+        // Repo's die alleen zonder token te lezen zijn slaan we over: GraphQL vraagt een token.
+        let known = pullRequests.filter { $0.repo.split(separator: "/").count == 2 && !readsWithoutToken($0.repo) }
         for start in stride(from: 0, to: known.count, by: Self.coAuthorBatch) {
             let batch = Array(known[start..<min(start + Self.coAuthorBatch, known.count)])
             let request = CoAuthorQueryDTO(batch)
@@ -383,10 +401,11 @@ public actor GitHubProvider: PRProvider {
     public func filePaths(in repo: String, ref: String?) async throws -> [String] {
         let tree: TreeDTO
         do {
-            tree = try await get(
+            tree = try JSONDecoding.decode(TreeDTO.self, from: try await repoData(
+                repo,
                 apiBase.appending(path: "repos").appending(path: repo).appending(path: "git/trees").appending(path: ref ?? "HEAD"),
                 query: [URLQueryItem(name: "recursive", value: "1")]
-            )
+            ), snakeCase: true)
         } catch ProviderError.server(status: 409) {
             return [] // lege repo
         }
@@ -394,7 +413,8 @@ public actor GitHubProvider: PRProvider {
     }
 
     public func fileContent(in repo: String, path: String, ref: String?) async throws -> String {
-        let data = try await data(
+        let data = try await repoData(
+            repo,
             apiBase.appending(path: "repos").appending(path: repo).appending(path: "contents").appending(path: path),
             query: ref.map { [URLQueryItem(name: "ref", value: $0)] } ?? [],
             accept: "application/vnd.github.raw+json"
@@ -454,13 +474,14 @@ public actor GitHubProvider: PRProvider {
     }
 
     /// Met `checked: false` zonder de status te controleren (de beveiligingsgegevens lezen 403
-    /// en 404 zelf).
+    /// en 404 zelf). Met `anonymous` zonder token: alleen voor openbare losse repo's.
     func send(
         _ url: URL,
         query: [URLQueryItem] = [],
         accept: String = "application/vnd.github+json",
         body: Data? = nil,
-        checked: Bool = true
+        checked: Bool = true,
+        anonymous: Bool = false
     ) async throws -> (data: Data, response: HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
@@ -470,8 +491,10 @@ public actor GitHubProvider: PRProvider {
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
-        let token = try await tokenSource.token()
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if !anonymous {
+            let token = try await tokenSource.token()
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.setValue(accept, forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (data, response) = try await http.send(request)
@@ -482,7 +505,7 @@ public actor GitHubProvider: PRProvider {
 
 extension Array {
     /// Opeenvolgende stukken van hooguit `size` elementen.
-    fileprivate func chunked(_ size: Int) -> [[Element]] {
+    func chunked(_ size: Int) -> [[Element]] {
         stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) }
     }
 }
