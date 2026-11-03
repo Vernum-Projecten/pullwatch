@@ -6,7 +6,6 @@ import PullwatchCore
 /// loopt eenmalig langs elk scherm van het hoofdvenster en bewaart elk als PNG, zodat de schermen
 /// te bekijken zijn zonder UI-automatisering. Wacht tot er geschiedenis en een versiecheck zijn,
 /// bv. met `-PullwatchFakeGitHub YES -PullwatchFakeData YES`.
-@MainActor
 enum SnapshotTour {
     private static var hasRun = false
 

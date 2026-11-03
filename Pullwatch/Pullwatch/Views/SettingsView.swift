@@ -180,7 +180,7 @@ private struct AccountCard: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(isSelected ? AnyShapeStyle(.tint.opacity(0.12)) : AnyShapeStyle(.quaternary.opacity(0.5)), in: .rect(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: isSelected ? 2 : 1))
+            .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.separator), lineWidth: isSelected ? 2 : 1) }
             .contentShape(.rect(cornerRadius: 10))
         }
         .buttonStyle(.plain)

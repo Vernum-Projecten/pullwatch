@@ -30,7 +30,7 @@ struct AccountAvatar: View {
         }
         .frame(width: size, height: size)
         .clipShape(.circle)
-        .overlay(Circle().strokeBorder(.separator, lineWidth: 0.5))
+        .overlay { Circle().strokeBorder(.separator, lineWidth: 0.5) }
         .accessibilityHidden(true)
     }
 

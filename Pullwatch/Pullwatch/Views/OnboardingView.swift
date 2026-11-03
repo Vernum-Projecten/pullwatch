@@ -289,8 +289,8 @@ struct MenuBarHint: View {
                 .scaledToFit()
                 .frame(height: iconHeight)
                 .padding(6)
-                .background(Circle().fill(.tint.opacity(0.18)))
-                .overlay(Circle().strokeBorder(.tint, lineWidth: 2))
+                .background { Circle().fill(.tint.opacity(0.18)) }
+                .overlay { Circle().strokeBorder(.tint, lineWidth: 2) }
             Image(systemName: "wifi")
             Image(systemName: "battery.75percent")
             Image(systemName: "switch.2")
@@ -302,7 +302,7 @@ struct MenuBarHint: View {
         .padding(.vertical, 6)
         .frame(maxWidth: 440, minHeight: iconHeight + 24)
         .background(.bar, in: .rect(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
+        .overlay { RoundedRectangle(cornerRadius: 8).strokeBorder(.separator) }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("De menubalk, met het Pullwatch-icoon rechtsboven naast de klok"))
     }
@@ -423,7 +423,7 @@ private struct GitHubChoice: View {
         .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity, alignment: .top)
         .padding(12)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator))
+        .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(.separator) }
         .accessibilityElement(children: .contain)
     }
 }
@@ -456,7 +456,7 @@ private struct ProviderChoice: View {
         }
         .buttonStyle(.plain)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator))
+        .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(.separator) }
         .help(Text(detail))
     }
 }

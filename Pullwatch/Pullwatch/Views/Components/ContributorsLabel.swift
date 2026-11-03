@@ -79,7 +79,7 @@ private struct PersonAvatar: View {
         .frame(width: size, height: size)
         .background(.background, in: .circle)
         .clipShape(.circle)
-        .overlay(Circle().strokeBorder(.background, lineWidth: 1.5))
+        .overlay { Circle().strokeBorder(.background, lineWidth: 1.5) }
         .accessibilityHidden(true)
     }
 }

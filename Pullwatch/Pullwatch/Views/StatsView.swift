@@ -475,7 +475,7 @@ private struct RankingChart: View {
         return StateBreakdown(counts: counts, saysCompleted: saysCompleted)
             .padding(8)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
-            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.separator))
+            .overlay { RoundedRectangle(cornerRadius: 6).strokeBorder(.separator) }
             .fixedSize()
             .onGeometryChange(for: CGSize.self) { $0.size } action: { tooltipSize = $0 }
             .position(x: x, y: y)

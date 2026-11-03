@@ -7,7 +7,6 @@ private let log = Log(category: "github-sign-in")
 
 /// Inloggen met GitHub voor één account, van de code tot de plekken waar de app geïnstalleerd is.
 /// De views tekenen alleen deze staat; netwerk, klembord, browser en wachten gebeuren hier.
-@MainActor
 @Observable
 final class GitHubSignIn {
     enum Phase: Equatable {
