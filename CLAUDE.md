@@ -160,7 +160,8 @@ saves every step as PNG per language. UI tests quit a running Pullwatch
 After changing user-facing text, `bash scripts/dev/sync-strings.sh` writes the
 new keys into every String Catalog (xcodebuild alone does not); add the
 English, German and French for each before committing. `LocalizationTests`
-fails while an entry misses a language.
+fails while an entry misses a language, and CI's "String Catalogs in step
+with the code" job fails when the script would still change a catalog.
 
 ## Formatting
 
