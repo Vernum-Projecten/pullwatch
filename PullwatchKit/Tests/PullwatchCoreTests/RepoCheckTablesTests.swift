@@ -94,7 +94,9 @@ import Testing
         #expect(VersionSortKey("4.17.9") < VersionSortKey("4.17.15"))
         #expect(VersionSortKey("10.0") > VersionSortKey("9.9"))
         #expect(VersionSortKey("1.0") < VersionSortKey(nil), "zonder versie achteraan")
-        #expect(!(VersionSortKey(nil) < VersionSortKey(nil)))
+        // Twee rijen zonder versie zijn gelijk: geen van beide komt voor de ander.
+        let first = VersionSortKey(nil), second = VersionSortKey(nil)
+        #expect(!(first < second) && !(second < first))
     }
 
     @Test func packagesPerWorkspaceWithStatus() throws {
