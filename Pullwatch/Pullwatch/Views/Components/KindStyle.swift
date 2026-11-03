@@ -133,9 +133,10 @@ nonisolated enum PRStatus: CaseIterable, Hashable, Sendable {
     }
 
     /// Zoals GitHub: een draft is grijs, queued amber, de rest de kleur van zijn `PRState`.
-    /// Queued is de kleur van de StateLabel `pullQueued` van Primer React (38.44.0):
-    /// `bgColor-attention-emphasis` uit @primer/primitives (11.10.0), licht #9A6700 en donker
-    /// #9E6A03 (de kleurenset PRQueued).
+    /// Queued is het amber van de StateLabel `pullQueued` van Primer React (38.44.0). Licht
+    /// #9A6700 (`bgColor-attention-emphasis`, @primer/primitives 11.10.0); donker #D29922
+    /// (`fgColor-attention`), omdat de donkere achtergrondkleur #9E6A03 als symbool op een
+    /// donkere achtergrond bijna wegvalt. Dezelfde amber als lopende checks (kleurenset PRQueued).
     var color: Color {
         switch self {
         case .open: PRState.open.color
