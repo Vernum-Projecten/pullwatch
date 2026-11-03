@@ -108,7 +108,7 @@ struct StatsView: View {
                 HStack(spacing: 10) {
                     StatTile(value: "\(stats.openedThisPeriod)", label: String(localized: "PR's geopend deze periode"))
                     StatTile(value: "\(stats.mergedThisPeriod)", label: String(localized: "gemerged deze periode"))
-                    StatTile(value: stats.medianLeadTime.map(Self.duration) ?? "—", label: String(localized: "mediane doorlooptijd"))
+                    StatTile(value: stats.medianLeadTime.map(Self.duration) ?? String(localized: "onbekend"), label: String(localized: "mediane doorlooptijd"))
                     StatTile(value: "\(stats.activeAuthors)", label: String(localized: "actieve auteurs deze periode"))
                 }
 

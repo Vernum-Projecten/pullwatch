@@ -87,6 +87,28 @@
         }
       }
     },
+    "%@ en de geschiedenis ervan verdwijnen uit Pullwatch. Op %@ verandert niets.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ und sein Verlauf werden aus Pullwatch entfernt. Auf %2$@ ändert sich nichts."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and its history are removed from Pullwatch. Nothing changes on %2$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ et son historique sont supprimés de Pullwatch. Rien ne change sur %2$@."
+          }
+        }
+      }
+    },
     "%@ in %@": {
       "comment": "Versie in de laatste release, tagnaam",
       "localizations": {
@@ -880,6 +902,72 @@
         }
       }
     },
+    "Account toevoegen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte"
+          }
+        }
+      }
+    },
+    "Account verwijderen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto entfernen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le compte"
+          }
+        }
+      }
+    },
+    "Account verwijderen?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto entfernen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Account?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le compte ?"
+          }
+        }
+      }
+    },
     "Accounts": {
       "localizations": {
         "de": {
@@ -1586,6 +1674,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pour une organisation, un propriétaire installe Pullwatch ou approuve votre demande."
+          }
+        }
+      }
+    },
+    "Bijgewerkt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to date"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À jour"
           }
         }
       }
@@ -3330,24 +3440,24 @@
         }
       }
     },
-    "Log in met GitHub, installeer Pullwatch waar je repositories staan, kies welke je volgt en klik op Opslaan.": {
+    "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Melde dich mit GitHub an, installiere Pullwatch dort, wo deine Repositorys liegen, wähle aus, welchen du folgst, und klicke auf Sichern."
+            "value": "Melde dich mit GitHub an, wähle, wo deine Repositorys liegen und welchen du folgst, und klicke auf Hinzufügen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in with GitHub, install Pullwatch where your repositories are, choose which to follow and click Save."
+            "value": "Sign in with GitHub, choose where your repositories are and which to follow, and click Add."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connectez-vous avec GitHub, installez Pullwatch là où se trouvent vos dépôts, choisissez ceux à suivre et cliquez sur Enregistrer."
+            "value": "Connectez-vous avec GitHub, choisissez où se trouvent vos dépôts et lesquels suivre, puis cliquez sur Ajouter."
           }
         }
       }
@@ -3818,6 +3928,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nieuwste versie niet op te halen"
+          }
+        }
+      }
+    },
+    "Nog een account toevoegen? Dat kan ook later onder Instellingen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch ein Konto hinzufügen? Das geht auch später in den Einstellungen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add another account? You can also do that later in Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un autre compte ? Vous pourrez aussi le faire plus tard dans les Réglages."
           }
         }
       }
@@ -4308,30 +4440,24 @@
         }
       }
     },
-    "Opgeslagen — leeg laten om te behouden": {
+    "Opgeslagen, laat leeg om te behouden": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gespeichert — leer lassen, um zu behalten"
+            "value": "Gespeichert, leer lassen, um es zu behalten"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved — leave empty to keep"
+            "value": "Saved, leave empty to keep"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistré — laisser vide pour conserver"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opgeslagen — leeg laten om te behouden"
+            "value": "Enregistré, laissez vide pour le conserver"
           }
         }
       }
@@ -5677,6 +5803,28 @@
         }
       }
     },
+    "Toevoegen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter"
+          }
+        }
+      }
+    },
     "Token": {
       "localizations": {
         "de": {
@@ -6014,6 +6162,28 @@
         }
       }
     },
+    "Verwijderen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer"
+          }
+        }
+      }
+    },
     "Voeg een GitHub- of Azure DevOps-account toe om pull requests en tags te volgen.": {
       "localizations": {
         "de": {
@@ -6136,24 +6306,24 @@
         }
       }
     },
-    "Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.": {
+    "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gib die Angaben ein und klicke auf Sichern. Mit der GitHub CLI (gh auth login) oder der Azure CLI (az login) brauchst du kein Token."
+            "value": "Gib die Angaben ein und klicke auf Hinzufügen. Mit der Azure CLI (az login) brauchst du kein Token."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fill in the details and click Save. With the GitHub CLI (gh auth login) or the Azure CLI (az login) you don’t need a token."
+            "value": "Fill in the details and click Add. With the Azure CLI (az login) you don’t need a token."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saisissez les informations et cliquez sur Enregistrer. Avec GitHub CLI (gh auth login) ou Azure CLI (az login), aucun jeton n’est nécessaire."
+            "value": "Saisissez les informations et cliquez sur Ajouter. Avec Azure CLI (az login), aucun jeton n’est nécessaire."
           }
         }
       }
@@ -6756,6 +6926,29 @@
         }
       }
     },
+    "door %@": {
+      "comment": "Wie de PR of tag maakte",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "von %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "par %@"
+          }
+        }
+      }
+    },
     "gebruikt in %lld repo's": {
       "localizations": {
         "de": {
@@ -7107,34 +7300,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "•"
-          }
-        }
-      }
-    },
-    "✓": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓"
           }
         }
       }

@@ -201,6 +201,7 @@ private struct AccountStatusRow: View {
 
     var body: some View {
         HStack(spacing: 4) {
+            AccountAvatar(account: account, size: 16)
             Text(account.displayName).font(.caption.bold())
             switch state {
             case .idle where !isConfigured:
@@ -208,7 +209,8 @@ private struct AccountStatusRow: View {
             case .idle:
                 Text("wacht op eerste poll").font(.caption).foregroundStyle(.secondary)
             case .ok(let lastPoll):
-                Text("✓").font(.caption).foregroundStyle(.green)
+                Image(systemName: "checkmark.circle.fill").font(.caption).foregroundStyle(.green)
+                    .accessibilityLabel(Text("Bijgewerkt"))
                 Text(lastPoll, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.secondary)
             case .failed(let error, _):
                 Text(error.userMessage).font(.caption).foregroundStyle(.red).lineLimit(2)

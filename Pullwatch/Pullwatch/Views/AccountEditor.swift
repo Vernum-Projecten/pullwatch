@@ -24,10 +24,18 @@ struct AccountEditor: View {
     /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
     private let originalAuthMethod: AuthMethod
 
-    init(model: AppModel, original: Account) {
+    /// Een nieuw account (nog niet in de config): de knop heet Toevoegen, en pas dan wordt
+    /// er iets bewaard.
+    private let isNew: Bool
+    /// Na een geslaagd bewaren, bijvoorbeeld om het venster te sluiten.
+    private let onSaved: () -> Void
+
+    init(model: AppModel, original: Account, onSaved: @escaping () -> Void = {}) {
         self.model = model
         _draft = State(initialValue: original)
         originalAuthMethod = original.authMethod
+        isNew = !model.config.accounts.contains { $0.id == original.id }
+        self.onSaved = onSaved
     }
 
     /// Inloggen met GitHub kan zodra de GitHub App is ingesteld.
@@ -43,11 +51,6 @@ struct AccountEditor: View {
     var body: some View {
         Form {
             Section("Account") {
-                // De naam volgt de organisatie (`Account.displayName`). Met de GitHub App komt ook
-                // de eigenaar uit het inloggen: dan valt er niets te typen.
-                if draft.authMethod != .gitHubApp {
-                    TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
-                }
                 Picker("Authenticatie", selection: $draft.authMethod) {
                     if offersGitHubApp {
                         Text("Inloggen met GitHub").tag(AuthMethod.gitHubApp)
@@ -69,6 +72,12 @@ struct AccountEditor: View {
                         ownerPicker
                     }
                 }
+                // Eerst hoe je inlogt, dan waar de repositories staan, dan het token. De naam volgt de
+                // organisatie (`Account.displayName`); met de GitHub App komt de eigenaar uit het
+                // inloggen, dan valt er niets te typen.
+                if draft.authMethod != .gitHubApp {
+                    TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
+                }
                 if draft.kind == .gitHub && draft.authMethod == .cli {
                     Picker("GitHub-account", selection: $draft.cliUser) {
                         Text("Actief account in gh").tag(String?.none)
@@ -81,7 +90,7 @@ struct AccountEditor: View {
                 }
                 if draft.authMethod == .pat {
                     SecureField(
-                        storedPAT ? String(localized: "Opgeslagen — leeg laten om te behouden") : String(localized: "Token"),
+                        storedPAT ? String(localized: "Opgeslagen, laat leeg om te behouden") : String(localized: "Token"),
                         text: $pat
                     )
                 }
@@ -180,8 +189,9 @@ struct AccountEditor: View {
                 }
                 HStack {
                     Spacer()
-                    Button("Opslaan") { save() }
+                    Button(isNew ? "Toevoegen" : "Opslaan") { save() }
                         .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("account.save")
                         .disabled(validationMessage != nil)
                 }
             }
@@ -289,6 +299,7 @@ struct AccountEditor: View {
 
     private func save() {
         if model.saveAccount(draft, pat: pat.isEmpty ? nil : pat) {
+            onSaved()
             saveError = nil
             pat = ""
             storedPAT = draft.authMethod == .pat ? (storedPAT || model.hasStoredPAT(draft.id)) : false

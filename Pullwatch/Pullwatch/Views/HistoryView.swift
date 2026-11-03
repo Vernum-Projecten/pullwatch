@@ -91,7 +91,7 @@ struct HistoryView: View {
                     Text(item.entry.repo).lineLimit(1)
                 }
                 TableColumn("Auteur") { item in
-                    Text(item.entry.author ?? "—").lineLimit(1)
+                    Text(item.entry.author ?? String(localized: "onbekend")).lineLimit(1)
                 }
                 .width(min: 80, ideal: 120)
                 TableColumn("Wanneer") { item in

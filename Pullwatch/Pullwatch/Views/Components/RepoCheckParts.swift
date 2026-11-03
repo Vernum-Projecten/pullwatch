@@ -111,7 +111,7 @@ private struct VulnerabilityRow: View {
                 Text(summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         }
-        .help(Text(verbatim: "\(vulnerability.id) — \(vulnerability.source)"))
+        .help(Text(verbatim: "\(vulnerability.id)\n\(vulnerability.source)"))
     }
 
     private var packageText: String {

@@ -145,6 +145,20 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         return String(localized: "\(organization) op \(kind.name)", bundle: .localizedCore, comment: "Organisatie of gebruiker, dienst (GitHub of Azure DevOps)")
     }
 
+    /// Een account met organisatie: alleen zo'n account wordt bewaard en gepold.
+    public var isComplete: Bool { !organization.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    /// Profielfoto van de GitHub-gebruiker of -organisatie (openbaar, zonder token); Azure DevOps
+    /// geeft foto's alleen met inloggen, dus daar nil.
+    public var avatarURL: URL? { Self.gitHubAvatarURL(organization, kind: kind) }
+
+    public static func gitHubAvatarURL(_ login: String, kind: ProviderKind = .gitHub, size: Int = 128) -> URL? {
+        let login = login.trimmingCharacters(in: .whitespaces)
+        guard kind == .gitHub, !login.isEmpty,
+              let encoded = login.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else { return nil }
+        return URL(string: "https://github.com/\(encoded).png?size=\(size)")
+    }
+
     public init(
         id: UUID = UUID(),
         kind: ProviderKind,

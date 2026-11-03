@@ -153,6 +153,31 @@ import Testing
         #expect(written?["displayName"] as? String == account.displayName)
     }
 
+    @Test func onlyAccountsWithAnOrganisationAreComplete() {
+        #expect(!Account(kind: .gitHub, organization: "  ", authMethod: .gitHubApp).isComplete)
+        #expect(Account(kind: .azureDevOps, organization: "contoso", authMethod: .cli).isComplete)
+        let config = AppConfig(accounts: [
+            Account(kind: .gitHub, organization: "", authMethod: .pat),
+            Account(kind: .gitHub, organization: "octo", authMethod: .pat),
+        ])
+        #expect(config.pollableAccounts.map(\.organization) == ["octo"])
+    }
+
+    @Test func gitHubAccountsHaveAPublicAvatar() {
+        #expect(Account(kind: .gitHub, organization: "Vernum-Projecten", authMethod: .gitHubApp).avatarURL?.absoluteString
+            == "https://github.com/Vernum-Projecten.png?size=128")
+        #expect(Account(kind: .azureDevOps, organization: "contoso", authMethod: .cli).avatarURL == nil)
+        #expect(Account(kind: .gitHub, organization: "", authMethod: .pat).avatarURL == nil)
+    }
+
+    @Test func onboardingStateLivesInTheConfig() throws {
+        #expect(try JSONDecoder().decode(AppConfig.self, from: Data(#"{"accounts":[],"pollInterval":120}"#.utf8)).onboardingCompleted == false)
+        var config = AppConfig()
+        config.onboardingCompleted = true
+        let again = try JSONDecoder().decode(AppConfig.self, from: JSONEncoder().encode(config))
+        #expect(again.onboardingCompleted)
+    }
+
     @Test func appPathsLiveInApplicationSupport() {
         let url = AppPaths.file("config.json")
         #expect(url.path(percentEncoded: false).hasSuffix("Application Support/Pullwatch/config.json"))

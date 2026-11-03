@@ -18,38 +18,45 @@ struct SettingsView: View {
 private struct AccountsSettingsView: View {
     let model: AppModel
     @State private var selection: UUID?
+    /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
+    @State private var draft: Account?
+    @State private var confirmsRemoval = false
 
     var body: some View {
         HSplitView {
             VStack(alignment: .leading, spacing: 0) {
                 List(model.config.accounts, selection: $selection) { account in
-                    VStack(alignment: .leading) {
-                        Text(verbatim: account.organization.isEmpty ? account.kind.name : account.organization)
-                        Text(verbatim: account.kind.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        AccountAvatar(account: account, size: 28)
+                        VStack(alignment: .leading) {
+                            Text(verbatim: account.organization)
+                            Text(verbatim: account.kind.name)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .tag(account.id)
                 }
+                .onDeleteCommand { if selection != nil { confirmsRemoval = true } }
                 HStack {
                     Menu {
                         Button("Azure DevOps") { add(.azureDevOps) }
                         Button("GitHub") { add(.gitHub) }
                     } label: {
-                        Image(systemName: "plus")
+                        Label("Account toevoegen", systemImage: "plus").labelStyle(.iconOnly)
                     }
-                    .menuStyle(.borderlessButton)
+                    .menuStyle(.button)
+                    .buttonStyle(.borderless)
                     .fixedSize()
+                    .help("Account toevoegen")
                     Button {
-                        if let selection {
-                            model.removeAccount(selection)
-                            self.selection = nil
-                        }
+                        confirmsRemoval = true
                     } label: {
-                        Image(systemName: "minus")
+                        Label("Account verwijderen", systemImage: "minus").labelStyle(.iconOnly)
                     }
                     .buttonStyle(.borderless)
                     .disabled(selection == nil)
+                    .help("Account verwijderen")
                 }
                 .padding(6)
             }
@@ -66,16 +73,52 @@ private struct AccountsSettingsView: View {
             }
             .frame(minWidth: 440)
         }
+        .sheet(item: $draft) { account in
+            AddAccountSheet(model: model, draft: account) { saved in
+                draft = nil
+                if saved { selection = account.id }
+            }
+        }
+        .confirmationDialog(
+            "Account verwijderen?",
+            isPresented: $confirmsRemoval,
+            presenting: model.config.accounts.first { $0.id == selection }
+        ) { account in
+            Button("Verwijderen", role: .destructive) {
+                model.removeAccount(account.id)
+                selection = nil
+            }
+        } message: { account in
+            Text("\(account.displayName) en de geschiedenis ervan verdwijnen uit Pullwatch. Op \(account.kind.name) verandert niets.")
+        }
     }
 
     private func add(_ kind: ProviderKind) {
-        let account = Account(
-            kind: kind,
-            organization: "",
-            authMethod: model.defaultAuthMethod(for: kind)
-        )
-        model.saveAccount(account, pat: nil)
-        selection = account.id
+        draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+    }
+}
+
+/// Een account toevoegen: Annuleren gooit het concept weg, Toevoegen bewaart het als het af is.
+private struct AddAccountSheet: View {
+    let model: AppModel
+    let draft: Account
+    let onClose: (_ saved: Bool) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            AccountEditor(model: model, original: draft) { onClose(true) }
+            Divider()
+            HStack {
+                Button("Annuleren", role: .cancel) {
+                    model.discardDraft(draft.id)
+                    onClose(false)
+                }
+                .keyboardShortcut(.cancelAction)
+                Spacer()
+            }
+            .padding(12)
+        }
+        .frame(minWidth: 560, minHeight: 560)
     }
 }
 
