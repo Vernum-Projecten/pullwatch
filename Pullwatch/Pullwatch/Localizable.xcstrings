@@ -233,6 +233,7 @@
       }
     },
     "%@: PR completed": {
+      "comment": "Meldingstitel; repo. Completed is de Azure DevOps-term voor gemerged",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -261,6 +262,7 @@
       }
     },
     "%@: nieuwe PR": {
+      "comment": "Meldingstitel; repo",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -289,6 +291,7 @@
       }
     },
     "%@: nieuwe kwetsbaarheid": {
+      "comment": "Meldingstitel; repo",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -317,6 +320,7 @@
       }
     },
     "%@: nieuwe tag": {
+      "comment": "Meldingstitel; repo",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -421,29 +425,78 @@
       }
     },
     "%lld PR's completed": {
+      "comment": "Meldingstitel; aantal gemergde PR's",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld PRs abgeschlossen"
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR completed"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR's completed"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld PRs completed"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR completed"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PRs completed"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR abgeschlossen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PRs abgeschlossen"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld PR terminées"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld PR's completed"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR terminée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld PR terminées"
+                }
+              }
+            }
           }
         }
       }
@@ -525,90 +578,238 @@
       }
     },
     "%lld nieuwe PR's": {
+      "comment": "Meldingstitel; aantal",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld neue PRs"
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe PR"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe PR's"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld new PRs"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new PR"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new PRs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neuer PR"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue PRs"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nouvelles PR"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nieuwe PR's"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelle PR"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelles PR"
+                }
+              }
+            }
           }
         }
       }
     },
     "%lld nieuwe kwetsbaarheden": {
+      "comment": "Meldingstitel; aantal",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld neue Schwachstellen"
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe kwetsbaarheid"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe kwetsbaarheden"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld new vulnerabilities"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new vulnerability"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new vulnerabilities"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Schwachstelle"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Schwachstellen"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nouvelles vulnérabilités"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nieuwe kwetsbaarheden"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelle vulnérabilité"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelles vulnérabilités"
+                }
+              }
+            }
           }
         }
       }
     },
     "%lld nieuwe tags": {
+      "comment": "Meldingstitel; aantal",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld neue Tags"
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe tags"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld new tags"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new tags"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neuer Tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Tags"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nouveaux tags"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld nieuwe tags"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveau tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveaux tags"
+                }
+              }
+            }
           }
         }
       }
     },
     "%lld nieuwe versies": {
+      "comment": "Meldingstitel; aantal packages met een nieuwe versie",
       "localizations": {
         "de": {
           "variations": {
@@ -818,6 +1019,7 @@
       }
     },
     "%lld repo's lopen achter": {
+      "comment": "Meldingstekst; aantal repo's met een oudere versie",
       "localizations": {
         "de": {
           "variations": {
@@ -970,6 +1172,7 @@
       }
     },
     "+ %lld meer": {
+      "comment": "Laatste regel van een melding; aantal regels dat niet getoond wordt",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2201,6 +2404,7 @@
       }
     },
     "Controleren mislukt: %@": {
+      "comment": "Reden waarom de updatecheck mislukte",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2545,6 +2749,7 @@
       }
     },
     "Fout: %@": {
+      "comment": "Foutmelding van de check",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3505,6 +3710,7 @@
       }
     },
     "Je hebt de nieuwste versie (%@)": {
+      "comment": "Huidig versienummer",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3903,6 +4109,7 @@
       }
     },
     "Laatste tag %@:": {
+      "comment": "Kop in de gekopieerde tekst; tagnaam",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5885,6 +6092,7 @@
       }
     },
     "Pullwatch %@ is beschikbaar": {
+      "comment": "Meldingstitel; versienummer",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -6885,35 +7093,6 @@
         }
       }
     },
-    "Verbonden als %@": {
-      "comment": "Naam van de ingelogde gebruiker",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verbunden als %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connected as %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connecté en tant que %@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verbonden als %@"
-          }
-        }
-      }
-    },
     "Versie": {
       "localizations": {
         "de": {
@@ -6994,6 +7173,7 @@
       }
     },
     "Versie %@ is beschikbaar": {
+      "comment": "Versienummer",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -8326,6 +8506,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "wacht op eerste poll"
+          }
+        }
+      }
+    },
+    "✓ Verbonden als %@": {
+      "comment": "Naam van de ingelogde gebruiker",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ Verbunden als %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ Connected as %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ Connecté en tant que %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ Verbonden als %@"
           }
         }
       }
