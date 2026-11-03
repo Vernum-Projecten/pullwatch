@@ -24,7 +24,7 @@ scripts/release/release.sh --unsigned               # dist/Pullwatch-<version>.d
 scripts/release/release.sh                          # signed with Developer ID, notarized and stapled DMG
 ```
 
-`release.sh` builds the app and hands it to `scripts/release/package.sh`, which makes the disk image and `Pullwatch-<version>.zip` (for the updater). The disk image opens as an install window: the app on the left, Applications on the right, and a background drawn by `scripts/release/dmg-background.swift` that says "Install Pullwatch" with an arrow between them. Finder lays out that window through AppleScript, so the first run asks whether your terminal may control Finder; allow it (System Settings, Privacy & Security, Automation).
+`release.sh` builds the app, removes Sparkle's XPC services (only a sandboxed app needs them) and signs Sparkle's parts one by one, then hands the app to `scripts/release/package.sh`, which makes the disk image and `Pullwatch-<version>.zip` (the update Sparkle installs; the release workflow writes the signed `appcast.xml` for it). The disk image opens as an install window: the app on the left, Applications on the right, and a background drawn by `scripts/release/dmg-background.swift` that says "Install Pullwatch" with an arrow between them. Finder lays out that window through AppleScript, so the first run asks whether your terminal may control Finder; allow it (System Settings, Privacy & Security, Automation).
 
 The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
 
@@ -38,7 +38,7 @@ The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state 
 
 Tags are off by default. Next to each checkbox is a bell: turn it off to keep following the repository (menu and history) without getting notifications. The bell in the header toggles all visible repositories. Tags are polled every 15 minutes (separate from the PR interval; "Nu verversen" polls tags too). The first tag poll per repository is silent. On GitHub the Tags checkbox follows releases too: a release published for a tag Pullwatch already saw gives one notification ("new release" with its title) and updates the same history row.
 
-Pullwatch checks GitHub once a day for a newer release (Settings → General, also **Check now**); when there is one, you get a notification and a download button in the menu.
+Pullwatch checks GitHub once a day for a newer release (Settings → General, also **Check now**); when there is one, you get a notification and a banner in the menu. A release build installs the update itself with [Sparkle](https://sparkle-project.org): **Install** shows the release notes, then Sparkle downloads the update, checks its EdDSA signature and the Developer ID signature, installs it and restarts Pullwatch. Under Settings → General, **Install updates automatically** downloads an update in the background and installs it when you quit Pullwatch, and **Include test versions** also offers pre-releases (Sparkle's beta channel). A build without Sparkle's public key (one you build from source, or a fork without its own key) keeps the download button for the disk image instead.
 
 While a window (settings, history, versions) is open, Pullwatch shows in the Dock; close the last window and it runs from the menu bar only.
 

@@ -41,7 +41,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   open; the menu-bar label opens windows the model asks for through
   `windowRequest`), `AppModel.swift` (the one `@Observable` model: polling
   loop, config, history, update check; `show(_:)` opens a window or section),
-  `GitHubSignIn` (the GitHub sign-in flow), `FakeGitHub` (debug only),
+  `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
+  the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` (debug only),
   `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
   value). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
   (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
@@ -71,7 +72,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   notification planning, filters, seen state), `History/` (history,
   statistics, repo overview), `Versions/` (the version and vulnerability
   checks: stack and dependency detection, package registries, end-of-life,
-  OSV), `Updates/` (`UpdateChecker`), `Support/` (HTTP, processes, JSON
+  OSV), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
   store, Keychain, logging, localisation). `PullwatchGitHub/`:
   `GitHubProvider`, the GitHub App device flow and token store
   (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
@@ -127,7 +128,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
 - **Never push to upstream.** Push to `origin` and open a pull request in
   the fork; the Claude Bash hook refuses a push to upstream.
 - **No secrets in the tree.** Tokens live in the Keychain; the Developer ID
-  certificate, the notarisation credentials and (later) Sparkle's private
+  certificate, the notarisation credentials and Sparkle's private
   key are Alessandro's and live in Actions secrets and his Keychain. The
   pre-commit hook and the Claude `protect_secrets.sh` hook refuse them.
 - **The bundle id stays `nl.torrisi.pullwatch`.** Changing it loses every
@@ -205,9 +206,13 @@ A tag `vX.Y.Z` on `main` runs `.github/workflows/release.yml`: it checks
 that the tag, `MARKETING_VERSION` and a dated `CHANGELOG.md` section agree,
 imports the Developer ID of Code24 BV from Actions secrets into a keychain
 of its own, runs `scripts/release/release.sh` (sign, notarise, staple,
-package) and attaches the DMG and zip to a draft release with the changelog
-section as notes. Alessandro checks the draft and publishes it; the app's
-`UpdateChecker` reads `releases/latest` once a day. The secrets are his and
+package), signs `appcast.xml` for the zip with Sparkle's key and checks
+it against the app's public key, and attaches the DMG, zip and appcast to
+a draft release with the changelog section as notes (a tag
+`vX.Y.Z-beta.N` makes a pre-release on Sparkle's `beta` channel).
+Alessandro checks the draft and publishes it; the app reads the latest
+release's appcast once a day and Sparkle installs the update (without a
+public key in the build, `UpdateChecker` shows a download button). The secrets are his and
 exist only in his repository: in the fork the lane stops at once and names
 the missing ones. `docs/releasing.md` has the procedure and the secret
 names. `release.sh` on his Mac (notarytool profile `pullwatch`) still makes
@@ -217,5 +222,4 @@ in `CHANGELOG.md`: the `changelog` CI job (`scripts/checks/changelog-guard.sh`)
 fails a pull request that writes there, and one that changes `Pullwatch/` or
 `PullwatchKit/Sources/` without a fragment unless it has the `no-changelog`
 label. The release branch runs `scripts/release/changelog.sh --assemble
-X.Y.Z YYYY-MM-DD` before the tag. Sparkle's signed appcast follows in #9 (its spot is
-marked in `release.yml`).
+X.Y.Z YYYY-MM-DD` before the tag.

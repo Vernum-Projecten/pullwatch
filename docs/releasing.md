@@ -2,8 +2,9 @@
 
 Pullwatch is released as a signed, notarised macOS app (universal, Apple
 Silicon and Intel, macOS 26.6 and later) attached to a GitHub release
-`vX.Y.Z`. People install the `.dmg`; the app's update check reads the
-latest published release once a day. The lane is the one FerroLICENCE uses,
+`vX.Y.Z`. People install the `.dmg` once; after that the app updates itself
+from the same releases through Sparkle 2. Its update check reads the
+latest published release's `appcast.xml` once a day. The lane is the one FerroLICENCE uses,
 adapted: `.github/workflows/release.yml` runs on a tag and calls the same
 `scripts/release/release.sh` the maintainer can run on his Mac.
 
@@ -12,8 +13,9 @@ adapted: `.github/workflows/release.yml` runs on a tag and calls the same
 - `MARKETING_VERSION` in `Pullwatch/App.xcconfig` is the version (SemVer);
   the tag is `v` plus that version.
 - `CURRENT_PROJECT_VERSION` in the same file is the build number. It goes
-  up by one with every release and never down: the coming updater (Sparkle,
-  #9) compares build numbers and never installs a lower one.
+  up by one with every release (a test version included) and never down:
+  Sparkle compares build numbers (`sparkle:version` against the app's
+  `CFBundleVersion`) and never installs a lower one.
 - `CHANGELOG.md` (Keep a Changelog) has a section `## [X.Y.Z] - YYYY-MM-DD`
   for every release; that section is the release's notes. Between releases
   each change waits as a fragment in `changelog.d/` (`changelog.d/README.md`),
@@ -30,12 +32,54 @@ a token, not Sign in with GitHub.
 | File | For |
 |---|---|
 | `Pullwatch-X.Y.Z.dmg` | people installing or updating by hand: the install window with the app and a link to Applications |
-| `Pullwatch-X.Y.Z.zip` | the coming updater (#9): the app, made by `ditto` so symlinks survive |
+| `Pullwatch-X.Y.Z.zip` | Sparkle: the app, made by `ditto -c -k --sequesterRsrc --keepParent` so symlinks survive |
+| `appcast.xml` | Sparkle's update feed: build number, version, minimum macOS (26.6, from the app's `LSMinimumSystemVersion`), the `.zip`'s size and EdDSA signature, the release notes from `CHANGELOG.md`, and for a test version the `beta` channel |
 
 The app is signed with the Developer ID of Code24 BV (hardened runtime),
 notarised and stapled before it is packaged, so the app in the `.zip`
 carries its own ticket. The `.dmg` is then signed, notarised and stapled as
-well. The appcast for Sparkle is added by #9; `release.yml` marks the spot.
+well. An update therefore carries three signatures: Sparkle's EdDSA
+signature over the `.zip`, the Developer ID signature and Apple's
+notarisation, stapled to the app. Sparkle refuses an update without them.
+
+## How the updater is set up
+
+The setup follows Sparkle's documentation
+(<https://sparkle-project.org/documentation/>) and FerroLICENCE's updater,
+without FerroLICENCE's token: Pullwatch's releases are public.
+
+- **The package.** Sparkle 2.10.1, pinned to that exact version in
+  `Pullwatch.xcodeproj` (`Package.resolved` holds its commit; Swift Package
+  Manager checks the binary's checksum from Sparkle's `Package.swift`).
+- **Info.plist** (`Pullwatch/Pullwatch/Info.plist`): `SUPublicEDKey` from
+  `SPARKLE_PUBLIC_ED_KEY` in `Pullwatch/Release.xcconfig`;
+  `SUVerifyUpdateBeforeExtraction` on, so the EdDSA signature is checked
+  before the archive is unpacked; `SUEnableAutomaticChecks` off, because
+  Pullwatch runs its own daily check and hands Sparkle the feed;
+  `SUAllowsAutomaticUpdates` on, behind **Install updates automatically**.
+- **The feed.** `https://github.com/<owner>/pullwatch/releases/latest/download/appcast.xml`,
+  with `<owner>` from `PW_RELEASES_OWNER` in `Pullwatch/App.xcconfig`
+  (`alessandro823`), so a fork with its own releases differs only in that
+  setting. GitHub's `releases/latest` never points at a pre-release, so
+  with **Include test versions** on the app asks the API (public, no token)
+  for the newest release with an `appcast.xml`, and Sparkle's
+  `allowedChannels` admits the `beta` channel.
+- **No key, no Sparkle.** With `SPARKLE_PUBLIC_ED_KEY` empty (debug builds,
+  a build from source, the fork) the app cannot verify an update, so Sparkle
+  never starts and the old check stays: a banner and a notification with a
+  download button for the `.dmg`.
+- **App Sandbox off, Hardened Runtime on.** Sparkle's XPC services are only
+  for sandboxed apps, so `release.sh` removes `XPCServices` from
+  `Sparkle.framework`, as Sparkle's sandboxing guide allows, and then signs
+  `Autoupdate`, `Updater.app` and the framework one by one with hardened
+  runtime and a timestamp, without `--deep`, before it signs the app. No
+  entitlements are needed.
+- **Checks in the lane.** `generate_appcast` writes the feed with the
+  private key on stdin (`--ed-key-file -`); `scripts/release/verify-update.swift`
+  then checks the `.zip` against the feed's signature and length with the
+  public key inside the built app, and that the feed's build number and
+  minimum macOS are the app's, so a release whose app carries the wrong key,
+  or none, is never attached.
 
 ## Secrets, once
 
@@ -51,6 +95,7 @@ in its first job and names the missing ones; CI never needs them.
 | `NOTARY_KEY` | an App Store Connect API key for notarisation: the contents of its `.p8` file |
 | `NOTARY_KEY_ID` | that key's id |
 | `NOTARY_ISSUER_ID` | the issuer id of the team's keys |
+| `SPARKLE_PRIVATE_KEY` | Sparkle's EdDSA private key, as `generate_keys -x` exports it |
 
 Making them, on the Mac that has the certificate:
 
@@ -79,10 +124,31 @@ Making them, on the Mac that has the certificate:
    Keep the `.p8` somewhere safe or delete it; a new key can be made at any
    time and the old one revoked.
 
+3. **Sparkle's key.** Once, on the maintainer's Mac. Build the app in
+   Xcode once (or run `xcodebuild -resolvePackageDependencies -project
+   Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -derivedDataPath build`),
+   so the Sparkle package is resolved with its tools, then:
+
+   ```bash
+   bin=build/SourcePackages/artifacts/sparkle/Sparkle/bin
+   "$bin/generate_keys"                   # stores the private key in your login Keychain, prints the public key
+   "$bin/generate_keys" -x sparkle.key    # exports the private key for the secret
+   gh secret set SPARKLE_PRIVATE_KEY --repo alessandro823/pullwatch < sparkle.key
+   rm sparkle.key
+   ```
+
+   Put the printed public key in `SPARKLE_PUBLIC_ED_KEY` in
+   `Pullwatch/Release.xcconfig` (public, not a secret) and commit it.
+   `check-version.sh` refuses a release while it is empty.
+
+   The private key stays in that login Keychain as the only copy that can
+   be read back (an Actions secret cannot); back it up with the Keychain.
+   With `SUVerifyUpdateBeforeExtraction` on, a lost key cannot be replaced
+   through an update: the next release ships a new public key and everyone
+   installs that one `.dmg` by hand.
+
 The notarytool profile `pullwatch` in the maintainer's Keychain stays for
 releases made on his Mac; CI uses the API key instead.
-
-Sparkle's private key (`SPARKLE_PRIVATE_KEY`) joins this table with #9.
 
 Optional: `scripts/release/protect-tags.sh alessandro823/pullwatch` creates
 a ruleset once that stops `v*` tags from being deleted or moved, so a
@@ -114,14 +180,25 @@ On a branch `release/vX.Y.Z`:
 5. `.github/workflows/release.yml` runs (watch it with `gh run watch`):
    `plan` (tag, version, changelog, the secrets), `build` on the
    `xcode-27` image (the certificate in a keychain of its own,
-   `scripts/release/release.sh`: universal Release build, signing,
-   notarisation and stapling of the app, the `.dmg` and `.zip`, then
-   signing, notarisation and stapling of the `.dmg`; no build cache),
-   `publish` (a draft release "Pullwatch X.Y.Z" with both files and the
-   changelog section as notes).
+   `scripts/release/release.sh`: universal Release build, Sparkle's parts
+   signed, signing, notarisation and stapling of the app, the `.dmg` and
+   `.zip`, then signing, notarisation and stapling of the `.dmg`; the
+   signed `appcast.xml` and its check against the app's key; no build
+   cache), `publish` (a draft release "Pullwatch X.Y.Z" with the three
+   files and the changelog section as notes).
 6. Open the draft on GitHub, download the `.dmg`, check that it opens
    without a warning and that the app starts, then publish the draft. Only
-   then do the app's update checks see it.
+   then do the app's update checks see it: `releases/latest/download/appcast.xml`
+   now points at this release.
+
+A test version is a tag `vX.Y.Z-beta.N` on the release branch before the
+cut, with `MARKETING_VERSION` already at `X.Y.Z` and
+`CURRENT_PROJECT_VERSION` raised by one for each test version (the final
+release raises it once more, so it replaces the test version). The same
+lane builds it, takes its notes from the fragments still in `changelog.d/`
+(`changelog.sh --preview`), puts its appcast item on Sparkle's `beta`
+channel and makes a draft pre-release. Only apps with **Include test
+versions** on are offered it.
 
 A failed run is fixed and re-run from the Actions page, or, when the code
 must change, by a new patch version. If a draft was already created, delete
@@ -131,8 +208,17 @@ it before re-running `publish`.
 
 `scripts/release/release.sh` still works on its own: with the Developer ID
 in the login Keychain and the notarytool profile `pullwatch` it makes the
-same signed, notarised `dist/Pullwatch-X.Y.Z.dmg` and `.zip`, to upload by
-hand (`gh release create vX.Y.Z dist/Pullwatch-X.Y.Z.*`). The terminal must
+same signed, notarised `dist/Pullwatch-X.Y.Z.dmg` and `.zip`. The appcast
+then comes from `generate_appcast` with the key in the login Keychain:
+
+```bash
+mkdir feed && cp dist/Pullwatch-X.Y.Z.zip feed/
+bash scripts/release/notes.sh vX.Y.Z > feed/Pullwatch-X.Y.Z.md
+build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast --embed-release-notes \
+  --download-url-prefix https://github.com/alessandro823/pullwatch/releases/download/vX.Y.Z/ feed
+swift scripts/release/verify-update.swift build/Build/Products/Release/Pullwatch.app feed/appcast.xml dist/Pullwatch-X.Y.Z.zip
+gh release create vX.Y.Z dist/Pullwatch-X.Y.Z.* feed/appcast.xml
+``` The terminal must
 be allowed to control Finder (System Settings, Privacy & Security,
 Automation) for the install window. `scripts/release/release.sh --unsigned`
 makes an ad-hoc signed build for testing; CI runs that on every pull
