@@ -18,7 +18,8 @@ struct Pill: View {
     }
 }
 
-extension ItemKind {
+// Vaste waarden (symbool, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
+nonisolated extension ItemKind {
     var color: Color {
         switch self {
         case .pullRequest: .blue
@@ -41,7 +42,8 @@ extension ItemKind {
     }
 }
 
-extension PRState {
+// Vaste waarden (symbool, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
+nonisolated extension PRState {
     var color: Color {
         switch self {
         case .open: .green

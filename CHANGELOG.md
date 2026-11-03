@@ -36,6 +36,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
 
 ### Changed
 
+- Built with Swift 6.4 (tools version 6.4) with approachable concurrency,
+  the app on the main actor by default, and the ExistentialAny,
+  MemberImportVisibility, NonisolatedNonsendingByDefault and
+  InferIsolatedConformances features; CI treats warnings as errors.
 - **Choose per repository what to follow.** The account's repository list
   has three columns again, PRs, Tags and Merged, with an "all" checkbox
   per owner and column. Notifications per kind are in a repository's

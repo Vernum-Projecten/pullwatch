@@ -9,3 +9,8 @@ CURRENT_PROJECT_VERSION = 9
 // Nooit wijzigen: instellingen, meldingstoestemming en Keychain-tokens van
 // bestaande gebruikers hangen aan deze bundle id.
 PRODUCT_BUNDLE_IDENTIFIER = nl.torrisi.pullwatch
+
+// Swift voor het app-target: de app is UI met één model op de main actor, dus alles is
+// standaard @MainActor (Xcode's standaard voor nieuwe apps sinds Swift 6.2). PullwatchKit
+// blijft standaard nonisolated. De taalinstellingen voor alle targets staan op projectniveau.
+SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor

@@ -277,12 +277,12 @@ public struct VersionChecker: Sendable {
         let total = targets.reduce(0) { $0 + $1.repos.count }
         let counter = Counter()
         await progress(0, total)
-        let scanned = await withTaskGroup(of: [(accountId: UUID, repo: String, found: Result<RepoScan, Error>)].self) { group in
+        let scanned = await withTaskGroup(of: [(accountId: UUID, repo: String, found: Result<RepoScan, any Error>)].self) { group in
             for target in targets {
                 group.addTask {
-                    var out: [(accountId: UUID, repo: String, found: Result<RepoScan, Error>)] = []
+                    var out: [(accountId: UUID, repo: String, found: Result<RepoScan, any Error>)] = []
                     for repo in target.repos {
-                        let found: Result<RepoScan, Error>
+                        let found: Result<RepoScan, any Error>
                         do {
                             found = .success(try await Self.scanWithRelease(repo: repo, provider: target.provider))
                         } catch {
@@ -427,7 +427,7 @@ public struct VersionChecker: Sendable {
     /// Default branch plus, als de repo tags heeft, de nieuwste tag.
     struct RepoScan: Sendable {
         var main: Scan
-        var release: (tag: String, found: Result<Scan, Error>)?
+        var release: (tag: String, found: Result<Scan, any Error>)?
     }
 
     private static func scanWithRelease(repo: String, provider: any PRProvider) async throws -> RepoScan {

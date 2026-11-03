@@ -9,13 +9,15 @@ import XCTest
 final class OnboardingUITests: XCTestCase {
     private var dataDirectory: URL!
 
-    override func setUp() {
+    // Async, zodat setUp en tearDown op de main actor van de klasse draaien (de synchrone
+    // varianten van XCTestCase zijn nonisolated).
+    override func setUp() async throws {
         continueAfterFailure = false
         dataDirectory = FileManager.default.temporaryDirectory.appending(path: "pullwatch-uitest-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         try? FileManager.default.removeItem(at: dataDirectory)
     }
 

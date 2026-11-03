@@ -12,7 +12,7 @@ The app is signed with a Developer ID and notarized by Apple. Universal (Apple s
 
 ## Build from source
 
-- Xcode (Swift 6), macOS 26.6 or later
+- Xcode 27 (Swift 6.4), macOS 26.6 or later
 - Optional: `az` (`az login`) and/or `gh` (`gh auth login`) for CLI authentication
 
 Open `Pullwatch/Pullwatch.xcodeproj` in Xcode and run the **Pullwatch** scheme (⌘R). From the command line:

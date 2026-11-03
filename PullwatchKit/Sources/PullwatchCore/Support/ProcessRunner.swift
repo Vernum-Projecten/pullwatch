@@ -49,8 +49,8 @@ private final class ProcessRun: @unchecked Sendable {
 
     private var stdoutData = Data()
     private var stderrData = Data()
-    private var continuation: CheckedContinuation<ProcessOutput, Error>?
-    private var pendingResult: Result<ProcessOutput, Error>?
+    private var continuation: CheckedContinuation<ProcessOutput, any Error>?
+    private var pendingResult: Result<ProcessOutput, any Error>?
     private var finished = false
     private var timer: Task<Void, Never>?
 
@@ -60,7 +60,7 @@ private final class ProcessRun: @unchecked Sendable {
         self.timeout = timeout
     }
 
-    func start(_ continuation: CheckedContinuation<ProcessOutput, Error>) {
+    func start(_ continuation: CheckedContinuation<ProcessOutput, any Error>) {
         lock.withLock {
             if let pendingResult {
                 continuation.resume(with: pendingResult)
@@ -121,7 +121,7 @@ private final class ProcessRun: @unchecked Sendable {
     }
 
     /// Beëindigt het proces (indien nog actief) en hervat met `result`, tenzij al afgerond.
-    func stop(_ result: Result<ProcessOutput, Error>) {
+    func stop(_ result: Result<ProcessOutput, any Error>) {
         lock.withLock {
             guard !finished else { return }
             if process.isRunning {
@@ -144,7 +144,7 @@ private final class ProcessRun: @unchecked Sendable {
     }
 
     /// Moet onder `lock` worden aangeroepen.
-    private func finishLocked(_ result: Result<ProcessOutput, Error>) {
+    private func finishLocked(_ result: Result<ProcessOutput, any Error>) {
         guard !finished else { return }
         finished = true
         timer?.cancel()

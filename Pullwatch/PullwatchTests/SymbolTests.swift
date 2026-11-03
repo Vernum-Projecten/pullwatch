@@ -5,7 +5,8 @@ import Testing
 @testable import Pullwatch
 
 /// De SF Symbols die de app bij naam noemt bestaan echt; een verkeerde naam toont niets.
-@Suite struct SymbolTests {
+/// De typen van de app zijn standaard @MainActor (SWIFT_DEFAULT_ACTOR_ISOLATION), dus deze suite ook.
+@MainActor @Suite struct SymbolTests {
     @Test(arguments: ["arrow.triangle.pull", "exclamationmark.triangle"])
     func menuBarSymbolsExist(_ name: String) {
         #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
