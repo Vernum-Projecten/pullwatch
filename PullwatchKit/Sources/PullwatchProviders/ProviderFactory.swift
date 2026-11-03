@@ -8,7 +8,7 @@ public enum ProviderFactory {
     public static func make(
         _ account: Account,
         pat: String? = nil,
-        secrets: any SecretStore = KeychainStore(),
+        secrets: any SecretStore = SecretStores.shared,
         http: any HTTPClient = URLSessionHTTPClient(),
         runner: any ProcessRunner = SystemProcessRunner(),
         gitHubApp: GitHubAppConfig = .main

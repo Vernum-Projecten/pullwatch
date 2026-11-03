@@ -215,7 +215,7 @@ public struct GitHubAppTokenStore: Sendable {
     let secrets: any SecretStore
     let key: String
 
-    public init(accountId: UUID, secrets: any SecretStore = KeychainStore()) {
+    public init(accountId: UUID, secrets: any SecretStore = SecretStores.shared) {
         self.secrets = secrets
         key = "github-app.\(accountId.uuidString)"
     }

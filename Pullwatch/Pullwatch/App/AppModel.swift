@@ -287,7 +287,9 @@ final class AppModel {
     @ObservationIgnored private let legacyRecentStore = JSONFileStore<RecentList>(url: AppPaths.file("recent.json"))
     @ObservationIgnored private let versionStore = JSONFileStore<VersionReport>(url: AppPaths.file("versions.json"))
     @ObservationIgnored private let versionHistoryStore = JSONFileStore<VersionHistory>(url: AppPaths.file("version-history.json"))
-    @ObservationIgnored private let secrets = KeychainStore()
+    @ObservationIgnored private let secrets = SecretStores.shared
+    /// Of config.json te lezen was; zo niet, dan ruimt `start()` geen tokens op.
+    @ObservationIgnored private var configReadable = true
     @ObservationIgnored private let engine = PollEngine(
         makeProvider: { ProviderFactory.make($0, http: AppModel.networking) },
         store: JSONFileStore<SeenState>(url: AppPaths.file("seen.json"))
@@ -306,6 +308,7 @@ final class AppModel {
         } catch {
             logger.error("config onleesbaar: \(error.localizedDescription)")
             config = AppConfig()
+            configReadable = false
         }
 
         var stored: History?
@@ -382,6 +385,12 @@ final class AppModel {
         let incomplete = config.accounts.filter { !$0.isComplete && $0.login == nil && $0.repoWatch.isEmpty }
         for account in incomplete { removeAccount(account.id) }
         if !incomplete.isEmpty { logger.notice("\(incomplete.count) lege accounts verwijderd") }
+        // Tokens van accounts die er niet meer zijn (afgebroken toevoegen, crash, oudere versie).
+        // Nooit bij een onleesbare config: dan zou elk token als los gelden.
+        if configReadable {
+            let orphans = SecretStores.removeOrphans(keeping: Set(config.accounts.map(\.id)))
+            if orphans > 0 { logger.notice("\(orphans) losse tokens uit de Keychain verwijderd") }
+        }
         #if DEBUG
         // Met het nagespeelde GitHub: accounts uit een test-config krijgen een nep-token, zodat ze
         // zonder inloggen "ingelogd" zijn (schermafbeeldingen, UI-tests).
