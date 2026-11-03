@@ -160,6 +160,12 @@ CI treats warnings as errors.
   `ObservableObject`, `@Published`, `@StateObject` or `@EnvironmentObject`.
   Observation tracks each property a view reads, so a change only redraws
   the views that read it.
+- One model per job (`AccountsModel`, `HistoryModel`, `PollingModel`, …),
+  put in each scene's environment by `appModels(_:)`. A view reads the model
+  it needs with `@Environment(PollingModel.self) private var polling`, never
+  the whole `AppModel`, which is for intents that span models (removing an
+  account, Cmd-R, the settings with side effects). Bindings to an environment
+  model go through `Bindable(router).path`.
 - In the app the default isolation already makes a model `@MainActor`; do
   not repeat it. A model in PullwatchKit has none, so it would need
   `@MainActor` itself.

@@ -4,38 +4,41 @@ import SwiftUI
 /// Hoofdvenster: een zijbalk met de onderdelen en hun projecten, en per keuze een
 /// `NavigationStack` waar repo-pagina's en statistieken van een repo op komen.
 struct MainView: View {
-    @Bindable var model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(OverviewModel.self) private var overview
+    @Environment(AppRouter.self) private var router
     /// Laatst gekozen onderdeel van dit venster; een project kan bij de volgende start weg zijn.
     @SceneStorage("mainSection") private var storedSection: MainSection = .pullRequests
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(selection: $model.sidebarSelection, content: model.sidebar)
+            SidebarView(selection: Bindable(router).sidebarSelection, content: overview.sidebar)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
-            let selection = model.sidebarSelection ?? .section(storedSection)
-            NavigationStack(path: $model.path) {
-                SectionRoot(model: model, selection: selection)
+            let selection = router.sidebarSelection ?? .section(storedSection)
+            NavigationStack(path: Bindable(router).path) {
+                SectionRoot(selection: selection)
                     .navigationDestination(for: Route.self) { route in
-                        RouteView(model: model, route: route)
+                        RouteView(route: route)
                     }
             }
             // Een andere keuze in de zijbalk is een nieuwe stack, met eigen zoekveld en selectie.
             .id(selection)
             // Lang werk (eerste sync, opnieuw ophalen, versiecheck) op één vaste plek, in elk onderdeel.
-            .activityBar(model.syncStatus, cancel: model.cancelSync)
+            .activityBar(app.syncStatus, cancel: app.cancelSync)
         }
         .frame(minWidth: 900, minHeight: 520)
         .onAppear {
-            if model.sidebarSelection == nil { model.sidebarSelection = .section(storedSection) }
+            if router.sidebarSelection == nil { router.sidebarSelection = .section(storedSection) }
         }
-        .onChange(of: model.mainSection) { _, section in
+        .onChange(of: router.mainSection) { _, section in
             storedSection = section
         }
         // "Volg een repository…" uit het menu Ga of de knoppenbalk van Repo's.
-        .sheet(isPresented: $model.isWatchingRepository) {
-            WatchRepositorySheet(model: model, accounts: model.accountsForExtraRepos) { accountId, check in
-                model.addExtraRepository(check, to: accountId)
+        .sheet(isPresented: Bindable(router).isWatchingRepository) {
+            WatchRepositorySheet(accounts: accounts.accountsForExtraRepos) { accountId, check in
+                app.addExtraRepository(check, to: accountId)
             }
         }
     }
@@ -115,23 +118,23 @@ private struct SectionLabel: View {
 
 /// De lijst van een keuze in de zijbalk, onderaan de stack.
 private struct SectionRoot: View {
-    let model: AppModel
+    @Environment(OverviewModel.self) private var overview
     let selection: SidebarItem
 
     var body: some View {
-        let groupName = model.sidebar.name(of: selection)
+        let groupName = overview.sidebar.name(of: selection)
         switch selection {
         case .group(let kind, let id):
-            HistoryView(model: model, kind: kind, group: id, groupName: groupName)
+            HistoryView(kind: kind, group: id, groupName: groupName)
         case .repoGroup(let id):
-            ReposView(model: model, group: id, groupName: groupName)
+            ReposView(group: id, groupName: groupName)
         case .section(let section):
             switch section {
-            case .pullRequests: HistoryView(model: model, kind: .pullRequest)
-            case .tags: HistoryView(model: model, kind: .tag)
-            case .stats: StatsView(model: model)
-            case .repos: ReposView(model: model)
-            case .dependencies: PackagesView(model: model)
+            case .pullRequests: HistoryView(kind: .pullRequest)
+            case .tags: HistoryView(kind: .tag)
+            case .stats: StatsView()
+            case .repos: ReposView()
+            case .dependencies: PackagesView()
             }
         }
     }
@@ -139,14 +142,14 @@ private struct SectionRoot: View {
 
 /// Een pagina op de stack.
 private struct RouteView: View {
-    let model: AppModel
+    @Environment(OverviewModel.self) private var overview
     let route: Route
 
     var body: some View {
         switch route {
         case .repo(let id):
-            if let summary = model.repoSummariesById[id] {
-                RepoDetailView(model: model, summary: summary)
+            if let summary = overview.repoSummariesById[id] {
+                RepoDetailView(summary: summary)
             } else {
                 ContentUnavailableView(
                     "Repo niet gevonden",
@@ -155,7 +158,7 @@ private struct RouteView: View {
                 )
             }
         case .stats(let repoId):
-            StatsView(model: model, repoId: repoId)
+            StatsView(repoId: repoId)
         }
     }
 }

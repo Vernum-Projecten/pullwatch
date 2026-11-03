@@ -91,7 +91,7 @@ extension NewRepoDefault {
 /// Meldingen per soort zitten in het contextmenu van een rij en op de repo-pagina. Hoort in
 /// een `Form`.
 struct RepoFollowList: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
     @Binding var account: Account
     /// Een nieuw token dat nog niet bewaard is, voor het controleren van een losse repo.
     var pat: String?
@@ -164,7 +164,7 @@ struct RepoFollowList: View {
                 RepoWatchRow(
                     account: $account, repo: repo, openRepo: openRepo,
                     showsOwner: true,
-                    status: model.extraRepoStatus[model.extraRepoKey(accountId: account.id, repo: repo)],
+                    status: accounts.extraRepoStatus[accounts.extraRepoKey(accountId: account.id, repo: repo)],
                     remove: { account.removeExtraRepo(repo) }
                 )
             }
@@ -175,12 +175,12 @@ struct RepoFollowList: View {
             Text("Losse repositories naast die van je eigenaren, zoals een openbare repository van een andere organisatie. Weghalen met een rechtermuisklik of de Delete-toets.")
         }
         .sheet(isPresented: $isAddingRepo) {
-            WatchRepositorySheet(model: model, accounts: [account], pat: pat) { _, check in
+            WatchRepositorySheet(accounts: [account], pat: pat) { _, check in
                 account.addExtraRepo(check.name)
             }
         }
         .task(id: account.extraRepos) {
-            await model.refreshExtraRepoStatus(account, pat: pat)
+            await accounts.refreshExtraRepoStatus(account, pat: pat)
         }
     }
 

@@ -11,10 +11,15 @@ final class UpdatesModel {
     /// Nieuwere Pullwatch op GitHub; nil als deze versie de nieuwste is (of nog niet gekeken).
     private(set) var availableUpdate: AvailableUpdate?
     /// Uitkomst van "Nu controleren" onder Instellingen; nil als er niet handmatig gekeken is.
-    private(set) var updateCheckMessage: String?
+    private(set) var manualCheckResult: ManualCheckResult?
     private(set) var isCheckingForUpdates = false
     /// Updates vanzelf downloaden en bij het afsluiten installeren; Sparkle bewaart de keuze.
-    private(set) var installsUpdatesAutomatically = false
+    /// Zetten gaat via Sparkle, als binding voor de schakelaar in Instellingen (`@Bindable`).
+    var installsUpdatesAutomatically: Bool {
+        get { installsAutomatically }
+        set { setInstallsUpdatesAutomatically(newValue) }
+    }
+    private var installsAutomatically = false
 
     /// Sparkle, als de build een openbare sleutel heeft; anders alleen de melding met downloadknop.
     @ObservationIgnored let updater = Updater()
@@ -35,15 +40,15 @@ final class UpdatesModel {
     func start() {
         updater.includeTestVersions = config.includeTestVersions
         updater.start()
-        installsUpdatesAutomatically = updater.installsAutomatically
+        installsAutomatically = updater.installsAutomatically
     }
 
     /// Updates installeren in de app kan (Sparkle met een openbare sleutel in de build).
     var installsUpdatesInApp: Bool { updater.isEnabled }
 
-    func setInstallsUpdatesAutomatically(_ on: Bool) {
+    private func setInstallsUpdatesAutomatically(_ on: Bool) {
         updater.installsAutomatically = on
-        installsUpdatesAutomatically = updater.installsAutomatically
+        installsAutomatically = updater.installsAutomatically
         if on, availableUpdate?.installsInApp == true { updater.downloadInBackground() }
     }
 
@@ -74,8 +79,7 @@ final class UpdatesModel {
             availableUpdate = update
             nextUpdateCheck = Date() + UpdateChecker.interval
             if manual {
-                updateCheckMessage = update.map { String(localized: "Versie \($0.version) is beschikbaar", comment: "Versienummer") }
-                    ?? String(localized: "Je hebt de nieuwste versie (\(AppModel.currentVersion))", comment: "Huidig versienummer")
+                manualCheckResult = update.map { .available($0.version) } ?? .upToDate(AppModel.currentVersion)
             }
             guard let update else { return }
             if update.installsInApp {
@@ -93,8 +97,7 @@ final class UpdatesModel {
         } catch {
             logger.notice("updatecheck mislukt: \(error.localizedDescription)")
             if manual {
-                let reason = (error as? ProviderError)?.userMessage ?? error.localizedDescription
-                updateCheckMessage = String(localized: "Controleren mislukt: \(reason)", comment: "Reden waarom de updatecheck mislukte")
+                manualCheckResult = .failed((error as? ProviderError)?.userMessage ?? error.localizedDescription)
             }
         }
     }
@@ -121,5 +124,23 @@ final class UpdatesModel {
     /// De update installeren: Sparkle's venster met de release notes en Installeren.
     func installUpdate() {
         updater.installNow()
+    }
+}
+
+/// Wat "Nu controleren" vond. De tekst wordt pas in de view in de taal van de app gezet.
+enum ManualCheckResult: Equatable {
+    /// Een nieuwere versie, met haar nummer.
+    case available(String)
+    /// Deze versie is de nieuwste, met haar nummer.
+    case upToDate(String)
+    /// Controleren lukte niet, met de reden.
+    case failed(String)
+
+    var message: LocalizedStringResource {
+        switch self {
+        case .available(let version): LocalizedStringResource("Versie \(version) is beschikbaar", comment: "Versienummer")
+        case .upToDate(let version): LocalizedStringResource("Je hebt de nieuwste versie (\(version))", comment: "Huidig versienummer")
+        case .failed(let reason): LocalizedStringResource("Controleren mislukt: \(reason)", comment: "Reden waarom de updatecheck mislukte")
+        }
     }
 }

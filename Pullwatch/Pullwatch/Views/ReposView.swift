@@ -66,7 +66,12 @@ struct HealthIcon: View {
 
 /// Gevolgde repo's in een tabel, slechtste eerst; dubbelklik of Return opent de pagina van de repo.
 struct ReposView: View {
-    let model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(PollingModel.self) private var polling
+    @Environment(VersionsModel.self) private var versions
+    @Environment(OverviewModel.self) private var overview
+    @Environment(AppRouter.self) private var router
     /// Alleen dit project (uit de zijbalk); nil voor alles.
     var group: HistoryGroup.ID? = nil
     var groupName: String? = nil
@@ -83,7 +88,7 @@ struct ReposView: View {
     }
 
     private func recompute() {
-        let all = model.repoSummaries.filter { group == nil || $0.group == group }
+        let all = overview.repoSummaries.filter { group == nil || $0.group == group }
         let query = searchText.trimmingCharacters(in: .whitespaces)
         let found = query.isEmpty ? all : all.filter { summary in
             summary.repo.localizedCaseInsensitiveContains(query)
@@ -96,8 +101,8 @@ struct ReposView: View {
     }
 
     private var selectedPage: URL? {
-        guard let selection, let summary = model.repoSummariesById[selection] else { return nil }
-        return model.config.accounts.first { $0.id == summary.accountId }?.repoWebURL(summary.repo)
+        guard let selection, let summary = overview.repoSummariesById[selection] else { return nil }
+        return accounts.config.accounts.first { $0.id == summary.accountId }?.repoWebURL(summary.repo)
     }
 
     var body: some View {
@@ -130,28 +135,28 @@ struct ReposView: View {
             .width(min: 70, ideal: 100)
         }
         .contextMenu(forSelectionType: RepoSummary.ID.self) { ids in
-            if let id = ids.first, let summary = model.repoSummariesById[id] {
-                Button("Open de pagina van deze repo") { model.showRepo(id: id) }
-                if let url = model.config.accounts.first(where: { $0.id == summary.accountId })?.repoWebURL(summary.repo) {
+            if let id = ids.first, let summary = overview.repoSummariesById[id] {
+                Button("Open de pagina van deze repo") { router.showRepo(id: id) }
+                if let url = accounts.config.accounts.first(where: { $0.id == summary.accountId })?.repoWebURL(summary.repo) {
                     Button("Open in browser") { NSWorkspace.shared.open(url) }
                 }
                 Button("Check deze repo opnieuw") {
-                    Task { await model.refreshVersions(of: summary) }
+                    Task { await versions.refreshVersions(of: summary) }
                 }
-                .disabled(model.versionCheck != nil || model.versionReport == nil)
+                .disabled(versions.versionCheck != nil || versions.versionReport == nil)
             }
         } primaryAction: { ids in
-            if let id = ids.first { model.showRepo(id: id) }
+            if let id = ids.first { router.showRepo(id: id) }
         }
         .overlay {
             if rows.isEmpty {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty
-                    && (model.isFillingHistory || model.versionCheck != nil) {
+                    && (polling.isFillingHistory || versions.versionCheck != nil) {
                     // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
                     ContentUnavailableView(
                         "Repo's ophalen…",
                         systemImage: "folder",
-                        description: model.fillingAccountName.map {
+                        description: polling.fillingAccountName.map {
                             Text("Pullwatch haalt de repo's op van \($0).", comment: "Accountnaam, bv. @octocat op GitHub")
                         } ?? Text("Pullwatch haalt de repo's op die je volgt.")
                     )
@@ -172,20 +177,20 @@ struct ReposView: View {
         )
         .searchShortcut()
         .navigationTitle(groupName.map { Text(verbatim: $0) } ?? Text("Repo's"))
-        .navigationSubtitle(CheckedSubtitle.text(model.versionReport?.checkedAt))
+        .navigationSubtitle(CheckedSubtitle.text(versions.versionReport?.checkedAt))
         .toolbar {
             ToolbarItem {
                 Button {
-                    model.watchRepository()
+                    app.watchRepository()
                 } label: {
                     Label("Volg een repository…", systemImage: "plus")
                 }
-                .disabled(model.accountsForExtraRepos.isEmpty)
+                .disabled(accounts.accountsForExtraRepos.isEmpty)
                 .help("Een losse repository volgen, ook een openbare van een andere organisatie")
             }
-            CheckAllToolbarItem(model: model)
+            CheckAllToolbarItem()
         }
-        .onChange(of: Query(text: searchText, sortOrder: sortOrder, summaries: model.repoSummaries), initial: true) {
+        .onChange(of: Query(text: searchText, sortOrder: sortOrder, summaries: overview.repoSummaries), initial: true) {
             recompute()
         }
         .focusedSceneValue(\.browserTarget, selectedPage.map(BrowserTarget.page))
@@ -204,16 +209,16 @@ enum CheckedSubtitle {
 /// "Alles checken" in de knoppenbalk. De knop blijft staan (uitgeschakeld) terwijl een check
 /// loopt; de voortgang staat in de balk onderin het venster.
 struct CheckAllToolbarItem: ToolbarContent {
-    let model: AppModel
+    @Environment(VersionsModel.self) private var versions
 
     var body: some ToolbarContent {
         ToolbarItem {
             Button {
-                Task { await model.checkVersions() }
+                Task { await versions.checkVersions() }
             } label: {
                 Label("Alles checken", systemImage: "checkmark.shield")
             }
-            .disabled(model.versionCheck != nil || !model.refreshingRepos.isEmpty)
+            .disabled(versions.versionCheck != nil || !versions.refreshingRepos.isEmpty)
             .help("Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie")
         }
     }

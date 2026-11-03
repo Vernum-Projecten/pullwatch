@@ -34,14 +34,14 @@ final class GitHubSignIn {
     private(set) var waitingForInstall = false
     private(set) var error: String?
 
-    @ObservationIgnored private let model: AppModel
+    @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private var flow: Task<Void, Never>?
     @ObservationIgnored private var watch: Task<Void, Never>?
 
-    init(model: AppModel, accountId: UUID) {
-        self.model = model
+    init(accounts: AccountsModel, accountId: UUID) {
+        self.accounts = accounts
         self.accountId = accountId
-        phase = model.hasGitHubAppTokens(accountId) ? .signedIn(login: nil) : .signedOut
+        phase = accounts.hasGitHubAppTokens(accountId) ? .signedIn(login: nil) : .signedOut
         if case .signedIn = phase {
             Task { await self.resume() }
         }
@@ -65,12 +65,12 @@ final class GitHubSignIn {
         log.info("inloggen gestart voor account \(accountId)")
         flow = Task {
             do {
-                let code = try await model.startGitHubSignIn()
+                let code = try await accounts.startGitHubSignIn()
                 guard !Task.isCancelled else { return }
                 log.info("code ontvangen, verloopt \(code.expiresAt.formatted(date: .omitted, time: .standard))")
                 phase = .waitingForApproval(code)
                 copyCode()
-                try await model.finishGitHubSignIn(code, accountId: accountId)
+                try await accounts.finishGitHubSignIn(code, accountId: accountId)
                 guard !Task.isCancelled else { return }
                 log.notice("goedgekeurd op GitHub")
                 await resume()
@@ -111,7 +111,7 @@ final class GitHubSignIn {
     func signOut() {
         flow?.cancel()
         watch?.cancel()
-        model.signOutOfGitHub(accountId)
+        accounts.signOutOfGitHub(accountId)
         phase = .signedOut
         installations = .unknown
         waitingForInstall = false
@@ -130,7 +130,7 @@ final class GitHubSignIn {
             return
         }
         #endif
-        open(model.gitHubApp.installURL)
+        open(accounts.gitHubApp.installURL)
         startWatching()
     }
 
@@ -140,7 +140,7 @@ final class GitHubSignIn {
         checkingInstallations = true
         defer { checkingInstallations = false }
         do {
-            let owners = try await model.gitHubInstallationOwners(accountId)
+            let owners = try await accounts.gitHubInstallationOwners(accountId)
             installations = owners.isEmpty ? .none : .found(owners)
             log.info("installaties: \(owners.isEmpty ? "geen" : owners.map(\.login).joined(separator: ", "))")
             if !owners.isEmpty { error = nil }
@@ -155,7 +155,7 @@ final class GitHubSignIn {
     }
 
     private func resume() async {
-        let login = await model.gitHubLogin(accountId)
+        let login = await accounts.gitHubLogin(accountId)
         phase = .signedIn(login: login)
         log.info("ingelogd als \(login ?? "onbekend")")
         await refreshInstallations()

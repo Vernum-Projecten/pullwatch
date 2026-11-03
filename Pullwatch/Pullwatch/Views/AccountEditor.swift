@@ -18,7 +18,10 @@ final class AccountSaveAction {
 }
 
 struct AccountEditor: View {
-    let model: AppModel
+    /// Uit de environment kan pas in `body`; `init` heeft de accounts nodig voor `isNew`.
+    let accounts: AccountsModel
+    @Environment(AppModel.self) private var app
+    @Environment(AppRouter.self) private var router
 
     @State private var draft: Account
     @State private var pat = ""
@@ -59,17 +62,17 @@ struct AccountEditor: View {
     /// `enterprise`: een nieuw GitHub-account op GitHub Enterprise (de keuze in het welkomstvenster
     /// of het toevoeg-menu).
     init(
-        model: AppModel, original: Account, enterprise: Bool = false, saveAction: AccountSaveAction? = nil,
+        accounts: AccountsModel, original: Account, enterprise: Bool = false, saveAction: AccountSaveAction? = nil,
         onSaved: @escaping () -> Void = {}
     ) {
-        self.model = model
+        self.accounts = accounts
         self.saveAction = saveAction
         _draft = State(initialValue: original)
         _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? "")
         isEnterprise = original.kind == .gitHub && (enterprise || original.isGitHubEnterprise)
         _ownersText = State(initialValue: original.owners.joined(separator: ", "))
         originalAuthMethod = original.authMethod
-        isNew = !model.config.accounts.contains { $0.id == original.id }
+        isNew = !accounts.config.accounts.contains { $0.id == original.id }
         self.onSaved = onSaved
     }
 
@@ -77,13 +80,13 @@ struct AccountEditor: View {
     /// GitHub Enterprise bestaat de Pullwatch-app niet (daar zou hij per server geregistreerd
     /// moeten zijn).
     private var offersGitHubApp: Bool {
-        draft.kind == .gitHub && !isEnterprise && (model.gitHubApp.isConfigured || originalAuthMethod == .gitHubApp)
+        draft.kind == .gitHub && !isEnterprise && (accounts.gitHubApp.isConfigured || originalAuthMethod == .gitHubApp)
     }
 
     /// `gh` alleen nog voor accounts die het al gebruiken, of zolang er geen GitHub App is; op
     /// GitHub Enterprise altijd (`gh auth login --hostname`).
     private var offersCLI: Bool {
-        draft.kind != .gitHub || isEnterprise || originalAuthMethod == .cli || !model.gitHubApp.isConfigured
+        draft.kind != .gitHub || isEnterprise || originalAuthMethod == .cli || !accounts.gitHubApp.isConfigured
     }
 
     /// Of er een veld voor het adres van de server staat.
@@ -278,12 +281,12 @@ struct AccountEditor: View {
 
             if draft.isComplete {
                 RepoFollowList(
-                    model: model, account: $draft, pat: pat.isEmpty ? nil : pat,
+                    account: $draft, pat: pat.isEmpty ? nil : pat,
                     available: availableRepos, isLoading: isLoadingRepos, error: repoError,
                     reload: { reloadCount += 1 },
                     openRepo: isNew ? nil : { repo in
-                        model.showRepo(accountId: draft.id, repo: repo)
-                        model.show(.main)
+                        app.showRepo(accountId: draft.id, repo: repo)
+                        router.show(.main)
                     }
                 )
             }
@@ -320,7 +323,7 @@ struct AccountEditor: View {
         }
         .formStyle(.grouped)
         .onAppear {
-            storedPAT = model.hasStoredPAT(draft.id)
+            storedPAT = accounts.hasStoredPAT(draft.id)
             saveAction?.perform = { save() }
             saveAction?.blockedReason = validationMessage
         }
@@ -331,7 +334,7 @@ struct AccountEditor: View {
                 signIn = nil
                 return
             }
-            let signIn = self.signIn ?? GitHubSignIn(model: model, accountId: draft.id)
+            let signIn = self.signIn ?? GitHubSignIn(accounts: accounts, accountId: draft.id)
             self.signIn = signIn
             // Terug in de app (bijvoorbeeld van de installatiepagina op github.com): opnieuw kijken.
             for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
@@ -374,7 +377,7 @@ struct AccountEditor: View {
         }
         // Bestaand account: elke wijziging meteen bewaren (geen Opslaan in Instellingen).
         .onChange(of: draft) { _, account in
-            if !isNew { model.updateAccount(account) }
+            if !isNew { app.updateAccount(account) }
         }
         // De repositories laden vanzelf, opnieuw als de plekken of het inloggen veranderen.
         .task(id: RepoLoad(owners: draft.owners, instanceURL: draft.instanceURL, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
@@ -438,18 +441,18 @@ struct AccountEditor: View {
     }
 
     private func save() {
-        if model.saveAccount(draft, pat: pat.isEmpty ? nil : pat) {
+        if app.saveAccount(draft, pat: pat.isEmpty ? nil : pat) {
             onSaved()
             saveError = nil
             pat = ""
-            storedPAT = draft.authMethod == .pat ? (storedPAT || model.hasStoredPAT(draft.id)) : false
+            storedPAT = draft.authMethod == .pat ? (storedPAT || accounts.hasStoredPAT(draft.id)) : false
         } else {
             saveError = String(localized: "PAT opslaan in Keychain mislukt")
         }
     }
 
     private func provider() -> any PRProvider {
-        model.provider(for: draft, pat: pat.isEmpty ? nil : pat)
+        accounts.provider(for: draft, pat: pat.isEmpty ? nil : pat)
     }
 
     private func testConnection() async {
@@ -497,7 +500,7 @@ struct AccountEditor: View {
         repoError = nil
         defer { if !Task.isCancelled { isLoadingRepos = false } }
         do {
-            let repos = try await model.repositories(for: draft, pat: pat.isEmpty ? nil : pat)
+            let repos = try await accounts.repositories(for: draft, pat: pat.isEmpty ? nil : pat)
             if Task.isCancelled { return }
             availableRepos = repos
         } catch let error as ProviderError {

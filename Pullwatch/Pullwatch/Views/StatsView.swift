@@ -38,7 +38,10 @@ extension StatsPeriod {
 
 /// PR-activiteit over alle gevolgde repo's (of één repo): per periode, per auteur en per repo.
 struct StatsView: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(HistoryModel.self) private var historyModel
+    @Environment(OverviewModel.self) private var overview
+    @Environment(AppRouter.self) private var router
     /// Alleen deze repo (`RepoSummary.id`), vanaf de repo-pagina; nil voor alles.
     var repoId: String? = nil
 
@@ -48,7 +51,7 @@ struct StatsView: View {
     @State private var group: HistoryGroup.ID?
     @State private var author: String?
 
-    private var repoSummary: RepoSummary? { repoId.flatMap { model.repoSummariesById[$0] } }
+    private var repoSummary: RepoSummary? { repoId.flatMap { overview.repoSummariesById[$0] } }
 
     /// Azure DevOps noemt mergen "completed": zijn alle accounts in beeld van Azure DevOps, dan
     /// heet gemerged hier afgerond, zoals in de meldingen.
@@ -56,24 +59,24 @@ struct StatsView: View {
         let ids: Set<UUID> =
             if let repoSummary { [repoSummary.accountId] }
             else if let group { [group.accountId] }
-            else { Set(model.config.pollableAccounts.map(\.id)) }
-        let kinds = model.config.accounts.filter { ids.contains($0.id) }.map(\.kind)
+            else { Set(accounts.config.pollableAccounts.map(\.id)) }
+        let kinds = accounts.config.accounts.filter { ids.contains($0.id) }.map(\.kind)
         return !kinds.isEmpty && kinds.allSatisfy { $0 == .azureDevOps }
     }
 
     var body: some View {
         let filter = ActivityFilter(group: group, author: author, repoId: repoId, hideBots: hideBots, countCoAuthors: countCoAuthors)
-        let stats = model.activityStats(period: period, filter: filter)
+        let stats = historyModel.activityStats(period: period, filter: filter)
         // Auteurskeuze zonder auteursfilter, anders blijft alleen de gekozen auteur over.
         let withoutAuthor = ActivityFilter(group: group, repoId: repoId, hideBots: hideBots, countCoAuthors: countCoAuthors)
-        let authors = author == nil ? stats.authors : model.activityStats(period: period, filter: withoutAuthor).authors
+        let authors = author == nil ? stats.authors : historyModel.activityStats(period: period, filter: withoutAuthor).authors
 
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 StatTiles(stats: stats, saysCompleted: saysCompleted)
                 if let author {
                     Button {
-                        model.showHistory(.pullRequest, author: author, repo: repoSummary.map { HistoryRepo(accountId: $0.accountId, repo: $0.repo) })
+                        router.showHistory(.pullRequest, author: author, repo: repoSummary.map { HistoryRepo(accountId: $0.accountId, repo: $0.repo) })
                     } label: {
                         Label {
                             Text("Toon de PR's van \(author)")
@@ -100,8 +103,8 @@ struct StatsView: View {
                             title: "Drukste repo's", items: Array(stats.repos.prefix(10)),
                             states: stats.repoStates, saysCompleted: saysCompleted, selected: nil
                         ) { name in
-                            if let summary = model.repoSummaries.first(where: { $0.repo == name }) {
-                                model.showRepo(id: summary.id)
+                            if let summary = overview.repoSummaries.first(where: { $0.repo == name }) {
+                                router.showRepo(id: summary.id)
                             }
                         }
                     }
@@ -119,7 +122,7 @@ struct StatsView: View {
                 author: $author,
                 hideBots: $hideBots,
                 countCoAuthors: $countCoAuthors,
-                groups: repoId == nil ? model.sidebar.pullRequestGroups : [],
+                groups: repoId == nil ? overview.sidebar.pullRequestGroups : [],
                 authors: authors
             )
         }

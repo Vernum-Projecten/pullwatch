@@ -5,7 +5,7 @@ import SwiftUI
 /// gecontroleerd met één verzoek voordat de repo bij het account komt. Vanuit het hoofdvenster
 /// kies je eerst het account; vanuit de instellingen van een account is dat al gegeven.
 struct WatchRepositorySheet: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accountsModel
     /// De accounts om uit te kiezen; bij één is er niets te kiezen.
     let accounts: [Account]
     /// Een nieuw token dat nog niet bewaard is (account-editor).
@@ -109,7 +109,7 @@ struct WatchRepositorySheet: View {
         error = nil
         let text = input
         checkTask = Task {
-            let result = await model.checkRepository(text, for: account, pat: pat)
+            let result = await accountsModel.checkRepository(text, for: account, pat: pat)
             checkTask = nil
             if Task.isCancelled { return }
             switch result {

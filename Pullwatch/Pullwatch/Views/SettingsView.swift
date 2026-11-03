@@ -4,7 +4,6 @@ import SwiftUI
 /// Het Instellingen-venster (de Settings-scene): Accounts, Meldingen en Algemeen. Alles wordt meteen
 /// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
-    let model: AppModel
 
     enum Pane: String { case accounts, notifications, general }
 
@@ -20,16 +19,16 @@ struct SettingsView: View {
     var body: some View {
         TabView(selection: $pane) {
             Tab("Accounts", systemImage: "person.2", value: Pane.accounts) {
-                AccountsSettingsView(model: model)
+                AccountsSettingsView()
             }
             Tab("Meldingen", systemImage: "bell.badge", value: Pane.notifications) {
-                NotificationsSettingsView(model: model)
+                NotificationsSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shootScrolling("settings-notifications", windowId: "com_apple_SwiftUI_Settings_window", pages: 3) }
                     #endif
             }
             Tab("Algemeen", systemImage: "gearshape", value: Pane.general) {
-                GeneralSettingsView(model: model)
+                GeneralSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shoot("settings-general", windowId: "com_apple_SwiftUI_Settings_window") }
                     #endif
@@ -42,7 +41,8 @@ struct SettingsView: View {
 // MARK: - Accounts
 
 private struct AccountsSettingsView: View {
-    let model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(AccountsModel.self) private var accounts
     @State private var selection: UUID?
     /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
     @State private var draft: Account?
@@ -53,7 +53,7 @@ private struct AccountsSettingsView: View {
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
-                AccountList(accounts: model.config.accounts, selection: $selection) {
+                AccountList(accounts: accounts.config.accounts, selection: $selection) {
                     if selection != nil { confirmsRemoval = true }
                 }
                 Divider()
@@ -64,8 +64,8 @@ private struct AccountsSettingsView: View {
             Divider()
 
             Group {
-                if let id = selection, let account = model.config.accounts.first(where: { $0.id == id }) {
-                    AccountEditor(model: model, original: account).id(id)
+                if let id = selection, let account = accounts.config.accounts.first(where: { $0.id == id }) {
+                    AccountEditor(accounts: accounts, original: account).id(id)
                 } else {
                     ContentUnavailableView {
                         Label("Geen account gekozen", systemImage: "person.crop.circle")
@@ -76,13 +76,13 @@ private struct AccountsSettingsView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear { if selection == nil { selection = model.config.accounts.first?.id } }
+        .onAppear { if selection == nil { selection = accounts.config.accounts.first?.id } }
         #if DEBUG
         .onAppear { SnapshotCamera.shoot("settings-accounts", windowId: "com_apple_SwiftUI_Settings_window") }
         .onChange(of: selection) { _, _ in SnapshotCamera.shoot("settings-accounts-selected", windowId: "com_apple_SwiftUI_Settings_window") }
         #endif
         .sheet(item: $draft) { account in
-            AddAccountSheet(model: model, draft: account, enterprise: draftIsEnterprise) { saved in
+            AddAccountSheet(draft: account, enterprise: draftIsEnterprise) { saved in
                 draft = nil
                 if saved { selection = account.id }
             }
@@ -90,11 +90,11 @@ private struct AccountsSettingsView: View {
         .confirmationDialog(
             "Account verwijderen?",
             isPresented: $confirmsRemoval,
-            presenting: model.config.accounts.first { $0.id == selection }
+            presenting: accounts.config.accounts.first { $0.id == selection }
         ) { account in
             Button("Verwijderen", role: .destructive) {
-                model.removeAccount(account.id)
-                selection = model.config.accounts.first?.id
+                app.removeAccount(account.id)
+                selection = accounts.config.accounts.first?.id
             }
         } message: { account in
             Text("\(account.displayName) en de geschiedenis ervan verdwijnen uit Pullwatch. Op \(account.serviceName) verandert niets.")
@@ -104,7 +104,7 @@ private struct AccountsSettingsView: View {
     /// `enterprise`: GitHub Enterprise, waar de Pullwatch-app niet bestaat; daar eerst een token.
     private func add(_ kind: ProviderKind, enterprise: Bool) {
         draftIsEnterprise = enterprise
-        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
+        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
     }
 }
 
@@ -246,7 +246,7 @@ private struct AccountListButtons: View {
 
 /// Een account toevoegen: Annuleren gooit het concept weg, Toevoegen bewaart het als het af is.
 private struct AddAccountSheet: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
     let draft: Account
     let enterprise: Bool
     let onClose: (_ saved: Bool) -> Void
@@ -254,11 +254,11 @@ private struct AddAccountSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            AccountEditor(model: model, original: draft, enterprise: enterprise, saveAction: saveAction) { onClose(true) }
+            AccountEditor(accounts: accounts, original: draft, enterprise: enterprise, saveAction: saveAction) { onClose(true) }
             Divider()
             HStack {
                 Button("Annuleren", role: .cancel) {
-                    model.discardDraft(draft.id)
+                    accounts.discardDraft(draft.id)
                     onClose(false)
                 }
                 .keyboardShortcut(.cancelAction)
@@ -275,18 +275,19 @@ private struct AddAccountSheet: View {
 // MARK: - Algemeen
 
 private struct GeneralSettingsView: View {
-    @Bindable var model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(UpdatesModel.self) private var updates
     @State private var logLevel = Log.minimum
 
     var body: some View {
         Form {
             Section {
-                Picker("Kijk elke", selection: $model.pollInterval) {
+                Picker("Kijk elke", selection: Bindable(app).pollInterval) {
                     ForEach(AppModel.pollIntervals, id: \.self) { seconds in
                         Text(Duration.seconds(seconds), format: .units(allowed: [.minutes], width: .wide)).tag(seconds)
                     }
                 }
-                Picker("Geschiedenis bewaren", selection: $model.historyRetention) {
+                Picker("Geschiedenis bewaren", selection: Bindable(app).historyRetention) {
                     ForEach(HistoryRetention.allCases, id: \.self) { retention in
                         Text(retention.label).tag(retention)
                     }
@@ -298,7 +299,7 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
-                Toggle("Elke dag afhankelijkheden en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
+                Toggle("Elke dag afhankelijkheden en kwetsbaarheden checken", isOn: Bindable(app).checksVersionsDaily)
             } header: {
                 Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {
@@ -306,27 +307,24 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
-                Toggle("Automatisch op updates controleren", isOn: $model.checksForUpdates)
-                if model.installsUpdatesInApp {
-                    Toggle(
-                        "Updates automatisch installeren",
-                        isOn: Binding(get: { model.installsUpdatesAutomatically }, set: { model.setInstallsUpdatesAutomatically($0) })
-                    )
-                    .disabled(!model.checksForUpdates)
+                Toggle("Automatisch op updates controleren", isOn: Bindable(app).checksForUpdates)
+                if updates.installsUpdatesInApp {
+                    Toggle("Updates automatisch installeren", isOn: Bindable(updates).installsUpdatesAutomatically)
+                    .disabled(!app.checksForUpdates)
                     .help("Pullwatch downloadt een update op de achtergrond en installeert hem als je de app afsluit.")
-                    Toggle("Testversies aanbieden", isOn: $model.includesTestVersions)
+                    Toggle("Testversies aanbieden", isOn: Bindable(app).includesTestVersions)
                         .help("Ook pre-releases van Pullwatch, voordat ze voor iedereen uitkomen.")
                 }
                 LabeledContent {
                     HStack {
-                        if model.isCheckingForUpdates { ProgressView().controlSize(.small) }
-                        Button("Nu controleren") { Task { await model.checkForUpdates(manual: true) } }
-                            .disabled(model.isCheckingForUpdates)
+                        if updates.isCheckingForUpdates { ProgressView().controlSize(.small) }
+                        Button("Nu controleren") { Task { await updates.checkForUpdates(manual: true) } }
+                            .disabled(updates.isCheckingForUpdates)
                     }
                 } label: {
                     Text("Versie \(AppModel.currentVersion)")
-                    if let message = model.updateCheckMessage {
-                        Text(verbatim: message)
+                    if let result = updates.manualCheckResult {
+                        Text(result.message)
                     }
                 }
             } header: {
