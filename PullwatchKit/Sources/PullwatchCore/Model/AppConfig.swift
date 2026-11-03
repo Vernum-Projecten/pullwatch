@@ -12,13 +12,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var checkForUpdates: Bool
     /// Ook testversies (pre-releases, Sparkle's `beta`-kanaal) aanbieden. Standaard uit.
     public var includeTestVersions: Bool
-    /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
-    public var notifyPackageUpdates: Bool
-    /// Die melding alleen voor updates die een repo nu binnen zijn bereik kan nemen. Standaard aan.
-    public var notifyOnlyUpdatesYouCanTake: Bool
-    /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
-    /// Standaard uit: die meldingen staan ook bij GitHub of Azure DevOps.
-    public var notifySecurityAlerts: Bool
+    /// Instellingen > Meldingen: per soort aan of uit, stille uren en de badges.
+    public var notifications: NotificationSettings
     /// Het welkomstvenster is afgerond of overgeslagen. Staat in de config (niet in de defaults),
     /// zodat een eigen datamap (`-PullwatchDataDirectory`, de UI-tests) er los van staat.
     public var onboardingCompleted: Bool
@@ -30,9 +25,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
         autoVersionCheck: Bool = true,
         checkForUpdates: Bool = true,
         includeTestVersions: Bool = false,
-        notifyPackageUpdates: Bool = true,
-        notifyOnlyUpdatesYouCanTake: Bool = true,
-        notifySecurityAlerts: Bool = false,
+        notifyPackageUpdates: Bool? = nil,
+        notifyOnlyUpdatesYouCanTake: Bool? = nil,
+        notifySecurityAlerts: Bool? = nil,
+        notifications: NotificationSettings = NotificationSettings(),
         onboardingCompleted: Bool = false
     ) {
         self.accounts = accounts
@@ -41,9 +37,12 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.autoVersionCheck = autoVersionCheck
         self.checkForUpdates = checkForUpdates
         self.includeTestVersions = includeTestVersions
-        self.notifyPackageUpdates = notifyPackageUpdates
-        self.notifyOnlyUpdatesYouCanTake = notifyOnlyUpdatesYouCanTake
-        self.notifySecurityAlerts = notifySecurityAlerts
+        // De losse schakelaars van vroeger gaan, als ze gegeven zijn, boven `notifications`.
+        var notifications = notifications
+        if let notifyPackageUpdates { notifications.packageUpdates = notifyPackageUpdates }
+        if let notifyOnlyUpdatesYouCanTake { notifications.onlyUpdatesYouCanTake = notifyOnlyUpdatesYouCanTake }
+        if let notifySecurityAlerts { notifications.securityAlerts = notifySecurityAlerts }
+        self.notifications = notifications
         self.onboardingCompleted = onboardingCompleted
     }
 
@@ -55,10 +54,58 @@ public struct AppConfig: Codable, Equatable, Sendable {
         autoVersionCheck = try c.decodeIfPresent(Bool.self, forKey: .autoVersionCheck) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
         includeTestVersions = try c.decodeIfPresent(Bool.self, forKey: .includeTestVersions) ?? false
-        notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
-        notifyOnlyUpdatesYouCanTake = try c.decodeIfPresent(Bool.self, forKey: .notifyOnlyUpdatesYouCanTake) ?? true
-        notifySecurityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
+        if let notifications = try c.decodeIfPresent(NotificationSettings.self, forKey: .notifications) {
+            self.notifications = notifications
+        } else {
+            // Van vóór Instellingen > Meldingen: de drie schakelaars van Algemeen gaan mee.
+            var notifications = NotificationSettings()
+            notifications.packageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
+            notifications.onlyUpdatesYouCanTake = try c.decodeIfPresent(Bool.self, forKey: .notifyOnlyUpdatesYouCanTake) ?? true
+            notifications.securityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
+            self.notifications = notifications
+        }
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case accounts, pollInterval, historyRetention, autoVersionCheck, checkForUpdates, includeTestVersions
+        case notifications, onboardingCompleted
+        case notifyPackageUpdates, notifyOnlyUpdatesYouCanTake, notifySecurityAlerts
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(accounts, forKey: .accounts)
+        try c.encode(pollInterval, forKey: .pollInterval)
+        try c.encode(historyRetention, forKey: .historyRetention)
+        try c.encode(autoVersionCheck, forKey: .autoVersionCheck)
+        try c.encode(checkForUpdates, forKey: .checkForUpdates)
+        try c.encode(includeTestVersions, forKey: .includeTestVersions)
+        try c.encode(notifications, forKey: .notifications)
+        try c.encode(onboardingCompleted, forKey: .onboardingCompleted)
+        // Nog wel geschreven: een oudere Pullwatch leest alleen deze drie.
+        try c.encode(notifyPackageUpdates, forKey: .notifyPackageUpdates)
+        try c.encode(notifyOnlyUpdatesYouCanTake, forKey: .notifyOnlyUpdatesYouCanTake)
+        try c.encode(notifySecurityAlerts, forKey: .notifySecurityAlerts)
+    }
+
+    /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
+    public var notifyPackageUpdates: Bool {
+        get { notifications.packageUpdates }
+        set { notifications.packageUpdates = newValue }
+    }
+
+    /// Die melding alleen voor updates die een repo nu binnen zijn bereik kan nemen. Standaard aan.
+    public var notifyOnlyUpdatesYouCanTake: Bool {
+        get { notifications.onlyUpdatesYouCanTake }
+        set { notifications.onlyUpdatesYouCanTake = newValue }
+    }
+
+    /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
+    /// Standaard uit: die meldingen staan ook bij GitHub of Azure DevOps.
+    public var notifySecurityAlerts: Bool {
+        get { notifications.securityAlerts }
+        set { notifications.securityAlerts = newValue }
     }
 
     public var clampedInterval: Int {

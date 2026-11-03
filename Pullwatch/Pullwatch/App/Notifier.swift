@@ -1,25 +1,64 @@
 import AppKit
 import os
 import PullwatchCore
+import SwiftUI
 import UserNotifications
 
 /// Log is Sendable; ook bruikbaar vanuit nonisolated callbacks.
 nonisolated private let logger = Log(category: "notifier")
 
+/// Levert meldingen af die de `NotificationContentBuilder` maakte, met knoppen per categorie, een
+/// profielfoto of het teken van de soort, en haalt ze weg als ze in Pullwatch gelezen zijn. Wat
+/// er in een melding staat beslist deze klasse niet.
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()
 
-    /// Wordt aangeroepen met de dedupKey wanneer de gebruiker op een PR-melding klikt.
-    var onOpen: ((String) -> Void)?
-    /// Klik op een melding die bij een onderdeel van het hoofdvenster hoort (bv. nieuwe versies).
-    var onOpenSection: ((String) -> Void)?
-    /// Klik op de melding van een update die Sparkle in de app installeert.
-    var onInstallUpdate: (() -> Void)?
+    /// Een klik op een melding of een knop erop; `nil` is de klik op de melding zelf.
+    var onResponse: ((NotificationAction?, NotificationPayload) -> Void)?
+
+    /// Profielfoto's voor de bijlagen, met de HTTP-client van de app.
+    private lazy var avatars = AvatarCache(
+        http: AppModel.networking,
+        directory: URL.cachesDirectory.appending(path: "nl.torrisi.pullwatch/avatars")
+    )
 
     private var center: UNUserNotificationCenter { .current() }
 
+    /// Nooit een echte melding: als host van de unit-tests, en in debug-builds met
+    /// `-PullwatchSkipNotificationRequest YES` (schermafbeeldingen en proefritten op een Mac waar
+    /// iemand werkt). Dan vraagt Pullwatch ook geen toestemming.
+    static var isSuppressed: Bool {
+        if AppModel.isTestHost { return true }
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "PullwatchSkipNotificationRequest")
+        #else
+        return false
+        #endif
+    }
+
+    /// De knoppen per soort melding; één keer bij het opstarten.
+    func registerCategories() {
+        let categories = NotificationCategory.allCases.map { category in
+            UNNotificationCategory(
+                identifier: category.identifier,
+                actions: category.actions.map { action in
+                    UNNotificationAction(
+                        identifier: action.identifier,
+                        title: action.title,
+                        options: action.opensWindow ? [.foreground] : [],
+                        icon: UNNotificationActionIcon(systemImageName: action.symbol)
+                    )
+                },
+                intentIdentifiers: [],
+                options: [.hiddenPreviewsShowSubtitle]
+            )
+        }
+        center.setNotificationCategories(Set(categories))
+    }
+
     func requestAuthorization() async -> Bool {
+        if Self.isSuppressed { return false }
         do {
             return try await center.requestAuthorization(options: [.alert, .sound])
         } catch {
@@ -29,12 +68,14 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func isAuthorized() async -> Bool {
-        await Self.authorizationGranted()
+        if Self.isSuppressed { return false }
+        return await Self.authorizationGranted()
     }
 
     /// Of macOS al gevraagd heeft, en wat het antwoord was.
     func authorizationStatus() async -> UNAuthorizationStatus {
-        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        if Self.isSuppressed { return .notDetermined }
+        return await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
     }
 
     /// Opent de meldingsinstellingen van Pullwatch in Systeeminstellingen.
@@ -50,200 +91,115 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         return status == .authorized || status == .provisional
     }
 
-    /// De tekst van een melding: de PR of tag, met daaronder wie hem maakte.
-    private static func body(_ title: String, author: String?) -> String {
-        guard let author, !author.isEmpty else { return title }
-        return title + "\n" + String(localized: "door \(author)", comment: "Wie de PR of tag maakte")
-    }
+    // MARK: - Afleveren
 
-    func deliver(_ plans: [PlannedNotification]) {
-        for plan in plans {
-            let content = UNMutableNotificationContent()
-            let identifier: String
-            switch plan {
-            case .pullRequest(let pr):
-                content.title = String(localized: "\(pr.repo): nieuwe PR", comment: "Meldingstitel; repo")
-                content.body = Self.body(pr.title, author: pr.authorName)
-                content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
-                identifier = pr.dedupKey
-            case .tag(let tag):
-                // Een release (ook van een tag die er al was) heet naar zijn titel.
-                switch tag.release?.isPrerelease {
-                case true?:
-                    content.title = String(localized: "\(tag.repo): nieuwe pre-release", comment: "Meldingstitel; repo")
-                case false?:
-                    content.title = String(localized: "\(tag.repo): nieuwe release", comment: "Meldingstitel; repo")
-                case nil:
-                    content.title = String(localized: "\(tag.repo): nieuwe tag", comment: "Meldingstitel; repo")
-                }
-                content.body = Self.body(tag.releaseTitle ?? tag.name, author: tag.authorName)
-                content.userInfo = ["url": tag.webURL.absoluteString, "key": tag.dedupKey]
-                identifier = tag.dedupKey
-            case .completed(let pr):
-                content.title = String(localized: "\(pr.repo): PR completed", comment: "Meldingstitel; repo. Completed is de Azure DevOps-term voor gemerged")
-                content.body = Self.body(pr.title, author: pr.authorName)
-                content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
-                identifier = pr.dedupKey + ":completed"
-            case .summary(let kind, let count, let lines):
-                switch kind {
-                case .pullRequest: content.title = String(localized: "\(count) nieuwe PR's", comment: "Meldingstitel; aantal")
-                case .tag: content.title = String(localized: "\(count) nieuwe tags", comment: "Meldingstitel; aantal")
-                case .release: content.title = String(localized: "\(count) nieuwe releases", comment: "Meldingstitel; aantal")
-                case .completed: content.title = String(localized: "\(count) PR's completed", comment: "Meldingstitel; aantal gemergde PR's")
-                }
-                content.body = lines.joined(separator: "\n")
-                identifier = UUID().uuidString
+    func deliver(_ contents: [NotificationContent]) {
+        guard !contents.isEmpty else { return }
+        if Self.isSuppressed {
+            logger.notice("\(contents.count) meldingen niet verstuurd (onderdrukt)")
+            return
+        }
+        Task {
+            for content in contents {
+                await add(content)
             }
-            content.sound = .default
-            add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
         }
     }
 
-    /// Tot drie losse meldingen (klik opent de pagina bij de database van het advies), daarboven
-    /// één samenvatting. Elke melding noemt de id met zijn database en de andere ids
-    /// ("RUSTSEC-… (RustSec), ook GHSA-… en CVE-…"), de ernst met de CVSS-score en waar die
-    /// vandaan komt, en of het lek direct of via een ander package binnenkomt.
-    func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)], report: VersionReport) {
-        func line(_ v: Vulnerability) -> String {
-            let advisory = report.advisory(for: v)
-            let severity = v.severityText(advisory).map { " [\($0)]" } ?? ""
-            let fix = v.fixedIn.map { " → \($0)" } ?? ""
-            return "\(v.identifiers(advisory, maxAliases: 3))\(severity) \(v.package) \(v.version)\(fix)"
+    private func add(_ content: NotificationContent) async {
+        let request = UNMutableNotificationContent()
+        request.title = content.title
+        request.subtitle = content.subtitle
+        request.body = content.body
+        request.threadIdentifier = content.threadIdentifier
+        request.categoryIdentifier = content.category?.identifier ?? ""
+        request.interruptionLevel = content.importance.level == .active ? .active : .passive
+        request.relevanceScore = content.importance.relevance
+        request.sound = content.importance.playsSound ? .default : nil
+        request.userInfo = content.payload.userInfo
+        if let attachment = await attachment(for: content) {
+            request.attachments = [attachment]
         }
-        /// Wat de oplossing vraagt: binnen het bereik, het manifest mee, of eerst iets anders bijwerken.
-        func fix(_ v: Vulnerability, in repo: String) -> String? {
-            let context = report.repos.first { $0.repo == repo }.map(report.updateContext(for:)) ?? .empty
-            return v.fix(in: context).plainText
+        do {
+            try await center.add(UNNotificationRequest(identifier: content.identifier, content: request, trigger: nil))
+        } catch {
+            logger.error("melding toevoegen mislukt: \(error.localizedDescription)")
         }
-        if items.count <= 3 {
-            for (repo, v) in items {
-                let advisory = report.advisory(for: v)
-                let content = UNMutableNotificationContent()
-                content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
-                // Direct of via welk package, en waar: dan weet je meteen wat je moet bijwerken.
-                let severityNote = v.severityAssessment(advisory).note(for: v)
-                content.body = [line(v), severityNote, v.provenanceLine, fix(v, in: repo), advisory?.cweText, advisory?.summary ?? v.summary]
-                    .compactMap { $0 }.joined(separator: "\n")
-                content.userInfo = ["url": v.pageURL.absoluteString]
-                content.sound = .default
-                add(UNNotificationRequest(identifier: "cve-\(repo)-\(v.id)-\(v.package)", content: content, trigger: nil))
-            }
+    }
+
+    /// De profielfoto van de auteur, anders het teken van de soort. macOS verplaatst het bestand,
+    /// dus elke melding krijgt een eigen kopie.
+    private func attachment(for content: NotificationContent) async -> UNNotificationAttachment? {
+        var file: URL?
+        if let avatar = content.avatarURL {
+            file = await avatars.attachmentFile(for: avatar)
+        }
+        if file == nil, let glyph = NotificationGlyph(kind: content.kind) {
+            file = glyphFile(glyph)
+        }
+        guard let file else { return nil }
+        do {
+            return try UNNotificationAttachment(identifier: "picture", url: file)
+        } catch {
+            logger.error("bijlage onbruikbaar: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// Het teken één keer als PNG getekend, dan per melding gekopieerd.
+    private var glyphs: [NotificationGlyph: Data] = [:]
+
+    private func glyphFile(_ glyph: NotificationGlyph) -> URL? {
+        let data: Data
+        if let cached = glyphs[glyph] {
+            data = cached
         } else {
-            let content = UNMutableNotificationContent()
-            content.title = String(localized: "\(items.count) nieuwe kwetsbaarheden", comment: "Meldingstitel; aantal")
-            let lines = items.prefix(3).map { item in
-                "\(item.repo): \(line(item.vulnerability))" + (item.vulnerability.provenanceLine.map { " (\($0))" } ?? "")
+            let renderer = ImageRenderer(content: glyph.view)
+            renderer.scale = 2
+            guard let image = renderer.cgImage,
+                  let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else { return nil }
+            glyphs[glyph] = png
+            data = png
+        }
+        let folder = FileManager.default.temporaryDirectory.appending(path: "pullwatch-attachments/\(UUID().uuidString)")
+        let file = folder.appending(path: "glyph.png")
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try data.write(to: file)
+            return file
+        } catch {
+            return nil
+        }
+    }
+
+    // MARK: - Opruimen
+
+    /// Haalt meldingen weg waarvan alle items gelezen zijn (`isRead`); meldingen zonder items
+    /// (kwetsbaarheden, updates) blijven staan.
+    func removeDelivered(whereRead isRead: @escaping (String) -> Bool) {
+        if Self.isSuppressed { return }
+        Task {
+            let delivered = await center.deliveredNotifications()
+            let identifiers = delivered.compactMap { notification -> String? in
+                let keys = NotificationPayload(userInfo: notification.request.content.userInfo).historyKeys
+                return !keys.isEmpty && keys.allSatisfy(isRead) ? notification.request.identifier : nil
             }
-            content.body = (lines + [String(localized: "Zie Afhankelijkheden in het hoofdvenster")]).joined(separator: "\n")
-            content.sound = .default
-            add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+            if !identifiers.isEmpty { center.removeDeliveredNotifications(withIdentifiers: identifiers) }
         }
     }
 
-    /// Nieuwe critical- en high-meldingen van code scanning of Advanced Security: tot drie losse
-    /// meldingen (klik opent de melding bij de dienst), daarboven één samenvatting.
-    func deliverSecurityAlerts(_ items: [(repo: String, alert: SecurityAlert)]) {
-        func line(_ alert: SecurityAlert) -> String {
-            "[\(String(localized: alert.severityLabel))] \(alert.title)"
-        }
-        if items.count <= 3 {
-            for (repo, alert) in items {
-                let content = UNMutableNotificationContent()
-                content.title = String(localized: "\(repo): nieuwe beveiligingsmelding", comment: "Meldingstitel; repo")
-                content.body = [line(alert), alert.locationText, alert.ruleText].compactMap { $0 }.joined(separator: "\n")
-                content.userInfo = ["url": alert.url.absoluteString]
-                content.sound = .default
-                add(UNNotificationRequest(identifier: "alert-\(repo)-\(alert.id)", content: content, trigger: nil))
-            }
-        } else {
-            let content = UNMutableNotificationContent()
-            content.title = String(localized: "\(items.count) nieuwe beveiligingsmeldingen", comment: "Meldingstitel; aantal")
-            let lines = items.prefix(3).map { "\($0.repo): \(line($0.alert))" }
-            content.body = (lines + [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")])
-                .joined(separator: "\n")
-            content.sound = .default
-            add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-        }
-    }
-
-    /// Eén melding voor alle nieuwe versies van één check, met per package wat je ermee kunt;
-    /// klik opent het onderdeel Versies.
-    func deliverPackageUpdates(_ items: [PackageSummary]) {
-        guard !items.isEmpty else { return }
-        let lines = items.map { "\($0.label) \($0.latest ?? "")" }
-        let content = UNMutableNotificationContent()
-        if let only = items.first, items.count == 1 {
-            content.title = String(localized: "\(only.label) \(only.latest ?? "") beschikbaar", comment: "Package, versie")
-            let status = only.canUpdateNowCount > 0
-                ? String(localized: "In \(only.canUpdateNowCount) repo's binnen het bereik bij te werken", comment: "Meldingstekst; aantal repo's dat de nieuwe versie nu kan nemen")
-                : String(localized: only.category.title)
-            content.body = [
-                String(localized: "\(only.behind.count) repo's lopen achter", comment: "Meldingstekst; aantal repo's met een oudere versie"),
-                status,
-            ].joined(separator: "\n")
-        } else {
-            content.title = String(localized: "\(items.count) nieuwe versies", comment: "Meldingstitel; aantal packages met een nieuwe versie")
-            let described = items.map { "\($0.label) \($0.latest ?? ""): \(String(localized: $0.category.title))" }
-            content.body = (described.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")] : []))
-                .joined(separator: "\n")
-        }
-        content.userInfo = ["section": "versions"]
-        content.sound = .default
-        add(UNNotificationRequest(identifier: "packages-\(lines.joined(separator: ","))", content: content, trigger: nil))
-    }
-
-    /// Klik opent Sparkle's venster om te installeren, of zonder Sparkle de DMG (of de
-    /// releasepagina als die er niet bij staat).
-    func deliverUpdate(_ update: AvailableUpdate) {
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Pullwatch \(update.version) is beschikbaar", comment: "Meldingstitel; versienummer")
-        if update.installsInApp {
-            content.body = String(localized: "Klik om te installeren.")
-            content.userInfo = ["action": "install-update"]
-        } else {
-            content.body = String(localized: "Klik om te downloaden.")
-            content.userInfo = ["url": (update.downloadURL ?? update.pageURL).absoluteString]
-        }
-        add(UNNotificationRequest(identifier: "update-\(update.version)", content: content, trigger: nil))
-    }
-
-    func deliverAuthFailure(accountName: String) {
-        let content = UNMutableNotificationContent()
-        content.title = "Pullwatch: \(accountName)"
-        content.body = String(localized: "Token ongeldig of verlopen. Werk het bij in Instellingen.")
-        add(UNNotificationRequest(identifier: "auth-\(accountName)", content: content, trigger: nil))
-    }
-
-    private func add(_ request: UNNotificationRequest) {
-        center.add(request) { error in
-            if let error {
-                logger.error("melding toevoegen mislukt: \(error.localizedDescription)")
-            }
-        }
-    }
+    // MARK: - UNUserNotificationCenterDelegate
 
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        let info = response.notification.request.content.userInfo
-        let urlString = info["url"] as? String
-        let key = info["key"] as? String
-        let section = info["section"] as? String
-        let installsUpdate = info["action"] as? String == "install-update"
+        let payload = NotificationPayload(userInfo: response.notification.request.content.userInfo)
+        let identifier = response.actionIdentifier
+        guard identifier != UNNotificationDismissActionIdentifier else { return }
+        let action = NotificationAction(identifier: identifier)
         await MainActor.run {
-            if installsUpdate {
-                self.onInstallUpdate?()
-            }
-            if let section {
-                self.onOpenSection?(section)
-            }
-            if let urlString, let url = URL(string: urlString) {
-                NSWorkspace.shared.open(url)
-            }
-            if let key {
-                self.onOpen?(key)
-            }
+            self.onResponse?(action, payload)
         }
     }
 
@@ -251,6 +207,62 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound]
+        // Stil binnengekomen (passief, of in de stille uren) blijft stil, ook als Pullwatch voor is.
+        let content = notification.request.content
+        if content.interruptionLevel == .passive { return [.list] }
+        return content.sound == nil ? [.banner, .list] : [.banner, .list, .sound]
+    }
+}
+
+/// Het teken van een soort melding als bijlage als er geen profielfoto is: de Octicon van de PR
+/// zoals in de lijsten, of een SF Symbol, in de kleur van de soort.
+nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
+    case pullRequest, merged, release, tag, vulnerability, securityAlert, packageUpdate
+
+    init?(kind: NotificationKind) {
+        switch kind {
+        case .pullRequest: self = .pullRequest
+        case .merged: self = .merged
+        case .release: self = .release
+        case .tag: self = .tag
+        case .vulnerability: self = .vulnerability
+        case .securityAlert: self = .securityAlert
+        case .packageUpdate: self = .packageUpdate
+        // Het icoon van Pullwatch staat er al; een tweede plaatje zegt niets.
+        case .appUpdate, .account: return nil
+        }
+    }
+
+    var glyph: Glyph {
+        switch self {
+        case .pullRequest: PRStatus.open.glyph
+        case .merged: PRStatus.merged.glyph
+        case .release: .system("shippingbox.fill")
+        case .tag: ItemKind.tag.glyph
+        case .vulnerability: .system("exclamationmark.shield.fill")
+        case .securityAlert: .system("shield.lefthalf.filled")
+        case .packageUpdate: .system("arrow.up.circle.fill")
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .pullRequest: PRStatus.open.color
+        case .merged: PRStatus.merged.color
+        case .release, .tag: ItemKind.tag.color
+        case .vulnerability: .red
+        case .securityAlert: .orange
+        case .packageUpdate: .blue
+        }
+    }
+
+    @MainActor var view: some View {
+        glyph.image
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(color)
+            .padding(10)
+            .frame(width: 64, height: 64)
+            .background(color.opacity(0.15), in: .rect(cornerRadius: 14))
     }
 }

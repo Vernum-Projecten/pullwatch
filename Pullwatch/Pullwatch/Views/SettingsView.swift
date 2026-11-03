@@ -1,12 +1,12 @@
 import PullwatchCore
 import SwiftUI
 
-/// Het Instellingen-venster (de Settings-scene): Accounts en Algemeen. Alles wordt meteen
+/// Het Instellingen-venster (de Settings-scene): Accounts, Meldingen en Algemeen. Alles wordt meteen
 /// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
     let model: AppModel
 
-    enum Pane: String { case accounts, general }
+    enum Pane: String { case accounts, notifications, general }
 
     @State private var pane: Pane = {
         #if DEBUG
@@ -21,6 +21,12 @@ struct SettingsView: View {
         TabView(selection: $pane) {
             Tab("Accounts", systemImage: "person.2", value: Pane.accounts) {
                 AccountsSettingsView(model: model)
+            }
+            Tab("Meldingen", systemImage: "bell.badge", value: Pane.notifications) {
+                NotificationsSettingsView(model: model)
+                    #if DEBUG
+                    .onAppear { SnapshotCamera.shootScrolling("settings-notifications", windowId: "com_apple_SwiftUI_Settings_window", pages: 3) }
+                    #endif
             }
             Tab("Algemeen", systemImage: "gearshape", value: Pane.general) {
                 GeneralSettingsView(model: model)
@@ -293,18 +299,10 @@ private struct GeneralSettingsView: View {
 
             Section {
                 Toggle("Elke dag afhankelijkheden en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
-                Toggle("Melding bij een nieuwe versie", isOn: $model.notifiesPackageUpdates)
-                    .disabled(!model.checksVersionsDaily)
-                Toggle("Alleen voor updates die nu kunnen", isOn: $model.notifiesOnlyUpdatesYouCanTake)
-                    .disabled(!model.checksVersionsDaily || !model.notifiesPackageUpdates)
-                    .help("Alleen een melding als een repo de nieuwe versie binnen zijn bereik kan nemen, zonder manifest aan te passen of eerst iets anders bij te werken")
-                Toggle("Melding bij een nieuwe kritieke of hoge beveiligingsmelding", isOn: $model.notifiesSecurityAlerts)
-                    .disabled(!model.checksVersionsDaily)
-                    .help("Code scanning op GitHub en Advanced Security op Azure DevOps, per repo")
             } header: {
                 Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {
-                Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie of beveiligingsmelding.")
+                Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's. Welke meldingen dat geeft kies je onder Meldingen.")
             }
 
             Section {

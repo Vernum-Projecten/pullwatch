@@ -67,3 +67,34 @@ an enterprise token never leaves its own server. Other repositories you add to
 an enterprise account are read with its token on that server only; the
 fallback without a token that github.com accounts have is off there, because
 GitHub Enterprise Server and GHE.com rarely allow reading without signing in.
+
+## Time Sensitive notifications (not used)
+
+Pullwatch could let a new critical or high vulnerability break through Focus
+with `UNNotificationInterruptionLevel.timeSensitive`, but it does not, and
+there is no setting for it. On macOS that level needs the entitlement
+`com.apple.developer.usernotifications.time-sensitive`. Apple lists Time
+Sensitive Notifications as supported for Developer ID apps (Supported
+capabilities, macOS), but like every `com.apple.developer.*` entitlement it
+only works when an embedded provisioning profile allows it; an app signed
+with the entitlement and without such a profile does not launch.
+
+Pullwatch has no provisioning profile today: debug builds are signed ad hoc
+(`CODE_SIGN_IDENTITY = -`), and `scripts/release/release.sh` signs with the
+Developer ID certificate only. To add it later, the maintainer would:
+
+1. Register the App ID `nl.torrisi.pullwatch` in the Apple Developer account
+   of Code24 BV and turn on **Time Sensitive Notifications**.
+2. Create a **Developer ID** provisioning profile for that App ID, keep it with
+   the release secrets, and embed it as
+   `Pullwatch.app/Contents/embedded.provisionprofile` before signing in
+   `release.sh` and `release.yml`.
+3. Add an entitlements file with the key set to `true` for the Release
+   configuration only, and check the signed app with
+   `codesign -d --entitlements - Pullwatch.app`.
+4. Then add the setting (off by default) and use `.timeSensitive` for a new
+   critical or high vulnerability in a direct runtime dependency
+   (`NotificationImportance` in `PullwatchCore`).
+
+Until then those notifications are `.active` with the highest
+`relevanceScore`, so they lead the stack but respect Focus.

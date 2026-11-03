@@ -40,6 +40,20 @@ enum SnapshotCamera {
         }
     }
 
+    /// Een foto van het venster, en daarna `pages` keer een vensterhoogte verder naar beneden
+    /// (`<naam>-2.png` en verder), voor een lang formulier.
+    static func shootScrolling(_ name: String, windowId: String, pages: Int) {
+        guard directory != nil else { return }
+        shoot(name, windowId: windowId)
+        Task { @MainActor in
+            for page in 1..<max(pages, 1) {
+                try? await Task.sleep(for: .seconds(1))
+                scroll(windowId: windowId, pages: Double(page))
+                shoot("\(name)-\(page + 1)", windowId: windowId)
+            }
+        }
+    }
+
     /// Met `-PullwatchSnapshotExpand YES`: inklapbare groepen (packages, rijen in Afhankelijkheden) staan
     /// open, zodat de foto's laten zien wat erin zit.
     static var expandsAll: Bool { UserDefaults.standard.bool(forKey: "PullwatchSnapshotExpand") }

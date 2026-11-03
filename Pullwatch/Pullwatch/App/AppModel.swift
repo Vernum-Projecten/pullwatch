@@ -178,7 +178,19 @@ final class AppModel {
         let anyTags = history.items.contains { $0.entry.kind == .tag }
         if anyTags != hasTags { hasTags = anyTags }
         let unread = history.unreadCount
-        if unread != unreadCount { unreadCount = unread }
+        if unread != unreadCount {
+            unreadCount = unread
+            updateDockBadge()
+        }
+    }
+
+    /// Het aantal ongelezen op het Dock-icoon. Pullwatch staat alleen in het Dock zolang er een
+    /// venster open is; zonder venster is er dus ook geen badge.
+    func updateDockBadge() {
+        guard !Self.isTestHost else { return }
+        let label = config.notifications.dockBadge && unreadCount > 0 ? "\(unreadCount)" : nil
+        let tile = NSApplication.shared.dockTile
+        if tile.badgeLabel != label { tile.badgeLabel = label }
     }
 
     private func recomputeRepoSummaries() {
@@ -452,12 +464,8 @@ final class AppModel {
         updater.includeTestVersions = config.includeTestVersions
         updater.start()
         installsUpdatesAutomatically = updater.installsAutomatically
-        notifier.onOpen = { [weak self] key in self?.markRead(key) }
-        notifier.onInstallUpdate = { [weak self] in self?.installUpdate() }
-        notifier.onOpenSection = { [weak self] section in
-            guard let self, let section = MainSection(rawValue: section) else { return }
-            self.show(section)
-        }
+        notifier.registerCategories()
+        notifier.onResponse = { [weak self] action, payload in self?.handleNotification(action, payload) }
 
         wakeTask = Task { [weak self] in
             for await _ in NSWorkspace.shared.notificationCenter.notifications(named: NSWorkspace.didWakeNotification) {
@@ -593,19 +601,7 @@ final class AppModel {
         // Een volledige check dekt alles wat nu gevolgd wordt.
         lastFollowScope = Dictionary(config.pollableAccounts.map { ($0.id, $0.filterSettings) }, uniquingKeysWith: { first, _ in first })
         versionReport = report
-        if automatic {
-            let new = report.newVulnerabilities(since: previous)
-            if !new.isEmpty { notifier.deliverVulnerabilities(new, report: report) }
-            if config.notifySecurityAlerts {
-                let alerts = report.newSecurityAlerts(since: previous)
-                if !alerts.isEmpty { notifier.deliverSecurityAlerts(alerts) }
-            }
-            if config.notifyPackageUpdates {
-                notifier.deliverPackageUpdates(
-                    report.newPackageVersions(since: previous, onlyCanUpdateNow: config.notifyOnlyUpdatesYouCanTake)
-                )
-            }
-        }
+        if automatic { notifyFindings(of: report, since: previous) }
         do {
             try versionStore.save(report)
         } catch {
@@ -749,16 +745,26 @@ final class AppModel {
     func markRead(_ key: String) {
         history.markRead(key)
         saveHistory()
+        removeReadNotifications()
     }
 
     func markAllRead() {
         history.markAllRead()
         saveHistory()
+        removeReadNotifications()
     }
 
     /// Gelezen of ongelezen voor deze PR's en tags (de selectie, of alles wat een lijst toont).
     func setRead(_ ids: Set<String>, _ isRead: Bool) {
         if history.setRead(ids, isRead) { saveHistory() }
+        if isRead { removeReadNotifications() }
+    }
+
+    /// Meldingen van items die nu gelezen zijn gaan uit het Berichtencentrum. Een item dat niet
+    /// meer in de geschiedenis staat telt als gelezen.
+    private func removeReadNotifications() {
+        let unread = Set(history.items.filter { !$0.isRead }.map(\.id))
+        notifier.removeDelivered(whereRead: { !unread.contains($0) })
     }
 
     /// Bewaart een account. Een nieuw account moet af zijn (minstens één eigenaar); een bestaand
@@ -1065,27 +1071,14 @@ final class AppModel {
         }
     }
 
-    var notifiesPackageUpdates: Bool {
-        get { config.notifyPackageUpdates }
+    /// Instellingen > Meldingen, direct opgeslagen.
+    var notificationSettings: NotificationSettings {
+        get { config.notifications }
         set {
-            config.notifyPackageUpdates = newValue
+            guard newValue != config.notifications else { return }
+            config.notifications = newValue
             saveConfig()
-        }
-    }
-
-    var notifiesOnlyUpdatesYouCanTake: Bool {
-        get { config.notifyOnlyUpdatesYouCanTake }
-        set {
-            config.notifyOnlyUpdatesYouCanTake = newValue
-            saveConfig()
-        }
-    }
-
-    var notifiesSecurityAlerts: Bool {
-        get { config.notifySecurityAlerts }
-        set {
-            config.notifySecurityAlerts = newValue
-            saveConfig()
+            updateDockBadge()
         }
     }
 
@@ -1144,7 +1137,7 @@ final class AppModel {
             let notifiedKey = "notifiedUpdateVersion"
             if !manual, UserDefaults.standard.string(forKey: notifiedKey) != update.version {
                 UserDefaults.standard.set(update.version, forKey: notifiedKey)
-                notifier.deliverUpdate(update)
+                notifier.deliver([notificationBuilder.appUpdate(update)])
             }
         } catch {
             logger.notice("updatecheck mislukt: \(error.localizedDescription)")
@@ -1220,26 +1213,134 @@ final class AppModel {
         if history.update(tags: result.updatedTags) { changed = true }
         if history.prune(now: now, retention: config.historyRetention) { changed = true }
         if changed { saveHistory() }
-        let audible = NotificationPlanner.audible(
+        let builder = notificationBuilder
+        let plans = NotificationPlanner.plan(
             pullRequests: result.newPullRequests,
             tags: result.newTags,
             completed: result.completedPullRequests,
+            settings: config.notifications,
             accounts: config.accounts
         )
-        if !audible.pullRequests.isEmpty || !audible.tags.isEmpty || !audible.completed.isEmpty {
-            notifier.deliver(NotificationPlanner.plan(
-                pullRequests: audible.pullRequests,
-                tags: audible.tags,
-                completed: audible.completed
-            ))
-        }
-        for id in result.authFailures {
-            if let account = config.accounts.first(where: { $0.id == id }) {
-                notifier.deliverAuthFailure(accountName: account.displayName)
-            }
-        }
+        notifier.deliver(plans.map(builder.content(for:)))
+        notifier.deliver(result.authFailures.compactMap { id in
+            config.accounts.first { $0.id == id }.map(builder.authFailure)
+        })
         await updateRefetchProgress()
         startNewRepoVersionCheckIfNeeded(after: result)
+    }
+
+    // MARK: - Meldingen
+
+    /// De builder met de accounts van nu en, binnen de stille uren, zonder geluid en banner.
+    var notificationBuilder: NotificationContentBuilder {
+        NotificationContentBuilder(accounts: config.accounts, quiet: config.notifications.quietHours.contains(Date()))
+    }
+
+    /// Na de dagelijkse check: nieuwe kwetsbaarheden, beveiligingsmeldingen en versies, elk als de
+    /// soort aan staat; boven de grens één melding per repository.
+    private func notifyFindings(of report: VersionReport, since previous: VersionReport?) {
+        let builder = notificationBuilder
+        let settings = config.notifications
+        func repo(_ name: String) -> RepoVersions? { report.repos.first { $0.repo == name } }
+        if settings.vulnerabilities {
+            let notices = report.newVulnerabilities(since: previous).map { item in
+                let v = item.vulnerability
+                let advisory = report.advisory(for: v)
+                let context = repo(item.repo).map(updateContext(for:)) ?? .empty
+                let assessment = v.severityAssessment(advisory)
+                return VulnerabilityNotice(
+                    accountId: repo(item.repo)?.accountId, repo: item.repo, vulnerability: v, advisory: advisory,
+                    identifiers: v.identifiers(advisory, maxAliases: 3), severityText: v.severityText(advisory),
+                    severityLevel: assessment.level, severityNote: assessment.note(for: v),
+                    provenance: v.provenanceLine, fixText: v.fix(in: context).plainText
+                )
+            }
+            notifier.deliver(NotificationPlanner.capped(notices, repository: \.repository).map(builder.content(for:)))
+        }
+        if settings.securityAlerts {
+            let notices = report.newSecurityAlerts(since: previous).map { item in
+                SecurityAlertNotice(accountId: repo(item.repo)?.accountId, repo: item.repo, alert: item.alert)
+            }
+            notifier.deliver(NotificationPlanner.capped(notices, repository: \.repository).map(builder.content(for:)))
+        }
+        if settings.packageUpdates,
+           let content = builder.packageUpdates(report.newPackageVersions(since: previous, onlyCanUpdateNow: settings.onlyUpdatesYouCanTake)) {
+            notifier.deliver([content])
+        }
+    }
+
+    /// Een klik op een melding (`action` nil) of een knop erop.
+    private func handleNotification(_ action: NotificationAction?, _ payload: NotificationPayload) {
+        switch action {
+        case nil:
+            if payload.installsUpdate { installUpdate() }
+            if payload.section == "settings" {
+                show(.settings)
+            } else if let section = payload.section.flatMap(MainSection.init(rawValue:)) {
+                if section == .dependencies, let package = payload.package { showPackage(package) } else { navigate(to: section) }
+                show(.main)
+            } else if payload.url == nil, let accountId = payload.accountId, let repo = payload.repo {
+                // Een samenvatting van een repo: de repopagina.
+                openRepositoryPage(accountId: accountId, repo: repo)
+            }
+            if let url = payload.url { NSWorkspace.shared.open(url) }
+            // Een PR of tag openen leest hem; een samenvatting openen leest niets.
+            if payload.url != nil, !payload.historyKeys.isEmpty { setRead(Set(payload.historyKeys), true) }
+        case .markRead?, .markAllRead?:
+            setRead(Set(payload.historyKeys), true)
+        case .openRepository?:
+            if let accountId = payload.accountId, let repo = payload.repo { openRepositoryPage(accountId: accountId, repo: repo) }
+        case .mute?:
+            if let accountId = payload.accountId, let repo = payload.repo {
+                mute(repo: repo, accountId: accountId, kinds: payload.watchKinds)
+            }
+        case .showInPullwatch?:
+            if let package = payload.package {
+                showPackage(package)
+                show(.main)
+            } else if let accountId = payload.accountId, let repo = payload.repo {
+                openRepositoryPage(accountId: accountId, repo: repo)
+            }
+        case .copyAdvisoryId?:
+            guard let id = payload.advisoryId else { return }
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(id, forType: .string)
+        }
+    }
+
+    private func openRepositoryPage(accountId: UUID, repo: String) {
+        navigate(to: .repos)
+        showRepo(accountId: accountId, repo: repo)
+        show(.main)
+    }
+
+    /// De laatste "Repo dempen" van een melding, zodat het menu hem ongedaan kan maken.
+    private(set) var recentMute: RepositoryMute?
+
+    /// Zet de meldingen van `kinds` voor deze repo uit (de keuze per repo van #54); de repo
+    /// blijft gevolgd.
+    func mute(repo: String, accountId: UUID, kinds: [WatchKind]) {
+        guard !kinds.isEmpty, let account = config.accounts.first(where: { $0.id == accountId }) else { return }
+        let before = account.watch(for: repo)
+        var after = before
+        for kind in kinds { after[notifies: kind] = false }
+        guard after != before else { return }
+        recentMute = RepositoryMute(accountId: accountId, repo: repo, kinds: kinds, previous: before)
+        setWatch(after, repo: repo, accountId: accountId)
+    }
+
+    /// Zet terug wat de laatste "Repo dempen" uitzette.
+    func undoMute() {
+        guard let mute = recentMute else { return }
+        recentMute = nil
+        guard let account = config.accounts.first(where: { $0.id == mute.accountId }) else { return }
+        var watch = account.watch(for: mute.repo)
+        for kind in mute.kinds { watch[notifies: kind] = mute.previous[notifies: kind] }
+        setWatch(watch, repo: mute.repo, accountId: mute.accountId)
+    }
+
+    func dismissMute() {
+        recentMute = nil
     }
 
     /// Accounts die nog een eerste sync moeten doen. Een account dat nu faalt (bv. uitgelogd)

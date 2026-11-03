@@ -46,6 +46,21 @@ import Testing
         #expect(!ProviderKind.azureDevOps.glyphKeepsItsColours)
     }
 
+    @Test(arguments: NotificationGlyph.allCases)
+    func notificationGlyphsExist(_ glyph: NotificationGlyph) {
+        #expect(exists(glyph.glyph))
+    }
+
+    @Test(arguments: NotificationAction.allCases)
+    func notificationActionSymbolsExist(_ action: NotificationAction) {
+        #expect(NSImage(systemSymbolName: action.symbol, accessibilityDescription: nil) != nil)
+    }
+
+    @Test(arguments: ["bell.badge", "bell.slash", "xmark"])
+    func notificationSettingsAndMenuSymbolsExist(_ name: String) {
+        #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
+    }
+
     @Test(arguments: MainSection.allCases)
     func sectionSymbolsExist(_ section: MainSection) {
         #expect(exists(section.glyph))
