@@ -57,7 +57,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Check van de nieuwste tag; nil als de repo geen tags met een versienummer heeft. Alleen ter info:
     /// status, sortering en meldingen gaan over de default branch.
     public let release: ReleaseVersions?
-    /// Direct gebruikte packages op de default branch, voor het overzicht per package.
+    /// Direct gebruikte packages op de default branch, voor het overzicht per package; elk met al
+    /// zijn installs (versies, workspaces, ook transitief).
     public let packages: [PackageUse]
 
     public var id: String { "\(accountId.uuidString)/\(repo)" }
@@ -186,8 +187,9 @@ extension VersionReport {
         var result: [(repo: String, vulnerability: Vulnerability)] = []
         for repo in repos {
             guard let old = before[repo.id], old.error == nil, old.vulnerabilityError == nil else { continue }
-            let known = Set(old.vulnerabilities.map(\.key))
-            for vulnerability in repo.vulnerabilities where !known.contains(vulnerability.key) {
+            // Eén melding per lek en package, ook als het meerdere installs raakt.
+            var known = Set(old.vulnerabilities.map(\.key))
+            for vulnerability in repo.vulnerabilities where known.insert(vulnerability.key).inserted {
                 result.append((repo.repo, vulnerability))
             }
         }
@@ -308,8 +310,10 @@ public struct VersionChecker: Sendable {
             return await group.reduce(into: [String: [EndOfLifeRelease]]()) { $0[$1.0] = $1.1 }
         }
 
-        // 4. Kwetsbaarheden: één batch voor alle unieke packages, daarna details per id.
-        let dependencies = Array(Set(scans.flatMap(\.dependencies).map(\.withoutSource)))
+        // 4. Kwetsbaarheden: één batch voor alle unieke naam@versie, daarna details per id. Elke
+        //    install krijgt daarna het resultaat van zijn naam@versie.
+        let dependencies = Set(scans.flatMap(\.dependencies).map(\.withoutSource))
+            .sorted { ($0.ecosystem, $0.name, $0.version) < ($1.ecosystem, $1.name, $1.version) }
         var vulnerabilityIds: [Dependency: [String]] = [:]
         var osvError: String?
         var records: [String: OSVRecord] = [:]
@@ -328,7 +332,8 @@ public struct VersionChecker: Sendable {
             }
         }
 
-        // 4b. Nieuwste versie per direct gebruikt package op de default branch, één keer per package.
+        // 4b. Nieuwste versie per direct gebruikt package op de default branch, één keer per package,
+        //     hoeveel installs en versies het ook heeft.
         let mainScans = scanned.compactMap { try? $0.found.get().main }
         let packages = Dictionary(mainScans.flatMap(\.directDependencies).map { ($0.key, $0) }, uniquingKeysWith: { first, _ in first })
         let checkedAt = now()
@@ -408,8 +413,10 @@ public struct VersionChecker: Sendable {
 
     struct Scan: Sendable {
         var versions: [DetectedVersion] = []
+        /// Eén per install (package, versie en workspace).
         var dependencies: [Dependency] = []
-        /// Direct gevraagde namen per ecosysteem uit package.json, composer.json, pyproject.toml en Cargo.toml.
+        /// Direct gevraagde namen per ecosysteem uit package.json, composer.json, pyproject.toml en
+        /// Cargo.toml, over de hele repo.
         var manifests: [String: Set<String>] = [:]
 
         var directDependencies: [PackageUse] {
@@ -467,6 +474,7 @@ public struct VersionChecker: Sendable {
             .prefix(StackDetector.maxFiles)
         var scan = Scan()
         var replacedGoModules: Set<String> = []
+        var dependencyFiles: [(path: String, content: String)] = []
         for path in paths {
             // Een bestand dat tussen lijst en lezen verdween telt niet; elke andere fout (rate limit,
             // netwerk) zou stil minder versies en CVE's opleveren, dus die faalt de hele repo.
@@ -477,20 +485,12 @@ public struct VersionChecker: Sendable {
                 continue
             }
             scan.versions += StackDetector.detect(path: path, content: content)
-            if let direct = DependencyDetector.directNames(path: path, content: content) {
-                scan.manifests[direct.ecosystem, default: []].formUnion(direct.names)
-            }
+            dependencyFiles.append((path, content))
             if path.hasSuffix("go.mod") {
                 replacedGoModules.formUnion(StackDetector.localGoReplacements(path: path, content: content))
             }
-            if DependencyDetector.isRelevant(path) {
-                // Zelfde package uit twee bestanden telt één keer (eerste bron wint).
-                for dependency in DependencyDetector.detect(path: path, content: content)
-                where !scan.dependencies.contains(where: { $0.withoutSource == dependency.withoutSource }) {
-                    scan.dependencies.append(dependency)
-                }
-            }
         }
+        (scan.dependencies, scan.manifests) = DependencyDetector.installs(dependencyFiles)
         scan.versions.removeAll { detected in
             detected.product == "go" && replacedGoModules.contains(detected.source.split(separator: "/").dropLast().joined(separator: "/"))
         }
@@ -499,7 +499,8 @@ public struct VersionChecker: Sendable {
         scan.versions.removeAll { $0.isMinimum && pinned.contains($0.product) }
         scan.versions = scan.versions.map { detected in
             guard let names = StackDetector.lockedPackages[detected.product],
-                  let locked = scan.dependencies.first(where: { names.contains($0.name) }) else { return detected }
+                  let locked = scan.dependencies.first(where: { names.contains($0.name) && $0.scope == .direct })
+                    ?? scan.dependencies.first(where: { names.contains($0.name) }) else { return detected }
             return DetectedVersion(product: detected.product, label: detected.label, version: locked.version, source: locked.source)
         }
         return scan

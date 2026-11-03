@@ -478,3 +478,64 @@ private actor FileProvider: PRProvider {
         #expect(repo.vulnerabilityError != nil)
     }
 }
+
+@Suite struct InstallCheckTests {
+    let now = Date(timeIntervalSince1970: 1_792_000_000)
+
+    /// lodash 4.17.21 in de root, 4.17.15 direct in packages/api en via express in packages/web.
+    static let lock = """
+    {"lockfileVersion": 3, "packages": {
+      "": {"workspaces": ["packages/*"], "dependencies": {"lodash": "^4.17.21"}},
+      "packages/web": {"name": "web", "dependencies": {"express": "^4"}},
+      "packages/api": {"name": "api", "dependencies": {"lodash": "4.17.15"}},
+      "node_modules/web": {"resolved": "packages/web", "link": true},
+      "node_modules/api": {"resolved": "packages/api", "link": true},
+      "node_modules/lodash": {"version": "4.17.21"},
+      "node_modules/express": {"version": "4.21.0", "dependencies": {"lodash": "4.17.15"}},
+      "node_modules/express/node_modules/lodash": {"version": "4.17.15"},
+      "packages/api/node_modules/lodash": {"version": "4.17.15"}
+    }}
+    """
+
+    @Test func queriesEachNameAndVersionOnceAndMapsResultsToEveryInstall() async throws {
+        let http = MockHTTPClient()
+        // Gesorteerd: express@4.21.0, lodash@4.17.15, lodash@4.17.21.
+        http.on("querybatch", body: #"{"results":[{},{"vulns":[{"id":"GHSA-a"}]},{}]}"#)
+        http.on("vulns/GHSA-a", body: #"{"id":"GHSA-a","aliases":["CVE-2020-8203"],"database_specific":{"severity":"HIGH"},"affected":[{"package":{"name":"lodash","ecosystem":"npm"},"ranges":[{"events":[{"fixed":"4.17.19"}]}]}]}"#)
+        http.on("registry.npmjs.org/lodash/latest", body: #"{"version":"4.17.21"}"#)
+        http.on("registry.npmjs.org/express/latest", body: #"{"version":"5.1.0"}"#)
+        let provider = FileProvider(repos: ["acme/a", "acme/b"], files: [
+            "acme/a": ["package-lock.json": Self.lock],
+            "acme/b": ["package-lock.json": Self.lock],
+        ])
+        let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs, "acme/b": .prs])
+
+        let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(accounts: [account])
+
+        let batches = http.requests.filter { $0.url!.absoluteString.contains("querybatch") }
+        #expect(batches.count == 1)
+        let body = try JSONSerialization.jsonObject(with: try #require(batches.first?.httpBody)) as? [String: [[String: Any]]]
+        #expect(body?["queries"]?.count == 3)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("registry.npmjs.org/lodash/") }.count == 1)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("registry.npmjs.org/express/") }.count == 1)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("vulns/GHSA-a") }.count == 1)
+
+        #expect(report.repos.count == 2)
+        for repo in report.repos {
+            let hits = repo.vulnerabilities.map { "\($0.workspace) \($0.scope.rawValue) \($0.via.joined(separator: ">"))" }.sorted()
+            #expect(hits == ["packages/api direct ", "packages/web transitive express"])
+            #expect(repo.vulnerabilities.allSatisfy { $0.id == "GHSA-a" && $0.version == "4.17.15" && $0.fixedIn == "4.17.19" })
+            let lodash = try #require(repo.packages.first { $0.name == "lodash" })
+            #expect(lodash.installs.count == 3)
+            #expect(lodash.version == "4.17.15")
+        }
+
+        // Eén melding per lek en package, ook al raakt het twee installs.
+        let before = VersionReport(checkedAt: now, repos: report.repos.map {
+            RepoVersions(accountId: $0.accountId, repo: $0.repo, components: [])
+        })
+        let fresh = report.newVulnerabilities(since: before)
+        #expect(fresh.count == 2)
+        #expect(Set(fresh.map(\.repo)) == ["acme/a", "acme/b"])
+    }
+}

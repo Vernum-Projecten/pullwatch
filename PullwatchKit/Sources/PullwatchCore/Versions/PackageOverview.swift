@@ -21,10 +21,27 @@ public struct PackageLatest: Codable, Hashable, Sendable {
 public struct PackageUser: Hashable, Sendable, Identifiable {
     public let repoId: String
     public let repo: String
+    /// Oudste direct gebruikte versie: daarop wordt "loopt achter" beoordeeld.
     public let version: String
     public let sources: [String]
+    /// Elke install van het package in deze repo (versie, workspace, scope, soort, via); leeg voor runtimes.
+    public let installs: [PackageInstall]
+
+    public init(repoId: String, repo: String, version: String, sources: [String], installs: [PackageInstall] = []) {
+        self.repoId = repoId
+        self.repo = repo
+        self.version = version
+        self.sources = sources
+        self.installs = installs
+    }
 
     public var id: String { repoId }
+
+    /// Alle versies van het package in deze repo, oudste eerst; voor runtimes alleen `version`.
+    public var versions: [String] {
+        guard !installs.isEmpty else { return [version] }
+        return PackageUse(ecosystem: "", name: "", installs: installs).versions
+    }
 }
 
 /// Eén regel in het onderdeel Versies: een library, of een runtime binnen één cyclus ("Go 1.27").
@@ -104,7 +121,8 @@ extension VersionReport {
                 groups[id]?.users[index] = PackageUser(
                     repoId: existing.repoId, repo: existing.repo,
                     version: VersionChecker.isOlder(user.version, than: existing.version) ? user.version : existing.version,
-                    sources: existing.sources + user.sources.filter { !existing.sources.contains($0) }
+                    sources: existing.sources + user.sources.filter { !existing.sources.contains($0) },
+                    installs: existing.installs + user.installs.filter { !existing.installs.contains($0) }
                 )
             } else {
                 groups[id]?.users.append(user)
@@ -122,7 +140,7 @@ extension VersionReport {
                 add(package.key,
                     Group(label: package.name, kind: PackageVersions.kind(ofEcosystem: package.ecosystem),
                           latest: latest?.version, since: latest?.version == nil ? nil : latest?.seenAt),
-                    PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources))
+                    PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs))
             }
         }
         let summaries = order.compactMap { id -> PackageSummary? in
