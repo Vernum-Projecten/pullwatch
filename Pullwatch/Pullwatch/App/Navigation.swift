@@ -36,6 +36,9 @@ enum MainSection: String, CaseIterable, Identifiable {
 enum RepoTab: String, CaseIterable, Identifiable {
     case overview, check, packages, security
 
+    /// Of de tellers (kwetsbaarheden, verouderd, bij te werken, geblokkeerd) bij dit tabblad horen.
+    var showsCheckSummary: Bool { self == .check || self == .packages }
+
     var id: Self { self }
 
     var title: LocalizedStringResource {
