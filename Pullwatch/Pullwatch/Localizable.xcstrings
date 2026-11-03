@@ -132,6 +132,35 @@
         }
       }
     },
+    "%@, %@, %@": {
+      "comment": "Repo, auteur, wanneer gezien",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@"
+          }
+        }
+      }
+    },
     "%@: PR completed": {
       "localizations": {
         "de": {
@@ -5434,30 +5463,24 @@
         }
       }
     },
-    "Stop": {
+    "Stop Pullwatch": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beenden"
+            "value": "Pullwatch beenden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit"
+            "value": "Quit Pullwatch"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop"
+            "value": "Quitter Pullwatch"
           }
         }
       }
@@ -7094,34 +7117,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "mediane doorlooptijd"
-          }
-        }
-      }
-    },
-    "niet geconfigureerd": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "nicht konfiguriert"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "not configured"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "non configuré"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "niet geconfigureerd"
           }
         }
       }
