@@ -13,6 +13,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppModel.shared.start()
         DockIcon.shared.start()
     }
+
+    /// De app opnieuw openen terwijl hij al draait (Finder, Spotlight, Launchpad, `open`)
+    /// opent het hoofdvenster; anders gebeurt er zichtbaar niets en lijkt Pullwatch kapot.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if let openMainWindow = AppModel.shared.openMainWindow {
+            openMainWindow()
+        } else {
+            NSApp.activate()
+        }
+        return false
+    }
 }
 
 /// Toont Pullwatch in het Dock zolang er een eigen venster (instellingen, hoofdvenster)
