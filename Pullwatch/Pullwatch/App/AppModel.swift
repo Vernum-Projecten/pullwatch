@@ -13,6 +13,8 @@ enum WindowID: String {
     case main, onboarding
     /// Het Instellingen-venster (de Settings-scene, geopend met `openSettings`).
     case settings
+    /// Het Over-venster.
+    case about
 }
 
 /// Een verzoek om een venster te openen; elk verzoek is nieuw, ook voor hetzelfde venster.
