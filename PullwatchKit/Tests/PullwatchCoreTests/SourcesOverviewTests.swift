@@ -16,7 +16,8 @@ import PullwatchTestSupport
     @Test func overviewListsEverySource() {
         let text = text()
         for source in DataSource.all {
-            #expect(text.contains("- \(source.name): aan."), "\(source.name) ontbreekt")
+            let name = source.name(bundle: SourcesOverview.bundle(for: dutch))
+            #expect(text.contains("- \(name): aan."), "\(name) ontbreekt")
             for endpoint in source.endpoints {
                 #expect(text.contains(endpoint.absoluteString))
             }
@@ -73,10 +74,14 @@ import PullwatchTestSupport
         #expect(text.contains("- \(paused.displayName): uit."))
         #expect(text.contains("https://dev.azure.com/acme"))
         let updates = text.split(separator: "\n").filter { $0.contains("Updatecheck van Pullwatch") }
-        #expect(updates.count == 1, "de updatecheck is één regel met twee adressen")
+        #expect(updates.count == 1, "de updatecheck is één regel met al zijn adressen")
         #expect(updates.allSatisfy { $0.contains(": uit.") && $0.contains("https://api.github.com") && $0.contains("https://github.com") })
         let connections = SourcesOverview.otherConnections(config: config, locale: dutch)
-        #expect(connections.map { $0.urls.map { $0.host() } } == [["dev.azure.com"], ["api.github.com", "github.com"]])
+        // GitHub stuurt de appcast en de zip van een release door naar de hosts van de downloads.
+        #expect(connections.map { $0.urls.map { $0.host() } } == [
+            ["dev.azure.com"],
+            ["api.github.com", "github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"],
+        ])
         #expect(connections.last?.detail.contains("Automatisch op updates controleren staat uit") == true)
     }
 
@@ -90,7 +95,8 @@ import PullwatchTestSupport
         let signIn = try #require(connections.first { $0.name == "Inloggen bij GitHub" })
         #expect(signIn.urls.map(\.absoluteString) == ["https://github.com"])
         let pictures = try #require(connections.first { $0.name == "Profielfoto's" })
-        #expect(pictures.urls.map(\.absoluteString) == ["https://github.com", "https://avatars.githubusercontent.com", "https://ghe.example.com"])
+        #expect(pictures.urls.map(\.absoluteString) == ["https://github.com", "https://avatars.githubusercontent.com", "https://ghe.example.com",
+                                                        "https://avatars.ghe.example.com"])
         let text = text(config)
         #expect(text.contains("- Inloggen bij GitHub: aan."))
         #expect(text.contains("- Profielfoto's: aan."))
@@ -111,6 +117,61 @@ import PullwatchTestSupport
         let text = text(AppConfig(accounts: [paused]))
         #expect(text.contains("- Inloggen bij GitHub: uit."))
         #expect(text.contains("- Profielfoto's: uit."))
+    }
+
+    @Test func pictureHostsPerKindOfAccount() {
+        func hosts(_ kind: ProviderKind, _ instance: String? = nil) -> [String] {
+            let account = Account(kind: kind, organization: "acme", authMethod: .pat, instanceURL: instance.flatMap(URL.init(string:)))
+            return SourcesOverview.pictureHosts(of: account).map(\.absoluteString)
+        }
+        #expect(hosts(.gitHub) == ["https://github.com", "https://avatars.githubusercontent.com"])
+        // Een Enterprise-server met subdomain isolation zet de foto's op avatars.<server>.
+        #expect(hosts(.gitHub, "https://ghe.example.com") == ["https://ghe.example.com", "https://avatars.ghe.example.com"])
+        #expect(hosts(.gitHub, "https://git.example.com:8443") == ["https://git.example.com:8443", "https://avatars.git.example.com:8443"])
+        #expect(hosts(.gitHub, "https://acme.ghe.com") == ["https://acme.ghe.com", "https://avatars.acme.ghe.com"])
+        #expect(hosts(.gitLab) == ["https://gitlab.com", "https://secure.gravatar.com"])
+        #expect(hosts(.gitLab, "https://git.example.com/gitlab") == ["https://git.example.com/gitlab", "https://secure.gravatar.com"])
+        #expect(hosts(.azureDevOps).isEmpty)
+    }
+
+    @Test func gitLabAccountHasProfilePictures() throws {
+        let gitLab = Account(kind: .gitLab, organization: "acme", authMethod: .pat)
+        let connections = SourcesOverview.otherConnections(config: AppConfig(accounts: [gitLab]), locale: dutch)
+        let pictures = try #require(connections.first { $0.name == "Profielfoto's" })
+        #expect(pictures.urls.compactMap { $0.host() } == ["gitlab.com", "secure.gravatar.com"])
+        #expect(!connections.contains { $0.name == "Inloggen bij GitHub" })
+    }
+
+    /// Een account via `az` of `gh`: het overzicht zegt dat dat programma zelf een server kan aanroepen.
+    @Test func cliAccountsNameWhatTheCLICalls() throws {
+        let azure = Account(kind: .azureDevOps, organization: "acme", authMethod: .cli)
+        let gitHub = Account(kind: .gitHub, organization: "octo", authMethod: .cli)
+        let token = Account(kind: .gitHub, organization: "pat", authMethod: .pat)
+        let text = text(AppConfig(accounts: [azure, gitHub, token]))
+        let lines = text.split(separator: "\n")
+        let azureLine = try #require(lines.first { $0.contains(azure.displayName) })
+        #expect(azureLine.contains("Azure CLI (az)") && azureLine.contains("login.microsoftonline.com"))
+        let gitHubLine = try #require(lines.first { $0.contains(gitHub.displayName) })
+        #expect(gitHubLine.contains("GitHub CLI (gh)") && gitHubLine.contains("api.github.com"))
+        let tokenLine = try #require(lines.first { $0.contains(token.displayName) })
+        #expect(!tokenLine.contains("CLI"))
+
+        let english = SourcesOverview.text(config: AppConfig(accounts: [azure]), appVersion: "0.5.0", date: now, locale: Locale(identifier: "en_GB"))
+        #expect(english.contains("Azure CLI (az)") && !english.contains("het token"))
+    }
+
+    /// Een naam die geen eigennaam is staat in de taal van het overzicht; een eigennaam niet.
+    @Test func sourceNamesFollowTheLanguage() {
+        let english = SourcesOverview.text(config: AppConfig(), appVersion: "0.5.0", date: now, locale: Locale(identifier: "en_GB"))
+        #expect(english.contains("- GitHub security: on."))
+        #expect(english.contains("- Go module proxy: on."))
+        #expect(english.contains("- OSV.dev: on."))
+        #expect(!english.contains("GitHub-beveiliging") && !english.contains("Go-moduleproxy"))
+        let german = SourcesOverview.text(config: AppConfig(), appVersion: "0.5.0", date: now, locale: Locale(identifier: "de_DE"))
+        #expect(!german.contains("GitHub-beveiliging") && !german.contains("Go-moduleproxy"))
+        let dutch = text()
+        #expect(dutch.contains("- GitHub-beveiliging: aan."))
+        #expect(dutch.contains("- Go-moduleproxy: aan."))
     }
 
     @Test func textHasNoSeparatorsOrDashes() {

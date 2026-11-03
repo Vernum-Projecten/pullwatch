@@ -24,7 +24,7 @@ public enum SourcesOverview {
 
         func sources(_ group: DataSourceGroup) -> [Row] {
             DataSource.all.filter { $0.group == group }.map { source in
-                Row(name: source.name, isOn: config.isEnabled(source.id),
+                Row(name: source.name(bundle: bundle), isOn: config.isEnabled(source.id),
                     summary: resolve(source.summary, bundle: bundle, locale: locale), urls: source.endpoints)
             }
         }
@@ -39,7 +39,8 @@ public enum SourcesOverview {
     /// De verbindingen buiten `DataSource.all`, één rij per verbinding (in de tekst en op het
     /// tabblad): per account de server waar de provider van dat account echt mee praat; inloggen
     /// bij GitHub (als een account via de GitHub App inlogt); de profielfoto's (als er een
-    /// GitHub-account is); en de updatecheck op `api.github.com` en `github.com`. De `detail`
+    /// GitHub- of GitLab-account is, `pictureHosts(of:)`); en de updatecheck op `api.github.com` en `github.com`
+    /// (met de hosts waar GitHub de downloads van een release vandaan laat komen). De `detail`
     /// noemt ook de stand: een uitgezet account, en of "Automatisch op updates controleren" aan staat.
     public static func otherConnections(config: AppConfig, locale: Locale = .current) -> [(name: String, urls: [URL], detail: String)] {
         connections(config: config, bundle: bundle(for: locale), locale: locale).map { ($0.row.name, $0.row.urls, $0.detail) }
@@ -95,8 +96,18 @@ public enum SourcesOverview {
 
     private static func connections(config: AppConfig, bundle: Bundle, locale: Locale) -> [Connection] {
         let accounts = config.accounts.map { account in
-            let summary = String(localized: "PR's, tags, repo's, manifesten en lockfiles van dit account", bundle: bundle, locale: locale,
-                                 comment: "Wat Pullwatch bij de server van een account ophaalt")
+            // Met `az` of `gh` start Pullwatch dat programma voor het token; dat kan zelf een server aanroepen.
+            let summary = switch (account.kind, account.authMethod) {
+            case (.azureDevOps, .cli):
+                String(localized: "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de Azure CLI (az), die zelf login.microsoftonline.com kan aanroepen",
+                       bundle: bundle, locale: locale, comment: "Wat Pullwatch bij de server van een account ophaalt, voor een account via de Azure CLI")
+            case (.gitHub, .cli):
+                String(localized: "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen",
+                       bundle: bundle, locale: locale, comment: "Wat Pullwatch bij de server van een account ophaalt, voor een account via de GitHub CLI")
+            default:
+                String(localized: "PR's, tags, repo's, manifesten en lockfiles van dit account", bundle: bundle, locale: locale,
+                       comment: "Wat Pullwatch bij de server van een account ophaalt")
+            }
             let detail = account.isPaused
                 ? String(localized: "\(summary); dit account staat uit", bundle: bundle, locale: locale,
                          comment: "Beschrijving van de server van een account dat uitgezet is")
@@ -119,26 +130,26 @@ public enum SourcesOverview {
                 detail: summary))
         }
 
-        // `<web>/<login>.png` (`Account.gitHubAvatarURL`) op de server van elk GitHub-account;
-        // github.com stuurt door naar avatars.githubusercontent.com, waar ook de foto's staan die de API noemt.
-        if !gitHub.isEmpty {
+        // Profielfoto's laadt de app los van de geschiedenis, dus de hosts volgen uit de accounts.
+        let pictureAccounts = config.accounts.filter { $0.kind == .gitHub || $0.kind == .gitLab }
+        if !pictureAccounts.isEmpty {
             var urls: [URL] = []
-            for account in gitHub {
-                let web = account.effectiveInstanceURL ?? URL(string: "https://github.com")!
-                guard !urls.contains(web) else { continue }
-                urls.append(web)
-                if web.host() == "github.com" { urls.append(URL(string: "https://avatars.githubusercontent.com")!) }
+            for url in pictureAccounts.flatMap(pictureHosts(of:)) where !urls.contains(url) {
+                urls.append(url)
             }
             let summary = String(localized: "Profielfoto's van je accounts en van de auteurs van PR's en tags", bundle: bundle, locale: locale,
                                  comment: "Wat Pullwatch voor de profielfoto's ophaalt")
             others.append(Connection(
                 row: Row(name: String(localized: "Profielfoto's", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen"),
-                         isOn: gitHub.contains { !$0.isPaused }, summary: summary, urls: urls),
+                         isOn: pictureAccounts.contains { !$0.isPaused }, summary: summary, urls: urls),
                 detail: summary))
         }
 
+        // De testversies via api.github.com (`UpdateFeed.url`); de appcast en de zip van een release
+        // op github.com, dat een download doorstuurt naar release-assets.githubusercontent.com
+        // (eerder objects.githubusercontent.com).
         let summary = String(localized: "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op", bundle: bundle, locale: locale,
-                             comment: "Updatecheck: de releases op api.github.com, de appcast en downloads op github.com")
+                             comment: "Updatecheck: de releases op api.github.com, de appcast en downloads van de releases op github.com")
         let detail = config.checkForUpdates
             ? String(localized: "\(summary); Automatisch op updates controleren staat aan", bundle: bundle, locale: locale,
                      comment: "Beschrijving van de updatecheck met de stand van de instelling in Algemeen")
@@ -147,14 +158,44 @@ public enum SourcesOverview {
         others.append(Connection(
             row: Row(name: String(localized: "Updatecheck van Pullwatch", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen"),
                      isOn: config.checkForUpdates, summary: summary,
-                     urls: [URL(string: "https://api.github.com")!, URL(string: "https://github.com")!]),
+                     urls: [URL(string: "https://api.github.com")!, URL(string: "https://github.com")!,
+                            URL(string: "https://release-assets.githubusercontent.com")!,
+                            URL(string: "https://objects.githubusercontent.com")!]),
             detail: detail))
         return accounts + others
     }
 
+    /// De hosts waar de profielfoto's van een account vandaan komen (`HistoryView` laadt de
+    /// `authorAvatarURL` van de providers, de accounts `Account.avatarURL`):
+    /// - github.com: `github.com/<login>.png`, dat doorstuurt naar avatars.githubusercontent.com,
+    ///   waar ook de foto's staan die de API noemt;
+    /// - GitHub Enterprise Server en GHE.com: `<server>/<login>.png`, en `avatars.<server>` als
+    ///   de server subdomeinen gebruikt (subdomain isolation, op GHE.com altijd);
+    /// - GitLab: geüploade foto's op de server zelf (`<server>/uploads/…`), en anders Gravatar
+    ///   (secure.gravatar.com), dat gitlab.com en een eigen server standaard gebruiken.
+    static func pictureHosts(of account: Account) -> [URL] {
+        switch account.kind {
+        case .azureDevOps:
+            return []
+        case .gitHub:
+            let web = account.effectiveInstanceURL ?? URL(string: "https://github.com")!
+            guard let host = web.host()?.lowercased(), host != "github.com" else {
+                return [URL(string: "https://github.com")!, URL(string: "https://avatars.githubusercontent.com")!]
+            }
+            var avatars = URLComponents()
+            avatars.scheme = web.scheme
+            avatars.host = "avatars.\(host)"
+            avatars.port = web.port
+            return [web, avatars.url].compactMap { $0 }
+        case .gitLab:
+            let web = account.effectiveInstanceURL ?? URL(string: "https://gitlab.com")!
+            return [web, URL(string: "https://secure.gravatar.com")!]
+        }
+    }
+
     /// De teksten van PullwatchCore in de taal van `locale`, als de bundle die heeft; anders in de
     /// taal van de app.
-    private static func bundle(for locale: Locale) -> Bundle {
+    static func bundle(for locale: Locale) -> Bundle {
         let own = Bundle.core(for: locale.language.languageCode?.identifier)
         return own.bundleURL.pathExtension == "lproj" ? own : .localizedCore
     }

@@ -46,7 +46,7 @@ Wat de code nu aanroept (`PullwatchKit/Sources`):
 |---|---|---|---|
 | OSV.dev | Bekende kwetsbaarheden (CVE's, GHSA's) in packages. **De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's**; Azure DevOps Advanced Security meldt ook kwetsbare packages (`alertType` "dependency", "malware"). | `api.osv.dev/v1/querybatch`, `api.osv.dev/v1/vulns/{id}` | `Versions/OSV.swift`, stap 4 in `VersionChecker.check` |
 | GitHub Advisory Database | Aanvullende details bij een gevonden melding: ernst, CVSS, CWE, publicatie, intrekking | `api.github.com` (advisories) | `Versions/GitHubAdvisory.swift`, `Versions/AdvisoryLookup.swift` |
-| GitHub-beveiliging | Code scanning, secret scanning en de eigen adviezen van een repo | GitHub-API van het account | `PullwatchGitHub/GitHubProvider+Security.swift` |
+| GitHub-beveiliging (en "GitHub security", de "GitHub-Sicherheit", fr "Sécurité GitHub") | Code scanning, secret scanning en de eigen adviezen van een repo | GitHub-API van het account | `PullwatchGitHub/GitHubProvider+Security.swift` |
 | Azure DevOps Advanced Security | Meldingen van Advanced Security per repo | `_apis/alert/repositories/{repo}/alerts` | `PullwatchAzureDevOps/AzureDevOpsProvider+Security.swift` |
 
 **Versies**
@@ -59,7 +59,7 @@ Wat de code nu aanroept (`PullwatchKit/Sources`):
 | NuGet | idem, .NET | `api.nuget.org` |
 | RubyGems | idem, Ruby | `rubygems.org/api` |
 | Packagist | idem, PHP | `repo.packagist.org` |
-| Go-moduleproxy | idem, Go | `proxy.golang.org` |
+| Go-moduleproxy (en "Go module proxy", de "Go-Modul-Proxy", fr "Proxy des modules Go") | idem, Go | `proxy.golang.org` |
 | endoflife.date | Releasecycli en end-of-life van runtimes (Go, .NET, Node en meer) | `endoflife.date/api/v1/products/{product}` |
 | swift.org | Swift-releases (Swift heeft geen EOL-beleid) | `swift.org/api/v1/install/releases.json` |
 
@@ -71,12 +71,17 @@ De registries staan in `Versions/PackageRegistry.swift` en
 verbinding naar buiten, zodat het het volledige antwoord is op "met wie praat
 Pullwatch")
 
+De namen GitHub-beveiliging en Go-moduleproxy zijn omschrijvingen en worden
+vertaald (in het tabblad, in "Niet gecontroleerd: bron … staat uit" en in het
+gekopieerde overzicht, in de taal daarvan); de andere namen zijn eigennamen en
+staan in elke taal hetzelfde.
+
 | Verbinding | Wat | Schakelaar |
 |---|---|---|
-| Servers van je accounts | Per account de server (github.com, een GitHub Enterprise-server of GHE.com, dev.azure.com, gitlab.com of een eigen GitLab): PR's, tags, repo's, manifesten en lockfiles. Eén rij per account, met het adres waar de provider echt mee praat: `api.github.com`, `api.<naam>.ghe.com`, `<server>/api/v3`, `dev.azure.com/<organisatie>` of `<server>/api/v4` (`SourcesOverview.server(of:)`). | Geen; uitzetten gaat via het account zelf. |
+| Servers van je accounts | Per account de server (github.com, een GitHub Enterprise-server of GHE.com, dev.azure.com, gitlab.com of een eigen GitLab): PR's, tags, repo's, manifesten en lockfiles. Eén rij per account, met het adres waar de provider echt mee praat: `api.github.com`, `api.<naam>.ghe.com`, `<server>/api/v3`, `dev.azure.com/<organisatie>` of `<server>/api/v4` (`SourcesOverview.server(of:)`). Bij een account via de Azure CLI of de GitHub CLI zegt de rij dat Pullwatch het token van `az` of `gh` haalt, en dat dat programma zelf `login.microsoftonline.com` of `api.github.com` kan aanroepen. | Geen; uitzetten gaat via het account zelf. |
 | Inloggen bij GitHub | De device flow en het vernieuwen van het token (`github.com/login/device/code`, `github.com/login/oauth/access_token`) voor accounts die via de GitHub App inloggen. De GitHub App staat op github.com, ook bij een Enterprise-account. Alleen als zo'n account er is. | Geen; staat aan zolang een van die accounts aan staat. |
-| Profielfoto's | `<server>/<login>.png` op de server van elk GitHub-account (github.com, een GitHub Enterprise-server of GHE.com), en `avatars.githubusercontent.com`, waar github.com naar doorstuurt en waar de foto's van auteurs staan. Alleen als er een GitHub-account is. | Geen; staat aan zolang een GitHub-account aan staat. |
-| Updatecheck van Pullwatch | `api.github.com` (releases van Pullwatch) en de appcast op `github.com` (Sparkle), in één rij met beide adressen | Geen eigen schakelaar hier; de rij toont de stand van "Automatisch op updates controleren" in Algemeen en linkt daarheen. |
+| Profielfoto's | Per account de hosts van de foto's die de app laadt (`SourcesOverview.pictureHosts(of:)`), los van de geschiedenis: github.com en `avatars.githubusercontent.com` (waar `github.com/<login>.png` naar doorstuurt en waar de foto's van auteurs staan); bij een GitHub Enterprise-server of GHE.com `<server>` en `avatars.<server>` (subdomain isolation); bij GitLab de server zelf (geüploade foto's, `<server>/uploads/…`) en `secure.gravatar.com` (Gravatar, standaard op gitlab.com en op een eigen GitLab). Alleen als er een GitHub- of GitLab-account is. | Geen; staat aan zolang een GitHub- of GitLab-account aan staat. |
+| Updatecheck van Pullwatch | `api.github.com` (releases van Pullwatch, voor testversies), de appcast en de zip op `github.com` (Sparkle), en `release-assets.githubusercontent.com` en `objects.githubusercontent.com`, waar github.com de downloads van een release naar doorstuurt; in één rij met alle adressen | Geen eigen schakelaar hier; de rij toont de stand van "Automatisch op updates controleren" in Algemeen en linkt daarheen. |
 
 De bouwer controleert deze lijst tegen de code: als er een externe aanroep is
 die hier ontbreekt, hoort die er ook bij. De lijst in de app moet compleet zijn,

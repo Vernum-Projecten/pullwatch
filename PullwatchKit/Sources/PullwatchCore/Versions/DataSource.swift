@@ -19,8 +19,12 @@ extension LocalizedStringResource.BundleDescription {
 public struct DataSource: Sendable, Identifiable {
     public let id: DataSourceID
     public let group: DataSourceGroup
-    /// De naam zoals die in de app staat; een eigennaam, dus niet vertaald.
-    public let name: String
+    /// De naam zoals die in de app staat, in de taal van de app. Een eigennaam (OSV.dev, npm)
+    /// blijft zoals hij is; een omschrijving (GitHub-beveiliging) wordt vertaald.
+    public var name: String { localizedName.map { String(localized: $0) } ?? properName }
+    /// De eigennaam, of de Nederlandse naam als er een vertaling is (`localizedName`).
+    private let properName: String
+    private let localizedName: LocalizedStringResource?
     /// Wat de bron levert, in gewone taal.
     public let summary: LocalizedStringResource
     /// De adressen die Pullwatch aanroept. Bij GitHub-beveiliging en Azure DevOps Advanced
@@ -41,7 +45,7 @@ public struct DataSource: Sendable, Identifiable {
             summary: LocalizedStringResource("Aanvullende details bij een gevonden kwetsbaarheid: ernst, CVSS, CWE en publicatie", bundle: .localizedCore),
             endpoints: ["https://api.github.com"], site: "https://github.com/advisories"),
         DataSource(
-            id: .gitHubSecurity, group: .vulnerabilities, name: "GitHub-beveiliging",
+            id: .gitHubSecurity, group: .vulnerabilities, name: "GitHub-beveiliging", localizedName: LocalizedStringResource("GitHub-beveiliging", bundle: .localizedCore),
             summary: LocalizedStringResource("Code scanning, secret scanning en de eigen adviezen van een repo", bundle: .localizedCore),
             endpoints: ["https://api.github.com"], site: "https://github.com/features/security"),
         DataSource(
@@ -73,7 +77,7 @@ public struct DataSource: Sendable, Identifiable {
             summary: LocalizedStringResource("Nieuwste versie en gegevens van PHP-packages", bundle: .localizedCore),
             endpoints: ["https://repo.packagist.org"], site: "https://packagist.org"),
         DataSource(
-            id: .goProxy, group: .versions, name: "Go-moduleproxy",
+            id: .goProxy, group: .versions, name: "Go-moduleproxy", localizedName: LocalizedStringResource("Go-moduleproxy", bundle: .localizedCore),
             summary: LocalizedStringResource("Nieuwste versie en gegevens van Go-modules", bundle: .localizedCore),
             endpoints: ["https://proxy.golang.org"], site: "https://proxy.golang.org"),
         DataSource(
@@ -93,11 +97,20 @@ public struct DataSource: Sendable, Identifiable {
         return source
     }
 
-    private init(id: DataSourceID, group: DataSourceGroup, name: String, summary: LocalizedStringResource,
-                 endpoints: [StaticString], site: StaticString) {
+    /// De naam in de taal van `bundle` (een `.lproj` van PullwatchCore), voor het gekopieerde
+    /// overzicht in een andere taal dan die van de app.
+    func name(bundle: Bundle) -> String {
+        guard let localizedName else { return properName }
+        return bundle.localizedString(forKey: localizedName.key, value: String(localized: localizedName), table: localizedName.table)
+    }
+
+    /// `localizedName` alleen voor een naam die geen eigennaam is; `name` is dan de Nederlandse.
+    private init(id: DataSourceID, group: DataSourceGroup, name: String, localizedName: LocalizedStringResource? = nil,
+                 summary: LocalizedStringResource, endpoints: [StaticString], site: StaticString) {
         self.id = id
         self.group = group
-        self.name = name
+        self.properName = name
+        self.localizedName = localizedName
         self.summary = summary
         self.endpoints = endpoints.map { URL(string: "\($0)")! }
         self.site = URL(string: "\(site)")!

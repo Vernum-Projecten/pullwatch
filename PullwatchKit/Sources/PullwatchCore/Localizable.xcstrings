@@ -679,6 +679,64 @@
         }
       }
     },
+    "GitHub-beveiliging": {
+      "comment": "Naam van een bron (Instellingen, Bronnen); geen eigennaam, dus vertaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-Sicherheit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub security"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sécurité GitHub"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-beveiliging"
+          }
+        }
+      }
+    },
+    "Go-moduleproxy": {
+      "comment": "Naam van een bron (Instellingen, Bronnen); geen eigennaam, dus vertaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go-Modul-Proxy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go module proxy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proxy des modules Go"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go-moduleproxy"
+          }
+        }
+      }
+    },
     "Inloggen bij GitHub": {
       "comment": "Verbinding in het overzicht van bronnen",
       "localizations": {
@@ -1104,6 +1162,64 @@
         }
       }
     },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de Azure CLI (az), die zelf login.microsoftonline.com kan aanroepen": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt, voor een account via de Azure CLI",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos; das Token kommt von der Azure CLI (az), die selbst login.microsoftonline.com aufrufen kann"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account; the token comes from the Azure CLI (az), which may itself call login.microsoftonline.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte ; le jeton vient d'Azure CLI (az), qui peut aussi appeler login.microsoftonline.com"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de Azure CLI (az), die zelf login.microsoftonline.com kan aanroepen"
+          }
+        }
+      }
+    },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt, voor een account via de GitHub CLI",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos; das Token kommt von der GitHub CLI (gh), die selbst api.github.com aufrufen kann"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account; the token comes from the GitHub CLI (gh), which may itself call api.github.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte ; le jeton vient de GitHub CLI (gh), qui peut aussi appeler api.github.com"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen"
+          }
+        }
+      }
+    },
     "Profielfoto's": {
       "comment": "Verbinding in het overzicht van bronnen",
       "localizations": {
@@ -1446,7 +1562,7 @@
       }
     },
     "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op": {
-      "comment": "Updatecheck: de releases op api.github.com, de appcast en downloads op github.com",
+      "comment": "Updatecheck: de releases op api.github.com, de appcast en downloads van de releases op github.com",
       "localizations": {
         "de": {
           "stringUnit": {
