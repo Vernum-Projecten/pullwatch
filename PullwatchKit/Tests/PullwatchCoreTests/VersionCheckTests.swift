@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 /// Provider met vaste repo's en bestanden; `repos == nil` laat `listRepos` falen.
 /// Bestanden op een tag staan onder "repo@tag".
@@ -210,67 +211,6 @@ private actor FileProvider: PRProvider {
         #expect(VersionChecker.isOlder("1.9", than: "1.10"))
         #expect(!VersionChecker.isOlder("1.10", than: "1.9"))
         #expect(!VersionChecker.isOlder("8.0", than: "8"))
-    }
-}
-
-@Suite struct ProviderFileTests {
-    @Test func gitHubListsBlobsAndTreatsEmptyRepoAsNoFiles() async throws {
-        let http = MockHTTPClient()
-        http.on("repos/acme/empty/git/trees", status: 409, body: "{}")
-        http.on("repos/acme/web/git/trees/HEAD", body: #"{"tree":[{"path":"src","type":"tree"},{"path":"src/go.mod","type":"blob"}],"truncated":false}"#)
-        let provider = GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "t"), http: http)
-
-        #expect(try await provider.filePaths(in: "acme/web") == ["src/go.mod"])
-        #expect(try await provider.filePaths(in: "acme/empty") == [])
-        #expect(http.requests.first?.url?.query == "recursive=1")
-    }
-
-    @Test func gitHubReadsRawContent() async throws {
-        let http = MockHTTPClient()
-        http.on("repos/acme/web/contents/src/go.mod", body: "go 1.26\n")
-        let provider = GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "t"), http: http)
-
-        #expect(try await provider.fileContent(in: "acme/web", path: "src/go.mod") == "go 1.26\n")
-        #expect(http.requests.first?.value(forHTTPHeaderField: "Accept") == "application/vnd.github.raw+json")
-    }
-
-    @Test func azureListsFilesAndReadsContent() async throws {
-        let http = MockHTTPClient()
-        http.on("includeContent=true", body: #"{"path":"/src/go.mod","content":"go 1.26"}"#)
-        http.on("Proj/_apis/git/repositories/web/items", body: #"{"value":[{"path":"/","isFolder":true},{"path":"/src/go.mod"}]}"#)
-        let provider = AzureDevOpsProvider(
-            accountId: fixedAccountId, organization: "org", tokenSource: StaticTokenSource(token: "t"), authMethod: .pat, http: http
-        )
-
-        #expect(try await provider.filePaths(in: "Proj/web") == ["src/go.mod"])
-        #expect(try await provider.fileContent(in: "Proj/web", path: "src/go.mod") == "go 1.26")
-        let query = http.requests.last?.url?.query ?? ""
-        #expect(query.contains("path=/src/go.mod"))
-        #expect(!query.contains("versionDescriptor"))
-    }
-
-    @Test func gitHubReadsTreeAndContentOnTag() async throws {
-        let http = MockHTTPClient()
-        http.on("git/trees/v1.2.0", body: #"{"tree":[{"path":"go.mod","type":"blob"}]}"#)
-        http.on("contents/go.mod", body: "go 1.26\n")
-        let provider = GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "t"), http: http)
-
-        #expect(try await provider.filePaths(in: "acme/web", ref: "v1.2.0") == ["go.mod"])
-        #expect(try await provider.fileContent(in: "acme/web", path: "go.mod", ref: "v1.2.0") == "go 1.26\n")
-        #expect(http.requests.last?.url?.query == "ref=v1.2.0")
-    }
-
-    @Test func azureReadsOnTag() async throws {
-        let http = MockHTTPClient()
-        http.on("includeContent=true", body: #"{"path":"/go.mod","content":"go 1.26"}"#)
-        let provider = AzureDevOpsProvider(
-            accountId: fixedAccountId, organization: "org", tokenSource: StaticTokenSource(token: "t"), authMethod: .pat, http: http
-        )
-
-        _ = try await provider.fileContent(in: "Proj/web", path: "go.mod", ref: "v1.2.0")
-        let query = http.requests.last?.url?.query ?? ""
-        #expect(query.contains("versionDescriptor.version=v1.2.0"))
-        #expect(query.contains("versionDescriptor.versionType=tag"))
     }
 }
 

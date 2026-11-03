@@ -1,4 +1,5 @@
 import PullwatchCore
+import PullwatchGitHub
 import SwiftUI
 
 /// Inloggen met GitHub: een knop, dan de code (op het klembord) met "Open github.com", dan wie

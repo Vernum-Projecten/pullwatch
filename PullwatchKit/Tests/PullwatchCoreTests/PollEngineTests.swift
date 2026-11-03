@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 private struct Harness {
     let clock: TestClock

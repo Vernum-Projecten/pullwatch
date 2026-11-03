@@ -1,10 +1,10 @@
 import Foundation
-@testable import PullwatchCore
+import PullwatchCore
 
-let fixedAccountId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+package let fixedAccountId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 
 extension PullRequest {
-    static func fixture(
+    package static func fixture(
         accountId: UUID = fixedAccountId,
         repo: String = "proj/api",
         number: Int = 1,
@@ -33,7 +33,7 @@ extension PullRequest {
 }
 
 extension Tag {
-    static func fixture(
+    package static func fixture(
         accountId: UUID = fixedAccountId,
         repo: String = "proj/api",
         name: String = "v1"
@@ -49,7 +49,7 @@ extension Tag {
 }
 
 extension Account {
-    static func fixture(
+    package static func fixture(
         id: UUID = UUID(),
         kind: ProviderKind = .azureDevOps,
         organization: String = "acme",

@@ -1,6 +1,8 @@
 import Foundation
 import Testing
+@testable import PullwatchAzureDevOps
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 @Suite struct AzureDevOpsProviderTests {
     let projects = #"{"count":1,"value":[{"name":"My Project"}]}"#

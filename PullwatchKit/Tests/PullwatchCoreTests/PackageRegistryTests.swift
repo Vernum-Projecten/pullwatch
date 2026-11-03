@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 @Suite struct PackageRegistryTests {
     private func latest(_ ecosystem: String, _ json: String) throws -> String? {

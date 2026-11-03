@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 @Suite struct RepoOverviewTests {
     let t0 = Date(timeIntervalSince1970: 1_792_000_000)

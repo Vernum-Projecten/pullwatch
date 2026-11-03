@@ -1,4 +1,5 @@
 import Foundation
+import PullwatchCore
 
 public actor GitHubProvider: PRProvider {
     private enum OwnerKind { case organization, user }

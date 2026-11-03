@@ -1,4 +1,7 @@
 import Foundation
+import PullwatchAzureDevOps
+import PullwatchCore
+import PullwatchGitHub
 
 public enum ProviderFactory {
     /// `pat` overschrijft de Keychain (gebruikt bij "Test verbinding" vóór opslaan).

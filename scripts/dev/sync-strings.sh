@@ -39,4 +39,13 @@ sync() {
   fi
 }
 sync "$root/Pullwatch/Pullwatch/Localizable.xcstrings" "Pullwatch.build/Debug/Pullwatch.build"
-sync "$root/PullwatchKit/Sources/PullwatchCore/Localizable.xcstrings" "PullwatchCore.build/Debug/PullwatchCore-t.build"
+# Elke PullwatchKit-module met een eigen catalog; Xcode bouwt de module in
+# PullwatchKit.build/Debug/<Module>-t.build.
+for catalog in "$root"/PullwatchKit/Sources/*/Localizable.xcstrings; do
+  module="$(basename "$(dirname "$catalog")")"
+  if [ ! -d "$intermediates/PullwatchKit.build/Debug/$module-t.build" ]; then
+    echo "sync-strings: no build output for $module; is it linked by the app?" >&2
+    exit 1
+  fi
+  sync "$catalog" "PullwatchKit.build/Debug/$module-t.build"
+done

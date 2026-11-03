@@ -18,7 +18,7 @@ The app is signed with a Developer ID and notarized by Apple. Universal (Apple s
 Open `Pullwatch/Pullwatch.xcodeproj` in Xcode and run the **Pullwatch** scheme (⌘R). From the command line:
 
 ```bash
-swift test --package-path PullwatchKit              # PullwatchCore unit tests
+swift test --package-path PullwatchKit              # PullwatchKit unit tests
 xcodebuild -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch build
 scripts/release/release.sh --unsigned               # dist/Pullwatch-<version>.dmg and .zip, ad-hoc signed
 scripts/release/release.sh                          # signed with Developer ID, notarized and stapled DMG
@@ -28,7 +28,7 @@ scripts/release/release.sh                          # signed with Developer ID, 
 
 The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
 
-The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package (`PullwatchCore`: providers, polling, history, version checks, updates), which the app links and which has the unit tests.
+The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package, which the app links and which has the unit tests. Its modules: `PullwatchCore` (models, polling, history, version checks, updates), `PullwatchGitHub` and `PullwatchAzureDevOps` (one per provider), and `PullwatchProviders` (picks the provider for an account).
 
 ## Usage
 

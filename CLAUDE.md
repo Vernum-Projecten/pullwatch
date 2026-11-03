@@ -60,17 +60,31 @@ of each part is in `docs/superpowers/specs/` and its plan in
   the first-run onboarding in Dutch and English. In debug builds
   `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
   PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed.
-- `PullwatchKit/`: the local Swift package (`Package.swift`) with the
-  `PullwatchCore` module, everything without a window, by area under
-  `Sources/PullwatchCore/`: `Model/` (models, `AppConfig`), `Providers/`
-  (`PRProvider`, GitHub, Azure DevOps, `ProviderFactory`, token sources),
-  `Polling/` (`PollEngine`, backoff, notification planning, filters, seen
-  state), `History/` (history, statistics, repo overview), `Versions/` (the
-  version and vulnerability checks: stack and dependency detection, package
-  registries, end-of-life, OSV), `Updates/` (`UpdateChecker`), `Support/`
-  (HTTP, processes, JSON store, Keychain, localisation).
-  `Tests/PullwatchCoreTests/`: its Swift Testing suites; `Support/` has
-  `MockHTTPClient` and `MockProcessRunner`.
+- `PullwatchKit/`: the local Swift package (`Package.swift`), everything
+  without a window, in four modules under `Sources/`. The names start with
+  `Pullwatch` so a module never shares its name with a type in it.
+  `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
+  `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
+  `ProviderError`, `StaticTokenSource`), `Polling/` (`PollEngine`, backoff,
+  notification planning, filters, seen state), `History/` (history,
+  statistics, repo overview), `Versions/` (the version and vulnerability
+  checks: stack and dependency detection, package registries, end-of-life,
+  OSV), `Updates/` (`UpdateChecker`), `Support/` (HTTP, processes, JSON
+  store, Keychain, logging, localisation). `PullwatchGitHub/`:
+  `GitHubProvider`, the GitHub App device flow and token store
+  (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
+  `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
+  `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
+  provider. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
+  screens) and `PullwatchProviders`. Only what another module or the app
+  uses is `public`; what only the package's own modules share is `package`.
+  A module with text has its own `Localizable.xcstrings` and its own
+  `Bundle.localized…` helper (`Support/Localization.swift`).
+  `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
+  `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
+  `PullwatchProvidersTests`), and `PullwatchTestSupport` with the shared
+  `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
+  and fixtures.
 - `docs/setup.md`: everything the maintainer configures outside the code
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
@@ -131,7 +145,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 ```bash
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-swift test --package-path PullwatchKit                      # PullwatchCore
+swift test --package-path PullwatchKit                      # every PullwatchKit module
 xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -destination 'platform=macOS'
 shellcheck scripts/*/*.sh .claude/hooks/*.sh .githooks/*
 ```
@@ -144,7 +158,7 @@ saves every step as PNG per language. UI tests quit a running Pullwatch
 (same bundle id) first.
 
 After changing user-facing text, `bash scripts/dev/sync-strings.sh` writes the
-new keys into both String Catalogs (xcodebuild alone does not); add the
+new keys into every String Catalog (xcodebuild alone does not); add the
 English, German and French for each before committing. `LocalizationTests`
 fails while an entry misses a language.
 

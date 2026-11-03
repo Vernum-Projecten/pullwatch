@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import PullwatchCore
+import PullwatchGitHub
 
 private let log = Log(category: "github-sign-in")
 

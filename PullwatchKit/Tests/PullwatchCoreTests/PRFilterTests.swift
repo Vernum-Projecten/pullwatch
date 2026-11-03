@@ -1,5 +1,6 @@
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 @Suite struct PRFilterTests {
     @Test func denyModeFollowsEverythingExceptListed() {
