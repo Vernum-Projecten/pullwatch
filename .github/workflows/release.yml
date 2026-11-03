@@ -1,18 +1,24 @@
 name: Release
 
 # A tag vX.Y.Z on main produces a DRAFT GitHub release "Pullwatch X.Y.Z":
-# Pullwatch-X.Y.Z.dmg for people and Pullwatch-X.Y.Z.zip for the updater.
-# The app and the disk image are signed with the Developer ID, notarised and
-# stapled by scripts/release/release.sh, the same script the maintainer runs
-# on his Mac. The maintainer checks the draft and publishes it; the app's
-# update check only sees published releases. docs/releasing.md has the
-# procedure and the secrets. Without the secrets (as in a fork) the lane
-# stops in its first job and says which ones are missing.
+# Pullwatch-X.Y.Z.dmg for people, and Pullwatch-X.Y.Z.zip with appcast.xml
+# for Sparkle, the updater inside the app. The app and the disk image are
+# signed with the Developer ID, notarised and stapled by
+# scripts/release/release.sh, the same script the maintainer runs on his
+# Mac. The zip is signed with Sparkle's EdDSA key and that signature is
+# checked with the public key inside the app before anything is attached.
+# A tag vX.Y.Z-beta.N makes a test version: a pre-release on Sparkle's beta
+# channel, offered only to people who turned on test versions. The
+# maintainer checks the draft and publishes it; the app's update check only
+# sees published releases. docs/releasing.md has the procedure and the
+# secrets. Without the secrets (as in a fork) the lane stops in its first
+# job and says which ones are missing.
 
 on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
 
 permissions: {}
 
@@ -28,6 +34,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.plan.outputs.version }}
+      app_version: ${{ steps.plan.outputs.app_version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,7 +44,9 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           bash scripts/release/check-version.sh "$TAG"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          version="${TAG#v}"
+          # The files carry MARKETING_VERSION, also for a test version.
+          { echo "version=$version"; echo "app_version=${version%%-beta.*}"; } >> "$GITHUB_OUTPUT"
       - name: the release secrets exist
         env:
           DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
@@ -45,13 +54,14 @@ jobs:
           NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           missing=()
-          for name in DEVELOPER_ID_P12 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER_ID; do
+          for name in DEVELOPER_ID_P12 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER_ID SPARKLE_PRIVATE_KEY; do
             [ -n "${!name}" ] || missing+=("$name")
           done
           if ((${#missing[@]})); then
-            echo "::error title=Release secrets missing::${missing[*]} not set in $GITHUB_REPOSITORY. A signed release needs the maintainer's Developer ID and notarisation secrets; see docs/releasing.md."
+            echo "::error title=Release secrets missing::${missing[*]} not set in $GITHUB_REPOSITORY. A signed release needs the maintainer's Developer ID, notarisation and Sparkle secrets; see docs/releasing.md."
             exit 1
           fi
           echo "ok: every release secret is set"
@@ -96,16 +106,42 @@ jobs:
           printf '%s' "$NOTARY_KEY" > "$NOTARY_KEY_FILE"
           trap 'rm -f "$NOTARY_KEY_FILE"' EXIT
           scripts/release/release.sh
-      # Sparkle (#9): the update feed signed with Sparkle's EdDSA key comes
-      # here, as in FerroLICENCE's release.yml: generate_appcast over the
-      # zip with secrets.SPARKLE_PRIVATE_KEY on stdin, then
-      # verify-update.swift against the public key inside the app, and
-      # appcast.xml added to dist/ and to the asset list in publish.
+      # Sparkle's generate_appcast (from the Sparkle package Xcode resolved
+      # for the build) writes appcast.xml for the zip: build number, version,
+      # minimum macOS (from the app's LSMinimumSystemVersion), length, the
+      # EdDSA signature, the release notes from the changelog, and the
+      # download address in this release. The private key goes in on stdin
+      # and is never written to disk.
+      - name: the update feed, signed with Sparkle's EdDSA key
+        env:
+          VERSION: ${{ needs.plan.outputs.app_version }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          feed="$RUNNER_TEMP/feed"
+          mkdir -p "$feed"
+          cp "dist/Pullwatch-$VERSION.zip" "$feed/"
+          bash scripts/release/notes.sh "$TAG" > "$feed/Pullwatch-$VERSION.md"
+          # A test version goes on Sparkle's beta channel, which only an app
+          # with Include test versions on accepts.
+          channel=()
+          case "$TAG" in *-beta.*) channel=(--channel beta) ;; esac
+          sparkle="build/SourcePackages/artifacts/sparkle/Sparkle/bin"
+          test -x "$sparkle/generate_appcast" || { echo "no generate_appcast in $sparkle" >&2; exit 1; }
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$sparkle/generate_appcast" --ed-key-file - --embed-release-notes \
+            ${channel[@]+"${channel[@]}"} --download-url-prefix "https://github.com/$REPO/releases/download/$TAG/" "$feed"
+          cp "$feed/appcast.xml" dist/appcast.xml
+          cat dist/appcast.xml
+      - name: the update verifies with the key inside the app
+        env:
+          VERSION: ${{ needs.plan.outputs.app_version }}
+        run: swift scripts/release/verify-update.swift build/Build/Products/Release/Pullwatch.app dist/appcast.xml "dist/Pullwatch-$VERSION.zip"
       - name: the files of the release
         env:
-          VERSION: ${{ needs.plan.outputs.version }}
+          VERSION: ${{ needs.plan.outputs.app_version }}
         run: |
-          for f in "Pullwatch-$VERSION.dmg" "Pullwatch-$VERSION.zip"; do
+          for f in "Pullwatch-$VERSION.dmg" "Pullwatch-$VERSION.zip" appcast.xml; do
             test -s "dist/$f" || { echo "missing dist/$f" >&2; exit 1; }
           done
           shasum -a 256 dist/*
@@ -143,10 +179,16 @@ jobs:
           TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
           VERSION: ${{ needs.plan.outputs.version }}
+          APP_VERSION: ${{ needs.plan.outputs.app_version }}
         run: |
-          assets=("dist/Pullwatch-$VERSION.dmg" "dist/Pullwatch-$VERSION.zip")
+          assets=("dist/Pullwatch-$APP_VERSION.dmg" "dist/Pullwatch-$APP_VERSION.zip" dist/appcast.xml)
           for f in "${assets[@]}"; do
             test -s "$f" || { echo "missing $f" >&2; exit 1; }
           done
-          gh release create "$TAG" --repo "$REPO" --draft --verify-tag --title "Pullwatch $VERSION" --notes-file notes.md "${assets[@]}"
+          # A test version is a pre-release: releases/latest (the feed of
+          # everyone else) never points at it.
+          prerelease=()
+          case "$TAG" in *-beta.*) prerelease=(--prerelease) ;; esac
+          gh release create "$TAG" --repo "$REPO" --draft ${prerelease[@]+"${prerelease[@]}"} --verify-tag \
+            --title "Pullwatch $VERSION" --notes-file notes.md "${assets[@]}"
           echo "draft release $TAG created; check it and publish it on GitHub" >> "$GITHUB_STEP_SUMMARY"

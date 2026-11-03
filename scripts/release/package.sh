@@ -2,7 +2,7 @@
 # scripts/release/package.sh <Pullwatch.app> <versie> <uitvoermap>
 #
 # De bestanden van een release: Pullwatch-<versie>.dmg voor mensen en
-# Pullwatch-<versie>.zip voor de updater (Sparkle, later). Overgenomen van
+# Pullwatch-<versie>.zip voor de updater (Sparkle). Overgenomen van
 # FerroLICENCE. De app moet al gesigned zijn (Developer ID of ad-hoc);
 # release.sh signeert, notariseert en staplet daarna de dmg. De formaten
 # zijn die uit Sparkles publicatiegids: een zip van ditto die symlinks

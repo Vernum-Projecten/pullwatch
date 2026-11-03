@@ -2,7 +2,8 @@
 # scripts/release/release.sh [--unsigned]
 #
 # Bouwt Pullwatch (Release, universal) en maakt met package.sh
-# dist/Pullwatch-<versie>.dmg (met installatievenster) en dist/Pullwatch-<versie>.zip.
+# dist/Pullwatch-<versie>.dmg (met installatievenster) en dist/Pullwatch-<versie>.zip
+# (de update voor Sparkle; release.yml schrijft er de appcast bij).
 # Dezelfde stappen lokaal en in .github/workflows/release.yml.
 #
 # Standaard: de app gesigned met Developer ID (hardened runtime),
@@ -84,9 +85,33 @@ rm -rf "$derived/Build/Products/Release"
 xcodebuild -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -configuration Release \
   -destination 'generic/platform=macOS' -derivedDataPath "$derived" build
 
+# Sparkle (#9), zoals Sparkles documentatie het voor een app zonder App Sandbox zegt
+# (sparkle-project.org/documentation/sandboxing): de XPC-services zijn alleen voor een
+# gesandboxte app en mogen eruit. Daarna elk onderdeel van Sparkle apart signen, van binnen
+# naar buiten en zonder --deep, met hardened runtime: Autoupdate, Updater.app, het framework.
+# Zonder Developer ID ad-hoc, omdat het weghalen de handtekening van het framework breekt.
+sparkle="$app/Contents/Frameworks/Sparkle.framework"
+[ -d "$sparkle" ] || {
+  echo "no Sparkle.framework in $app" >&2
+  exit 1
+}
+rm -rf "$sparkle/Versions/B/XPCServices"
+if ((sign)); then
+  sparkle_sign=(--force --options runtime --timestamp --sign "$SIGN_ID")
+else
+  sparkle_sign=(--force --options runtime --sign -)
+fi
+for part in "$sparkle/Versions/B/Autoupdate" "$sparkle/Versions/B/Updater.app" "$sparkle"; do
+  codesign "${sparkle_sign[@]}" "$part"
+done
 if ((sign)); then
   codesign --force --options runtime --timestamp --sign "$SIGN_ID" "$app"
-  codesign --verify --strict --verbose=2 "$app"
+else
+  codesign --force --options runtime --sign - "$app"
+fi
+codesign --verify --deep --strict --verbose=2 "$app"
+
+if ((sign)); then
   # De app eerst, zodat ook de app in de zip een gestapled ticket heeft.
   zip="$derived/notarise.zip"
   ditto -c -k --keepParent "$app" "$zip"
