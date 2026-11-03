@@ -26,7 +26,11 @@ public enum ProviderError: Error, Equatable, Sendable {
         case .cliNotFound(let name):
             return String(localized: "\(name) niet gevonden (installeer via Homebrew)", bundle: .localizedCore)
         case .cliNotLoggedIn(let name):
-            let command = name == "az" ? "az login" : "gh auth login"
+            let command = switch name {
+            case "az": "az login"
+            case "glab": "glab auth login"
+            default: "gh auth login"
+            }
             return String(localized: "Niet ingelogd, voer `\(command)` uit", bundle: .localizedCore)
         case .missingToken:
             return String(localized: "Geen token ingesteld", bundle: .localizedCore)

@@ -1,13 +1,28 @@
 import Foundation
 
 public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
-    case azureDevOps, gitHub
+    // Een nieuwe dienst komt erbij als nieuwe case; de rawValue staat in config.json en
+    // verandert nooit, zodat een bestaande config gewoon blijft decoderen.
+    case azureDevOps, gitHub, gitLab
 
     /// Productnaam, in elke taal hetzelfde.
     public var name: String {
         switch self {
         case .azureDevOps: "Azure DevOps"
         case .gitHub: "GitHub"
+        case .gitLab: "GitLab"
+        }
+    }
+
+    /// Kan een account van deze dienst op een eigen server staan (`Account.instanceURL`)?
+    public var supportsInstanceURL: Bool { self == .gitLab }
+
+    /// Het adres van de dienst zonder eigen server; Azure DevOps heeft er een per organisatie.
+    public var defaultInstanceURL: URL? {
+        switch self {
+        case .azureDevOps: nil
+        case .gitHub: URL(string: "https://github.com")
+        case .gitLab: URL(string: "https://gitlab.com")
         }
     }
 }
@@ -196,6 +211,21 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     public var cliUser: String?
     /// Uitgezet: Pullwatch haalt niets op en meldt niets voor dit account; de keuzes blijven bewaard.
     public var isPaused: Bool
+    /// Eigen server (GitLab self-managed): alleen https, zonder "/" aan het eind
+    /// (`InstanceURL.parse`). nil = de standaard van de dienst (`ProviderKind.defaultInstanceURL`).
+    public var instanceURL: URL?
+
+    /// Waar de repo's van dit account staan: de eigen server, anders de standaard van de dienst.
+    public var effectiveInstanceURL: URL? {
+        kind.supportsInstanceURL ? (instanceURL ?? kind.defaultInstanceURL) : kind.defaultInstanceURL
+    }
+
+    /// De dienst in namen: de host van een eigen server ("gitlab.example.com"), anders de productnaam.
+    public var serviceName: String {
+        guard kind.supportsInstanceURL, let host = instanceURL?.host(),
+              host != kind.defaultInstanceURL?.host() else { return kind.name }
+        return host
+    }
 
     /// Volgt dit account iets: een repo met PR's, tags of gemerged, of nieuwe repo's.
     public var followsAnything: Bool {
@@ -215,12 +245,12 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// eigenaar(s) op de dienst ("octo op GitHub"); zonder eigenaar alleen de dienst.
     public var displayName: String {
         if let login, !login.isEmpty {
-            return String(localized: "@\(login) op \(kind.name)", bundle: .localizedCore, comment: "GitHub-login, dienst")
+            return String(localized: "@\(login) op \(serviceName)", bundle: .localizedCore, comment: "GitHub-login, dienst")
         }
         let named = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         guard !named.isEmpty else { return kind.name }
         let list = named.formatted(.list(type: .and))
-        return String(localized: "\(list) op \(kind.name)", bundle: .localizedCore, comment: "Organisatie(s) of gebruiker(s), dienst (GitHub of Azure DevOps)")
+        return String(localized: "\(list) op \(serviceName)", bundle: .localizedCore, comment: "Organisatie(s) of gebruiker(s), dienst (GitHub of Azure DevOps)")
     }
 
     /// Een account dat minstens één eigenaar volgt: alleen zo'n account wordt bewaard en gepold.
@@ -248,7 +278,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         includeDrafts: Bool = false,
         hideOwn: Bool = true,
         cliUser: String? = nil,
-        isPaused: Bool = false
+        isPaused: Bool = false,
+        instanceURL: URL? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -262,10 +293,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.hideOwn = hideOwn
         self.cliUser = cliUser
         self.isPaused = isPaused
+        self.instanceURL = instanceURL
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL
     }
 
     public init(from decoder: any Decoder) throws {
@@ -287,6 +319,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         hideOwn = try c.decode(Bool.self, forKey: .hideOwn)
         cliUser = try c.decodeIfPresent(String.self, forKey: .cliUser)
         isPaused = try c.decodeIfPresent(Bool.self, forKey: .isPaused) ?? false
+        // Van vóór eigen servers: geen veld, dus de standaard van de dienst.
+        instanceURL = try c.decodeIfPresent(URL.self, forKey: .instanceURL)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -306,6 +340,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encode(hideOwn, forKey: .hideOwn)
         try c.encodeIfPresent(cliUser, forKey: .cliUser)
         if isPaused { try c.encode(isPaused, forKey: .isPaused) }
+        try c.encodeIfPresent(instanceURL, forKey: .instanceURL)
     }
 
     /// Wat er voor deze repo gevolgd wordt (hoofdletterongevoelig).
@@ -319,6 +354,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
                 .appending(path: organization).appending(path: parts[0]).appending(path: "_git").appending(path: parts[1])
         case .gitHub:
             return URL(string: "https://github.com")?.appending(path: repo)
+        case .gitLab:
+            // "groep/subgroep/project" onder de eigen server of gitlab.com.
+            return effectiveInstanceURL?.appending(path: repo)
         }
     }
 

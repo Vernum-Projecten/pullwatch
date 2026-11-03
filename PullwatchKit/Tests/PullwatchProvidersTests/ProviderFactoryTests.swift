@@ -3,6 +3,7 @@ import Testing
 import PullwatchAzureDevOps
 import PullwatchCore
 import PullwatchGitHub
+import PullwatchGitLab
 import PullwatchProviders
 import PullwatchTestSupport
 
@@ -10,7 +11,19 @@ import PullwatchTestSupport
     @Test func factoryPicksProviderByKind() {
         #expect(ProviderFactory.make(Account.fixture(kind: .azureDevOps)) is AzureDevOpsProvider)
         #expect(ProviderFactory.make(Account.fixture(kind: .gitHub)) is GitHubProvider)
+        #expect(ProviderFactory.make(Account.fixture(kind: .gitLab)) is GitLabProvider)
     }
+
+    @Test func gitLabTalksToItsOwnServer() async throws {
+        let http = MockHTTPClient()
+        http.on("https://git.example.com/api/v4/user", body: #"{"id":1,"username":"me"}"#)
+        var account = Account.fixture(kind: .gitLab)
+        account.instanceURL = URL(string: "https://git.example.com")
+        let provider = ProviderFactory.make(account, pat: "glpat-typed", secrets: InMemorySecretStore(), http: http)
+        #expect(try await provider.currentUserId() == "me")
+        #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer glpat-typed")
+    }
+
 
     @Test func factoryUsesPatOverrideBeforeKeychain() async throws {
         let http = MockHTTPClient()

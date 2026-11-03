@@ -2,6 +2,7 @@ import Foundation
 import PullwatchAzureDevOps
 import PullwatchCore
 import PullwatchGitHub
+import PullwatchGitLab
 
 public enum ProviderFactory {
     /// `pat` overschrijft de Keychain (gebruikt bij "Test verbinding" vóór opslaan).
@@ -25,6 +26,7 @@ public enum ProviderFactory {
             switch account.kind {
             case .azureDevOps: tokens = AzCLISource(runner: runner)
             case .gitHub: tokens = GhCLISource(runner: runner, user: account.cliUser)
+            case .gitLab: tokens = GlabCLISource(runner: runner, host: account.effectiveInstanceURL?.host() ?? "gitlab.com")
             }
         case .gitHubApp:
             tokens = GitHubAppTokenSource(
@@ -44,6 +46,14 @@ public enum ProviderFactory {
             )
         case .gitHub:
             return GitHubProvider(accountId: account.id, owners: account.owners, tokenSource: tokens, http: http)
+        case .gitLab:
+            return GitLabProvider(
+                accountId: account.id,
+                owners: account.owners,
+                instanceURL: account.effectiveInstanceURL,
+                tokenSource: tokens,
+                http: http
+            )
         }
     }
 }
