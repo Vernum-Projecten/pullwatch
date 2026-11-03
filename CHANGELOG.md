@@ -56,6 +56,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   repositories until you check them (it used to follow PRs and tags of
   every repository), and a saved account can be turned off with "Fetch
   This Account" without losing its choices.
+- The welcome window follows the system more closely: headings for
+  VoiceOver, text that wraps or scrolls at larger sizes instead of being cut
+  off, the GitHub sign-in code and its waiting state on rows of their own,
+  and Test Connection shows its result with a symbol in the system colours.
 - Built with Swift 6.4 (tools version 6.4) with approachable concurrency,
   the app on the main actor by default, and the ExistentialAny,
   MemberImportVisibility, NonisolatedNonsendingByDefault and

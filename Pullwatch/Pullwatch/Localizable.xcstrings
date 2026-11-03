@@ -2925,6 +2925,34 @@
         }
       }
     },
+    "Code ophalen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code wird abgerufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting the code"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération du code"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code ophalen"
+          }
+        }
+      }
+    },
     "Controle": {
       "localizations": {
         "de": {
@@ -8888,6 +8916,63 @@
         }
       }
     },
+    "Verbinding": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding"
+          }
+        }
+      }
+    },
+    "Verbonden als %@": {
+      "comment": "Naam van de ingelogde gebruiker",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden als %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected as %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté en tant que %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbonden als %@"
+          }
+        }
+      }
+    },
     "Versie": {
       "localizations": {
         "de": {
@@ -9896,6 +9981,34 @@
         }
       }
     },
+    "Zonder account verder; je voegt er later een toe onder Instellingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Konto weiter; du kannst später unter Einstellungen eines hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue without an account; you can add one later in Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer sans compte ; vous pourrez en ajouter un plus tard dans Réglages"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder account verder; je voegt er later een toe onder Instellingen"
+          }
+        }
+      }
+    },
     "Zonder manifest in dezelfde map is niet te zien of je project deze packages zelf vraagt": {
       "localizations": {
         "de": {
@@ -10397,35 +10510,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "wacht op eerste poll"
-          }
-        }
-      }
-    },
-    "✓ Verbonden als %@": {
-      "comment": "Naam van de ingelogde gebruiker",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Verbunden als %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Connected as %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Connecté en tant que %@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✓ Verbonden als %@"
           }
         }
       }

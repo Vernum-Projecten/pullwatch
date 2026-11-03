@@ -60,6 +60,7 @@ struct OnboardingView: View {
         .onAppear { SnapshotCamera.shoot("onboarding-welcome", windowId: "onboarding") }
         .onChange(of: step) { _, step in SnapshotCamera.shoot("onboarding-\(step)", windowId: "onboarding") }
         .onChange(of: model.config.accounts.count) { _, _ in SnapshotCamera.shoot("onboarding-account-editor", windowId: "onboarding") }
+        .task { await tour() }
         #endif
     }
 
@@ -78,6 +79,32 @@ struct OnboardingView: View {
         case .finish: step = step.previous ?? .account
         }
     }
+
+    #if DEBUG
+    /// Alleen in debug-builds, met `-PullwatchOnboardingTour YES` (en `-PullwatchSnapshotDirectory`):
+    /// loopt zelf langs elke stap, ook de keuze GitHub of Azure DevOps en beide formulieren, zodat
+    /// de camera ze vastlegt zonder muis of toetsenbord. Inloggen met GitHub start hij niet: dat
+    /// zet de code op het klembord.
+    private func tour() async {
+        guard UserDefaults.standard.bool(forKey: "PullwatchOnboardingTour") else { return }
+        if UserDefaults.standard.bool(forKey: "PullwatchSnapshotDark") {
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+        let pause = Duration.seconds(1.5)
+        try? await Task.sleep(for: pause)
+        step = .account
+        try? await Task.sleep(for: pause)
+        for kind in [ProviderKind.gitHub, .azureDevOps] {
+            draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+            try? await Task.sleep(for: pause)
+            SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)", windowId: "onboarding")
+            try? await Task.sleep(for: pause)
+            back()
+            try? await Task.sleep(for: .milliseconds(300))
+        }
+        step = .finish
+    }
+    #endif
 
     private func finish() {
         if let draft { model.discardDraft(draft.id) }
@@ -108,27 +135,43 @@ private struct OnboardingFooter: View {
             Spacer()
             switch step {
             case .welcome:
-                Button("Aan de slag") { perform(.start) }
-                    .keyboardShortcut(.defaultAction)
+                ForwardButton("Aan de slag") { perform(.start) }
                     .accessibilityIdentifier("onboarding.start")
             case .account where draftSave != nil:
                 if let draftSave {
                     AddButton(action: draftSave)
                 }
             case .account where canContinue:
-                Button("Volgende") { perform(.next) }
-                    .keyboardShortcut(.defaultAction)
+                ForwardButton("Volgende") { perform(.next) }
                     .accessibilityIdentifier("onboarding.next")
             case .account:
+                // Grijs, geen standaardknop: zonder account is de stap niet af.
                 Button("Later instellen") { perform(.skip) }
+                    .help("Zonder account verder; je voegt er later een toe onder Instellingen")
                     .accessibilityIdentifier("onboarding.skip")
             case .finish:
-                Button("Klaar") { perform(.done) }
-                    .keyboardShortcut(.defaultAction)
+                ForwardButton("Klaar") { perform(.done) }
                     .accessibilityIdentifier("onboarding.done")
             }
         }
         .controlSize(.large)
+    }
+}
+
+/// De knop naar de volgende stap: de blauwe standaardknop, ook met Return.
+private struct ForwardButton: View {
+    let title: LocalizedStringKey
+    let action: () -> Void
+
+    init(_ title: LocalizedStringKey, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    var body: some View {
+        Button(title, action: action)
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.defaultAction)
     }
 }
 
@@ -139,48 +182,89 @@ struct AddButton: View {
 
     var body: some View {
         HStack(spacing: 10) {
+            // Op twee regels als het niet past, nooit afgekapt; VoiceOver hoort de reden ook bij
+            // de knop zelf.
             if let error = action.error {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
             } else if let reason = action.blockedReason {
-                Text(reason).font(.caption).foregroundStyle(.secondary)
+                Text(reason)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
             }
             Button("Toevoegen") { action.save() }
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(!action.canSave)
+                .accessibilityHint(action.blockedReason.map { Text($0) } ?? Text(verbatim: ""))
                 .accessibilityIdentifier("account.save")
         }
     }
 }
 
-private struct WelcomeStep: View {
+/// Een stap die in het vaste venster past staat gecentreerd; past hij niet (grotere tekst, een
+/// langere vertaling), dan scrolt hij in plaats van af te kappen.
+private struct FitsOrScrolls<Content: View>: View {
+    @ViewBuilder let content: Content
+
     var body: some View {
+        ViewThatFits(in: .vertical) {
+            content
+            ScrollView {
+                content.frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
+private struct WelcomeStep: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize = 96.0
+
+    var body: some View {
+        FitsOrScrolls {
+            content
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding.welcome")
+    }
+
+    private var content: some View {
         VStack(spacing: 18) {
             // Uit de eigen bundle: `applicationIconImage` geeft het icoon dat macOS voor deze
             // bundle id onthouden heeft, bijvoorbeeld van een oudere versie in Programma's.
             Image(nsImage: NSImage(named: "AppIcon") ?? NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: 96, height: 96)
+                .frame(width: iconSize, height: iconSize)
                 .accessibilityHidden(true)
             Text("Welkom bij Pullwatch")
                 .font(.largeTitle.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
             Text("Pullwatch meldt nieuwe pull requests en tags uit Azure DevOps en GitHub, houdt een doorzoekbare geschiedenis bij en checkt je repo's op verouderde versies en bekende kwetsbaarheden.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
             MenuBarHint()
                 .padding(.top, 8)
             Text("Pullwatch draait in de menubalk, rechtsboven naast de klok. Het heeft geen icoon in het Dock en geen venster zolang je er niets mee doet.")
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
             Text("Zie je het icoon niet? Bij een volle menubalk of de camera-uitsparing kan macOS het verbergen; onder Systeeminstellingen → Menubalk bepaal je welke icoontjes er staan.")
                 .font(.callout)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(32)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("onboarding.welcome")
     }
 }
 
@@ -210,7 +294,7 @@ struct MenuBarHint: View {
         .font(.body)
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
-        .frame(maxWidth: 440)
+        .frame(maxWidth: 440, minHeight: iconHeight + 24)
         .background(.bar, in: .rect(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
         .accessibilityElement(children: .ignore)
@@ -228,6 +312,7 @@ private struct AccountStep: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Je eerste account")
                 .font(.title2.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
             if let account = draft {
@@ -235,6 +320,7 @@ private struct AccountStep: View {
                      ? "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen."
                      : "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
                 AccountEditor(model: model, original: account, saveAction: saveAction, onSaved: onAdded).id(account.id)
             } else {
@@ -256,6 +342,7 @@ private struct AccountStep: View {
                      ? "Waar staan de repositories die je wilt volgen? Je kunt later meer accounts toevoegen onder Instellingen."
                      : "Nog een account toevoegen? Dat kan ook later onder Instellingen.")
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
                 HStack(spacing: 16) {
                     ProviderChoice(title: "GitHub", detail: "Een gebruiker of organisatie op github.com", symbol: "chevron.left.forwardslash.chevron.right") {
@@ -281,18 +368,27 @@ private struct AccountStep: View {
     }
 }
 
+/// Een grote kaart per dienst, bewust in dit eigen uiterlijk. Het symbool groeit mee met de
+/// tekstgrootte, en VoiceOver leest titel en uitleg als een knop.
 private struct ProviderChoice: View {
     let title: String
     let detail: LocalizedStringKey
     let symbol: String
     let action: () -> Void
+    @ScaledMetric(relativeTo: .largeTitle) private var symbolSize = 28.0
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: symbol).font(.system(size: 28))
+                Image(systemName: symbol)
+                    .font(.system(size: symbolSize))
+                    .accessibilityHidden(true)
                 Text(verbatim: title).font(.headline)
-                Text(detail).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, minHeight: 120)
             .padding(12)
@@ -301,6 +397,7 @@ private struct ProviderChoice: View {
         .buttonStyle(.plain)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator))
+        .help(Text(detail))
     }
 }
 
@@ -308,9 +405,18 @@ private struct FinishStep: View {
     let model: AppModel
 
     var body: some View {
+        FitsOrScrolls {
+            content
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding.finish")
+    }
+
+    private var content: some View {
         VStack(spacing: 18) {
             Text("Bijna klaar")
                 .font(.title2.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             Form {
                 Section {
                     NotificationPermissionRow(model: model)
@@ -326,10 +432,9 @@ private struct FinishStep: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: 460)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(32)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("onboarding.finish")
     }
 }
 

@@ -23,7 +23,7 @@ struct AccountEditor: View {
 
     @State private var draft: Account
     @State private var pat = ""
-    @State private var connectionMessage: String?
+    @State private var connection: ConnectionTest?
     /// De repositories van de dienst; de vorige lijst blijft staan zolang een nieuwe laadt.
     @State private var availableRepos: [String] = []
     @State private var isLoadingRepos = false
@@ -93,7 +93,14 @@ struct AccountEditor: View {
                 // organisatie (`Account.displayName`); met de GitHub App komt de eigenaar uit het
                 // inloggen, dan valt er niets te typen.
                 if draft.authMethod != .gitHubApp {
-                    TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
+                    // Een voorbeeld in het veld, zodat je ziet waar je typt en wat er hoort.
+                    TextField(
+                        draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"),
+                        text: $draft.organization,
+                        prompt: Text(verbatim: draft.kind == .azureDevOps ? "contoso" : "octocat")
+                    )
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("account.organization")
                 }
                 if draft.kind == .gitHub && draft.authMethod == .cli {
                     Picker("GitHub-account", selection: $draft.cliUser) {
@@ -118,16 +125,17 @@ struct AccountEditor: View {
                     }
                 }
                 if draft.authMethod != .gitHubApp {
-                HStack {
-                    Button("Test verbinding") {
-                        testTask?.cancel()
-                        testTask = Task { await testConnection() }
+                    LabeledContent {
+                        Button("Test verbinding") {
+                            testTask?.cancel()
+                            testTask = Task { await testConnection() }
+                        }
+                        .disabled(!hasRequiredFields || testTask != nil)
+                    } label: {
+                        Text("Verbinding")
+                        connectionStatus
                     }
-                    .disabled(!hasRequiredFields || testTask != nil)
-                    if let connectionMessage {
-                        Text(connectionMessage).font(.caption)
-                    }
-                }
+                    .accessibilityIdentifier("account.connection")
                 }
             }
 
@@ -254,6 +262,34 @@ struct AccountEditor: View {
         }
     }
 
+    /// Uitkomst van Test verbinding, met een symbool en een systeemkleur in plaats van tekens.
+    private enum ConnectionTest: Equatable {
+        case testing
+        case connected(String)
+        case failed(String)
+    }
+
+    @ViewBuilder private var connectionStatus: some View {
+        switch connection {
+        case nil:
+            EmptyView()
+        case .testing:
+            Text("Bezig…")
+        case .connected(let name):
+            Label {
+                Text("Verbonden als \(name)", comment: "Naam van de ingelogde gebruiker")
+            } icon: {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            }
+        case .failed(let message):
+            Label {
+                Text(verbatim: message)
+            } icon: {
+                Image(systemName: "xmark.octagon.fill").foregroundStyle(.red)
+            }
+        }
+    }
+
     /// Ook een eerder gekozen account dat `gh` nu niet (meer) kent, zodat de keuze zichtbaar blijft.
     private var ghAccountChoices: [String] {
         guard let chosen = draft.cliUser, !ghAccounts.contains(chosen) else { return ghAccounts }
@@ -286,18 +322,18 @@ struct AccountEditor: View {
     }
 
     private func testConnection() async {
-        connectionMessage = String(localized: "Bezig…")
+        connection = .testing
         defer { testTask = nil }
         do {
             let name = try await provider().testConnection()
             if Task.isCancelled { return }
-            connectionMessage = String(localized: "✓ Verbonden als \(name)", comment: "Naam van de ingelogde gebruiker")
+            connection = .connected(name)
         } catch let error as ProviderError {
             if Task.isCancelled { return }
-            connectionMessage = "✗ \(error.userMessage)"
+            connection = .failed(error.userMessage)
         } catch {
             if Task.isCancelled { return }
-            connectionMessage = "✗ \(error.localizedDescription)"
+            connection = .failed(error.localizedDescription)
         }
     }
 
