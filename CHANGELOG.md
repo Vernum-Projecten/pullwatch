@@ -45,6 +45,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
 
 ### Changed
 
+- **Pullwatch fetches only what you choose.** A new account follows no
+  repositories until you check them (it used to follow PRs and tags of
+  every repository), and a saved account can be turned off with "Fetch
+  This Account" without losing its choices.
 - Built with Swift 6.4 (tools version 6.4) with approachable concurrency,
   the app on the main actor by default, and the ExistentialAny,
   MemberImportVisibility, NonisolatedNonsendingByDefault and

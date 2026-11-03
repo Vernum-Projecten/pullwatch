@@ -7,10 +7,35 @@ import PullwatchTestSupport
     @Test func accountDefaults() {
         let account = Account(kind: .gitHub, organization: "alessandro", authMethod: .cli)
         #expect(account.repoWatch.isEmpty)
-        // Een nieuw account volgt PR's en tags (#52); oude configs houden `.prs` (zie PopulateTests).
-        #expect(account.newRepoDefault == .prsAndTags)
+        // Een nieuw account volgt niets tot je kiest; oude configs houden `.prs` (zie PopulateTests).
+        #expect(account.newRepoDefault == .none)
+        #expect(!account.followsAnything)
+        #expect(!account.isPaused)
         #expect(account.includeDrafts == false)
         #expect(account.hideOwn == true)
+    }
+
+    @Test func followsAnythingWithOneRepoOrADefault() {
+        var account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
+        account.setWatch(.tags, for: "octo/a")
+        #expect(account.followsAnything)
+        account.setWatch(.none, for: "octo/a")
+        account.newRepoDefault = .prs
+        #expect(account.followsAnything)
+    }
+
+    @Test func pausedAccountsAreNotPolledAndRoundTrip() throws {
+        var paused = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
+        paused.isPaused = true
+        let active = Account(kind: .gitHub, organization: "mona", authMethod: .gitHubApp)
+        let config = AppConfig(accounts: [paused, active])
+        #expect(config.pollableAccounts.map(\.id) == [active.id])
+
+        let decoded = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(paused))
+        #expect(decoded.isPaused)
+        // Een config van vóór de schakelaar: aan.
+        let old = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(active))
+        #expect(!old.isPaused)
     }
 
     @Test func legacyPullRequestJSONDecodesAsOpen() throws {

@@ -157,6 +157,18 @@ struct AccountEditor: View {
                 )
             }
 
+            // Een bewaard account in één keer uitzetten, zonder de keuzes kwijt te raken.
+            if !isNew {
+                Section {
+                    Toggle("Dit account ophalen", isOn: Binding(
+                        get: { !draft.isPaused },
+                        set: { draft.isPaused = !$0 }
+                    ))
+                } footer: {
+                    Text("Uit: Pullwatch haalt niets op voor dit account en stuurt er geen meldingen over. Wat je volgt blijft bewaard.")
+                }
+            }
+
             if isNew && saveAction == nil {
             VStack(alignment: .trailing, spacing: 4) {
                 if let validationMessage {

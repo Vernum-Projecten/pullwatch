@@ -237,7 +237,9 @@ private struct AccountStatusRow: View {
             AccountAvatar(account: account, size: 16)
             Text(account.displayName).font(.caption.bold())
             switch state {
-            case .idle where !account.isComplete:
+            case _ where account.isPaused:
+                Text("Uitgezet").font(.caption).foregroundStyle(.secondary)
+            case .idle where !account.isComplete || !account.followsAnything:
                 Text("Volgt nog niets").font(.caption).foregroundStyle(.secondary)
             case .idle:
                 Text("wacht op eerste poll").font(.caption).foregroundStyle(.secondary)

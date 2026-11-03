@@ -50,7 +50,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     }
 
     /// Accounts die net zijn toegevoegd en nog geen organisatie hebben, worden niet gepold.
+    /// Accounts die Pullwatch ophaalt: met een eigenaar en niet uitgezet.
     public var pollableAccounts: [Account] {
-        accounts.filter(\.isComplete)
+        accounts.filter { $0.isComplete && !$0.isPaused }
     }
 }
