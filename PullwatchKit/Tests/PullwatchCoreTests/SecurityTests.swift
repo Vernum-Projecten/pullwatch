@@ -237,3 +237,28 @@ private actor SecurityProvider: PRProvider {
         #expect(single.repo.security == scan)
     }
 }
+
+@Suite struct RepoSecurityOverviewTests {
+    @Test func seriousAlertsMakeAProblemAndAdvisoriesComeAlong() {
+        let account = Account(kind: .gitHub, organization: "acme", authMethod: .gitHubApp)
+        let high = SecurityAlert(source: .codeScanning, kind: .code, number: 1, title: "x", severity: "HIGH", url: URL(string: "https://x")!)
+        let low = SecurityAlert(source: .codeScanning, kind: .code, number: 2, title: "y", severity: "LOW", url: URL(string: "https://y")!)
+        let vulnerability = Vulnerability(id: "GO-1", cve: "CVE-1", summary: nil, severity: nil, ecosystem: "Go", package: "x/net",
+                                          version: "1", fixedIn: nil, source: "go.mod")
+        let advisory = GitHubAdvisory(ghsaId: "GHSA-1", cveId: "CVE-1", summary: nil, severity: "HIGH", cvss: nil, cwes: [],
+                                      url: GitHubAdvisory.pageURL(ghsaId: "GHSA-1"), fetchedAt: Date())
+        let report = VersionReport(checkedAt: Date(), repos: [
+            RepoVersions(accountId: account.id, repo: "acme/a", components: [], security: SecurityScan(feeds: [], alerts: [high])),
+            RepoVersions(accountId: account.id, repo: "acme/b", components: [], security: SecurityScan(feeds: [], alerts: [low])),
+            RepoVersions(accountId: account.id, repo: "acme/c", components: [], vulnerabilities: [vulnerability]),
+        ], advisories: ["GHSA-1": advisory])
+
+        let summaries = Dictionary(uniqueKeysWithValues: RepoOverview.summaries(accounts: [account], report: report, history: History())
+            .map { ($0.repo, $0) })
+
+        #expect(summaries["acme/a"]?.health == .problem)
+        #expect(summaries["acme/a"]?.seriousSecurityAlerts.map(\.number) == [1])
+        #expect(summaries["acme/b"]?.health == .ok, "een low-melding maakt geen probleem")
+        #expect(summaries["acme/c"]?.advisories == ["GO-1": advisory])
+    }
+}

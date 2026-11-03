@@ -107,7 +107,8 @@ struct ShortcutCommands: Commands {
             .keyboardShortcut("s", modifiers: [.command, .option])
             .disabled(repoTarget?.isOpen != true)
             Button("Kopieer de afhankelijkheden van de repo") {
-                guard let text = repoTarget.flatMap({ model.repoSummariesById[$0.id] })?.versions?.clipboardText else { return }
+                guard let summary = repoTarget.flatMap({ model.repoSummariesById[$0.id] }),
+                      let text = summary.versions?.clipboardText(advisories: summary.advisories) else { return }
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
             }

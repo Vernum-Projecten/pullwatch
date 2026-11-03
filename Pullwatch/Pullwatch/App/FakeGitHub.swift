@@ -80,14 +80,17 @@ nonisolated final class FakeGitHub: HTTPClient {
                 body = path.hasSuffix("/tags") ? "[]" : #"{"tree":[]}"#
             }
         }
-        let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
+        let status = Self.hasData ? FakeWorld.status(of: request) : 200
+        let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
         return (Data(body.utf8), response)
     }
 }
 
 /// De nagespeelde inhoud achter `-PullwatchFakeData`: drie repo's van octocat met PR's van
 /// een paar auteurs, tags, en bestanden waarin een oude Node, een package met een nieuwe versie
-/// en een bekende kwetsbaarheid zitten.
+/// en een bekende kwetsbaarheid zitten. GitHubs adviezen hebben CVSS en CWE's; hello-world heeft
+/// open meldingen van code scanning, linguist een eigen advies, en secret scanning mag de app
+/// nergens lezen (zoals bij de test-app zonder dat recht).
 nonisolated private enum FakeWorld {
     struct PR {
         let repo: String
@@ -213,6 +216,7 @@ nonisolated private enum FakeWorld {
             break
         }
         if path == "/search/issues" { return search(query: url.query() ?? "") }
+        if path.hasPrefix("/advisories/") { return advisory(ghsaId: url.lastPathComponent) }
         if path == "/graphql" {
             let isCoAuthorQuery = request.httpBody.map { String(decoding: $0, as: UTF8.self).contains("pullRequest(number") } ?? false
             return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : tagsAndReleases(body: request.httpBody)
@@ -228,9 +232,60 @@ nonisolated private enum FakeWorld {
         case "contents":
             let file = parts.dropFirst(5).joined(separator: "/")
             return files[repo]?[file]
+        case "code-scanning":
+            return repo == "hello-world" ? codeScanningAlerts : #"{"message":"no analysis found"}"#
+        case "secret-scanning":
+            return #"{"message":"Resource not accessible by integration"}"#
+        case "security-advisories":
+            return repo == "linguist" ? ownAdvisories : "[]"
         default:
             return nil
         }
+    }
+
+    /// 403 voor secret scanning (geen recht), 404 voor code scanning zonder analyse; de rest 200.
+    static func status(of request: URLRequest) -> Int {
+        let parts = request.url?.pathComponents ?? []
+        guard parts.count >= 5, parts[1] == "repos" else { return 200 }
+        switch parts[4] {
+        case "secret-scanning": return 403
+        case "code-scanning": return parts[3] == "hello-world" ? 200 : 404
+        default: return 200
+        }
+    }
+
+    static let codeScanningAlerts = #"""
+        [{"number":7,"created_at":"2026-10-20T09:00:00Z","state":"open","html_url":"https://github.com/octocat/hello-world/security/code-scanning/7",
+          "rule":{"id":"js/sql-injection","severity":"error","security_severity_level":"critical","description":"Database query built from user-controlled sources"},
+          "tool":{"name":"CodeQL"},"most_recent_instance":{"location":{"path":"src/db.js","start_line":42}}},
+         {"number":5,"created_at":"2026-09-02T09:00:00Z","state":"open","html_url":"https://github.com/octocat/hello-world/security/code-scanning/5",
+          "rule":{"id":"js/reflected-xss","severity":"error","security_severity_level":"high","description":"Reflected cross-site scripting"},
+          "tool":{"name":"CodeQL"},"most_recent_instance":{"location":{"path":"src/greet.js","start_line":17}}},
+         {"number":3,"created_at":"2026-06-11T09:00:00Z","state":"open","html_url":"https://github.com/octocat/hello-world/security/code-scanning/3",
+          "rule":{"id":"js/unused-local-variable","severity":"note","security_severity_level":null,"description":"Unused variable, import, function or class"},
+          "tool":{"name":"CodeQL"},"most_recent_instance":{"location":{"path":"src/index.js","start_line":3}}}]
+        """#
+
+    static let ownAdvisories = #"""
+        [{"ghsa_id":"GHSA-4q2v-9x7c-m3hp","cve_id":"CVE-2026-31337","html_url":"https://github.com/octocat/linguist/security/advisories/GHSA-4q2v-9x7c-m3hp",
+          "summary":"Unbounded recursion in the heuristics for .h files","severity":"medium","state":"published","published_at":"2026-08-14T12:00:00Z",
+          "vulnerabilities":[{"package":{"ecosystem":"go","name":"github.com/octocat/linguist"},"vulnerable_version_range":"< 9.3.2","patched_versions":"9.3.2"}],
+          "cvss_severities":{"cvss_v3":{"vector_string":"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L","score":5.3},"cvss_v4":null},
+          "cwes":[{"cwe_id":"CWE-674","name":"Uncontrolled Recursion"}]}]
+        """#
+
+    /// `GET /advisories/{ghsa_id}`: GitHubs ernst, CVSS en CWE's bij de kwetsbaarheden van OSV.
+    static func advisory(ghsaId: String) -> String? {
+        let known: [String: (cve: String, severity: String, score: Double, vector: String, cwe: String, name: String)] = [
+            "GHSA-35jh-r3h4-6jhm": ("CVE-2021-23337", "high", 7.2, "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H", "CWE-94", "Improper Control of Generation of Code"),
+            "GHSA-29mw-wpgm-hmr9": ("CVE-2020-28500", "medium", 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L", "CWE-1333", "Inefficient Regular Expression Complexity"),
+            "GHSA-hrpp-h998-j3pp": ("CVE-2022-24999", "high", 7.5, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "CWE-1321", "Improperly Controlled Modification of Object Prototype Attributes"),
+            "GHSA-c2qf-rxjj-qqgw": ("CVE-2022-25883", "medium", 5.3, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L", "CWE-1333", "Inefficient Regular Expression Complexity"),
+        ]
+        guard let item = known[ghsaId] else { return nil }
+        return #"{"ghsa_id":"\#(ghsaId)","cve_id":"\#(item.cve)","html_url":"https://github.com/advisories/\#(ghsaId)","type":"reviewed","#
+            + #""severity":"\#(item.severity)","cvss_severities":{"cvss_v3":{"vector_string":"\#(item.vector)","score":\#(item.score)},"cvss_v4":null},"#
+            + #""cwes":[{"cwe_id":"\#(item.cwe)","name":"\#(item.name)"}]}"#
     }
 
     static func search(query: String) -> String {

@@ -97,21 +97,25 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Tot drie losse meldingen (klik opent de OSV-pagina), daarboven één samenvatting. Elke melding
-    /// zegt of het lek direct of via een ander package binnenkomt.
-    func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)]) {
+    /// Tot drie losse meldingen (klik opent de pagina van GitHubs advies, anders die van OSV),
+    /// daarboven één samenvatting. Elke melding noemt CVE en GHSA-id, GitHubs ernst met de
+    /// CVSS-score, en of het lek direct of via een ander package binnenkomt.
+    func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)], report: VersionReport) {
         func line(_ v: Vulnerability) -> String {
-            let severity = v.severity.map { " [\(String(localized: Vulnerability.severityLabel($0)))]" } ?? ""
+            let advisory = report.advisory(for: v)
+            let severity = v.severityText(advisory).map { " [\($0)]" } ?? ""
             let fix = v.fixedIn.map { " → \($0)" } ?? ""
-            return "\(v.cve ?? v.id)\(severity) \(v.package) \(v.version)\(fix)"
+            return "\(v.identifiers(advisory))\(severity) \(v.package) \(v.version)\(fix)"
         }
         if items.count <= 3 {
             for (repo, v) in items {
+                let advisory = report.advisory(for: v)
                 let content = UNMutableNotificationContent()
                 content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
                 // Direct of via welk package, en waar: dan weet je meteen wat je moet bijwerken.
-                content.body = [line(v), v.provenanceLine, v.summary].compactMap { $0 }.joined(separator: "\n")
-                content.userInfo = ["url": v.url.absoluteString]
+                content.body = [line(v), v.provenanceLine, advisory?.cweText, advisory?.summary ?? v.summary]
+                    .compactMap { $0 }.joined(separator: "\n")
+                content.userInfo = ["url": (advisory?.url ?? v.url).absoluteString]
                 content.sound = .default
                 add(UNNotificationRequest(identifier: "cve-\(repo)-\(v.id)-\(v.package)", content: content, trigger: nil))
             }
@@ -122,6 +126,32 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 "\(item.repo): \(line(item.vulnerability))" + (item.vulnerability.provenanceLine.map { " (\($0))" } ?? "")
             }
             content.body = (lines + [String(localized: "Zie Afhankelijkheden in het hoofdvenster")]).joined(separator: "\n")
+            content.sound = .default
+            add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        }
+    }
+
+    /// Nieuwe critical- en high-meldingen van code scanning of Advanced Security: tot drie losse
+    /// meldingen (klik opent de melding bij de dienst), daarboven één samenvatting.
+    func deliverSecurityAlerts(_ items: [(repo: String, alert: SecurityAlert)]) {
+        func line(_ alert: SecurityAlert) -> String {
+            "[\(String(localized: alert.severityLabel))] \(alert.title)"
+        }
+        if items.count <= 3 {
+            for (repo, alert) in items {
+                let content = UNMutableNotificationContent()
+                content.title = String(localized: "\(repo): nieuwe beveiligingsmelding", comment: "Meldingstitel; repo")
+                content.body = [line(alert), alert.locationText, alert.ruleText].compactMap { $0 }.joined(separator: "\n")
+                content.userInfo = ["url": alert.url.absoluteString]
+                content.sound = .default
+                add(UNNotificationRequest(identifier: "alert-\(repo)-\(alert.id)", content: content, trigger: nil))
+            }
+        } else {
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "\(items.count) nieuwe beveiligingsmeldingen", comment: "Meldingstitel; aantal")
+            let lines = items.prefix(3).map { "\($0.repo): \(line($0.alert))" }
+            content.body = (lines + [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")])
+                .joined(separator: "\n")
             content.sound = .default
             add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
         }
