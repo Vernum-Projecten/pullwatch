@@ -42,8 +42,10 @@ of each part is in `docs/superpowers/specs/` and its plan in
   Repos, Versions, Statistics, Settings), `SettingsView`, `AccountEditor`,
   the section views, and `Components/` (pills, rows). `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
-  generated one cannot (`CFBundleLocalizations`). `Assets.xcassets` has the
-  icon (drawn by `scripts/make-icon.swift`; being replaced, #4).
+  generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
+  app icon, an Icon Composer bundle (`icon.json` plus one SVG per layer in
+  `Assets/`); edit it in Icon Composer or by hand, and check it with
+  `ictool` (inside Icon Composer) in light, dark, tinted and clear.
   `Pullwatch/PullwatchTests/`: hosted Swift Testing suites for the built app
   (bundle id, menu-bar app, languages, translations complete, SF Symbols).
   While XCTest hosts the app, `AppDelegate` does not start polling.
