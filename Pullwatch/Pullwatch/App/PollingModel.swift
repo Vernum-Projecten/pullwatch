@@ -28,6 +28,13 @@ final class PollingModel {
     /// Lopende `tick()`s; de voortgang gaat pas weg als de laatste klaar is.
     @ObservationIgnored private var activePolls = 0
     @ObservationIgnored private var refreshSoon: Task<Void, Never>?
+    /// Een poll op verzoek (menu, ⌘R, een gewijzigde repo); één tegelijk. Een verzoek terwijl
+    /// hij loopt geeft daarna nog één poll, zodat een wijziging van net niet gemist wordt.
+    @ObservationIgnored private var refreshTask: Task<Void, Never>?
+    @ObservationIgnored private var refreshAgain = false
+    /// "Opnieuw ophalen" en het stoppen ervan.
+    @ObservationIgnored private var refetchTask: Task<Void, Never>?
+    @ObservationIgnored private var refetchCancelTask: Task<Void, Never>?
     @ObservationIgnored private let services: AppServices
     @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private let history: HistoryModel
@@ -90,6 +97,21 @@ final class PollingModel {
         await tick()
     }
 
+    /// Pollt meteen, buiten de vaste ronde om.
+    func refresh() {
+        guard refreshTask == nil else {
+            refreshAgain = true
+            return
+        }
+        refreshTask = Task {
+            defer { refreshTask = nil }
+            repeat {
+                refreshAgain = false
+                await refreshNow()
+            } while refreshAgain && !Task.isCancelled
+        }
+    }
+
     /// Opnieuw pollen kort na de laatste wijziging, niet bij elke klik.
     func scheduleRefresh() {
         refreshSoon?.cancel()
@@ -101,19 +123,26 @@ final class PollingModel {
     }
 
     /// Haalt de geschiedenis van alle accounts opnieuw op (stil, gelezen-status blijft).
-    func refetchHistory() async {
+    func startRefetch() {
         let total = config.pollableAccounts.count
-        guard total > 0 else { return }
+        guard total > 0, refetchTask == nil else { return }
         refetch = RefetchProgress(startedAt: Date(), done: 0, total: total)
-        await engine.resetHistorySync()
-        await tick()
+        refetchTask = Task {
+            defer { refetchTask = nil }
+            await engine.resetHistorySync()
+            await tick()
+        }
     }
 
     /// Stopt "Opnieuw ophalen": accounts die nog niet aan de beurt waren houden hun oude
     /// geschiedenis-sync.
     func cancelRefetch() {
         refetch = nil
-        Task { await engine.cancelHistoryResync() }
+        guard refetchCancelTask == nil else { return }
+        refetchCancelTask = Task {
+            defer { refetchCancelTask = nil }
+            await engine.cancelHistoryResync()
+        }
     }
 
     func tick() async {

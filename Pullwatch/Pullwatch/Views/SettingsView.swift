@@ -318,7 +318,7 @@ private struct GeneralSettingsView: View {
                 LabeledContent {
                     HStack {
                         if updates.isCheckingForUpdates { ProgressView().controlSize(.small) }
-                        Button("Nu controleren") { Task { await updates.checkForUpdates(manual: true) } }
+                        Button("Nu controleren") { updates.startCheck(manual: true) }
                             .disabled(updates.isCheckingForUpdates)
                     }
                 } label: {

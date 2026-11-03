@@ -140,7 +140,7 @@ final class HistoryModel {
     /// meer in de geschiedenis staat telt als gelezen.
     private func removeReadNotifications() {
         let unread = Set(history.items.filter { !$0.isRead }.map(\.id))
-        services.notifier.removeDelivered(whereRead: { !unread.contains($0) })
+        services.notifier.removeDelivered(unread: unread)
     }
 
     // MARK: - Bijwerken

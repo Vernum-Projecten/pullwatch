@@ -13,8 +13,44 @@ nonisolated private let logger = Log(category: "notifier")
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()
 
-    /// Een klik op een melding of een knop erop; `nil` is de klik op de melding zelf.
-    var onResponse: ((NotificationAction?, NotificationPayload) -> Void)?
+    /// Een klik op een melding of een knop erop.
+    struct Response {
+        /// `nil` is de klik op de melding zelf.
+        let action: NotificationAction?
+        let payload: NotificationPayload
+    }
+
+    /// De klikken op meldingen, in volgorde; `AppModel` loopt er één keer doorheen.
+    let responses: AsyncStream<Response>
+    private let responder: AsyncStream<Response>.Continuation
+
+    /// Meldingen om af te leveren, en het opruimen van gelezen meldingen: elk een eigen rij,
+    /// zodat opruimen niet wacht op profielfoto's van een grote poll.
+    private let deliveries: AsyncStream<[NotificationContent]>.Continuation
+    private let removals: AsyncStream<Set<String>>.Continuation
+    /// Werken de rijen af zolang de app draait, elk in de volgorde van de verzoeken.
+    private var workers: [Task<Void, Never>] = []
+
+    override init() {
+        (responses, responder) = AsyncStream.makeStream(of: Response.self)
+        let (deliveryStream, deliveries) = AsyncStream.makeStream(of: [NotificationContent].self)
+        let (removalStream, removals) = AsyncStream.makeStream(of: Set<String>.self)
+        self.deliveries = deliveries
+        self.removals = removals
+        super.init()
+        workers = [
+            Task { [weak self] in
+                for await contents in deliveryStream {
+                    for content in contents { await self?.add(content) }
+                }
+            },
+            Task { [weak self] in
+                for await unread in removalStream {
+                    await self?.removeDelivered(keepingUnread: unread)
+                }
+            },
+        ]
+    }
 
     /// Profielfoto's voor de bijlagen, met de HTTP-client van de app.
     private lazy var avatars = AvatarCache(
@@ -98,11 +134,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             logger.notice("\(contents.count) meldingen niet verstuurd (onderdrukt)")
             return
         }
-        Task {
-            for content in contents {
-                await add(content)
-            }
-        }
+        deliveries.yield(contents)
     }
 
     private func add(_ content: NotificationContent) async {
@@ -173,18 +205,20 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - Opruimen
 
-    /// Haalt meldingen weg waarvan alle items gelezen zijn (`isRead`); meldingen zonder items
-    /// (kwetsbaarheden, updates) blijven staan.
-    func removeDelivered(whereRead isRead: @escaping (String) -> Bool) {
+    /// Haalt meldingen weg waarvan geen item meer in `unread` staat (alles gelezen, of niet meer
+    /// in de geschiedenis); meldingen zonder items (kwetsbaarheden, updates) blijven staan.
+    func removeDelivered(unread: Set<String>) {
         if Self.isSuppressed { return }
-        Task {
-            let delivered = await center.deliveredNotifications()
-            let identifiers = delivered.compactMap { notification -> String? in
-                let keys = NotificationPayload(userInfo: notification.request.content.userInfo).historyKeys
-                return !keys.isEmpty && keys.allSatisfy(isRead) ? notification.request.identifier : nil
-            }
-            if !identifiers.isEmpty { center.removeDeliveredNotifications(withIdentifiers: identifiers) }
+        removals.yield(unread)
+    }
+
+    private func removeDelivered(keepingUnread unread: Set<String>) async {
+        let delivered = await center.deliveredNotifications()
+        let identifiers = delivered.compactMap { notification -> String? in
+            let keys = NotificationPayload(userInfo: notification.request.content.userInfo).historyKeys
+            return !keys.isEmpty && keys.allSatisfy { !unread.contains($0) } ? notification.request.identifier : nil
         }
+        if !identifiers.isEmpty { center.removeDeliveredNotifications(withIdentifiers: identifiers) }
     }
 
     // MARK: - UNUserNotificationCenterDelegate
@@ -200,9 +234,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         await respond(action, payload)
     }
 
-    /// Op de main actor, waar `onResponse` het model aanroept.
+    /// Op de main actor, waar `responses` gelezen wordt.
     private func respond(_ action: NotificationAction?, _ payload: NotificationPayload) {
-        onResponse?(action, payload)
+        responder.yield(Response(action: action, payload: payload))
     }
 
     nonisolated func userNotificationCenter(

@@ -477,7 +477,7 @@ private struct RepoDetailToolbar: ToolbarContent {
             .disabled(!router.repoTab.hasTable)
             .help("Toon of verberg de details van de gekozen rij (spatie)")
             Button {
-                Task { await versions.refreshVersions(of: summary) }
+                versions.startRefresh(of: summary)
             } label: {
                 Label("Check", systemImage: "arrow.clockwise")
             }

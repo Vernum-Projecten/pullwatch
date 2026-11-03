@@ -128,7 +128,7 @@ struct GitHubInstallationsRow: View {
                 Text("Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).")
             }
             LabeledContent {
-                Button("Opnieuw kijken") { Task { await signIn.refreshInstallations() } }
+                Button("Opnieuw kijken") { signIn.recheckInstallations() }
                     .disabled(signIn.checkingInstallations)
                     .accessibilityIdentifier("github.recheck")
             } label: {

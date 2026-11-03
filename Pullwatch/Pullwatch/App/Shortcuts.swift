@@ -119,12 +119,12 @@ struct ShortcutCommands: Commands {
                 .disabled(model.accounts.accountsForExtraRepos.isEmpty)
             Divider()
             Button("Geschiedenis opnieuw ophalen") {
-                Task { await model.polling.refetchHistory() }
+                model.polling.startRefetch()
             }
             .keyboardShortcut("r", modifiers: [.command, .shift])
             .disabled(model.polling.refetch != nil)
             Button("Alle repo's checken") {
-                Task { await model.versions.checkVersions() }
+                model.versions.startCheck()
             }
             .keyboardShortcut("r", modifiers: [.command, .option])
             .disabled(model.versions.versionCheck != nil || !model.versions.refreshingRepos.isEmpty)

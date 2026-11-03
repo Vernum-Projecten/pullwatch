@@ -37,13 +37,16 @@ final class GitHubSignIn {
     @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private var flow: Task<Void, Never>?
     @ObservationIgnored private var watch: Task<Void, Never>?
+    /// "Opnieuw kijken" waar de app geïnstalleerd is; één tegelijk.
+    @ObservationIgnored private var recheck: Task<Void, Never>?
 
     init(accounts: AccountsModel, accountId: UUID) {
         self.accounts = accounts
         self.accountId = accountId
         phase = accounts.hasGitHubAppTokens(accountId) ? .signedIn(login: nil) : .signedOut
         if case .signedIn = phase {
-            Task { await self.resume() }
+            // Hoort bij het inloggen: opnieuw beginnen of afmelden stopt het.
+            flow = Task { await self.resume() }
         }
     }
 
@@ -149,6 +152,15 @@ final class GitHubSignIn {
         }
     }
 
+    /// "Opnieuw kijken": `refreshInstallations()`, tenzij dat al loopt.
+    func recheckInstallations() {
+        guard recheck == nil else { return }
+        recheck = Task {
+            defer { recheck = nil }
+            await refreshInstallations()
+        }
+    }
+
     /// De plekken waar de app nu geïnstalleerd is.
     private var installedLogins: [String] {
         if case .found(let owners) = installations { owners.map(\.login) } else { [] }
@@ -156,6 +168,8 @@ final class GitHubSignIn {
 
     private func resume() async {
         let login = await accounts.gitHubLogin(accountId)
+        // Afgemeld of opnieuw begonnen terwijl dit liep: dan niet weer "ingelogd".
+        guard !Task.isCancelled else { return }
         phase = .signedIn(login: login)
         log.info("ingelogd als \(login ?? "onbekend")")
         await refreshInstallations()

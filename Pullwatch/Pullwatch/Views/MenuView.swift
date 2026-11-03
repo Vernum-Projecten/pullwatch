@@ -19,7 +19,7 @@ struct MenuView: View {
         VStack(alignment: .leading, spacing: 8) {
             MenuHeader(
                 isPolling: polling.pollProgress != nil,
-                refresh: { Task { await polling.refreshNow() } },
+                refresh: polling.refresh,
                 openSettings: { MenuPanel.close(); router.show(.settings) },
                 openAbout: { MenuPanel.close(); router.show(.about) }
             )
