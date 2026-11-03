@@ -13,6 +13,9 @@ import Foundation
 /// release (`TagFetch.fingerprints`), zodat een repo die niet veranderde in de volgende poll niet
 /// helemaal opgehaald wordt; het verdwijnt samen met de `tagSeeded`-entry. Een repo met een
 /// vingerafdruk is ook al eens met releases opgehaald: pas daarna wordt een nieuwe release gemeld.
+/// `checks` bevat per PR (dedupKey) de laatst opgehaalde checks met de revisie waarbij ze horen,
+/// zodat een PR die niet veranderde en klaar is met zijn checks geen verzoek kost; ook geprunet
+/// met `seen`.
 public struct SeenState: Codable, Equatable, Sendable {
     public var seen: [String: Date] = [:]
     public var lastSettings: [String: FilterSettings] = [:]
@@ -20,6 +23,7 @@ public struct SeenState: Codable, Equatable, Sendable {
     public var syncMarks: [String: SyncMark] = [:]
     public var coAuthors: [String: CoAuthorMark] = [:]
     public var tagFingerprints: [String: String] = [:]
+    public var checks: [String: CheckMark] = [:]
 
     public init() {}
 
@@ -35,6 +39,8 @@ public struct SeenState: Codable, Equatable, Sendable {
         coAuthors = try container.decodeIfPresent([String: CoAuthorMark].self, forKey: .coAuthors) ?? [:]
         // Ontbreekt in seen.json van vóór de releases.
         tagFingerprints = try container.decodeIfPresent([String: String].self, forKey: .tagFingerprints) ?? [:]
+        // Ontbreekt in seen.json van vóór de checks.
+        checks = try container.decodeIfPresent([String: CheckMark].self, forKey: .checks) ?? [:]
     }
 
     public func contains(_ key: String) -> Bool {
@@ -50,6 +56,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter { now.timeIntervalSince($0.value) <= maxAge }
         tagSeeded = tagSeeded.filter { now.timeIntervalSince($0.value) <= maxAge }
         coAuthors = coAuthors.filter { now.timeIntervalSince($0.value.at) <= maxAge }
+        checks = checks.filter { now.timeIntervalSince($0.value.at) <= maxAge }
         dropOrphanFingerprints()
     }
 
@@ -63,6 +70,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter(isFresh)
         tagSeeded = tagSeeded.filter(isFresh)
         coAuthors = coAuthors.filter { isFresh($0.key, $0.value.at) }
+        checks = checks.filter { isFresh($0.key, $0.value.at) }
         dropOrphanFingerprints()
     }
 
@@ -71,6 +79,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         tagSeeded = tagSeeded.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         coAuthors = coAuthors.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
+        checks = checks.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         dropOrphanFingerprints()
     }
 
@@ -100,6 +109,22 @@ public struct CoAuthorMark: Codable, Equatable, Sendable {
     public init(revision: String?, people: [Person], at: Date) {
         self.revision = revision
         self.people = people
+        self.at = at
+    }
+}
+
+/// De checks van één PR bij een bepaalde `PullRequest.revision`: `fetchedAt` is wanneer ze
+/// opgehaald zijn, `at` de laatste keer dat de PR in een poll langskwam (voor het prunen).
+public struct CheckMark: Codable, Equatable, Sendable {
+    public var revision: String?
+    public var checks: PRChecks
+    public var fetchedAt: Date
+    public var at: Date
+
+    public init(revision: String?, checks: PRChecks, fetchedAt: Date, at: Date) {
+        self.revision = revision
+        self.checks = checks
+        self.fetchedAt = fetchedAt
         self.at = at
     }
 }

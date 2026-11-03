@@ -26,6 +26,9 @@ public actor GitHubProvider: PRProvider {
     /// De server kent een veld uit de GraphQL-vraag voor tags niet (een oudere GitHub Enterprise
     /// Server): tags en releases komen dan via REST.
     private var tagsViaREST = false
+    /// De server kent de velden voor de telling van de checks niet (een oudere GitHub Enterprise
+    /// Server): dan vraagt Pullwatch ze niet meer en heeft een PR geen checks.
+    var checksUnsupported = false
 
     public init(
         accountId: UUID,
@@ -384,45 +387,6 @@ public actor GitHubProvider: PRProvider {
         return URL(string: "\(endpoints.web.absoluteString)/\(repo)/tree/\(encoded)")
     }
 
-    /// PR's per GraphQL-verzoek bij `coAuthors(of:)`.
-    static let coAuthorBatch = 20
-
-    /// Via GraphQL, twintig PR's per verzoek (aliassen `pr0`, `pr1`, …): de auteurs van de laatste
-    /// vijftig commits. GitHub zet de `Co-authored-by:`-trailers daar zelf bij en koppelt ze aan
-    /// gebruikers met hun foto. Een PR die niet (meer) bestaat geeft een lege lijst.
-    public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] {
-        var result: [String: [Person]] = [:]
-        // Repo's die alleen zonder token te lezen zijn slaan we over: GraphQL vraagt een token.
-        let known = pullRequests.filter { $0.repo.split(separator: "/").count == 2 && !readsWithoutToken($0.repo) }
-        for start in stride(from: 0, to: known.count, by: Self.coAuthorBatch) {
-            let batch = Array(known[start..<min(start + Self.coAuthorBatch, known.count)])
-            let request = CoAuthorQueryDTO(batch)
-            let data = try await data(endpoints.graphQL, body: try JSONEncoder().encode(request))
-            let response = try JSONDecoding.decode(CoAuthorQueryDTO.Response.self, from: data)
-            // Een server zonder co-auteurs in GraphQL (een oudere GitHub Enterprise Server): geen
-            // co-auteurs, in plaats van elke poll dezelfde fout.
-            if response.data == nil, GraphQLSchemaMismatch.matches(response.errors) {
-                for pr in known { result[pr.dedupKey] = [] }
-                return result
-            }
-            // Zonder `data` mislukte het hele verzoek (bv. de GraphQL-limiet): later opnieuw.
-            guard let found = response.data else { throw ProviderError.decoding("graphql co-auteurs") }
-            for (index, pr) in batch.enumerated() {
-                let commits = found["pr\(index)"]??.pullRequest?.commits.nodes ?? []
-                let candidates = commits.flatMap { $0.commit.authors.nodes }.map { author in
-                    Person(
-                        name: author.name ?? author.user?.login ?? author.email ?? "",
-                        login: author.user?.login,
-                        email: author.email,
-                        avatarURL: author.user?.avatarUrl.flatMap(URL.init(string:))
-                    )
-                }.filter { !$0.name.isEmpty }
-                result[pr.dedupKey] = CoAuthorTrailer.coAuthors(from: candidates, author: [pr.authorId, pr.authorName])
-            }
-        }
-        return result
-    }
-
     public func filePaths(in repo: String, ref: String?) async throws -> [String] {
         let tree: TreeDTO
         do {
@@ -700,77 +664,33 @@ private struct TagQuery: Encodable {
     }
 }
 
-/// GraphQL: de commit-auteurs (met co-auteurs) van een reeks PR's, elk onder een eigen alias.
-private struct CoAuthorQueryDTO: Encodable {
-    let query: String
-    let variables: [String: Variable]
-
-    enum Variable: Encodable {
-        case text(String)
-        case number(Int)
-
-        func encode(to encoder: any Encoder) throws {
-            var c = encoder.singleValueContainer()
-            switch self {
-            case .text(let value): try c.encode(value)
-            case .number(let value): try c.encode(value)
-            }
-        }
-    }
-
-    init(_ pullRequests: [PullRequest]) {
-        var declarations: [String] = []
-        var fields: [String] = []
-        var variables: [String: Variable] = [:]
-        for (index, pr) in pullRequests.enumerated() {
-            let parts = pr.repo.split(separator: "/", maxSplits: 1).map(String.init)
-            declarations.append("$o\(index): String!, $n\(index): String!, $p\(index): Int!")
-            fields.append("""
-                  pr\(index): repository(owner: $o\(index), name: $n\(index)) {
-                    pullRequest(number: $p\(index)) {
-                      commits(last: 50) { nodes { commit { authors(first: 5) { nodes { name email user { login avatarUrl } } } } } }
-                    }
-                  }
-                """)
-            variables["o\(index)"] = .text(parts[0])
-            variables["n\(index)"] = .text(parts[1])
-            variables["p\(index)"] = .number(pr.number)
-        }
-        query = "query(" + declarations.joined(separator: ", ") + ") {\n" + fields.joined(separator: "\n") + "\n}"
-        self.variables = variables
-    }
-
-    struct Response: Decodable {
-        struct Repository: Decodable { let pullRequest: PullRequestNode? }
-        struct PullRequestNode: Decodable { let commits: Commits }
-        struct Commits: Decodable { let nodes: [CommitNode] }
-        struct CommitNode: Decodable { let commit: Commit }
-        struct Commit: Decodable { let authors: Authors }
-        struct Authors: Decodable { let nodes: [Author] }
-        struct Author: Decodable {
-            struct User: Decodable {
-                let login: String
-                let avatarUrl: String?
-            }
-            let name: String?
-            let email: String?
-            let user: User?
-        }
-
-        let data: [String: Repository?]?
-        let errors: [GraphQLError]?
-    }
-}
-
 /// Een fout uit een GraphQL-antwoord; `extensions.code` noemt een veld dat de server niet kent.
 struct GraphQLError: Decodable {
     struct Extensions: Decodable {
         let code: String?
     }
 
+    /// Een stap in `path`: een veld of alias, of een plek in een lijst.
+    enum PathComponent: Decodable, Equatable {
+        case key(String)
+        case index(Int)
+
+        init(from decoder: any Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            if let index = try? c.decode(Int.self) { self = .index(index) } else { self = .key(try c.decode(String.self)) }
+        }
+    }
+
     let type: String?
     let message: String?
     let extensions: Extensions?
+    /// Waar in het antwoord de fout zit, bv. `["pr0", "pullRequest", "headCommit"]`.
+    let path: [PathComponent]?
+
+    /// Geen recht op dit veld: de GitHub App of het token mag het niet lezen.
+    var isForbidden: Bool {
+        type == "FORBIDDEN" || message?.contains("Resource not accessible by") == true
+    }
 }
 
 /// De server kent een veld of argument uit de vraag niet: een GitHub Enterprise Server die ouder

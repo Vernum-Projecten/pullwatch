@@ -4,6 +4,8 @@ import Foundation
 /// Instellingen > Meldingen (behalve de update van Pullwatch en een account dat niet meer inlogt).
 public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifiable {
     case pullRequest, merged, release, tag, vulnerability, securityAlert, packageUpdate
+    /// De checks van een eigen open PR mislukten.
+    case checksFailed
     /// Een nieuwere Pullwatch.
     case appUpdate
     /// Een account waarvan het token niet meer werkt.
@@ -13,7 +15,7 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
 
     /// De soorten met een eigen schakelaar, in de volgorde van de instellingen.
     public static let switchable: [NotificationKind] = [
-        .pullRequest, .merged, .release, .tag, .vulnerability, .securityAlert, .packageUpdate,
+        .pullRequest, .merged, .checksFailed, .release, .tag, .vulnerability, .securityAlert, .packageUpdate,
     ]
 }
 
@@ -67,6 +69,8 @@ public struct QuietHours: Codable, Equatable, Sendable {
 public struct NotificationSettings: Codable, Equatable, Sendable {
     public var pullRequests: Bool
     public var merged: Bool
+    /// Standaard uit: mislukte checks van je eigen PR's.
+    public var checksFailed: Bool
     public var releases: Bool
     public var tags: Bool
     public var vulnerabilities: Bool
@@ -82,13 +86,14 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
     public var menuBarDot: Bool
 
     public init(
-        pullRequests: Bool = true, merged: Bool = true, releases: Bool = true, tags: Bool = true,
+        pullRequests: Bool = true, merged: Bool = true, checksFailed: Bool = false, releases: Bool = true, tags: Bool = true,
         vulnerabilities: Bool = true, securityAlerts: Bool = false, packageUpdates: Bool = true,
         onlyUpdatesYouCanTake: Bool = true, quietHours: QuietHours = QuietHours(),
         dockBadge: Bool = true, menuBarDot: Bool = true
     ) {
         self.pullRequests = pullRequests
         self.merged = merged
+        self.checksFailed = checksFailed
         self.releases = releases
         self.tags = tags
         self.vulnerabilities = vulnerabilities
@@ -109,6 +114,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         }
         pullRequests = try value(.pullRequests, defaults.pullRequests)
         merged = try value(.merged, defaults.merged)
+        checksFailed = try value(.checksFailed, defaults.checksFailed)
         releases = try value(.releases, defaults.releases)
         tags = try value(.tags, defaults.tags)
         vulnerabilities = try value(.vulnerabilities, defaults.vulnerabilities)
@@ -127,6 +133,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             switch kind {
             case .pullRequest: pullRequests
             case .merged: merged
+            case .checksFailed: checksFailed
             case .release: releases
             case .tag: tags
             case .vulnerability: vulnerabilities
@@ -139,6 +146,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             switch kind {
             case .pullRequest: pullRequests = newValue
             case .merged: merged = newValue
+            case .checksFailed: checksFailed = newValue
             case .release: releases = newValue
             case .tag: tags = newValue
             case .vulnerability: vulnerabilities = newValue

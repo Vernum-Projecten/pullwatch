@@ -219,12 +219,13 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
 /// Het teken van een soort melding als bijlage als er geen profielfoto is: de Octicon van de PR
 /// zoals in de lijsten, of een SF Symbol, in de kleur van de soort.
 nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
-    case pullRequest, merged, release, tag, vulnerability, securityAlert, packageUpdate
+    case pullRequest, merged, checksFailed, release, tag, vulnerability, securityAlert, packageUpdate
 
     init?(kind: NotificationKind) {
         switch kind {
         case .pullRequest: self = .pullRequest
         case .merged: self = .merged
+        case .checksFailed: self = .checksFailed
         case .release: self = .release
         case .tag: self = .tag
         case .vulnerability: self = .vulnerability
@@ -239,6 +240,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         switch self {
         case .pullRequest: PRStatus.open.glyph
         case .merged: PRStatus.merged.glyph
+        case .checksFailed: CheckState.failed.glyph
         case .release: .system("shippingbox.fill")
         case .tag: ItemKind.tag.glyph
         case .vulnerability: .system("exclamationmark.shield.fill")
@@ -251,6 +253,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         switch self {
         case .pullRequest: PRStatus.open.color
         case .merged: PRStatus.merged.color
+        case .checksFailed: CheckState.failed.color
         case .release, .tag: ItemKind.tag.color
         case .vulnerability: .red
         case .securityAlert: .orange

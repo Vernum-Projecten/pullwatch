@@ -24,6 +24,8 @@ struct NotificationsSettingsView: View {
             Section {
                 kindToggle(.pullRequest, "Nieuwe pull requests", isOn: $model.notificationSettings.pullRequests)
                 kindToggle(.merged, "Gemergede pull requests", isOn: $model.notificationSettings.merged)
+                kindToggle(.checksFailed, "Mislukte checks van je eigen pull requests", isOn: $model.notificationSettings.checksFailed)
+                    .help("Een melding als de checks (CI) van een open pull request van jou mislukken, ook als je eigen PR's verborgen zijn")
                 kindToggle(.release, "Nieuwe releases", isOn: $model.notificationSettings.releases)
                 kindToggle(.tag, "Nieuwe tags zonder release", isOn: $model.notificationSettings.tags)
             } header: {

@@ -482,6 +482,10 @@ public struct PullRequest: Codable, Hashable, Sendable {
     /// Verandert als de PR verandert (GitHub: `updated_at`, Azure DevOps: de laatste commit van de
     /// bronbranch); `PollEngine` haalt de co-auteurs alleen opnieuw op als dit anders is.
     public var revision: String?
+    /// De checks op de laatste commit (CI); nil zolang ze niet opgehaald zijn. `PollEngine` haalt
+    /// ze alleen voor open en net gemergde PR's, en alleen opnieuw als de PR veranderde of de
+    /// checks nog lopen.
+    public var checks: PRChecks?
 
     public init(
         accountId: UUID,
@@ -496,7 +500,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
         state: PRState = .open,
         closedAt: Date? = nil,
         coAuthors: [Person] = [],
-        revision: String? = nil
+        revision: String? = nil,
+        checks: PRChecks? = nil
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -511,10 +516,11 @@ public struct PullRequest: Codable, Hashable, Sendable {
         self.closedAt = closedAt
         self.coAuthors = coAuthors
         self.revision = revision
+        self.checks = checks
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, repo, number, title, authorId, authorName, isDraft, createdAt, webURL, state, closedAt, coAuthors, revision
+        case accountId, repo, number, title, authorId, authorName, isDraft, createdAt, webURL, state, closedAt, coAuthors, revision, checks
     }
 
     /// Oude JSON heeft geen `state`/`closedAt`: dan is de PR open. Zonder `coAuthors` (van vóór de
@@ -534,6 +540,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
         closedAt = try c.decodeIfPresent(Date.self, forKey: .closedAt)
         coAuthors = try c.decodeIfPresent([Person].self, forKey: .coAuthors) ?? []
         revision = try c.decodeIfPresent(String.self, forKey: .revision)
+        // Ontbreekt in JSON van vóór de checks.
+        checks = try c.decodeIfPresent(PRChecks.self, forKey: .checks)
     }
 
     /// De auteur en daarna de co-auteurs, zoals ze in lijsten en statistieken heten.

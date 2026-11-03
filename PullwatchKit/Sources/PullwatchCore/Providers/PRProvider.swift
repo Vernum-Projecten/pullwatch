@@ -28,6 +28,16 @@ public protocol PRProvider: Sendable {
     /// auteur en bots (`CoAuthorTrailer.coAuthors`). Alleen voor nieuwe of veranderde PR's
     /// (`PollEngine`); een PR die de provider niet (meer) vindt ontbreekt of is leeg.
     func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]]
+    /// De checks (CI) op de laatste commit van deze PR's, per `PullRequest.dedupKey`. Alleen
+    /// de telling per stand, geen namen of links. Een PR zonder checks geeft een lege telling,
+    /// een PR die de provider niet (meer) vindt ontbreekt; weigert de dienst de checks
+    /// (rechten), dan `.needsPermission`.
+    func checks(of pullRequests: [PullRequest]) async throws -> [String: PRChecks]
+    /// Co-auteurs en checks in één keer: `coAuthorsOf` en `checksOf` zijn de dedupKeys van de
+    /// PR's die elk nodig hebben. GitHub vraagt ze samen in dezelfde GraphQL-verzoeken; de
+    /// standaard roept `coAuthors(of:)` en `checks(of:)` los aan, en een fout van de een laat de
+    /// ander staan.
+    func details(of pullRequests: [PullRequest], coAuthorsOf: Set<String>, checksOf: Set<String>) async throws -> PRDetails
     /// Alle bestandspaden (zonder leidende "/") op `ref` (tagnaam) of zonder ref op de default branch;
     /// een lege repo geeft een lege lijst.
     func filePaths(in repo: String, ref: String?) async throws -> [String]
@@ -67,11 +77,40 @@ extension PRProvider {
 
     public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] { [:] }
 
+    public func checks(of pullRequests: [PullRequest]) async throws -> [String: PRChecks] { [:] }
+
+    public func details(of pullRequests: [PullRequest], coAuthorsOf: Set<String>, checksOf: Set<String>) async throws -> PRDetails {
+        let forCoAuthors = pullRequests.filter { coAuthorsOf.contains($0.dedupKey) }
+        let forChecks = pullRequests.filter { checksOf.contains($0.dedupKey) }
+        var details = PRDetails()
+        var failure: (any Error)?
+        if !forCoAuthors.isEmpty {
+            do { details.coAuthors = try await coAuthors(of: forCoAuthors) } catch { failure = error }
+        }
+        if !forChecks.isEmpty {
+            do { details.checks = try await checks(of: forChecks) } catch { failure = failure ?? error }
+        }
+        // Alleen als niets lukte een fout; anders telt wat er wel is.
+        if let failure, details.coAuthors.isEmpty, details.checks.isEmpty { throw failure }
+        return details
+    }
+
     public func filePaths(in repo: String) async throws -> [String] {
         try await filePaths(in: repo, ref: nil)
     }
 
     public func fileContent(in repo: String, path: String) async throws -> String {
         try await fileContent(in: repo, path: path, ref: nil)
+    }
+}
+
+/// Wat `PRProvider.details` per PR (dedupKey) teruggeeft.
+public struct PRDetails: Equatable, Sendable {
+    public var coAuthors: [String: [Person]]
+    public var checks: [String: PRChecks]
+
+    public init(coAuthors: [String: [Person]] = [:], checks: [String: PRChecks] = [:]) {
+        self.coAuthors = coAuthors
+        self.checks = checks
     }
 }

@@ -1002,6 +1002,83 @@
         }
       }
     },
+    "%lld bezig": {
+      "comment": "Aantal checks van een PR die nog lopen of wachten",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld läuft"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld laufen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld running"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld running"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en cours"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en cours"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld bezig"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld bezig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld gepubliceerd": {
       "localizations": {
         "de": {
@@ -1071,6 +1148,83 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld gepubliceerd"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld mislukt": {
+      "comment": "Aantal mislukte checks van een PR",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld fehlgeschlagen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld fehlgeschlagen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld failed"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld failed"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en échec"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en échec"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld mislukt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld mislukt"
                 }
               }
             }
@@ -1873,6 +2027,83 @@
         }
       }
     },
+    "%lld overgeslagen": {
+      "comment": "Aantal overgeslagen of neutrale checks van een PR",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld übersprungen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld übersprungen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld skipped"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld skipped"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ignoré"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ignorés"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld overgeslagen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld overgeslagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld pull requests gemerged": {
       "comment": "Meldingstitel; aantal gemergde PR's in één repo",
       "localizations": {
@@ -2176,6 +2407,64 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld van %lld checks geslaagd": {
+      "comment": "Checks van een PR; geslaagd (overgeslagen tellen mee), totaal",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld von %2$lld Checks bestanden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld checks passed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks réussis : %1$lld sur %2$lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld van %2$lld checks geslaagd"
+          }
+        }
+      }
+    },
+    "%lld van %lld checks mislukt": {
+      "comment": "Melding; aantal mislukte checks, totaal",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld von %2$lld Checks fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld checks failed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks en échec : %1$lld sur %2$lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld van %2$lld checks mislukt"
           }
         }
       }
@@ -4160,6 +4449,63 @@
         }
       }
     },
+    "Checks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        }
+      }
+    },
+    "Checks mislukt": {
+      "comment": "Meldingstitel; de checks (CI) van een eigen PR mislukten",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks Failed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec des checks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks mislukt"
+          }
+        }
+      }
+    },
     "Checks op verouderde talen, frameworks en packages en bekende kwetsbaarheden": {
       "localizations": {
         "de": {
@@ -4178,6 +4524,83 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vérification des langages, frameworks et paquets obsolètes et des vulnérabilités connues"
+          }
+        }
+      }
+    },
+    "Checks van %lld pull requests mislukt": {
+      "comment": "Meldingstitel; aantal eigen PR's in één repo waarvan de checks mislukten",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks von %lld Pull Request fehlgeschlagen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks von %lld Pull Requests fehlgeschlagen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks Failed on %lld Pull Request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks Failed on %lld Pull Requests"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Échec des checks de %lld pull request"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Échec des checks de %lld pull requests"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks van %lld pull request mislukt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Checks van %lld pull requests mislukt"
+                }
+              }
+            }
           }
         }
       }
@@ -5054,6 +5477,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivre un dépôt isolé, y compris un dépôt public d'une autre organisation"
+          }
+        }
+      }
+    },
+    "Een melding als de checks (CI) van een open pull request van jou mislukken, ook als je eigen PR's verborgen zijn": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Mitteilung, wenn die Checks (CI) eines deiner offenen Pull Requests fehlschlagen, auch wenn deine eigenen PRs ausgeblendet sind"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification when the checks (CI) of an open pull request of yours fail, also when your own PRs are hidden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une notification quand les checks (CI) d'une de vos pull requests ouvertes échouent, même si vos propres PR sont masquées"
           }
         }
       }
@@ -8883,6 +9328,28 @@
         }
       }
     },
+    "Mislukte checks van je eigen pull requests": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlgeschlagene Checks deiner eigenen Pull Requests"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed checks on your own pull requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec des checks de vos propres pull requests"
+          }
+        }
+      }
+    },
     "Na de dagelijkse check van je gevolgde repo's.": {
       "localizations": {
         "de": {
@@ -12280,6 +12747,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch lit les environnements d’exécution et les paquets des dépôts que vous suivez."
+          }
+        }
+      }
+    },
+    "Pullwatch mag de checks van deze PR's niet lezen. Bij GitHub keurt de eigenaar de rechten Checks en Commit statuses (lezen) van de Pullwatch-app goed; bij Azure DevOps en GitLab mag het token de builds of pipelines lezen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch darf die Checks dieser PRs nicht lesen. Bei GitHub genehmigt der Eigentümer die Berechtigungen Checks und Commit statuses (Lesen) der Pullwatch-App; bei Azure DevOps und GitLab muss das Token Builds oder Pipelines lesen dürfen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch may not read the checks of these PRs. On GitHub, the owner approves the Checks and Commit statuses (read) permissions of the Pullwatch app; on Azure DevOps and GitLab, the token needs to read builds or pipelines."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ne peut pas lire les checks de ces PR. Sur GitHub, le propriétaire approuve les autorisations Checks et Commit statuses (lecture) de l'app Pullwatch ; sur Azure DevOps et GitLab, le jeton doit pouvoir lire les builds ou les pipelines."
           }
         }
       }

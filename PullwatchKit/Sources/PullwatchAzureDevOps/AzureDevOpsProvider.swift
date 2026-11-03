@@ -13,6 +13,9 @@ public actor AzureDevOpsProvider: PRProvider {
     /// Het e-mailadres (`uniqueName`) van de auteur per PR (dedupKey), uit de laatste lijst, zodat
     /// `coAuthors(of:)` de eigen commits van de auteur herkent.
     private var authorEmails: [String: String] = [:]
+    /// Het id van het project per PR (dedupKey), uit de laatste lijst: de policy-evaluaties van
+    /// een PR vragen het (`checks(of:)`).
+    var projectIds: [String: String] = [:]
     /// Hooguit zoveel commits per PR waarvan het bericht afgekapt is en apart opgehaald wordt.
     private let fullMessageLimit = 10
 
@@ -398,6 +401,7 @@ public actor AzureDevOpsProvider: PRProvider {
             revision: dto.lastMergeSourceCommit?.commitId
         )
         if let email = dto.createdBy.uniqueName { authorEmails[pullRequest.dedupKey] = email }
+        if let id = dto.repository.project.id { projectIds[pullRequest.dedupKey] = id }
         return pullRequest
     }
 
@@ -409,7 +413,7 @@ public actor AzureDevOpsProvider: PRProvider {
         }
     }
 
-    private func get<T: Decodable>(
+    func get<T: Decodable>(
         _ url: URL,
         apiVersion: String = "7.1",
         query: [URLQueryItem] = [],
@@ -487,7 +491,10 @@ private struct PullRequestDTO: Decodable {
     struct CommitRef: Decodable { let commitId: String }
 
     struct Repository: Decodable {
-        struct Project: Decodable { let name: String }
+        struct Project: Decodable {
+            let name: String
+            let id: String?
+        }
         let name: String
         let project: Project
     }

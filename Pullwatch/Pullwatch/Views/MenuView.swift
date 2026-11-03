@@ -263,7 +263,12 @@ private struct RecentRow: View {
                             Text(verbatim: item.entry.title).foregroundStyle(.secondary).lineLimit(1)
                         }
                     } else {
-                        Text(item.entry.title).lineLimit(1)
+                        // De titel, met de checks erachter zoals in de PR-lijst van GitHub.
+                        HStack(spacing: 6) {
+                            Text(item.entry.title).lineLimit(1)
+                            ChecksBadge(checks: item.entry.checks)
+                                .font(.caption)
+                        }
                     }
                     Text("\(item.entry.repo), \(item.entry.author ?? String(localized: "onbekend")), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
                         .font(.caption)

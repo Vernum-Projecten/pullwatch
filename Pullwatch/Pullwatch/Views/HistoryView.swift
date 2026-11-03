@@ -88,6 +88,15 @@ struct HistoryView: View {
                     .accessibilityLabel(Text(item.entry.glyphLabel))
             }
             .width(24)
+            // De checks (CI) naast de status, ook als GitHub: een icoon in de kleur van de stand
+            // en "4/8". Alleen bij PR's; zonder checks een lege cel.
+            if kind == .pullRequest {
+                TableColumn(Text(verbatim: ""), value: \.checksSortKey) { item in
+                    ChecksBadge(checks: item.entry.checks)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .width(min: 48, ideal: 58, max: 76)
+            }
             TableColumn("Titel", value: \.entry.title) { item in
                 // Zoals Mail en het menupaneel: een blauwe stip voor ongelezen, op een vaste plek.
                 HStack(spacing: 6) {
@@ -263,6 +272,16 @@ struct HistoryView: View {
 nonisolated extension HistoryItem {
     /// Sorteersleutel voor de kolom Auteur; zonder auteur achteraan.
     var authorSortKey: String { entry.author ?? "\u{10FFFF}" }
+
+    /// Sorteersleutel voor de kolom met checks: mislukt eerst, dan bezig, geslaagd en zonder checks.
+    var checksSortKey: Int {
+        switch entry.checks?.state {
+        case .failed: 0
+        case .pending: 1
+        case .passed: 2
+        case nil: 3
+        }
+    }
 
     /// Sorteersleutel voor de icoonkolom: eerst de soort (PR's voor tags), dan de status.
     var glyphSortKey: Int {

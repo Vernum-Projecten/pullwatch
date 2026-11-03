@@ -95,6 +95,8 @@ enum SnapshotTour {
                     model.repoSelectionRequest = RepoSelectionRequest(tab: .security)
                 }))
                 steps.append(("repo-detail-linguist-2", { model.repoSelectionRequest = RepoSelectionRequest(tab: .check) }))
+                // Daar mag de app de checks niet lezen: de opmerking onder de pull requests.
+                steps.append(("repo-detail-linguist-overview", { model.repoSelectionRequest = RepoSelectionRequest(tab: .overview) }))
                 steps.append(("repo-detail-back", {
                     model.showRepo(id: repo.id)
                     model.repoSelectionRequest = RepoSelectionRequest(tab: .overview)
