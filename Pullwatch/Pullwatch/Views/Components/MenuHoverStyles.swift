@@ -45,7 +45,16 @@ struct MenuRowButtonStyle: ButtonStyle {
                 .padding(.horizontal, MenuMetrics.rowInset)
                 .padding(.vertical, 5)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(highlight, in: .rect(cornerRadius: 8))
+                // Eén vaste vulling waarvan alleen de doorzichtigheid verandert: een getal laat
+                // zich vloeiend animeren. Wisselen tussen twee stijlen (doorzichtig en grijs) gaf
+                // eerst een felle flits, omdat SwiftUI die niet kan overvloeien.
+                .background {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.primary)
+                        .opacity(highlight)
+                        // Alleen deze laag animeert; tekst en symbolen erboven veranderen meteen.
+                        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: highlight)
+                }
                 .contentShape(.rect(cornerRadius: 8))
                 .onHover { inside in
                     guard let hover else { return }
@@ -55,13 +64,12 @@ struct MenuRowButtonStyle: ButtonStyle {
                         hover.row = nil
                     }
                 }
-                .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: isHovered)
         }
 
-        private var highlight: AnyShapeStyle {
-            if configuration.isPressed { return AnyShapeStyle(.primary.opacity(0.14)) }
-            if isHovered { return AnyShapeStyle(.primary.opacity(0.07)) }
-            return AnyShapeStyle(.clear)
+        /// Hoe sterk de markering is: niets, aangewezen of ingedrukt.
+        private var highlight: Double {
+            if configuration.isPressed { return 0.14 }
+            return isHovered ? 0.07 : 0
         }
     }
 }
@@ -80,6 +88,7 @@ struct MenuIconButtonStyle: ButtonStyle {
         let id: AnyHashable
         @Environment(\.menuHover) private var hover
         @Environment(\.isEnabled) private var isEnabled
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
         @ScaledMetric(relativeTo: .body) private var size = 26
 
         private var isHovered: Bool { isEnabled && hover?.row == id }
@@ -90,7 +99,10 @@ struct MenuIconButtonStyle: ButtonStyle {
                 .imageScale(.large)
                 .foregroundStyle(isHovered || configuration.isPressed ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
                 .frame(width: size, height: size)
-                .background(highlight, in: .circle)
+                .background {
+                    Circle().fill(.primary).opacity(highlight)
+                        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: highlight)
+                }
                 .contentShape(.circle)
                 .opacity(isEnabled ? 1 : 0.4)
                 .onHover { inside in
@@ -103,10 +115,9 @@ struct MenuIconButtonStyle: ButtonStyle {
                 }
         }
 
-        private var highlight: AnyShapeStyle {
-            if configuration.isPressed { return AnyShapeStyle(.primary.opacity(0.16)) }
-            if isHovered { return AnyShapeStyle(.primary.opacity(0.08)) }
-            return AnyShapeStyle(.clear)
+        private var highlight: Double {
+            if configuration.isPressed { return 0.16 }
+            return isHovered ? 0.08 : 0
         }
     }
 }
