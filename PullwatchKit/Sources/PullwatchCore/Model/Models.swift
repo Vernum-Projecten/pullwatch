@@ -226,10 +226,53 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
               host != kind.defaultInstanceURL?.host() else { return kind.name }
         return host
     }
+    /// Losse repo's die je zelf toevoegde, ook buiten de eigenaren (bv. een openbare repo van een
+    /// andere organisatie), in dezelfde vorm als `repoWatch`. Wat er gevolgd wordt staat gewoon in
+    /// `repoWatch`. Azure DevOps: "project/repo" binnen de organisatie van het account.
+    public var extraRepos: [String]
 
     /// Volgt dit account iets: een repo met PR's, tags of gemerged, of nieuwe repo's.
     public var followsAnything: Bool {
         newRepoDefault != .none || repoWatch.values.contains { $0.prs || $0.tags || $0.completed }
+    }
+
+    /// Is dit een zelf toegevoegde repo (hoofdletterongevoelig)?
+    public func isExtra(_ repo: String) -> Bool {
+        extraRepos.contains { $0.caseInsensitiveCompare(repo) == .orderedSame }
+    }
+
+    /// Voegt een losse repo toe (niet dubbel) en volgt er `watch` van.
+    public mutating func addExtraRepo(_ repo: String, watch: WatchSet = .prs) {
+        if !isExtra(repo) {
+            extraRepos.append(repo)
+            extraRepos.sort { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        }
+        let key = repoWatch.keys.first { $0.caseInsensitiveCompare(repo) == .orderedSame } ?? repo
+        repoWatch[key] = watch
+    }
+
+    /// Haalt een losse repo weg, met wat er van gevolgd werd.
+    public mutating func removeExtraRepo(_ repo: String) {
+        extraRepos.removeAll { $0.caseInsensitiveCompare(repo) == .orderedSame }
+        for key in repoWatch.keys where key.caseInsensitiveCompare(repo) == .orderedSame {
+            repoWatch[key] = nil
+        }
+    }
+
+    /// Losse repo's waarvan de eigenaar niet al gevolgd wordt: alleen die hebben bij GitHub een
+    /// eigen zoekopdracht nodig. Hoofdletterongevoelig ontdubbeld.
+    public var extraReposOutsideOwners: [String] {
+        Self.reposOutside(owners: owners, extraRepos)
+    }
+
+    /// Zie `extraReposOutsideOwners`; ook voor een provider die alleen de lijsten kent.
+    public static func reposOutside(owners: [String], _ repos: [String]) -> [String] {
+        var seen: Set<String> = []
+        return repos.filter { repo in
+            let owner = repo.split(separator: "/", maxSplits: 1).first.map(String.init) ?? repo
+            guard !owners.contains(where: { $0.caseInsensitiveCompare(owner) == .orderedSame }) else { return false }
+            return seen.insert(repo.lowercased()).inserted
+        }
     }
 
     /// De eerste (of enige) eigenaar; voor Azure DevOps de organisatie. Zetten maakt er de enige van.
@@ -279,7 +322,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         hideOwn: Bool = true,
         cliUser: String? = nil,
         isPaused: Bool = false,
-        instanceURL: URL? = nil
+        instanceURL: URL? = nil,
+        extraRepos: [String] = []
     ) {
         self.id = id
         self.kind = kind
@@ -294,10 +338,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.cliUser = cliUser
         self.isPaused = isPaused
         self.instanceURL = instanceURL
+        self.extraRepos = extraRepos
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos
     }
 
     public init(from decoder: any Decoder) throws {
@@ -321,6 +366,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         isPaused = try c.decodeIfPresent(Bool.self, forKey: .isPaused) ?? false
         // Van vóór eigen servers: geen veld, dus de standaard van de dienst.
         instanceURL = try c.decodeIfPresent(URL.self, forKey: .instanceURL)
+        // Van vóór de losse repo's: geen.
+        extraRepos = try c.decodeIfPresent([String].self, forKey: .extraRepos) ?? []
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -341,6 +388,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encodeIfPresent(cliUser, forKey: .cliUser)
         if isPaused { try c.encode(isPaused, forKey: .isPaused) }
         try c.encodeIfPresent(instanceURL, forKey: .instanceURL)
+        if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
     }
 
     /// Wat er voor deze repo gevolgd wordt (hoofdletterongevoelig).

@@ -524,7 +524,7 @@ public actor PollEngine {
         where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
             // Alleen melden als de PR onder de vorige settings ook zichtbaar was; anders is hij
             // pas zichtbaar door een instellingswijziging of eerste poll → stil seeden.
-            if !state.contains(pr.dedupKey), let previous,
+            if !state.contains(pr.dedupKey), let previous, previous.covers(repo: pr.repo),
                PRFilter.passes(pr, settings: previous, currentUserId: fetched.userId) {
                 fresh.append(pr)
             }
@@ -612,7 +612,7 @@ public actor PollEngine {
         for pr in synced where pr.state == .merged
             && PRFilter.passes(pr, settings: settings, currentUserId: userId, watching: \.completed) {
             let key = pr.dedupKey + ":completed"
-            if let previous, !state.contains(key),
+            if let previous, !state.contains(key), previous.settings.covers(repo: pr.repo),
                PRFilter.passes(pr, settings: previous.settings, currentUserId: userId, watching: \.completed),
                let closedAt = pr.closedAt, closedAt >= previous.at - Self.syncOverlap {
                 fresh.append(pr)

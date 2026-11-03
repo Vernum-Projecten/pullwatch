@@ -9,6 +9,8 @@ public struct FilterSettings: Codable, Hashable, Sendable {
     public var newRepoDefault: NewRepoDefault
     public var includeDrafts: Bool
     public var hideOwn: Bool
+    /// `Account.extraRepos`, lowercased en gesorteerd; leeg in oude JSON.
+    public var extraRepos: [String]
 
     public init(
         kind: ProviderKind,
@@ -16,7 +18,8 @@ public struct FilterSettings: Codable, Hashable, Sendable {
         repoWatch: [String: WatchSet],
         newRepoDefault: NewRepoDefault,
         includeDrafts: Bool,
-        hideOwn: Bool
+        hideOwn: Bool,
+        extraRepos: [String] = []
     ) {
         self.kind = kind
         self.organization = organization
@@ -24,10 +27,11 @@ public struct FilterSettings: Codable, Hashable, Sendable {
         self.newRepoDefault = newRepoDefault
         self.includeDrafts = includeDrafts
         self.hideOwn = hideOwn
+        self.extraRepos = Array(Set(extraRepos.map { $0.lowercased() })).sorted()
     }
 
     private enum CodingKeys: String, CodingKey {
-        case kind, organization, repoWatch, newRepoDefault, includeDrafts, hideOwn
+        case kind, organization, repoWatch, newRepoDefault, includeDrafts, hideOwn, extraRepos
     }
 
     public init(from decoder: any Decoder) throws {
@@ -37,6 +41,7 @@ public struct FilterSettings: Codable, Hashable, Sendable {
         (repoWatch, newRepoDefault) = try RepoWatchCoding.decode(from: decoder)
         includeDrafts = try c.decode(Bool.self, forKey: .includeDrafts)
         hideOwn = try c.decode(Bool.self, forKey: .hideOwn)
+        extraRepos = try c.decodeIfPresent([String].self, forKey: .extraRepos) ?? []
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -47,6 +52,18 @@ public struct FilterSettings: Codable, Hashable, Sendable {
         try c.encode(newRepoDefault, forKey: .newRepoDefault)
         try c.encode(includeDrafts, forKey: .includeDrafts)
         try c.encode(hideOwn, forKey: .hideOwn)
+        if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
+    }
+
+    /// Kwam deze repo onder deze instellingen al binnen? Bij GitHub alleen repo's van de gevolgde
+    /// eigenaren en de losse repo's; Azure DevOps haalt de hele organisatie op. Zo meldt een net
+    /// toegevoegde losse repo zijn bestaande PR's niet als nieuw.
+    public func covers(repo: String) -> Bool {
+        guard kind == .gitHub else { return true }
+        let owner = repo.split(separator: "/", maxSplits: 1).first.map(String.init) ?? repo
+        let owners = organization.split(separator: ",").map(String.init)
+        return owners.contains { $0.caseInsensitiveCompare(owner) == .orderedSame }
+            || extraRepos.contains(repo.lowercased())
     }
 
     public func watch(for repo: String) -> WatchSet {
@@ -59,14 +76,15 @@ public struct FilterSettings: Codable, Hashable, Sendable {
     }
 
     /// Of een geschiedenis-sync onder `other` dezelfde PR's oplevert: zelfde bron, zelfde
-    /// PR-vinkjes per repo (hoofdletterongevoelig) en standaard, drafts en eigen PR's.
-    /// Tag-vinkjes tellen niet mee.
+    /// PR-vinkjes per repo (hoofdletterongevoelig) en standaard, drafts en eigen PR's, en dezelfde
+    /// losse repo's (een net toegevoegde heeft zijn geschiedenis nog niet). Tag-vinkjes tellen niet mee.
     public func sameSyncScope(as other: FilterSettings) -> Bool {
         sameSource(as: other)
             && newRepoDefault == other.newRepoDefault
             && includeDrafts == other.includeDrafts
             && hideOwn == other.hideOwn
             && prOverrides == other.prOverrides
+            && extraRepos == other.extraRepos
     }
 
     /// PR-vinkjes per repo (lowercased) die afwijken van de standaard; een entry gelijk aan de
@@ -89,7 +107,8 @@ extension Account {
             repoWatch: repoWatch,
             newRepoDefault: newRepoDefault,
             includeDrafts: includeDrafts,
-            hideOwn: hideOwn
+            hideOwn: hideOwn,
+            extraRepos: extraRepos
         )
     }
 }

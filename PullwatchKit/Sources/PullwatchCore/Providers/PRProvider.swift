@@ -42,6 +42,11 @@ public protocol PRProvider: Sendable {
     func securityAlerts(in repo: String) async throws -> SecurityScan?
     /// Token voor de openbare GitHub Advisory Database (hogere rate limit); nil zonder GitHub.
     func advisoryDatabaseToken() async -> String?
+    /// Controleert een zelf toegevoegde repo (`Account.extraRepos`, al gelezen met
+    /// `RepositoryReference`) met één verzoek: bestaat hij en mag dit account, of iedereen, hem
+    /// lezen. Gooit `ProviderError.noAccess` als hij er niet is of niet te lezen is, en
+    /// `RepositoryProblem.unsupported` bij een dienst die geen losse repo's kent.
+    func checkRepository(_ repo: String) async throws -> RepositoryCheck
 }
 
 extension PRProvider {
@@ -52,6 +57,11 @@ extension PRProvider {
     public func securityAlerts(in repo: String) async throws -> SecurityScan? { nil }
 
     public func advisoryDatabaseToken() async -> String? { nil }
+
+    /// Een provider zonder losse repo's (de standaard voor een nieuwe dienst tot hij ze kent).
+    public func checkRepository(_ repo: String) async throws -> RepositoryCheck {
+        throw RepositoryProblem.unsupported
+    }
 
     public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
 
