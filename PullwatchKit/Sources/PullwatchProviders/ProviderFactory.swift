@@ -61,6 +61,7 @@ public enum ProviderFactory {
             return GitLabProvider(
                 accountId: account.id,
                 owners: account.owners,
+                extraRepos: account.extraRepos,
                 instanceURL: account.effectiveInstanceURL,
                 tokenSource: tokens,
                 http: http

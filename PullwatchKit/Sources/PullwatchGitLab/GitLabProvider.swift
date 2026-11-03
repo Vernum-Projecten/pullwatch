@@ -29,12 +29,20 @@ public actor GitLabProvider: PRProvider {
     /// De weergavenaam van de auteur per PR (dedupKey), uit de laatste lijst, zodat
     /// `coAuthors(of:)` de eigen commits van de auteur herkent (commits hebben geen gebruikersnaam).
     private var authorNames: [String: String] = [:]
+    /// Losse projecten (`Account.extraRepos`) buiten de gevolgde groepen en gebruikers: die krijgen
+    /// per poll elk één vraag naar hun merge requests (`GitLabProvider+ExtraProjects`).
+    let extraRepos: [String]
+    /// Hoe elk los project te lezen is, per pad lowercased; zie `access(for:)`.
+    var projectAccess: [String: (access: ProjectAccess, at: Date)] = [:]
+    /// Tot wanneer de limiet voor verzoeken zonder token op is.
+    var anonymousPausedUntil: Date?
 
     public static let defaultInstanceURL = URL(string: "https://gitlab.com")!
 
     public init(
         accountId: UUID,
         owners: [String],
+        extraRepos: [String] = [],
         instanceURL: URL? = nil,
         tokenSource: any TokenSource,
         http: any HTTPClient,
@@ -44,6 +52,7 @@ public actor GitLabProvider: PRProvider {
         self.owners = owners
             .map { $0.trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: "/@"))) }
             .filter { !$0.isEmpty }
+        self.extraRepos = Self.projectsOutside(owners: self.owners, extraRepos)
         self.instanceURL = instanceURL ?? Self.defaultInstanceURL
         self.tokenSource = tokenSource
         self.http = http
@@ -78,6 +87,7 @@ public actor GitLabProvider: PRProvider {
         for owner in owners {
             names += try await projects(of: try await resolve(owner))
         }
+        names += try await extraProjectNames()
         return Array(Set(names)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 
@@ -123,6 +133,12 @@ public actor GitLabProvider: PRProvider {
                 URLQueryItem(name: "state", value: "opened"),
             ], limit: .max)
         }
+        // Van een los project de honderd recentst bijgewerkte open merge requests, in één vraag.
+        result += try await extraMergeRequests(query: [
+            URLQueryItem(name: "state", value: "opened"),
+            URLQueryItem(name: "order_by", value: "updated_at"),
+            URLQueryItem(name: "sort", value: "desc"),
+        ], limit: .max)
         return result
     }
 
@@ -140,6 +156,7 @@ public actor GitLabProvider: PRProvider {
         for owner in owners {
             result += try await mergeRequests(of: try await resolve(owner), query: query, limit: limit)
         }
+        result += try await extraMergeRequests(query: query, limit: limit)
         // Over eigenaren en projecten heen de recentste eerst, zodat de grens eerlijk is.
         return Array(result.sorted { ($0.closedAt ?? $0.createdAt) > ($1.closedAt ?? $1.createdAt) }.prefix(limit))
     }
@@ -169,7 +186,7 @@ public actor GitLabProvider: PRProvider {
         }
     }
 
-    private func makePullRequest(_ dto: MergeRequestDTO) throws -> PullRequest {
+    func makePullRequest(_ dto: MergeRequestDTO) throws -> PullRequest {
         guard let createdAt = DateParsing.parse(dto.createdAt) else {
             throw ProviderError.decoding("created_at \(dto.createdAt)")
         }
@@ -228,6 +245,8 @@ public actor GitLabProvider: PRProvider {
                 fetch.unavailableRepos.append(repo) // bestaat niet (meer)
             } catch ProviderError.unauthorized {
                 fetch.unavailableRepos.append(repo) // 403: geen toegang tot de repository
+            } catch ProviderError.rateLimited where readsWithoutTokenCached(repo) {
+                fetch.unavailableRepos.append(repo) // limiet zonder token op; de volgende keer weer
             }
         }
         return fetch
@@ -237,14 +256,15 @@ public actor GitLabProvider: PRProvider {
     static let releaseLimit = 20
 
     private func tags(of repo: String) async throws -> [Tag] {
-        let tags: [TagDTO] = try await get(endpoint("projects", repo, "repository", "tags"), query: [
+        let anonymous = try await readsAnonymously(repo)
+        let tags: [TagDTO] = try await get(endpoint("projects", repo, "repository", "tags"), anonymous: anonymous, query: [
             URLQueryItem(name: "order_by", value: "updated"),
             URLQueryItem(name: "sort", value: "desc"),
             URLQueryItem(name: "per_page", value: String(Self.tagLimit)),
         ])
         var releases: [String: ReleaseDTO] = [:]
         if tags.contains(where: { $0.release != nil }) {
-            let list: [ReleaseDTO] = try await get(endpoint("projects", repo, "releases"), query: [
+            let list: [ReleaseDTO] = try await get(endpoint("projects", repo, "releases"), anonymous: anonymous, query: [
                 URLQueryItem(name: "order_by", value: "released_at"),
                 URLQueryItem(name: "sort", value: "desc"),
                 URLQueryItem(name: "per_page", value: String(Self.releaseLimit)),
@@ -308,12 +328,17 @@ public actor GitLabProvider: PRProvider {
         for pr in pullRequests {
             let commits: [CommitDTO]
             do {
-                commits = try await get(endpoint("projects", pr.repo, "merge_requests", String(pr.number), "commits"), query: [
-                    URLQueryItem(name: "per_page", value: String(pageSize)),
-                ])
+                let anonymous = try await readsAnonymously(pr.repo)
+                commits = try await get(
+                    endpoint("projects", pr.repo, "merge_requests", String(pr.number), "commits"), anonymous: anonymous, query: [
+                        URLQueryItem(name: "per_page", value: String(pageSize)),
+                    ]
+                )
             } catch ProviderError.server(status: 404) {
                 result[pr.dedupKey] = []
                 continue
+            } catch ProviderError.rateLimited where readsWithoutTokenCached(pr.repo) {
+                continue // limiet zonder token op: deze keer zonder co-auteurs
             }
             var candidates: [Person] = []
             for commit in commits {
@@ -337,7 +362,10 @@ public actor GitLabProvider: PRProvider {
         if let ref { query.append(URLQueryItem(name: "ref", value: ref)) }
         let entries: [TreeEntryDTO]
         do {
-            entries = try await pages(endpoint("projects", repo, "repository", "tree"), query: query, maxPages: maxTreePages)
+            entries = try await pages(
+                endpoint("projects", repo, "repository", "tree"), query: query, maxPages: maxTreePages,
+                anonymous: try await readsAnonymously(repo)
+            )
         } catch ProviderError.server(status: 404) {
             return []
         }
@@ -348,13 +376,15 @@ public actor GitLabProvider: PRProvider {
     public func fileContent(in repo: String, path: String, ref: String?) async throws -> String {
         let data = try await send(
             endpoint("projects", repo, "repository", "files", path, "raw"),
-            query: ref.map { [URLQueryItem(name: "ref", value: $0)] } ?? []
+            query: ref.map { [URLQueryItem(name: "ref", value: $0)] } ?? [],
+            anonymous: try await readsAnonymously(repo)
         ).data
         return String(decoding: data, as: UTF8.self)
     }
 
     public func invalidateCredentials() async {
         userProjects = [:]
+        projectAccess = [:]
         await tokenSource.invalidate()
     }
 
@@ -410,10 +440,12 @@ public actor GitLabProvider: PRProvider {
     /// Bladert met `page` tot de server geen `x-next-page` meer noemt (of `stop` genoeg vindt).
     /// Antwoordt de server met keyset-paginering (alleen een `Link` met `rel="next"`), dan volgt
     /// dit die link, maar alleen op dezelfde server: het token gaat nooit naar een andere host.
-    private func pages<T: Decodable>(
+    /// Met `anonymous` zonder token: alleen voor openbare losse projecten.
+    func pages<T: Decodable>(
         _ url: URL,
         query: [URLQueryItem],
         maxPages: Int,
+        anonymous: Bool = false,
         stop: ([T]) -> Bool = { _ in false }
     ) async throws -> [T] {
         var result: [T] = []
@@ -423,7 +455,7 @@ public actor GitLabProvider: PRProvider {
         ])
         var fetched = 0
         while let current = next, fetched < maxPages {
-            let (data, response) = try await send(current)
+            let (data, response) = try await send(current, anonymous: anonymous)
             result += try JSONDecoding.decode([T].self, from: data, snakeCase: true)
             fetched += 1
             if stop(result) { break }
@@ -466,19 +498,37 @@ public actor GitLabProvider: PRProvider {
         return components.url ?? url
     }
 
-    private func get<T: Decodable>(_ url: URL, query: [URLQueryItem] = []) async throws -> T {
-        try JSONDecoding.decode(T.self, from: try await send(url, query: query).data, snakeCase: true)
+    private func get<T: Decodable>(_ url: URL, anonymous: Bool = false, query: [URLQueryItem] = []) async throws -> T {
+        try JSONDecoding.decode(T.self, from: try await send(url, query: query, anonymous: anonymous).data, snakeCase: true)
     }
 
     /// Een GET met het token als Bearer (een personal access token en het OAuth-token van `glab`
     /// werken allebei zo). 429 met `Retry-After` of `RateLimit-Reset` wordt `rateLimited`.
-    func send(_ url: URL, query: [URLQueryItem] = []) async throws -> (data: Data, response: HTTPURLResponse) {
+    /// Met `anonymous` zonder token, voor een openbaar los project; is die limiet op, dan gaan er
+    /// tot de reset geen verzoeken zonder token meer uit. Met `checked: false` zonder de status te
+    /// controleren (de controle van een los project leest 401, 403 en 404 zelf).
+    func send(
+        _ url: URL,
+        query: [URLQueryItem] = [],
+        anonymous: Bool = false,
+        checked: Bool = true
+    ) async throws -> (data: Data, response: HTTPURLResponse) {
+        if anonymous, let until = anonymousPausedUntil, until > now() { throw ProviderError.rateLimited(until: until) }
         var request = URLRequest(url: Self.withQuery(url, query))
-        let token = try await tokenSource.token()
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if !anonymous {
+            let token = try await tokenSource.token()
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await http.send(request)
-        try HTTPStatus.check(response, now: now())
+        if checked {
+            do {
+                try HTTPStatus.check(response, now: now())
+            } catch ProviderError.rateLimited(let until) where anonymous {
+                anonymousPausedUntil = until
+                throw ProviderError.rateLimited(until: until)
+            }
+        }
         return (data, response)
     }
 }

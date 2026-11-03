@@ -268,6 +268,14 @@ private struct RepoWatchRow: View {
     var status: AppModel.ExtraRepoStatus?
     var remove: (() -> Void)?
 
+    private var readWithoutSignInHelp: Text {
+        if account.kind == .gitLab {
+            Text("Openbaar project waar je account niet bij mag; Pullwatch leest het zonder token, met de lagere limiet van \(account.serviceName)", comment: "GitLab of de host van een eigen server")
+        } else {
+            Text("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub")
+        }
+    }
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
@@ -279,7 +287,7 @@ private struct RepoWatchRow: View {
                     Text("Gelezen zonder inloggen")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .help("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub")
+                        .help(readWithoutSignInHelp)
                 case .problem(let message):
                     Label(message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)

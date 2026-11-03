@@ -6,8 +6,15 @@ import PullwatchTestSupport
 /// Losse repo's (`Account.extraRepos`): wat je intypt of plakt, de config, en dat een net
 /// toegevoegde repo zijn bestaande PR's niet als nieuw meldt.
 @Suite struct ExtraReposTests {
-    func parse(_ input: String, _ kind: ProviderKind = .gitHub, organization: String = "contoso") -> Result<String, RepositoryProblem> {
-        Result { () throws(RepositoryProblem) -> String in try RepositoryReference.parse(input, kind: kind, organization: organization) }
+    func parse(
+        _ input: String,
+        _ kind: ProviderKind = .gitHub,
+        organization: String = "contoso",
+        instance: URL? = nil
+    ) -> Result<String, RepositoryProblem> {
+        Result { () throws(RepositoryProblem) -> String in
+            try RepositoryReference.parse(input, kind: kind, organization: organization, instanceURL: instance)
+        }
     }
 
     // MARK: Intypen en plakken
@@ -67,16 +74,73 @@ import PullwatchTestSupport
         #expect(parse("Website/_git", .azureDevOps) == .failure(.unrecognised(.azureDevOps)))
     }
 
-    @Test func gitLabHasNoExtraReposYet() {
-        #expect(parse("group/project", .gitLab) == .failure(.unsupported))
-        #expect(!ProviderKind.gitLab.supportsExtraRepos)
-        #expect(ProviderKind.gitHub.supportsExtraRepos && ProviderKind.azureDevOps.supportsExtraRepos)
+    @Test(arguments: [
+        "gitlab-org/security-products/analyzers/semgrep",
+        "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep",
+        "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep/",
+        "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep.git",
+        "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep/-/merge_requests/12",
+        "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep/-/tree/main/rules",
+        "https://www.gitlab.com/gitlab-org/security-products/analyzers/semgrep",
+        "gitlab.com/gitlab-org/security-products/analyzers/semgrep",
+        "git@gitlab.com:gitlab-org/security-products/analyzers/semgrep.git",
+    ])
+    func readsGitLabPathsWithNestedGroupsAndLinks(_ input: String) {
+        #expect(parse(input, .gitLab) == .success("gitlab-org/security-products/analyzers/semgrep"))
+    }
+
+    @Test func readsGitLabPathsAndLinksOfTheOwnServer() {
+        let server = URL(string: "https://code.example.com")!
+        for input in [
+            "team/app",
+            "https://code.example.com/team/app/-/merge_requests/3",
+            "git@code.example.com:team/app.git",
+            "ssh://git@code.example.com:2222/team/app.git",
+        ] {
+            #expect(parse(input, .gitLab, instance: server) == .success("team/app"), "\(input)")
+        }
+        // Een server onder een pad: dat pad hoort niet bij het project.
+        let prefixed = URL(string: "https://example.com/gitlab")!
+        #expect(parse("https://example.com/gitlab/team/app/-/tags", .gitLab, instance: prefixed) == .success("team/app"))
+        // Een groep met een punt is geen link.
+        #expect(parse("acme.io/app", .gitLab) == .success("acme.io/app"))
+    }
+
+    @Test(arguments: [
+        "", "group", "group/-/project", "-group/project", ".hidden/project", "group/pro ject",
+        "https://gitlab.com/groups/acme/sub", "https://gitlab.com/acme", "https://gitlab.com/users/jdoe/x",
+    ])
+    func refusesWhatIsNoGitLabProject(_ input: String) {
+        #expect(parse(input, .gitLab) == .failure(.unrecognised(.gitLab)))
+    }
+
+    @Test func gitLabAllowsTwentySubgroupsAndNoMore() {
+        let deepest = (1...21).map { "g\($0)" }.joined(separator: "/") + "/project"
+        #expect(parse(deepest, .gitLab) == .success(deepest))
+        #expect(parse("g0/" + deepest, .gitLab) == .failure(.unrecognised(.gitLab)))
+    }
+
+    @Test func aGitLabLinkToAnotherServerSaysSo() {
+        let server = URL(string: "https://code.example.com")!
+        #expect(parse("https://gitlab.com/gitlab-org/cli", .gitLab, instance: server)
+            == .failure(.otherServer(found: "gitlab.com", expected: "code.example.com")))
+        #expect(parse("https://code.example.com/team/app", .gitLab)
+            == .failure(.otherServer(found: "code.example.com", expected: "gitlab.com")))
+        #expect(parse("git@other.example.org:team/app.git", .gitLab, instance: server)
+            == .failure(.otherServer(found: "other.example.org", expected: "code.example.com")))
+        #expect(parse("https://github.com/openEHR/specifications-AM", .gitLab) == .failure(.otherService(.gitHub)))
+        #expect(parse("https://gitlab.com/gitlab-org/cli") == .failure(.otherService(.gitLab)))
+    }
+
+    @Test func everyServiceHasExtraRepos() {
+        #expect(ProviderKind.allCases.allSatisfy { $0.supportsExtraRepos })
     }
 
     @Test func problemsReadAsPlainWords() {
         for problem: RepositoryProblem in [
             .unrecognised(.gitHub), .unrecognised(.azureDevOps), .otherService(.gitHub),
             .otherOrganization(found: "a", expected: "b"), .alreadyAdded("a/b"), .unsupported,
+            .unrecognised(.gitLab), .otherServer(found: "gitlab.com", expected: "code.example.com"),
         ] {
             #expect(!problem.userMessage.isEmpty)
             #expect(!problem.userMessage.contains("\u{2014}") && !problem.userMessage.contains("\u{00B7}"))

@@ -84,11 +84,17 @@ struct WatchRepositorySheet: View {
     }
 
     private var placeholder: String {
-        account?.kind == .azureDevOps ? "project/repo" : "openEHR/specifications-AM"
+        switch account?.kind {
+        case .azureDevOps?: "project/repo"
+        case .gitLab?: "gitlab-org/cli"
+        default: "openEHR/specifications-AM"
+        }
     }
 
     @ViewBuilder private var footer: some View {
-        if account?.kind == .azureDevOps {
+        if let account, account.kind == .gitLab {
+            Text("Typ groep/project (ook met subgroepen), of plak de link van \(account.effectiveInstanceURL?.host() ?? "gitlab.com"). Ook een openbaar project van een andere groep kan; Pullwatch leest dat zo nodig zonder inloggen.", comment: "Host van de GitLab-server, bv. gitlab.com")
+        } else if account?.kind == .azureDevOps {
             Text("Typ project/repo, of plak de link van dev.azure.com. De repository moet in de organisatie \(account?.organization ?? "") staan.", comment: "Azure DevOps-organisatie")
         } else if let account, account.isGitHubEnterprise {
             // GitHub Enterprise: alleen met het token van de server, nooit zonder inloggen.

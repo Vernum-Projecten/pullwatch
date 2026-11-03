@@ -8,6 +8,9 @@ public enum RepositoryProblem: Error, Equatable, Sendable {
     case otherService(ProviderKind)
     /// Een Azure DevOps-link naar een andere organisatie dan die van het account.
     case otherOrganization(found: String, expected: String)
+    /// Een GitLab-link naar een andere server dan die van het account (host van de link, host van
+    /// het account).
+    case otherServer(found: String, expected: String)
     /// Staat al bij de losse repositories van dit account.
     case alreadyAdded(String)
     /// Deze dienst kan (nog) geen losse repositories toevoegen.
@@ -17,12 +20,16 @@ public enum RepositoryProblem: Error, Equatable, Sendable {
         switch self {
         case .unrecognised(.azureDevOps):
             return String(localized: "Typ project/repo, of plak de link van de repository.", bundle: .localizedCore)
+        case .unrecognised(.gitLab):
+            return String(localized: "Typ groep/project (ook met subgroepen), of plak de link van het project.", bundle: .localizedCore)
         case .unrecognised:
             return String(localized: "Typ eigenaar/repo, of plak de link van de repository.", bundle: .localizedCore)
         case .otherService(let kind):
             return String(localized: "Dit is een link naar \(kind.name). Voeg hem toe bij een account van \(kind.name).", bundle: .localizedCore, comment: "Dienst, twee keer")
         case .otherOrganization(let found, let expected):
             return String(localized: "Deze repository staat in de organisatie \(found); dit account hoort bij \(expected).", bundle: .localizedCore, comment: "Organisatie van de link, organisatie van het account")
+        case .otherServer(let found, let expected):
+            return String(localized: "Dit project staat op \(found); dit account hoort bij \(expected). Voeg het toe bij een account van die server.", bundle: .localizedCore, comment: "Host van de link, host van het account (bv. gitlab.com)")
         case .alreadyAdded(let repo):
             return String(localized: "\(repo) staat al in de lijst.", bundle: .localizedCore, comment: "Repo")
         case .unsupported:
@@ -44,48 +51,66 @@ public struct RepositoryCheck: Equatable, Sendable {
 }
 
 extension ProviderKind {
-    /// Kan een account van deze dienst losse repo's toevoegen (`Account.extraRepos`)? GitLab nog
-    /// niet: de provider heeft nog geen `checkRepository` en geen zoekopdracht per losse repo.
+    /// Kan een account van deze dienst losse repo's toevoegen (`Account.extraRepos`)? Elke dienst
+    /// die Pullwatch nu kent kan het; een nieuwe pas als zijn provider `checkRepository` heeft.
     public var supportsExtraRepos: Bool {
         switch self {
-        case .gitHub, .azureDevOps: true
-        case .gitLab: false
+        case .gitHub, .azureDevOps, .gitLab: true
         }
     }
 }
 
 /// Leest wat iemand in het veld "Andere repositories" typt of plakt: `eigenaar/repo` (GitHub),
-/// `project/repo` (Azure DevOps), of een link van github.com of dev.azure.com. Geeft de repo in
-/// de vorm van `Account.repoWatch`. Een nieuwe dienst (zoals GitLab) krijgt hier zijn eigen tak.
+/// `project/repo` (Azure DevOps), `groep/subgroep/project` (GitLab), of een link van github.com,
+/// dev.azure.com, gitlab.com of de eigen GitLab-server van het account (`instanceURL`). Geeft de
+/// repo in de vorm van `Account.repoWatch`.
 public enum RepositoryReference {
-    /// `instanceURL`: de eigen server van een GitHub Enterprise-account; een link naar die server
-    /// telt dan als een GitHub-link.
+    /// GitLab kent een groep met hooguit twintig niveaus subgroepen, plus het project zelf.
+    static let gitLabMaxDepth = 22
+
+    /// `instanceURL`: de eigen server van het account. Bij GitHub alleen voor GitHub Enterprise
+    /// (een link naar die server telt dan als een GitHub-link); bij GitLab de server (nil is
+    /// gitlab.com), en een link moet op die server staan.
     public static func parse(
-        _ input: String, kind: ProviderKind, organization: String, instanceURL: URL? = nil
+        _ input: String,
+        kind: ProviderKind,
+        organization: String,
+        instanceURL: URL? = nil
     ) throws(RepositoryProblem) -> String {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         while text.hasSuffix("/") { text.removeLast() }
         if text.hasSuffix(".git") { text.removeLast(4) }
+        let instance = kind == .gitLab ? (instanceURL ?? kind.defaultInstanceURL) : nil
+        let isLink = text.contains("://") || text.hasPrefix("git@")
 
         if kind == .gitHub, let instanceURL, let repo = instanceLink(text, instanceURL: instanceURL) {
             return try plain(repo, kind: kind)
         }
-        if let link = link(text) {
+        if let link = link(text, gitLabInstance: instance) {
             guard link.kind == kind else { throw .otherService(link.kind) }
             if kind == .azureDevOps, let found = link.organization,
                found.caseInsensitiveCompare(organization) != .orderedSame {
                 throw .otherOrganization(found: found, expected: organization)
             }
+            if kind == .gitLab, let found = link.organization, let expected = instance?.host()?.lowercased(),
+               found != expected {
+                throw .otherServer(found: found, expected: expected)
+            }
             return try plain(link.repo, kind: kind)
         }
-        if text.contains("://") || text.hasPrefix("git@") { throw .unrecognised(kind) }
+        // Een link naar een onbekende host kan bij GitLab een andere GitLab-server zijn.
+        if isLink, kind == .gitLab, let found = host(of: text), let expected = instance?.host()?.lowercased() {
+            throw .otherServer(found: found, expected: expected)
+        }
+        if isLink { throw .unrecognised(kind) }
         return try plain(text, kind: kind)
     }
 
-    /// `a/b` met precies twee delen, met de tekens die de dienst toestaat.
+    /// `a/b` met precies twee delen (GitLab: twee of meer), met de tekens die de dienst toestaat.
     private static func plain(_ text: String, kind: ProviderKind) throws(RepositoryProblem) -> String {
         let parts = text.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
-        guard parts.count == 2, parts.allSatisfy({ !$0.isEmpty }) else { throw .unrecognised(kind) }
+        let depth = kind == .gitLab ? 2...gitLabMaxDepth : 2...2
+        guard depth.contains(parts.count), parts.allSatisfy({ !$0.isEmpty }) else { throw .unrecognised(kind) }
         switch kind {
         case .gitHub:
             // GitHub: eigenaar letters, cijfers en streepjes; repo ook punt en underscore.
@@ -101,9 +126,14 @@ public enum RepositoryReference {
                 throw .unrecognised(kind)
             }
         case .gitLab:
-            // Nog niet: GitLab-paden kunnen geneste groepen hebben (`groep/sub/project`); de
-            // GitLab-provider krijgt hier zijn eigen tak samen met `checkRepository`.
-            throw .unsupported
+            // GitLab: letters, cijfers, "_", "-" en "."; niet beginnen met "-" of "." (dus ook geen
+            // los "-": dat scheidt het project van zijn pagina's, `/-/merge_requests`).
+            let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-."))
+            guard parts.allSatisfy({ part in
+                part.unicodeScalars.allSatisfy(allowed.contains) && !part.hasPrefix("-") && !part.hasPrefix(".")
+            }) else {
+                throw .unrecognised(kind)
+            }
         }
         return parts.joined(separator: "/")
     }
@@ -127,8 +157,22 @@ public enum RepositoryReference {
         return "\(path[0])/\(path[1])"
     }
 
-    /// Een link van een bekende dienst, met de repo erin en (Azure DevOps) de organisatie.
-    private static func link(_ text: String) -> (kind: ProviderKind, repo: String, organization: String?)? {
+    /// De host van een link (ook `git@host:pad`), in kleine letters.
+    private static func host(of text: String) -> String? {
+        if text.hasPrefix("git@"), let colon = text.firstIndex(of: ":") {
+            let host = text[text.index(text.startIndex, offsetBy: 4)..<colon]
+            return host.isEmpty ? nil : host.lowercased()
+        }
+        return URL(string: text)?.host()?.lowercased()
+    }
+
+    /// Een link van een bekende dienst, met de repo erin en (Azure DevOps) de organisatie of
+    /// (GitLab) de host. `gitLabInstance` is de server van een GitLab-account; gitlab.com is altijd
+    /// bekend.
+    private static func link(
+        _ text: String,
+        gitLabInstance: URL?
+    ) -> (kind: ProviderKind, repo: String, organization: String?)? {
         var text = text
         // SSH: git@github.com:eigenaar/repo, git@ssh.dev.azure.com:v3/org/project/repo
         if text.hasPrefix("git@"), let colon = text.firstIndex(of: ":") {
@@ -140,11 +184,14 @@ public enum RepositoryReference {
         guard let url = URL(string: text) ?? URL(string: text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""),
               let host = url.host()?.lowercased() else { return nil }
         let path = url.pathComponents.filter { $0 != "/" }
+        let gitLabHost = gitLabInstance?.host()?.lowercased()
 
         switch host {
         case "github.com", "www.github.com":
             guard path.count >= 2 else { return (.gitHub, "", nil) }
             return (.gitHub, "\(path[0])/\(path[1])", nil)
+        case "gitlab.com", "www.gitlab.com":
+            return (.gitLab, gitLabPath(path), "gitlab.com")
         case "dev.azure.com":
             // https://dev.azure.com/org/project/_git/repo[/…]
             guard path.count >= 4, path[2] == "_git" else { return (.azureDevOps, "", path.first) }
@@ -153,6 +200,14 @@ public enum RepositoryReference {
             // ssh://ssh.dev.azure.com/v3/org/project/repo
             guard path.count >= 4, path[0] == "v3" else { return (.azureDevOps, "", nil) }
             return (.azureDevOps, "\(path[2])/\(path[3])", path[1])
+        case gitLabHost:
+            // De eigen server, eventueel onder een pad (`https://example.com/gitlab/groep/project`);
+            // via SSH staat dat pad er niet in.
+            let prefix = gitLabInstance?.pathComponents.filter { $0 != "/" } ?? []
+            let underPrefix = path.count >= prefix.count
+                && zip(path, prefix).allSatisfy { $0.caseInsensitiveCompare($1) == .orderedSame }
+            let rest = url.scheme == "ssh" || !underPrefix ? path : Array(path.dropFirst(prefix.count))
+            return (.gitLab, gitLabPath(rest), host)
         default:
             // https://org.visualstudio.com/[DefaultCollection/]project/_git/repo
             guard host.hasSuffix(".visualstudio.com") else { return nil }
@@ -161,5 +216,14 @@ public enum RepositoryReference {
             guard rest.count >= 3, rest[1] == "_git" else { return (.azureDevOps, "", organization) }
             return (.azureDevOps, "\(rest[0])/\(rest[2])", organization)
         }
+    }
+
+    /// Het projectpad uit de delen van een GitLab-link: alles vóór `-` (de pagina's van een
+    /// project: `/-/tree/main`, `/-/merge_requests/12`). Een groepspagina (`/groups/acme`) of een
+    /// gebruikersprofiel (`/users/jdoe`) is geen project.
+    private static func gitLabPath(_ path: [String]) -> String {
+        let project = Array(path.prefix { $0 != "-" })
+        guard let first = project.first?.lowercased(), first != "groups", first != "users" else { return "" }
+        return project.joined(separator: "/")
     }
 }
