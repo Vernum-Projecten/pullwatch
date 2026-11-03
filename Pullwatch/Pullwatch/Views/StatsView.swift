@@ -50,6 +50,17 @@ struct StatsView: View {
 
     private var repoSummary: RepoSummary? { repoId.flatMap { model.repoSummariesById[$0] } }
 
+    /// Azure DevOps noemt mergen "completed": zijn alle accounts in beeld van Azure DevOps, dan
+    /// heet gemerged hier afgerond, zoals in de meldingen.
+    private var saysCompleted: Bool {
+        let ids: Set<UUID> =
+            if let repoSummary { [repoSummary.accountId] }
+            else if let group { [group.accountId] }
+            else { Set(model.config.pollableAccounts.map(\.id)) }
+        let kinds = model.config.accounts.filter { ids.contains($0.id) }.map(\.kind)
+        return !kinds.isEmpty && kinds.allSatisfy { $0 == .azureDevOps }
+    }
+
     var body: some View {
         let filter = ActivityFilter(group: group, author: author, repoId: repoId, hideBots: hideBots, countCoAuthors: countCoAuthors)
         let stats = model.activityStats(period: period, filter: filter)
@@ -59,12 +70,7 @@ struct StatsView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                StatTiles(
-                    opened: stats.openedThisPeriod,
-                    merged: stats.mergedThisPeriod,
-                    medianLeadTime: stats.medianLeadTime,
-                    activeAuthors: stats.activeAuthors
-                )
+                StatTiles(stats: stats, saysCompleted: saysCompleted)
                 if let author {
                     Button {
                         model.showHistory(.pullRequest, author: author, repo: repoSummary.map { HistoryRepo(accountId: $0.accountId, repo: $0.repo) })
@@ -78,16 +84,22 @@ struct StatsView: View {
                     .buttonStyle(.link)
                 }
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Geopend en gemerged").font(.headline)
-                    ActivityChart(stats: stats, period: period)
+                    Text("PR-activiteit").font(.headline)
+                    ActivityChart(stats: stats, period: period, saysCompleted: saysCompleted)
                         .frame(height: 220)
                 }
                 HStack(alignment: .top, spacing: 24) {
-                    RankingChart(title: countCoAuthors ? "Auteurs en co-auteurs" : "Auteurs", items: Array(stats.authors.prefix(10)), selected: author) { name in
+                    RankingChart(
+                        title: countCoAuthors ? "Auteurs en co-auteurs" : "Auteurs", items: Array(stats.authors.prefix(10)),
+                        states: stats.authorStates, saysCompleted: saysCompleted, selected: author
+                    ) { name in
                         author = author == name ? nil : name
                     }
                     if repoId == nil {
-                        RankingChart(title: "Drukste repo's", items: Array(stats.repos.prefix(10)), selected: nil) { name in
+                        RankingChart(
+                            title: "Drukste repo's", items: Array(stats.repos.prefix(10)),
+                            states: stats.repoStates, saysCompleted: saysCompleted, selected: nil
+                        ) { name in
                             if let summary = model.repoSummaries.first(where: { $0.repo == name }) {
                                 model.showRepo(id: summary.id)
                             }
@@ -170,25 +182,30 @@ private struct StatsToolbar: ToolbarContent {
     }
 }
 
-/// Vier getallen boven de grafiek.
+/// De getallen boven de grafiek: eerst de vier statussen in de volgorde en kleuren van GitHub,
+/// dan doorlooptijd en auteurs.
 private struct StatTiles: View {
-    let opened: Int
-    let merged: Int
-    let medianLeadTime: TimeInterval?
-    let activeAuthors: Int
+    let stats: ActivityStats
+    let saysCompleted: Bool
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
 
     var body: some View {
-        HStack(spacing: 10) {
-            StatTile(label: "PR's geopend deze periode") { Text(opened, format: .number) }
-            StatTile(label: "gemerged deze periode") { Text(merged, format: .number) }
+        LazyVGrid(columns: columns, spacing: 10) {
+            StatTile(label: "PR's geopend deze periode", status: .open) { Text(stats.openedThisPeriod, format: .number) }
+            StatTile(label: "open drafts nu", status: .draft) { Text(stats.openDrafts, format: .number) }
+            StatTile(label: saysCompleted ? "afgerond deze periode" : "gemerged deze periode", status: .merged) {
+                Text(stats.mergedThisPeriod, format: .number)
+            }
+            StatTile(label: "gesloten zonder merge deze periode", status: .closed) { Text(stats.closedThisPeriod, format: .number) }
             StatTile(label: "mediane doorlooptijd") {
-                if let medianLeadTime {
+                if let medianLeadTime = stats.medianLeadTime {
                     LeadTimeText(interval: medianLeadTime)
                 } else {
                     Text("onbekend")
                 }
             }
-            StatTile(label: "actieve auteurs deze periode") { Text(activeAuthors, format: .number) }
+            StatTile(label: "actieve auteurs deze periode") { Text(stats.activeAuthors, format: .number) }
         }
     }
 }
@@ -208,12 +225,21 @@ private struct LeadTimeText: View {
 
 private struct StatTile<Value: View>: View {
     let label: LocalizedStringResource
+    /// De PR-status waar het getal over gaat: het icoon in de kleur van GitHub staat ervoor.
+    var status: PRStatus? = nil
     @ViewBuilder let value: Value
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            value.font(.title2.bold()).monospacedDigit()
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                if let status {
+                    status.glyph.image
+                        .font(.title3)
+                        .foregroundStyle(status.color)
+                }
+                value.font(.title2.bold()).monospacedDigit()
+            }
+            Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
@@ -221,37 +247,73 @@ private struct StatTile<Value: View>: View {
     }
 }
 
-/// De twee reeksen in de activiteitsgrafiek. De grafiek kent ze als waarde van dit type, niet
-/// als vertaalde tekst; de legenda toont de vertaalde naam.
-enum ActivitySeries: CaseIterable, Plottable {
-    case opened, merged
-
-    var title: LocalizedStringResource {
+extension PRStatus {
+    /// De status in één woord, voor de uitsplitsing per auteur of repo. Azure DevOps noemt
+    /// gemerged afgerond.
+    func stateName(saysCompleted: Bool) -> LocalizedStringResource {
         switch self {
-        case .opened: "Geopend"
-        case .merged: "Gemerged"
+        case .open: "Open"
+        case .draft: "Draft"
+        case .merged: saysCompleted ? "Afgerond" : "Gemerged"
+        case .closed: "Gesloten"
         }
-    }
-
-    var color: Color {
-        switch self {
-        case .opened: .blue
-        case .merged: .green
-        }
-    }
-
-    var primitivePlottable: String { String(localized: title) }
-
-    init?(primitivePlottable: String) {
-        guard let series = Self.allCases.first(where: { $0.primitivePlottable == primitivePlottable }) else { return nil }
-        self = series
     }
 }
 
-/// Geopend naast gemerged per periode.
+extension PRStateCounts {
+    func count(_ status: PRStatus) -> Int {
+        switch status {
+        case .open: open
+        case .draft: draft
+        case .merged: merged
+        case .closed: closed
+        }
+    }
+}
+
+/// De vier reeksen in de activiteitsgrafiek, in de volgorde van de tabbladen op GitHub. Kleur en
+/// icoon komen van `PRStatus`, zodat de grafiek dezelfde kleuren heeft als de rest van de app.
+enum ActivitySeries: CaseIterable {
+    case opened, draft, merged, closed
+
+    var status: PRStatus {
+        switch self {
+        case .opened: .open
+        case .draft: .draft
+        case .merged: .merged
+        case .closed: .closed
+        }
+    }
+
+    var color: Color { status.color }
+
+    func title(saysCompleted: Bool) -> LocalizedStringResource {
+        switch self {
+        case .opened: "Geopend"
+        case .draft: "Draft"
+        case .merged: saysCompleted ? "Afgerond" : "Gemerged"
+        case .closed: "Gesloten zonder merge"
+        }
+    }
+
+    /// Geopend en draft samen zijn alle PR's die in de periode geopend zijn: een draft telt niet
+    /// ook nog als geopend.
+    func count(in bucket: ActivityBucket) -> Int {
+        switch self {
+        case .opened: bucket.openedReady
+        case .draft: bucket.drafts
+        case .merged: bucket.merged
+        case .closed: bucket.closed
+        }
+    }
+}
+
+/// Per periode één gestapelde staaf: geopend, draft, gemerged en gesloten zonder merge.
 struct ActivityChart: View {
     let stats: ActivityStats
     let period: StatsPeriod
+    /// Azure DevOps: "Afgerond" in plaats van "Gemerged".
+    var saysCompleted = false
 
     private struct Point: Identifiable {
         let start: Date
@@ -262,9 +324,14 @@ struct ActivityChart: View {
 
     private var points: [Point] {
         stats.buckets.flatMap { bucket in
-            [Point(start: bucket.start, series: .opened, count: bucket.opened),
-             Point(start: bucket.start, series: .merged, count: bucket.merged)]
+            ActivitySeries.allCases.map { Point(start: bucket.start, series: $0, count: $0.count(in: bucket)) }
         }
+    }
+
+    /// De grafiek kent een reeks aan zijn vertaalde naam: zo noemen de legenda en VoiceOver de
+    /// status, en hangt de betekenis nooit alleen aan de kleur.
+    private func name(_ series: ActivitySeries) -> String {
+        String(localized: series.title(saysCompleted: saysCompleted))
     }
 
     var body: some View {
@@ -273,10 +340,11 @@ struct ActivityChart: View {
                 x: .value("Periode", point.start, unit: period.unit),
                 y: .value("PR's", point.count)
             )
-            .foregroundStyle(by: .value("Soort", point.series))
-            .position(by: .value("Soort", point.series))
+            .foregroundStyle(by: .value("Soort", name(point.series)))
+            .accessibilityLabel(Text(point.series.title(saysCompleted: saysCompleted)))
+            .accessibilityValue(Text(point.count, format: .number))
         }
-        .chartForegroundStyleScale(domain: ActivitySeries.allCases) { (series: ActivitySeries) in series.color }
+        .chartForegroundStyleScale(domain: ActivitySeries.allCases.map(name), range: ActivitySeries.allCases.map(\.color))
         .chartXAxis {
             AxisMarks(values: .stride(by: period.unit, count: period.axisStride)) { _ in
                 AxisGridLine()
@@ -290,12 +358,45 @@ struct ActivityChart: View {
     }
 }
 
+/// Hoe de PR's achter een staaf in de ranglijst nu staan, met het icoon en de kleur per status.
+private struct StateBreakdown: View {
+    let counts: PRStateCounts
+    let saysCompleted: Bool
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 6, verticalSpacing: 3) {
+            ForEach(PRStatus.allCases.filter { counts.count($0) > 0 }, id: \.self) { status in
+                GridRow {
+                    status.glyph.image.foregroundStyle(status.color)
+                    Text(counts.count(status), format: .number).monospacedDigit().gridColumnAlignment(.trailing)
+                    Text(status.stateName(saysCompleted: saysCompleted))
+                }
+            }
+        }
+        .font(.caption)
+    }
+}
+
 /// Een top tien als liggende staven; klikken op een staaf kiest die naam.
 private struct RankingChart: View {
     let title: LocalizedStringResource
     let items: [RankedName]
+    /// De huidige status van de PR's per naam, voor de tooltip.
+    let states: [String: PRStateCounts]
+    let saysCompleted: Bool
     let selected: String?
     let select: (String) -> Void
+
+    /// De naam onder de muis en waar de muis staat.
+    @State private var hover: (name: String, location: CGPoint)?
+    @State private var tooltipSize: CGSize = .zero
+
+    private func spokenStates(_ name: String) -> Text {
+        let counts = states[name] ?? PRStateCounts()
+        return saysCompleted
+            ? Text("Open: \(counts.open), draft: \(counts.draft), afgerond: \(counts.merged), gesloten: \(counts.closed)")
+            : Text("Open: \(counts.open), draft: \(counts.draft), gemerged: \(counts.merged), gesloten: \(counts.closed)")
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -323,25 +424,62 @@ private struct RankingChart: View {
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
+                    .accessibilityLabel(Text(verbatim: item.name))
+                    .accessibilityValue(spokenStates(item.name))
                 }
                 .chartXAxis(.hidden)
                 .chartYAxis(.hidden)
                 .chartXScale(domain: 0...(Double(items.first?.count ?? 1) * 1.1))
                 .chartOverlay { proxy in
                     GeometryReader { geometry in
-                        Rectangle()
-                            .fill(.clear)
-                            .contentShape(Rectangle())
-                            .onTapGesture { location in
-                                guard let frame = proxy.plotFrame else { return }
-                                let y = location.y - geometry[frame].origin.y
-                                if let name: String = proxy.value(atY: y) { select(name) }
+                        ZStack(alignment: .topLeading) {
+                            Rectangle()
+                                .fill(.clear)
+                                .contentShape(Rectangle())
+                                .onTapGesture { location in
+                                    guard let frame = proxy.plotFrame else { return }
+                                    let y = location.y - geometry[frame].origin.y
+                                    if let name: String = proxy.value(atY: y) { select(name) }
+                                }
+                                .onContinuousHover { phase in
+                                    switch phase {
+                                    case .active(let location):
+                                        guard let frame = proxy.plotFrame else { return }
+                                        let y = location.y - geometry[frame].origin.y
+                                        let name: String? = proxy.value(atY: y)
+                                        hover = name.map { ($0, location) }
+                                    case .ended:
+                                        hover = nil
+                                    }
+                                }
+                            if let hover, let counts = states[hover.name] {
+                                tooltip(counts, at: hover.location, in: geometry.size)
                             }
+                        }
                     }
                 }
                 .frame(height: CGFloat(items.count) * 38 + 12)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// De uitsplitsing naast de muis, binnen de breedte van de grafiek: rechts van de muis, of
+    /// links als hij daar niet past; onder de muis in de bovenste helft, anders erboven.
+    private func tooltip(_ counts: PRStateCounts, at location: CGPoint, in size: CGSize) -> some View {
+        let width = tooltipSize.width
+        let height = tooltipSize.height
+        let right = location.x + 14 + width / 2
+        let x = right + width / 2 <= size.width ? right : max(width / 2, location.x - 14 - width / 2)
+        let y = location.y < size.height / 2 ? location.y + 14 + height / 2 : location.y - 10 - height / 2
+        return StateBreakdown(counts: counts, saysCompleted: saysCompleted)
+            .padding(8)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.separator))
+            .fixedSize()
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { tooltipSize = $0 }
+            .position(x: x, y: y)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }

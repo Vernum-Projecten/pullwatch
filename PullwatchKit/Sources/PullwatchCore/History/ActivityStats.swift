@@ -54,12 +54,57 @@ public struct ActivityFilter: Hashable, Sendable {
     }
 }
 
+/// Eén periode in de grafiek. Geopend en draft tellen op de aanmaakdatum, gemerged en gesloten op
+/// de sluitdatum, zodat een PR in twee periodes kan meetellen.
 public struct ActivityBucket: Hashable, Sendable, Identifiable {
     public let start: Date
+    /// Alle PR's die in deze periode geopend zijn, drafts inbegrepen.
     public let opened: Int
+    /// Het deel van `opened` dat nu nog een open draft is. De geschiedenis bewaart alleen de
+    /// huidige status, niet of een PR als draft begon: een draft die later klaar of gemerged is,
+    /// telt hier niet meer mee.
+    public let drafts: Int
     public let merged: Int
+    /// Gesloten zonder te mergen.
+    public let closed: Int
+
+    public init(start: Date, opened: Int, drafts: Int = 0, merged: Int, closed: Int = 0) {
+        self.start = start
+        self.opened = opened
+        self.drafts = drafts
+        self.merged = merged
+        self.closed = closed
+    }
+
+    /// Geopend en geen draft (meer): het groene deel van de staaf.
+    public var openedReady: Int { opened - drafts }
 
     public var id: Date { start }
+}
+
+/// Hoeveel PR's er nu in elke status staan, zoals GitHub ze toont: open, draft, gemerged en
+/// gesloten zonder merge. Voor de uitsplitsing per auteur of repo.
+public struct PRStateCounts: Hashable, Sendable {
+    public var open = 0
+    public var draft = 0
+    public var merged = 0
+    public var closed = 0
+
+    public init(open: Int = 0, draft: Int = 0, merged: Int = 0, closed: Int = 0) {
+        self.open = open
+        self.draft = draft
+        self.merged = merged
+        self.closed = closed
+    }
+
+    mutating func add(_ pr: PullRequest) {
+        switch pr.state {
+        case .open where pr.isDraft: draft += 1
+        case .open: open += 1
+        case .merged: merged += 1
+        case .closed: closed += 1
+        }
+    }
 }
 
 public struct RankedName: Hashable, Sendable, Identifiable {
@@ -75,6 +120,10 @@ public struct ActivityStats: Sendable {
     public let buckets: [ActivityBucket]
     public let openedThisPeriod: Int
     public let mergedThisPeriod: Int
+    /// Gesloten zonder merge in de huidige periode.
+    public let closedThisPeriod: Int
+    /// Open drafts op dit moment, ongeacht wanneer ze geopend zijn.
+    public let openDrafts: Int
     /// Mediaan van aanmaak tot merge, over de PR's die binnen de grafiek gemerged zijn.
     public let medianLeadTime: TimeInterval?
     /// Auteurs met een geopende PR in de huidige periode.
@@ -82,6 +131,10 @@ public struct ActivityStats: Sendable {
     /// Geopende PR's binnen de grafiek, meeste eerst.
     public let authors: [RankedName]
     public let repos: [RankedName]
+    /// De huidige status van de PR's achter `authors` en `repos`, op naam: de tooltip splitst
+    /// het aantal zo uit.
+    public let authorStates: [String: PRStateCounts]
+    public let repoStates: [String: PRStateCounts]
 
     public static func compute(
         history: History, period: StatsPeriod, filter: ActivityFilter, now: Date = Date(), calendar: Calendar = .current
@@ -92,8 +145,8 @@ public struct ActivityStats: Sendable {
         }
         guard let rangeStart = starts.first,
               let rangeEnd = calendar.date(byAdding: period.component, value: 1, to: currentStart) else {
-            return ActivityStats(buckets: [], openedThisPeriod: 0, mergedThisPeriod: 0, medianLeadTime: nil,
-                                 activeAuthors: 0, authors: [], repos: [])
+            return ActivityStats(buckets: [], openedThisPeriod: 0, mergedThisPeriod: 0, closedThisPeriod: 0, openDrafts: 0,
+                                 medianLeadTime: nil, activeAuthors: 0, authors: [], repos: [], authorStates: [:], repoStates: [:])
         }
         let range = rangeStart..<rangeEnd
 
@@ -111,23 +164,40 @@ public struct ActivityStats: Sendable {
             return starts.lastIndex { $0 <= date }
         }
         var opened = Array(repeating: 0, count: starts.count)
+        var drafts = Array(repeating: 0, count: starts.count)
         var merged = Array(repeating: 0, count: starts.count)
+        var closed = Array(repeating: 0, count: starts.count)
+        var openDrafts = 0
+        var authorStates: [String: PRStateCounts] = [:]
+        var repoStates: [String: PRStateCounts] = [:]
         var leadTimes: [TimeInterval] = []
         var authors: [String: Int] = [:]
         var repos: [String: Int] = [:]
         var activeAuthors: Set<String> = []
         for pr in pullRequests {
+            let isOpenDraft = pr.state == .open && pr.isDraft
+            if isOpenDraft { openDrafts += 1 }
             if let index = bucketIndex(pr.createdAt) {
                 opened[index] += 1
+                if isOpenDraft { drafts[index] += 1 }
                 for name in filter.people(of: pr) where !(filter.hideBots && ActivityFilter.isBot(name)) {
                     authors[name, default: 0] += 1
+                    authorStates[name, default: PRStateCounts()].add(pr)
                     if index == starts.count - 1 { activeAuthors.insert(name) }
                 }
                 repos[pr.repo, default: 0] += 1
+                repoStates[pr.repo, default: PRStateCounts()].add(pr)
             }
-            if pr.state == .merged, let closedAt = pr.closedAt, let index = bucketIndex(closedAt) {
-                merged[index] += 1
-                leadTimes.append(closedAt.timeIntervalSince(pr.createdAt))
+            if let closedAt = pr.closedAt, let index = bucketIndex(closedAt) {
+                switch pr.state {
+                case .merged:
+                    merged[index] += 1
+                    leadTimes.append(closedAt.timeIntervalSince(pr.createdAt))
+                case .closed:
+                    closed[index] += 1
+                case .open:
+                    break
+                }
             }
         }
 
@@ -136,13 +206,19 @@ public struct ActivityStats: Sendable {
                 .sorted { $0.count != $1.count ? $0.count > $1.count : $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         }
         return ActivityStats(
-            buckets: starts.indices.map { ActivityBucket(start: starts[$0], opened: opened[$0], merged: merged[$0]) },
+            buckets: starts.indices.map {
+                ActivityBucket(start: starts[$0], opened: opened[$0], drafts: drafts[$0], merged: merged[$0], closed: closed[$0])
+            },
             openedThisPeriod: opened.last ?? 0,
             mergedThisPeriod: merged.last ?? 0,
+            closedThisPeriod: closed.last ?? 0,
+            openDrafts: openDrafts,
             medianLeadTime: median(leadTimes),
             activeAuthors: activeAuthors.count,
             authors: ranked(authors),
-            repos: ranked(repos)
+            repos: ranked(repos),
+            authorStates: authorStates,
+            repoStates: repoStates
         )
     }
 

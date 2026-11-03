@@ -100,20 +100,28 @@ nonisolated private enum FakeWorld {
         let daysAgo: Double
         /// "open", "merged" of "closed".
         let state: String
+        /// Een draft: open drafts zijn grijs in de lijst en de statistieken, zoals op GitHub.
+        var isDraft = false
     }
 
+    // Alle vier de statussen komen voor (open, draft, gemerged, gesloten zonder merge), zodat de
+    // statistieken in de rondleiding ze allemaal tonen.
     static let pullRequests: [PR] = [
+        PR(repo: "hello-world", number: 42, title: "Try a dark theme for the page", author: "jdoe", daysAgo: 3, state: "open", isDraft: true),
         PR(repo: "hello-world", number: 41, title: "Bump lodash to 4.17.21", author: "dependabot[bot]", daysAgo: 0.2, state: "open"),
         PR(repo: "hello-world", number: 40, title: "Add a greeting in Dutch", author: "mona", daysAgo: 1, state: "open"),
         PR(repo: "hello-world", number: 38, title: "Move the build to Node 22", author: "hubot", daysAgo: 4, state: "merged"),
         PR(repo: "hello-world", number: 35, title: "Fix the README links", author: "mona", daysAgo: 12, state: "merged"),
         PR(repo: "hello-world", number: 31, title: "Experiment with a second greeting", author: "jdoe", daysAgo: 40, state: "closed"),
         PR(repo: "spoon-knife", number: 22, title: "Update express to the latest 4.x release", author: "hubot", daysAgo: 0.5, state: "open"),
+        PR(repo: "spoon-knife", number: 20, title: "Replace the fork icon", author: "amelie", daysAgo: 2, state: "closed"),
         PR(repo: "spoon-knife", number: 21, title: "Add a fork button to the page", author: "jdoe", daysAgo: 6, state: "merged"),
         PR(repo: "spoon-knife", number: 19, title: "Clean up the stylesheet", author: "mona", daysAgo: 33, state: "merged"),
         PR(repo: "spoon-knife", number: 17, title: "Translate the page into French", author: "amelie", daysAgo: 70, state: "merged"),
+        PR(repo: "linguist", number: 13, title: "Recognise Gleam files", author: "mona", daysAgo: 1.5, state: "open", isDraft: true),
         PR(repo: "linguist", number: 12, title: "Recognise Swift macros as Swift", author: "amelie", daysAgo: 2, state: "open"),
         PR(repo: "linguist", number: 11, title: "Speed up the language detection", author: "hubot", daysAgo: 20, state: "merged"),
+        PR(repo: "linguist", number: 10, title: "Rewrite the tokenizer in Rust", author: "hubot", daysAgo: 45, state: "closed"),
         PR(repo: "linguist", number: 9, title: "Drop support for Go 1.20", author: "jdoe", daysAgo: 95, state: "merged"),
         PR(repo: "linguist", number: 7, title: "Add a heuristic for .h files", author: "mona", daysAgo: 150, state: "merged"),
     ]
@@ -379,7 +387,7 @@ nonisolated private enum FakeWorld {
         let items = (isExtra ? extraPullRequests : pullRequests).filter { !onlyOpen || $0.state == "open" }.map { pr -> String in
             let closed = pr.state == "open" ? "null" : #""\#(iso(pr.daysAgo - 0.5))""#
             let merged = pr.state == "merged" ? #""\#(iso(pr.daysAgo - 0.5))""# : "null"
-            return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","updated_at":"\#(iso(pr.daysAgo))","draft":false,"#
+            return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","updated_at":"\#(iso(pr.daysAgo))","draft":\#(pr.isDraft),"#
                 + #""state":"\#(pr.state == "open" ? "open" : "closed")","closed_at":\#(closed),"pull_request":{"merged_at":\#(merged)},"#
                 + #""user":{"login":"\#(pr.author)"},"html_url":"https://github.com/\#(owner)/\#(pr.repo)/pull/\#(pr.number)","#
                 + #""repository_url":"https://api.github.com/repos/\#(owner)/\#(pr.repo)"}"#
