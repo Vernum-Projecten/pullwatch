@@ -227,4 +227,152 @@ private actor CountingSecurityProvider: PRProvider {
         #expect(decoded == repo)
         #expect(decoded.isUnchecked(.gitHubSecurity))
     }
+
+    // MARK: Versiebronnen
+
+    /// left-pad direct uit npm, requests direct uit PyPI.
+    static let npmLock = #"{"lockfileVersion":3,"packages":{"":{"dependencies":{"left-pad":"^1"}},"node_modules/left-pad":{"version":"1.3.0"}}}"#
+    static let npmAndPyPI: [String: String] = [
+        "package.json": #"{"dependencies":{"left-pad":"^1"}}"#,
+        "package-lock.json": npmLock,
+        "requirements.txt": "requests==2.31.0\n",
+    ]
+    static let goReleases = #"{"result":{"releases":[{"name":"1.26","releaseDate":"2026-02-01","isEol":false,"latest":{"name":"1.26.2"}}]}}"#
+    static let swiftReleases = #"[{"name":"6.4","date":"2026-09-15","tag":"swift-6.4-RELEASE"}]"#
+
+    func registryHTTP() -> MockHTTPClient {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{},{}]}"#)
+        http.on("registry.npmjs.org/left-pad", body: #"{"name":"left-pad","dist-tags":{"latest":"1.3.0"},"versions":{"1.3.0":{"name":"left-pad","version":"1.3.0"}}}"#)
+        http.on("pypi.org/pypi/requests", body: #"{"info":{"name":"requests","version":"2.32.0"},"releases":{"2.31.0":[],"2.32.0":[]}}"#)
+        return http
+    }
+
+    @Test func npmOffMakesNoRegistryRequests() async throws {
+        let http = registryHTTP()
+        let provider = CountingSecurityProvider(files: ["acme/a": Self.npmAndPyPI])
+
+        let report = await checker(provider, http: http, disabled: [.npm]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        #expect(repo.packages.contains { $0.key == "npm:left-pad" }, "het package zelf staat er nog wel")
+        #expect(!http.requests.contains { $0.url?.host == "registry.npmjs.org" })
+        #expect(repo.isUnchecked(.npm))
+        #expect(report.latestPackages["npm:left-pad"] == nil)
+        #expect(report.packageMetadata["npm:left-pad"] == nil)
+    }
+
+    @Test func npmOffLeavesPyPIAlone() async throws {
+        let http = registryHTTP()
+        let provider = CountingSecurityProvider(files: ["acme/a": Self.npmAndPyPI])
+
+        let report = await checker(provider, http: http, disabled: [.npm]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        #expect(http.requests.contains { $0.url?.host == "pypi.org" })
+        #expect(report.latestPackages["PyPI:requests"] != nil)
+        #expect(!repo.isUnchecked(.pyPI))
+    }
+
+    @Test func registryOffOnlyMarksReposThatUseIt() async throws {
+        let http = registryHTTP()
+        let provider = CountingSecurityProvider(files: ["acme/a": ["requirements.txt": "requests==2.31.0\n"]])
+
+        let report = await checker(provider, http: http, disabled: [.npm]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        #expect(!repo.isUnchecked(.npm), "zonder npm-packages heeft npm niets te controleren")
+    }
+
+    @Test func goProxyOffMakesNoProxyRequests() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{}]}"#)
+        http.on("products/go", body: Self.goReleases)
+        let provider = CountingSecurityProvider(files: ["acme/a": ["go.mod": Self.gomod]])
+
+        let report = await checker(provider, http: http, disabled: [.goProxy]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        #expect(!http.requests.contains { $0.url?.host == "proxy.golang.org" })
+        #expect(repo.isUnchecked(.goProxy))
+        #expect(report.latestPackages["Go:x.com/y"] == nil)
+    }
+
+    @Test func endOfLifeOffMakesNoRequests() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{}]}"#)
+        http.on("products/go", body: Self.goReleases)
+        http.on("proxy.golang.org", status: 404, body: "")
+        let provider = CountingSecurityProvider(files: ["acme/a": ["go.mod": Self.gomod]])
+
+        let report = await checker(provider, http: http, disabled: [.endOfLife]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        let component = try #require(repo.components.first { $0.product == "go" })
+        #expect(!http.requests.contains { $0.url?.host == "endoflife.date" })
+        #expect(component.status == .unknown)
+        #expect(component.latest == nil)
+        #expect(repo.isUnchecked(.endOfLife))
+        #expect(!repo.isUnchecked(.swiftOrg))
+    }
+
+    @Test func endOfLifeOffMarksTheReleaseToo() async throws {
+        let http = MockHTTPClient()
+        http.on("products/go", body: Self.goReleases)
+        let provider = FileProvider(
+            repos: ["acme/a"], files: ["acme/a": ["go.mod": "go 1.26\n"], "acme/a@v1.0.0": ["go.mod": "go 1.26\n"]],
+            tags: ["acme/a": ["v1.0.0"]]
+        )
+
+        let report = await checker(provider, http: http, disabled: [.endOfLife]).run(accounts: [account()])
+
+        let release = try #require(report.repos.first?.release)
+        #expect(release.isUnchecked(.endOfLife))
+        #expect(release.components.allSatisfy { $0.status == .unknown })
+    }
+
+    @Test func swiftOrgOffOnlySkipsSwift() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{}]}"#)
+        http.on("products/go", body: Self.goReleases)
+        http.on("swift.org", body: Self.swiftReleases)
+        http.on("proxy.golang.org", status: 404, body: "")
+        let provider = CountingSecurityProvider(files: ["acme/a": [
+            "go.mod": Self.gomod,
+            "Package.swift": "// swift-tools-version: 6.4\nimport PackageDescription\n",
+        ]])
+
+        let report = await checker(provider, http: http, disabled: [.swiftOrg]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        let swift = try #require(repo.components.first { $0.product == "swift" })
+        let go = try #require(repo.components.first { $0.product == "go" })
+        #expect(!http.requests.contains { $0.url?.host?.hasSuffix("swift.org") == true })
+        #expect(swift.status == .unknown)
+        #expect(go.status == .current, "Go komt nog gewoon van endoflife.date")
+        #expect(repo.isUnchecked(.swiftOrg))
+        #expect(!repo.isUnchecked(.endOfLife))
+    }
+
+    @Test func releaseSourceOffWithoutThatProductSkipsNothing() async throws {
+        let http = MockHTTPClient()
+        http.on("products/go", body: Self.goReleases)
+        let provider = CountingSecurityProvider(files: ["acme/a": ["go.mod": "go 1.26\n"]])
+
+        let report = await checker(provider, http: http, disabled: [.swiftOrg]).run(accounts: [account()])
+
+        let repo = try #require(report.repos.first)
+        #expect(repo.skippedSources.isEmpty)
+    }
+
+    @Test func unknownSkippedSourceDecodesAndKeepsTheKnownOnes() throws {
+        let json = #"""
+            {"accountId":"00000000-0000-0000-0000-000000000001","repo":"acme/a","components":[],
+             "skippedSources":["osv","someFutureSource","npm"],
+             "release":{"tag":"v1","components":[],"vulnerabilities":[],"skippedSources":["nope","endOfLife"]}}
+            """#
+        let repo = try JSONDecoder().decode(RepoVersions.self, from: Data(json.utf8))
+        #expect(repo.skippedSources == [.osv, .npm])
+        #expect(repo.release?.skippedSources == [.endOfLife])
+    }
 }

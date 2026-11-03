@@ -64,7 +64,7 @@ public struct ReleaseVersions: Codable, Hashable, Sendable {
         components = try c.decode([ComponentVersion].self, forKey: .components)
         vulnerabilities = try c.decode([Vulnerability].self, forKey: .vulnerabilities)
         error = try c.decodeIfPresent(String.self, forKey: .error)
-        skippedSources = try c.decodeIfPresent(Set<DataSourceID>.self, forKey: .skippedSources) ?? []
+        skippedSources = try DataSourceID.decodeTolerantly(from: c, forKey: .skippedSources)
     }
 }
 
@@ -111,10 +111,10 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Aantal adviezen (lek per package), hoeveel installs elk ook raakt.
     public var advisoryCount: Int { Set(vulnerabilities.map(\.key)).count }
 
-    /// Zit deze kwetsbaarheid van de default branch ook in de laatste release? nil zonder (bruikbare) release.
     /// Stond `id` uit, zodat de check er voor deze repo niets over zegt?
     public func isUnchecked(_ id: DataSourceID) -> Bool { skippedSources.contains(id) }
 
+    /// Zit deze kwetsbaarheid van de default branch ook in de laatste release? nil zonder (bruikbare) release.
     public func isInRelease(_ vulnerability: Vulnerability) -> Bool? {
         guard let release, release.error == nil else { return nil }
         return release.vulnerabilities.contains { $0.key == vulnerability.key }
@@ -164,7 +164,14 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
         otherPackages = try c.decodeIfPresent([PackageUse].self, forKey: .otherPackages) ?? []
         security = try c.decodeIfPresent(SecurityScan.self, forKey: .security)
-        skippedSources = try c.decodeIfPresent(Set<DataSourceID>.self, forKey: .skippedSources) ?? []
+        skippedSources = try DataSourceID.decodeTolerantly(from: c, forKey: .skippedSources)
+    }
+}
+
+extension DataSourceID {
+    /// Een bron die deze versie niet kent (uit een nieuwere versions.json) valt weg; de rest blijft.
+    static func decodeTolerantly<Key: CodingKey>(from container: KeyedDecodingContainer<Key>, forKey key: Key) throws -> Set<DataSourceID> {
+        Set((try container.decodeIfPresent([String].self, forKey: key) ?? []).compactMap(DataSourceID.init(rawValue:)))
     }
 }
 
@@ -303,6 +310,17 @@ public struct VersionChecker: Sendable {
 
     func isEnabled(_ id: DataSourceID) -> Bool { !disabledSources.contains(id) }
 
+    /// Mag het register van dit ecosysteem gevraagd worden? Een ecosysteem zonder eigen bron
+    /// (bv. Swift-packages per URL) valt onder geen schakelaar.
+    func isRegistryEnabled(ecosystem: String) -> Bool {
+        DataSourceID.registry(ecosystem: ecosystem).map(isEnabled) ?? true
+    }
+
+    /// Als `isRegistryEnabled(ecosystem:)`, voor een `PackageUse.key` ("ecosysteem:naam").
+    func isRegistryEnabled(key: String) -> Bool {
+        Self.split(key).map { isRegistryEnabled(ecosystem: $0.0) } ?? true
+    }
+
     /// De bron achter `PRProvider.securityAlerts(in:)` voor een dienst; nil als de dienst die niet
     /// kent. GitHub Enterprise valt onder GitHub-beveiliging.
     static func securitySource(for kind: ProviderKind) -> DataSourceID? {
@@ -411,7 +429,9 @@ public struct VersionChecker: Sendable {
             guard let repoScan = try? item.found.get() else { return [] }
             return [repoScan.main] + ((try? repoScan.release?.found.get()).map { [$0] } ?? [])
         }
-        let products = Set(scans.flatMap { $0.versions.map(\.product) })
+        // Een product waarvan de releasebron (endoflife.date, swift.org) uit staat, wordt niet gevraagd
+        // en blijft `.unknown`; de repo krijgt die bron in `skippedSources`.
+        let products = Set(scans.flatMap { $0.versions.map(\.product) }).filter { isEnabled(DataSourceID.releases(product: $0)) }
         let releases = await withTaskGroup(of: (String, [EndOfLifeRelease]?).self) { group in
             for product in products {
                 group.addTask { (product, try? await EndOfLife.releases(product: product, http: http, now: now())) }
@@ -449,8 +469,10 @@ public struct VersionChecker: Sendable {
         let floors = Self.floors(mainScans.flatMap(\.dependencies))
         let checkedAt = now()
         var latest: [String: PackageLatest] = [:]
-        var metadata = await fetchMetadata(Array(packages.keys), floors: floors, date: checkedAt)
-        for key in packages.keys {
+        // Packages van een register dat uit staat krijgen geen nieuwste versie: daar zegt de check niets over.
+        let checkable = packages.keys.filter(isRegistryEnabled(key:))
+        var metadata = await fetchMetadata(checkable, floors: floors, date: checkedAt)
+        for key in checkable {
             latest[key] = PackageLatest(version: metadata[key]?.latest, seenAt: checkedAt)
         }
 
@@ -479,6 +501,15 @@ public struct VersionChecker: Sendable {
         func skippedSources(_ scan: Scan) -> Set<DataSourceID> {
             var skipped: Set<DataSourceID> = []
             if !scan.dependencies.isEmpty, !isEnabled(.osv) { skipped.insert(.osv) }
+            // Een register alleen als de scan een package van dat ecosysteem gebruikt, een releasebron
+            // alleen als er een onderdeel van dat product is.
+            for ecosystem in Set(scan.dependencies.map(\.ecosystem)) {
+                if let id = DataSourceID.registry(ecosystem: ecosystem), !isEnabled(id) { skipped.insert(id) }
+            }
+            for product in Set(scan.versions.map(\.product)) {
+                let id = DataSourceID.releases(product: product)
+                if !isEnabled(id) { skipped.insert(id) }
+            }
             return skipped
         }
         func vulnerabilities(_ scan: Scan) -> [Vulnerability] {
@@ -549,14 +580,15 @@ public struct VersionChecker: Sendable {
         return result
     }
 
-    /// Haalt het document van elk package in `keys` ("ecosysteem:naam"), hooguit acht tegelijk.
+    /// Haalt het document van elk package in `keys` ("ecosysteem:naam"), hooguit acht tegelijk;
+    /// packages van een register dat uit staat worden overgeslagen.
     private func fetchMetadata(
         _ keys: [String], floors: [String: (floor: String, keep: Set<String>)], date: Date
     ) async -> [String: PackageMetadata] {
         var result: [String: PackageMetadata] = [:]
         let cache = metadataCache
         await withTaskGroup(of: (String, PackageMetadata?).self) { group in
-            var pending = keys.sorted().makeIterator()
+            var pending = keys.filter(isRegistryEnabled(key:)).sorted().makeIterator()
             func addNext() {
                 guard let key = pending.next(), case let (ecosystem, name)? = Self.split(key) else { return }
                 group.addTask {
@@ -595,8 +627,9 @@ public struct VersionChecker: Sendable {
         for _ in 0..<Self.metadataRounds {
             let needs = VersionReport(checkedAt: date, repos: repos, latestPackages: latest, packageMetadata: metadata).updateNeeds()
             let packages = needs.packages.subtracting(attemptedPackages)
-            let lists = needs.versionLists.subtracting(attemptedLists)
-            let details = needs.details.subtracting(attemptedDetails)
+            // Een register dat uit staat krijgt ook hier geen verzoek (de packages zelf filtert `fetchMetadata`).
+            let lists = needs.versionLists.subtracting(attemptedLists).filter(isRegistryEnabled(key:))
+            let details = needs.details.subtracting(attemptedDetails).filter { isRegistryEnabled(ecosystem: $0.ecosystem) }
             guard !packages.isEmpty || !lists.isEmpty || !details.isEmpty else { break }
             attemptedPackages.formUnion(packages)
             attemptedLists.formUnion(lists)
