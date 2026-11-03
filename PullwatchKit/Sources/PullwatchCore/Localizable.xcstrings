@@ -30,7 +30,7 @@
       }
     },
     "%@ op %@": {
-      "comment": "Organisatie of gebruiker, dienst (GitHub of Azure DevOps)",
+      "comment": "Organisatie(s) of gebruiker(s), dienst (GitHub of Azure DevOps)",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -132,6 +132,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "6 maanden"
+          }
+        }
+      }
+    },
+    "@%@ op %@": {
+      "comment": "GitHub-login, dienst",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "@%1$@ op %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%1$@ auf %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%1$@ on %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "@%1$@ sur %2$@"
           }
         }
       }

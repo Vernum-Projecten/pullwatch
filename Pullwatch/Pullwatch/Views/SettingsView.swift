@@ -31,10 +31,12 @@ private struct AccountsSettingsView: View {
                     HStack(spacing: 8) {
                         AccountAvatar(account: account, size: 28)
                         VStack(alignment: .leading) {
-                            Text(verbatim: account.organization)
-                            Text(verbatim: account.kind.name)
+                            // Wie er inlogde, met daaronder wat dit account volgt.
+                            Text(verbatim: account.login.map { "@\($0)" } ?? account.organization)
+                            Text(verbatim: account.login == nil ? account.kind.name : account.owners.formatted(.list(type: .and)))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                     }
                     .tag(account.id)

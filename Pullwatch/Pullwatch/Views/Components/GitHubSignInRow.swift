@@ -94,11 +94,12 @@ private struct WaitingForApproval: View {
     }
 }
 
-/// Waar de app geïnstalleerd is: de eigenaar kiezen uit een lijst (eigen account eerst, dan de
-/// organisaties), of eerst installeren. Na "installeren" blijft hij kijken tot die er is.
+/// Waar de app geïnstalleerd is, met per plek een schakelaar Volgen (eigen account eerst, dan de
+/// organisaties); aan = de PR's en tags van die plek verschijnen in Pullwatch. Of eerst
+/// installeren; na "installeren" blijft hij kijken tot die er is.
 struct GitHubInstallationsRow: View {
     let signIn: GitHubSignIn
-    @Binding var owner: String
+    @Binding var owners: [String]
 
     var body: some View {
         switch signIn.installations {
@@ -128,7 +129,7 @@ struct GitHubInstallationsRow: View {
             errorRow
         case .found(let owners):
             ForEach(owners) { candidate in
-                OwnerRow(owner: candidate, isSelected: candidate.login == owner) { owner = candidate.login }
+                OwnerRow(owner: candidate, isFollowed: following(candidate.login))
             }
             Button {
                 signIn.install()
@@ -147,6 +148,16 @@ struct GitHubInstallationsRow: View {
         }
     }
 
+    private func following(_ login: String) -> Binding<Bool> {
+        Binding(
+            get: { owners.contains(login) },
+            set: { follow in
+                if follow, !owners.contains(login) { owners.append(login) }
+                if !follow { owners.removeAll { $0 == login } }
+            }
+        )
+    }
+
     @ViewBuilder private var errorRow: some View {
         if let error = signIn.error {
             Label(error, systemImage: "exclamationmark.triangle.fill")
@@ -155,33 +166,25 @@ struct GitHubInstallationsRow: View {
     }
 }
 
-/// Eén plek in de lijst: foto, naam en soort, met een vinkje als hij gekozen is. Een knop, zodat
-/// hij met Tab en spatie werkt en VoiceOver "geselecteerd" zegt.
+/// Eén plek in de lijst: foto, naam en soort, met de schakelaar Volgen. VoiceOver leest
+/// "Volg octocat, Je persoonlijke account, aan".
 private struct OwnerRow: View {
     let owner: GitHubOwner
-    let isSelected: Bool
-    let select: () -> Void
+    @Binding var isFollowed: Bool
 
     var body: some View {
-        Button(action: select) {
+        Toggle(isOn: $isFollowed) {
             HStack(spacing: 10) {
                 AccountAvatar(gitHubLogin: owner.login, size: 28)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: owner.login)
                     Text(kind).font(.caption).foregroundStyle(.secondary)
                 }
-                Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.tint)
-                }
             }
-            .contentShape(.rect)
         }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .toggleStyle(.switch)
+        .accessibilityLabel(Text("Volg \(owner.login)"))
+        .accessibilityValue(Text(kind))
         .accessibilityIdentifier("github.owner.\(owner.login)")
     }
 

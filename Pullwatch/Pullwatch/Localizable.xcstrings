@@ -3000,28 +3000,6 @@
         }
       }
     },
-    "Kies waar je repositories staan": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wähle, wo deine Repositorys liegen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose where your repositories are"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choisissez où se trouvent vos dépôts"
-          }
-        }
-      }
-    },
     "Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is": {
       "localizations": {
         "de": {
@@ -5190,6 +5168,28 @@
         }
       }
     },
+    "Pullwatch, een account geeft een fout": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch, ein Konto meldet einen Fehler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch, an account has an error"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch, un compte signale une erreur"
+          }
+        }
+      }
+    },
     "Release notes": {
       "localizations": {
         "de": {
@@ -6194,6 +6194,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajoutez un compte GitHub ou Azure DevOps pour suivre les pull requests et les tags."
+          }
+        }
+      }
+    },
+    "Volg %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre %@"
+          }
+        }
+      }
+    },
+    "Volg minstens één plek": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folge mindestens einem Ort"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow at least one place"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivez au moins un emplacement"
           }
         }
       }

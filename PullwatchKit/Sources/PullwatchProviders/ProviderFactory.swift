@@ -43,7 +43,7 @@ public enum ProviderFactory {
                 http: http
             )
         case .gitHub:
-            return GitHubProvider(accountId: account.id, owner: account.organization, tokenSource: tokens, http: http)
+            return GitHubProvider(accountId: account.id, owners: account.owners, tokenSource: tokens, http: http)
         }
     }
 }
