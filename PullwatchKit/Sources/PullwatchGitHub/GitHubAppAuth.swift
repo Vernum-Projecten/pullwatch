@@ -239,24 +239,28 @@ public struct GitHubAppTokenStore: Sendable {
 }
 
 /// Geeft een geldig access token, ververst het twee minuten voor het verloopt en bewaart het nieuwe paar.
+/// Verversen en bewaren loopt via `GitHubAppTokenRefresher`: één keer tegelijk per account, en zonder
+/// dat een afgebroken poll het nieuwe paar kwijtraakt.
 public actor GitHubAppTokenSource: TokenSource {
     let flow: GitHubDeviceFlow
     let store: GitHubAppTokenStore
     let now: @Sendable () -> Date
+    let refresher: GitHubAppTokenRefresher
 
     public init(flow: GitHubDeviceFlow, store: GitHubAppTokenStore, now: @escaping @Sendable () -> Date = { Date() }) {
+        self.init(flow: flow, store: store, now: now, refresher: .shared)
+    }
+
+    init(flow: GitHubDeviceFlow, store: GitHubAppTokenStore, now: @escaping @Sendable () -> Date, refresher: GitHubAppTokenRefresher) {
         self.flow = flow
         self.store = store
         self.now = now
+        self.refresher = refresher
     }
 
     public func token() async throws -> String {
-        guard let tokens = store.load() else { throw ProviderError.unauthorized }
-        if tokens.accessExpires > now().addingTimeInterval(120) { return tokens.access }
         do {
-            let fresh = try await flow.refresh(tokens)
-            try store.save(fresh)
-            return fresh.access
+            return try await refresher.validTokens(store: store, flow: flow, now: now).access
         } catch let error as ProviderError {
             // Netwerk of rate limit: niet uitloggen, later opnieuw.
             throw error
@@ -268,8 +272,6 @@ public actor GitHubAppTokenSource: TokenSource {
 
     /// Een 401 met een token dat nog niet verlopen was: de volgende keer meteen verversen.
     public func invalidate() async {
-        guard var tokens = store.load() else { return }
-        tokens.accessExpires = .distantPast
-        try? store.save(tokens)
+        await refresher.invalidate(store: store)
     }
 }
