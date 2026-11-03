@@ -40,6 +40,8 @@ struct VulnerabilityList: View {
     var knownPackages: Set<String> = []
     /// GitHubs advies per `Vulnerability.id` (`RepoSummary.advisories`).
     var gitHubAdvisories: [String: GitHubAdvisory] = [:]
+    /// Wat een oplossing tegenhoudt (`AppModel.updateContext(for:)`).
+    var context: UpdateContext = .empty
 
     @State private var isExpanded = true
 
@@ -60,6 +62,7 @@ struct VulnerabilityList: View {
                     gitHub: gitHubAdvisories[advisory.first.id],
                     location: repo.location(of: advisory.first),
                     showsWorkspace: showsWorkspace,
+                    context: context,
                     showPackage: knownPackages.contains(advisory.first.package) ? showPackage : nil
                 )
             }
@@ -85,13 +88,14 @@ private struct AdvisoryRow: View {
     let gitHub: GitHubAdvisory?
     let location: VulnerabilityLocation?
     let showsWorkspace: Bool
+    let context: UpdateContext
     var showPackage: ((String) -> Void)? = nil
 
     private var vulnerability: Vulnerability { advisory.first }
 
     /// Elke oplossing één keer, op volgorde van de installs.
     private var fixes: [VulnerabilityFix] {
-        advisory.installs.map(\.fix).reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
+        advisory.installs.map { $0.fix(in: context) }.reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
     }
 
     var body: some View {
@@ -149,8 +153,9 @@ private struct AdvisoryRow: View {
             ForEach(fixes, id: \.self) { fix in
                 Label {
                     Text(fix.text)
+                        .fixedSize(horizontal: false, vertical: true)
                 } icon: {
-                    Image(systemName: fix == .none ? "clock" : "wrench.and.screwdriver")
+                    Image(systemName: fix.symbol).foregroundStyle(fix.color)
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -255,19 +260,45 @@ enum Workspace {
 }
 
 extension VulnerabilityFix {
-    /// De zinnen van vóór de blokkades; #85 geeft binnen bereik, manifest en elke blokkade een eigen zin.
+    /// Wat je moet bijwerken, en of dat binnen het bereik kan, het manifest vraagt of eerst iets
+    /// anders (een ouder, een peer, de runtime).
     var text: LocalizedStringResource {
         switch self {
-        case .update(let package, let version), .withinRange(let package, let version), .needsManifestChange(let package, let version):
+        case .update(let package, let version):
             "Werk \(package) bij naar \(version)"
-        case .blocked(_, _, .package(let parent, _, let minimum?)):
-            "Werk \(parent) bij naar \(minimum)"
+        case .withinRange(let package, let version):
+            "Werk \(package) bij naar \(version); dat valt binnen het bereik, alleen de lockfile verandert"
+        case .needsManifestChange(let package, let version):
+            "Werk \(package) bij naar \(version); dat valt buiten het bereik, pas het manifest aan"
+        case .blocked(let package, let version, .package(let parent, let range, let minimum?)):
+            "\(package) \(version) wordt tegengehouden door \(parent), dat \(range) vraagt. Werk eerst \(parent) bij naar \(minimum)."
         case .blocked(let package, let version, .package(let parent, _, nil)):
             "Werk \(parent) bij, zodat het \(package) \(version) of nieuwer binnenhaalt"
-        case .blocked(let package, let version, .peer), .blocked(let package, let version, .runtime):
-            "Werk \(package) bij naar \(version)"
+        case .blocked(let package, let version, .peer(let name, let needs, let installed)):
+            "\(package) \(version) vraagt \(name) \(needs); deze workspace heeft \(installed). Werk eerst \(name) bij."
+        case .blocked(let package, let version, .runtime(let runtime, let needs, let installed)):
+            "\(package) \(version) vraagt \(Runtime.name(runtime)) \(needs); de repo gebruikt \(installed). Werk eerst \(Runtime.name(runtime)) bij."
         case .updateParent(let parent, let package, let minimum): "Werk \(parent) bij, zodat het \(package) \(minimum) of nieuwer binnenhaalt"
         case .none: "Nog geen versie met een oplossing"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .update, .updateParent: "wrench.and.screwdriver"
+        case .withinRange: UpdateCategory.canUpdateNow.symbol
+        case .needsManifestChange: UpdateCategory.needsManifestChange.symbol
+        case .blocked: UpdateCategory.blocked.symbol
+        case .none: "clock"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .withinRange: UpdateCategory.canUpdateNow.color
+        case .needsManifestChange: UpdateCategory.needsManifestChange.color
+        case .blocked: UpdateCategory.blocked.color
+        case .update, .updateParent, .none: .secondary
         }
     }
 }
@@ -357,7 +388,8 @@ extension RepoVersions {
     /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace, kwetsbaarheden
     /// per advies (met GitHubs ernst, CVSS en CWE's), met waar en hoe elke install erin komt, en de
     /// beveiligingsmeldingen van de dienst.
-    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:]) -> String {
+    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:], report: VersionReport? = nil) -> String {
+        let context = report?.updateContext(for: self) ?? .empty
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
         for component in components {
@@ -371,15 +403,28 @@ extension RepoVersions {
             }
         }
         // Alleen wat de repo zelf vraagt (met al zijn installs); de transitieve rest zou honderden regels zijn.
-        let ownPackages = packages.flatMap { package in package.installs.map { (package.name, $0) } }
+        let ownPackages = packages.flatMap { package in package.installs.map { (package, $0) } }
         if !ownPackages.isEmpty {
             lines.append(String(localized: "Packages:"))
             for (workspace, installs) in Dictionary(grouping: ownPackages, by: \.1.workspace)
                 .sorted(by: { $0.key.isEmpty || (!$1.key.isEmpty && $0.key < $1.key) }) {
                 lines.append("  \(Workspace.name(workspace)):")
-                for (name, install) in installs {
+                for (package, install) in installs {
                     let how = Provenance.line(scope: install.scope, via: install.via, workspace: "", kind: install.kind)
-                    lines.append("    \(name) \(install.version)" + (how.map { " (\($0))" } ?? ""))
+                    var line = "    \(package.name) \(install.version)" + (how.map { " (\($0))" } ?? "")
+                    // De status alleen als er een nieuwere versie is: wat kan, en wat eerst moet.
+                    if let latest = report?.latestPackages[package.key]?.version {
+                        let status = UpdateStatus(
+                            update: install.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context),
+                            installed: install.version, requested: install.requested
+                        )
+                        if status.category != .upToDate { line += ": \(String(localized: status.label)), \(latest)" }
+                        lines.append(line)
+                        if let reason = status.reason { lines.append("      \(String(localized: reason))") }
+                        if let usable = status.usableNow { lines.append("      \(String(localized: "Nieuwste die nu kan: \(usable)"))") }
+                    } else {
+                        lines.append(line)
+                    }
                 }
             }
         }
@@ -405,7 +450,7 @@ extension RepoVersions {
                     if let how = install.provenanceLine { installLine += ", \(how)" }
                     lines.append(installLine)
                 }
-                for fix in advisory.installs.compactMap(\.fix.plainText).reduce(into: [String](), { if !$0.contains($1) { $0.append($1) } }) {
+                for fix in advisory.installs.compactMap({ $0.fix(in: context).plainText }).reduce(into: [String](), { if !$0.contains($1) { $0.append($1) } }) {
                     lines.append("    \(fix)")
                 }
             }

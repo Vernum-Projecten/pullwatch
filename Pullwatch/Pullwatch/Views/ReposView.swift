@@ -329,6 +329,7 @@ struct RepoDetailView: View {
             }
             RepoControlSection(
                 versions: summary.versions,
+                context: summary.versions.map(model.updateContext(for:)) ?? .empty,
                 gitHubAdvisories: summary.advisories,
                 knownPackages: Set(model.packageSummaries.map(\.label)),
                 showPackage: { model.showPackage($0) }
@@ -340,6 +341,8 @@ struct RepoDetailView: View {
             if let versions = summary.versions, versions.error == nil {
                 RepoPackagesSections(
                     versions: versions,
+                    context: model.updateContext(for: versions),
+                    latest: { model.latestVersion(of: $0) },
                     knownPackages: Set(model.packageSummaries.map(\.id)),
                     showPackage: { model.showPackage($0) }
                 )
@@ -463,6 +466,7 @@ private struct PullRequestRow: View {
 
 private struct RepoControlSection: View {
     let versions: RepoVersions?
+    let context: UpdateContext
     let gitHubAdvisories: [String: GitHubAdvisory]
     let knownPackages: Set<String>
     let showPackage: (String) -> Void
@@ -492,7 +496,8 @@ private struct RepoControlSection: View {
                 }
                 if !versions.vulnerabilities.isEmpty {
                     VulnerabilityList(
-                        repo: versions, showPackage: showPackage, knownPackages: knownPackages, gitHubAdvisories: gitHubAdvisories
+                        repo: versions, showPackage: showPackage, knownPackages: knownPackages, gitHubAdvisories: gitHubAdvisories,
+                        context: context
                     )
                 }
             } else {
@@ -515,20 +520,106 @@ private struct RepoPackageUpdatesSection: View {
     let repoId: String
     let isChecked: Bool
 
+    /// Wat nu kan eerst, dan wat het manifest vraagt, dan wat geblokkeerd is; daarbinnen op naam.
+    private var rows: [(summary: PackageSummary, user: PackageUser)] {
+        updates.compactMap { summary in summary.behind.first { $0.repoId == repoId }.map { (summary, $0) } }
+            .sorted {
+                let left = $0.user.category(latest: $0.summary.latest), right = $1.user.category(latest: $1.summary.latest)
+                if left != right { return left < right }
+                return $0.summary.label.localizedCaseInsensitiveCompare($1.summary.label) == .orderedAscending
+            }
+    }
+
     var body: some View {
         Section("Packages met nieuwe versie") {
             if updates.isEmpty {
                 Text(isChecked ? "Alles actueel" : "Nog niet gecheckt").foregroundStyle(.secondary)
             }
-            ForEach(updates) { update in
-                LabeledContent {
-                    Text(verbatim: "\(update.behind.first { $0.repoId == repoId }?.version ?? "") → \(update.latest ?? "")")
-                        .monospacedDigit()
-                } label: {
-                    Text(verbatim: update.label)
-                    Text(verbatim: update.kind)
-                }
+            ForEach(rows, id: \.summary.id) { row in
+                RepoPackageUpdateRow(summary: row.summary, user: row.user)
             }
+        }
+    }
+}
+
+/// Eén package met een nieuwere versie op de repo-pagina: de versie en de nieuwste, de status,
+/// de nieuwste die nu kan, en waarom niet en wat eerst moet. Met meer installs (workspaces,
+/// versies) een regel per install met waar en via wat, en zijn eigen status.
+private struct RepoPackageUpdateRow: View {
+    let summary: PackageSummary
+    let user: PackageUser
+
+    /// Installs die niet actueel zijn, direct eerst.
+    private var installs: [InstallUpdate] {
+        user.updates.filter { $0.update.status != .upToDate }
+            .sorted { ($0.install.scope == .direct ? 0 : 1, $0.install.workspace) < ($1.install.scope == .direct ? 0 : 1, $1.install.workspace) }
+    }
+
+    var body: some View {
+        let status = UpdateStatus(user: user, latest: summary.latest)
+        VStack(alignment: .leading, spacing: 3) {
+            LabeledContent {
+                HStack(spacing: 8) {
+                    Text(verbatim: "\(user.version) → \(summary.latest ?? "")")
+                        .monospacedDigit()
+                    UpdateStatusLabel(status: status)
+                }
+            } label: {
+                Text(verbatim: summary.label)
+                Text(verbatim: summary.kind)
+            }
+            if installs.count > 1 {
+                ForEach(installs, id: \.install) { install in
+                    InstallStatusLine(install: install, showsWorkspace: Set(installs.map(\.install.workspace)).count > 1)
+                }
+            } else {
+                StatusDetail(status: status)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Eén install onder een package: versie, waar en via wat, de status en wat eerst moet.
+private struct InstallStatusLine: View {
+    let install: InstallUpdate
+    let showsWorkspace: Bool
+
+    var body: some View {
+        let status = UpdateStatus(install)
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 6) {
+                InstallLine(
+                    version: install.install.version,
+                    workspace: showsWorkspace ? install.install.workspace : nil,
+                    scope: install.install.scope,
+                    via: install.install.via,
+                    isDev: install.install.kind == .dev
+                )
+                UpdateStatusLabel(status: status, font: .caption)
+            }
+            StatusDetail(status: status)
+        }
+        .padding(.leading, 12)
+    }
+}
+
+/// De nieuwste versie die nu kan en de reden, als kleine tekst onder een package.
+private struct StatusDetail: View {
+    let status: UpdateStatus
+
+    var body: some View {
+        if let usable = status.usableNow {
+            Text("Nieuwste die nu kan: \(usable)")
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+        if let reason = status.reason {
+            Text(reason)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -603,7 +694,7 @@ private struct RepoDetailToolbar: ToolbarContent {
             }
             .help("Open de statistieken van deze repo")
             if let versions = summary.versions {
-                CopyVersionsButton(text: versions.clipboardText(advisories: summary.advisories))
+                CopyVersionsButton(text: versions.clipboardText(advisories: summary.advisories, report: model.versionReport))
             }
         }
     }

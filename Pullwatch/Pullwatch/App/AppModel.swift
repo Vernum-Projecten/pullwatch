@@ -56,6 +56,7 @@ final class AppModel {
     private(set) var versionReport: VersionReport? {
         didSet {
             packageSummaries = versionReport?.packageSummaries() ?? []
+            resetUpdateContexts()
             recomputeRepoSummaries()
         }
     }
@@ -199,7 +200,10 @@ final class AppModel {
                 .pullRequests: history.unreadCount(.pullRequest),
                 .tags: history.unreadCount(.tag),
                 .repos: repoSummaries.filter { $0.health == .problem }.count,
-                .dependencies: PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count,
+                // Alleen wat je nu kunt nemen, en wat een kwetsbaarheid oplost.
+                .dependencies: PackageVersions.badgeCount(
+                    packageSummaries, seen: seenPackageVersions, securityFixes: versionReport?.packagesWithSecurityFixes ?? []
+                ),
             ]
         )
         // Alleen bij een echte wijziging, zodat de zijbalk niet bij elke poll opnieuw tekent.
@@ -319,6 +323,30 @@ final class AppModel {
         }
     }
 
+    /// De metadata uit de registers van het huidige rapport, één keer gelezen, en per repo de
+    /// context voor de blokkades; opnieuw bij een nieuw rapport.
+    @ObservationIgnored private var registryIndex = RegistryIndex.empty
+    @ObservationIgnored private var updateContexts: [String: UpdateContext] = [:]
+
+    private func resetUpdateContexts() {
+        registryIndex = RegistryIndex(versionReport?.packageMetadata ?? [:])
+        updateContexts = [:]
+    }
+
+    /// Wat de update van een package of de oplossing van een kwetsbaarheid in `repo` tegenhoudt
+    /// (`Vulnerability.fix(in:)`, `PackageInstall.update(…, context:)`).
+    func updateContext(for repo: RepoVersions) -> UpdateContext {
+        if let cached = updateContexts[repo.id] { return cached }
+        let context = UpdateContext(repo: repo, index: registryIndex)
+        updateContexts[repo.id] = context
+        return context
+    }
+
+    /// De nieuwste versie van een package (`PackageUse.key`) uit het huidige rapport.
+    func latestVersion(of key: String) -> String? {
+        versionReport?.latestPackages[key]?.version
+    }
+
     /// Alles wat nu in Afhankelijkheden staat telt als gezien.
     func markPackagesSeen() {
         var seen = seenPackageVersions
@@ -398,6 +426,7 @@ final class AppModel {
         }
         // didSet loopt niet in init.
         packageSummaries = versionReport?.packageSummaries() ?? []
+        resetUpdateContexts()
         recomputeRepoSummaries()
     }
 
@@ -572,7 +601,9 @@ final class AppModel {
                 if !alerts.isEmpty { notifier.deliverSecurityAlerts(alerts) }
             }
             if config.notifyPackageUpdates {
-                notifier.deliverPackageUpdates(report.newPackageVersions(since: previous))
+                notifier.deliverPackageUpdates(
+                    report.newPackageVersions(since: previous, onlyCanUpdateNow: config.notifyOnlyUpdatesYouCanTake)
+                )
             }
         }
         do {
@@ -1038,6 +1069,14 @@ final class AppModel {
         get { config.notifyPackageUpdates }
         set {
             config.notifyPackageUpdates = newValue
+            saveConfig()
+        }
+    }
+
+    var notifiesOnlyUpdatesYouCanTake: Bool {
+        get { config.notifyOnlyUpdatesYouCanTake }
+        set {
+            config.notifyOnlyUpdatesYouCanTake = newValue
             saveConfig()
         }
     }
