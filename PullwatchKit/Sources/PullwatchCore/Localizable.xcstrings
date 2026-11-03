@@ -81,6 +81,151 @@
         }
       }
     },
+    "%@; Automatisch op updates controleren staat aan": {
+      "comment": "Beschrijving van de updatecheck met de stand van de instelling in Algemeen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch nach Updates suchen ist eingeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatically check for updates is on"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; Rechercher automatiquement les mises à jour est activé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch op updates controleren staat aan"
+          }
+        }
+      }
+    },
+    "%@; Automatisch op updates controleren staat uit": {
+      "comment": "Beschrijving van de updatecheck met de stand van de instelling in Algemeen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch nach Updates suchen ist ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatically check for updates is off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; Rechercher automatiquement les mises à jour est désactivé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch op updates controleren staat uit"
+          }
+        }
+      }
+    },
+    "%@; dit account staat uit": {
+      "comment": "Beschrijving van de server van een account dat uitgezet is",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; dieses Konto ist ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; this account is turned off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; ce compte est désactivé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; dit account staat uit"
+          }
+        }
+      }
+    },
+    "- %@: aan. %@. %@": {
+      "comment": "Regel in het gekopieerde overzicht: naam, beschrijving, adres(sen); de bron staat aan",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: ein. %2$@. %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: on. %2$@. %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@ : activé. %2$@. %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: aan. %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "- %@: uit. %@. %@": {
+      "comment": "Regel in het gekopieerde overzicht: naam, beschrijving, adres(sen); de bron staat uit",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: aus. %2$@. %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: off. %2$@. %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@ : désactivé. %2$@. %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: uit. %2$@. %3$@"
+          }
+        }
+      }
+    },
     "1 jaar": {
       "localizations": {
         "de": {
@@ -534,6 +679,64 @@
         }
       }
     },
+    "Haalt de appcast en de updates van Pullwatch op": {
+      "comment": "Updatecheck: de appcast en downloads op github.com",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lädt den Appcast und die Updates von Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads the appcast and the updates of Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharge l’appcast et les mises à jour de Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haalt de appcast en de updates van Pullwatch op"
+          }
+        }
+      }
+    },
+    "Kwetsbaarheden": {
+      "comment": "Groep van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherheitslücken"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilités"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kwetsbaarheden"
+          }
+        }
+      }
+    },
     "Netwerkfout: %@": {
       "localizations": {
         "de": {
@@ -814,6 +1017,93 @@
         }
       }
     },
+    "Overige verbindingen": {
+      "comment": "Groep: servers van accounts en de updatecheck",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Verbindungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other connections"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres connexions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overige verbindingen"
+          }
+        }
+      }
+    },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account"
+          }
+        }
+      }
+    },
+    "Pullwatch %@: bronnen (%@)": {
+      "comment": "Kop van het gekopieerde overzicht van bronnen: versie, datum",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: Quellen (%2$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: sources (%2$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@ : sources (%2$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: bronnen (%2$@)"
+          }
+        }
+      }
+    },
     "Rate limit, opnieuw om %@": {
       "localizations": {
         "de": {
@@ -1006,6 +1296,93 @@
           "stringUnit": {
             "state": "translated",
             "value": "Typ project/repo, of plak de link van de repository."
+          }
+        }
+      }
+    },
+    "Updatecheck van Pullwatch": {
+      "comment": "Verbinding in het overzicht van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updateprüfung von Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch update check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche de mises à jour de Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updatecheck van Pullwatch"
+          }
+        }
+      }
+    },
+    "Versies": {
+      "comment": "Groep van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versies"
+          }
+        }
+      }
+    },
+    "Zoekt naar een nieuwe versie van Pullwatch": {
+      "comment": "Updatecheck: de releases van Pullwatch op api.github.com",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sucht nach einer neuen Version von Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looks for a new version of Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche une nouvelle version de Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoekt naar een nieuwe versie van Pullwatch"
           }
         }
       }

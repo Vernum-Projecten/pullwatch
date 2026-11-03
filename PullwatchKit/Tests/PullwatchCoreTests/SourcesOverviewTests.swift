@@ -1,0 +1,127 @@
+import Foundation
+import Testing
+@testable import PullwatchCore
+import PullwatchTestSupport
+
+/// Het overzicht van alle bronnen en verbindingen als tekst (Kopieer overzicht), en de controle
+/// dat elke host die Pullwatch aanroept in dat overzicht staat.
+@Suite struct SourcesOverviewTests {
+    let now = Date(timeIntervalSince1970: 1_792_000_000)
+    let dutch = Locale(identifier: "nl_NL")
+
+    func text(_ config: AppConfig = AppConfig()) -> String {
+        SourcesOverview.text(config: config, appVersion: "0.5.0", date: now, locale: dutch)
+    }
+
+    @Test func overviewListsEverySource() {
+        let text = text()
+        for source in DataSource.all {
+            #expect(text.contains("- \(source.name): aan."), "\(source.name) ontbreekt")
+            for endpoint in source.endpoints {
+                #expect(text.contains(endpoint.absoluteString))
+            }
+        }
+        #expect(text.hasPrefix("Pullwatch 0.5.0: bronnen ("))
+        for header in ["Kwetsbaarheden", "Versies", "Overige verbindingen"] {
+            #expect(text.contains("\n\(header)\n"), "kop \(header) ontbreekt")
+        }
+    }
+
+    @Test func overviewShowsOnAndOff() {
+        let text = text(AppConfig(disabledSources: [.npm]))
+        #expect(text.contains("- npm: uit."))
+        #expect(text.contains("- PyPI: aan."))
+    }
+
+    @Test func overviewListsAccountServers() throws {
+        let enterprise = Account(
+            kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: URL(string: "https://ghe.example.com")
+        )
+        let config = AppConfig(accounts: [enterprise])
+
+        let text = text(config)
+
+        let line = try #require(text.split(separator: "\n").first { $0.contains(enterprise.displayName) })
+        #expect(line.contains("https://ghe.example.com"))
+        #expect(line.contains(": aan."))
+        #expect(SourcesOverview.otherConnections(config: config).contains { $0.url.host() == "ghe.example.com" })
+    }
+
+    @Test func accountServerIsTheAddressTheProviderCalls() {
+        func server(_ kind: ProviderKind, _ instance: String? = nil) -> String {
+            let account = Account(kind: kind, organization: "acme", authMethod: .pat, instanceURL: instance.flatMap(URL.init(string:)))
+            return SourcesOverview.server(of: account).absoluteString
+        }
+        #expect(server(.gitHub) == "https://api.github.com")
+        #expect(server(.gitHub, "https://github.com") == "https://api.github.com")
+        #expect(server(.gitHub, "https://acme.ghe.com") == "https://api.acme.ghe.com")
+        #expect(server(.gitHub, "https://ghe.example.com") == "https://ghe.example.com/api/v3")
+        #expect(server(.azureDevOps) == "https://dev.azure.com/acme")
+        #expect(server(.gitLab) == "https://gitlab.com/api/v4")
+        #expect(server(.gitLab, "https://git.example.com") == "https://git.example.com/api/v4")
+    }
+
+    @Test func pausedAccountAndUpdateCheckShowTheirState() {
+        let paused = Account(kind: .azureDevOps, organization: "acme", authMethod: .pat, isPaused: true)
+        let config = AppConfig(accounts: [paused], checkForUpdates: false)
+
+        let text = text(config)
+
+        #expect(text.contains("- \(paused.displayName): uit."))
+        #expect(text.contains("https://dev.azure.com/acme"))
+        let updates = text.split(separator: "\n").filter { $0.contains("Updatecheck van Pullwatch") }
+        #expect(updates.count == 2)
+        #expect(updates.allSatisfy { $0.contains(": uit.") })
+        let hosts = SourcesOverview.otherConnections(config: config).map { $0.url.host() }
+        #expect(hosts == ["dev.azure.com", "api.github.com", "github.com"])
+    }
+
+    @Test func textHasNoSeparatorsOrDashes() {
+        let text = text(AppConfig(accounts: [Account(kind: .gitHub, organization: "acme", authMethod: .pat)]))
+        #expect(!text.contains("·"))
+        #expect(!text.contains("—"))
+    }
+
+    @Test func titleHasVersionAndDateInTheLocale() {
+        // 3 november 2026, 12:00 UTC: in elke tijdzone van Europa dezelfde dag.
+        let date = Date(timeIntervalSince1970: 1_793_707_200)
+        let dutch = SourcesOverview.text(config: AppConfig(), appVersion: "0.5.0", date: date, locale: dutch)
+        #expect(dutch.hasPrefix("Pullwatch 0.5.0: bronnen (3 november 2026)\n\nKwetsbaarheden\n- OSV.dev: aan."))
+        let english = SourcesOverview.text(config: AppConfig(), appVersion: "0.5.0", date: date, locale: Locale(identifier: "en_GB"))
+        #expect(english.contains("3 November 2026"))
+        #expect(english.contains("- npm: on."))
+    }
+
+    /// Een volledige check (registries, OSV, endoflife.date en de GitHub Advisory Database)
+    /// tegen een mock: elke host die daarbij de deur uit gaat moet in het overzicht staan.
+    @Test func everyHostIsInTheOverview() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{},{"vulns":[{"id":"GHSA-jf85-cpcp-j695"}]},{}]}"#)
+        http.on("vulns/GHSA-jf85-cpcp-j695", body: #"{"id":"GHSA-jf85-cpcp-j695","aliases":["CVE-2019-10744"],"affected":[{"package":{"name":"requests","ecosystem":"PyPI"},"ranges":[{"events":[{"fixed":"2.32.0"}]}]}]}"#)
+        http.on("advisories", body: AdvisoryDatabaseTests.advisoryJSON)
+        http.on("registry.npmjs.org/left-pad", body: #"{"name":"left-pad","dist-tags":{"latest":"1.3.0"},"versions":{"1.3.0":{"name":"left-pad","version":"1.3.0"}}}"#)
+        http.on("pypi.org/pypi/requests", body: #"{"info":{"name":"requests","version":"2.32.0"},"releases":{"2.31.0":[],"2.32.0":[]}}"#)
+        http.on("proxy.golang.org/x.com/y/@latest", body: #"{"Version":"v1.1.0"}"#)
+        http.on("products/go", body: DataSourceCheckTests.goReleases)
+        var files = DataSourceCheckTests.npmAndPyPI
+        files["go.mod"] = DataSourceCheckTests.gomod
+        let provider = FileProvider(repos: ["acme/a"], files: ["acme/a": files])
+        let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs])
+        let config = AppConfig(accounts: [account])
+        let checker = VersionChecker(makeProvider: { _ in provider }, http: http, now: { now })
+
+        let report = await checker.run(accounts: config.accounts)
+        _ = await checker.completingAdvisories(of: report, accounts: config.accounts)
+
+        let called = Set(http.requests.compactMap { $0.url?.host() })
+        // Zonder deze hosts toetst de test niets: ze horen bij de check zelf.
+        for host in ["api.osv.dev", "registry.npmjs.org", "pypi.org", "proxy.golang.org", "endoflife.date", "api.github.com"] {
+            #expect(called.contains(host), "\(host) werd niet aangeroepen")
+        }
+        let listed = Set(DataSource.all.flatMap(\.endpoints).compactMap { $0.host() })
+            .union(SourcesOverview.otherConnections(config: config).compactMap { $0.url.host() })
+        for host in called.sorted() {
+            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
+        }
+    }
+}

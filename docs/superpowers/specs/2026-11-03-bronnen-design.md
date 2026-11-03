@@ -73,7 +73,7 @@ Pullwatch")
 
 | Verbinding | Wat | Schakelaar |
 |---|---|---|
-| Servers van je accounts | Per account de server (github.com, een GitHub Enterprise-server of GHE.com, dev.azure.com, gitlab.com of een eigen GitLab): PR's, tags, repo's, manifesten en lockfiles. Eén rij per account, met het adres van die server. | Geen; uitzetten gaat via het account zelf. |
+| Servers van je accounts | Per account de server (github.com, een GitHub Enterprise-server of GHE.com, dev.azure.com, gitlab.com of een eigen GitLab): PR's, tags, repo's, manifesten en lockfiles. Eén rij per account, met het adres waar de provider echt mee praat: `api.github.com`, `api.<naam>.ghe.com`, `<server>/api/v3`, `dev.azure.com/<organisatie>` of `<server>/api/v4` (`SourcesOverview.server(of:)`). | Geen; uitzetten gaat via het account zelf. |
 | Updatecheck van Pullwatch | `api.github.com` (releases van Pullwatch) en de appcast op `github.com` (Sparkle) | Geen eigen schakelaar hier; de rij toont de stand van "Zoek naar updates" in Algemeen en linkt daarheen. |
 
 De bouwer controleert deze lijst tegen de code: als er een externe aanroep is

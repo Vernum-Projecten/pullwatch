@@ -55,6 +55,16 @@ import PullwatchTestSupport
         #expect(GitHubEndpoints(instanceURL: URL(string: "https://git.acme.ghe.com")).flavor == .server)
     }
 
+    /// Het overzicht van bronnen (PullwatchCore kent `GitHubEndpoints` niet) noemt dezelfde API.
+    @Test func sourcesOverviewNamesTheSameAPI() {
+        let instances = [nil, "https://github.com", "https://acme.ghe.com", "https://git.acme.ghe.com",
+                         "https://github.example.com", "https://git.example.com:8443"]
+        for instance in instances.map({ $0.flatMap(URL.init(string:)) }) {
+            let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: instance)
+            #expect(SourcesOverview.server(of: account) == GitHubEndpoints(instanceURL: instance).api, "\(String(describing: instance))")
+        }
+    }
+
     @Test func gitHubDotComRequestsAreUnchanged() async throws {
         let http = MockHTTPClient()
         http.on("graphql", body: #"{"data":{"r0":null}}"#)
