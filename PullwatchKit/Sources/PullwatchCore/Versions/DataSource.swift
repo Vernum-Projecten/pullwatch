@@ -47,7 +47,7 @@ public struct DataSource: Sendable, Identifiable {
         DataSource(
             id: .azureDevOpsAdvancedSecurity, group: .vulnerabilities, name: "Azure DevOps Advanced Security",
             summary: LocalizedStringResource("Beveiligingsmeldingen van Advanced Security per repo, ook over kwetsbare packages", bundle: .localizedCore),
-            endpoints: ["https://dev.azure.com"], site: "https://azure.microsoft.com/products/devops/github-advanced-security"),
+            endpoints: ["https://advsec.dev.azure.com"], site: "https://azure.microsoft.com/products/devops/github-advanced-security"),
         DataSource(
             id: .npm, group: .versions, name: "npm",
             summary: LocalizedStringResource("Nieuwste versie en gegevens van npm-packages (JavaScript)", bundle: .localizedCore),
