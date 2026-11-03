@@ -11,6 +11,7 @@ extension DependencyDetector {
     static func nugetLock(_ content: String, path: String) -> LockfileRead {
         struct Entry: Decodable {
             let type: String?
+            let requested: String?
             let resolved: String?
             let dependencies: [String: String]?
         }
@@ -29,13 +30,19 @@ extension DependencyDetector {
                 children: { key in (byKey[key]?.entry.dependencies ?? [:]).keys.map { $0.lowercased() }.filter { byKey[$0] != nil }.sorted() },
                 name: { byKey[$0]?.name ?? $0 }
             )
+            /// Het bereik waarmee de ouder het package vraagt; NuGet schrijft de naam soms anders.
+            func requested(by parent: String?, _ key: String) -> String? {
+                guard let parent else { return nil }
+                return byKey[parent]?.entry.dependencies?.first { $0.key.lowercased() == key }?.value
+            }
             for key in byKey.keys.sorted() {
                 guard let (name, entry) = byKey[key], entry.type != "Project",
                       let version = entry.resolved, isExactVersion(version) else { continue }
                 let direct = entry.type == "Direct"
                 read.dependencies.append(Dependency(
                     ecosystem: "NuGet", name: name, version: version, source: path, workspace: nil,
-                    scope: direct ? .direct : .transitive, via: direct ? [] : reach[key]?.via ?? []
+                    scope: direct ? .direct : .transitive, via: direct ? [] : reach[key]?.via ?? [],
+                    requested: direct ? entry.requested : requested(by: reach[key]?.parent, key)
                 ))
             }
         }
@@ -77,12 +84,16 @@ extension DependencyDetector {
                     guard isExactVersion(version), seen.insert("\(name)@\(version)").inserted else { continue }
                     read.dependencies.append(Dependency(ecosystem: "RubyGems", name: name, version: version, source: path,
                                                         workspace: nil, scope: .unknown))
-                } else if indent == 6, let current, let m = text.firstMatch(of: /^([^\s(!]+)/) {
+                } else if indent == 6, let current, let m = text.firstMatch(of: /^([^\s(!]+)(?: \(([^)]+)\))?/) {
                     let child = String(m.output.1)
                     if !(graph[current] ?? []).contains(child) { graph[current, default: []].append(child) }
+                    if let range = m.output.2 { read.requirements[current, default: [:]][child] = String(range) }
                 }
             case "DEPENDENCIES":
-                if indent == 2, let m = text.firstMatch(of: /^([^\s(!]+)/) { direct[String(m.output.1)] = .runtime }
+                if indent == 2, let m = text.firstMatch(of: /^([^\s(!]+)(?: \(([^)]+)\))?/) {
+                    direct[String(m.output.1)] = .runtime
+                    if let range = m.output.2 { read.directRanges[String(m.output.1)] = String(range) }
+                }
             default:
                 continue
             }
@@ -92,14 +103,16 @@ extension DependencyDetector {
         return read
     }
 
-    /// Gemfile (en gems.rb): `gem "naam"` per regel. Binnen `group :development, :test do … end`
-    /// of met `group: :test` is een gem dev, als alle groepen development of test zijn.
-    static func gemfileNames(_ content: String) -> [(String, DependencyKind)] {
+    /// Gemfile (en gems.rb): `gem "naam"` per regel, met de requirements erachter
+    /// (`gem "rails", "~> 7.1", ">= 7.1.2"` → "~> 7.1, >= 7.1.2"). Binnen
+    /// `group :development, :test do … end` of met `group: :test` is een gem dev, als alle groepen
+    /// development of test zijn.
+    static func gemfileNames(_ content: String) -> [(String, DependencyKind, String?)] {
         func kind(_ groups: Substring) -> DependencyKind {
             let names = groups.matches(of: /:(\w+)|"(\w+)"|'(\w+)'/).map { String($0.output.1 ?? $0.output.2 ?? $0.output.3 ?? "") }
             return !names.isEmpty && names.allSatisfy { $0 == "development" || $0 == "test" } ? .dev : .runtime
         }
-        var names: [(String, DependencyKind)] = []
+        var names: [(String, DependencyKind, String?)] = []
         /// Per open blok: de soort van een `group`-blok, nil voor andere blokken (platforms, source).
         var blocks: [DependencyKind?] = []
         for raw in content.split(whereSeparator: \.isNewline) {
@@ -117,7 +130,12 @@ extension DependencyDetector {
             if let m = line.firstMatch(of: /^gem\s*\(?\s*["']([^"']+)["'](.*)/) {
                 var current = blocks.reversed().compactMap { $0 }.first ?? .runtime
                 if let inline = m.output.2.firstMatch(of: /\bgroups?:\s*(\[[^\]]*\]|:\w+)/) { current = kind(inline.output.1) }
-                names.append((String(m.output.1), current))
+                // Strings direct na de naam, tot de eerste optie (`require: false`).
+                let arguments = m.output.2.split(separator: ",", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: CharacterSet(charactersIn: " )")) }
+                let requirements = arguments.dropFirst().prefix { $0.wholeMatch(of: /["'][^"']*["']/) != nil }
+                    .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: "\"'")) }
+                    .filter { $0.first.map { $0.isNumber || "~<>=!".contains($0) } ?? false }
+                names.append((String(m.output.1), current, requirements.isEmpty ? nil : requirements.joined(separator: ", ")))
                 if opens { blocks.append(nil) }
                 continue
             }

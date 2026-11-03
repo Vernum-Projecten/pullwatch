@@ -160,12 +160,20 @@ extension DependencyDetector {
             let requests = packageJSONs[join(base, importer)]?.requests
                 ?? berryWorkspaces[importer]?.dependencies.map { ($0.name, $0.range, DependencyKind.runtime) } ?? []
             let roots = requests.compactMap { request in node(request.name, request.range).map { (node: $0, kind: request.kind) } }
+            var rootRanges: [String: String] = [:]
+            for request in requests {
+                if let id = node(request.name, request.range), rootRanges[id] == nil { rootRanges[id] = request.range }
+            }
             for (id, reach) in walk(roots: roots, children: children, name: { entryAt($0)?.name ?? $0 }) {
                 guard let entry = entryAt(id), isExactVersion(entry.version) else { continue }
                 reached.insert(id)
+                // Het bereik van de ouder: de descriptor waarmee hij naar deze entry wijst.
+                let requested = reach.parent.map { parent in
+                    entryAt(parent)?.dependencies.first { node($0.name, $0.range) == id }?.range
+                } ?? rootRanges[id]
                 read.dependencies.append(Dependency(
                     ecosystem: "npm", name: entry.name, version: entry.version, source: path, workspace: join(base, importer),
-                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via
+                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via, requested: requested
                 ))
             }
         }
@@ -240,12 +248,15 @@ extension DependencyDetector {
         var reached: Set<String> = []
         for importer in importers {
             var roots: [(node: String, kind: DependencyKind)] = []
+            /// v6+ bewaart per importer het bereik uit package.json als `specifier`.
+            var specifiers: [String: String] = [:]
             for (field, kind) in [("dependencies", DependencyKind.runtime), ("optionalDependencies", .optional), ("devDependencies", .dev)] {
                 for dependency in importer[field]?.children ?? [] {
                     // v6+: `version:` onder de naam; v5 had de versie als waarde.
                     guard let node = reference(dependency.key, dependency["version"]?.value ?? dependency.value ?? ""),
                           nodes.contains(node) else { continue }
                     roots.append((node, kind))
+                    if let specifier = dependency["specifier"]?.value, specifiers[node] == nil { specifiers[node] = specifier }
                 }
             }
             let workspace = join(base, importer.key == "." ? "" : importer.key)
@@ -253,9 +264,11 @@ extension DependencyDetector {
                 let (name, version) = package(node)
                 guard isExactVersion(version) else { continue }
                 reached.insert("\(name)@\(version)")
+                // De graaf van pnpm bewaart alleen opgeloste versies: een bereik alleen voor directe installs.
                 read.dependencies.append(Dependency(
                     ecosystem: "npm", name: name, version: version, source: path, workspace: workspace,
-                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via
+                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via,
+                    requested: reach.parent == nil ? specifiers[node] : nil
                 ))
             }
         }
