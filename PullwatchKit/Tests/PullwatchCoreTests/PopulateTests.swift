@@ -50,12 +50,11 @@ import PullwatchTestSupport
         #expect(try JSONDecoder().decode(Account.self, from: Data(missing.utf8)).newRepoDefault == .prs)
     }
 
-    @Test func newDefaultRoundTrips() throws {
-        for choice in NewRepoDefault.allCases {
-            let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp, newRepoDefault: choice)
-            let decoded = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(account))
-            #expect(decoded.newRepoDefault == choice)
-        }
+    @Test(arguments: NewRepoDefault.allCases)
+    func newDefaultRoundTrips(choice: NewRepoDefault) throws {
+        let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp, newRepoDefault: choice)
+        let decoded = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(account))
+        #expect(decoded.newRepoDefault == choice)
     }
 
     @Test func tagReposComeFromTheProviderListWhenTagsAreTheDefault() {

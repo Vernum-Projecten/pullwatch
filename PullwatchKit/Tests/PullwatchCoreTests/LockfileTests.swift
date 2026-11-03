@@ -844,10 +844,12 @@ import Testing
 
     // MARK: Ophalen
 
-    @Test func newLockfilesAreRelevant() {
-        for path in ["yarn.lock", "web/pnpm-lock.yaml", "src/Api/packages.lock.json", "Gemfile.lock", "Gemfile", "gems.locked", "gems.rb"] {
-            #expect(DependencyDetector.isRelevant(path), "\(path)")
-        }
+    @Test(arguments: ["yarn.lock", "web/pnpm-lock.yaml", "src/Api/packages.lock.json", "Gemfile.lock", "Gemfile", "gems.locked", "gems.rb"])
+    func newLockfilesAreRelevant(path: String) {
+        #expect(DependencyDetector.isRelevant(path))
+    }
+
+    @Test func aPnpmWorkspaceIsNoLockfile() {
         #expect(!DependencyDetector.isRelevant("pnpm-workspace.yaml"))
     }
 

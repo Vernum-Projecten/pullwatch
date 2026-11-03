@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public struct ProcessOutput: Sendable, Equatable {
     public let status: Int32
@@ -36,23 +37,22 @@ public struct SystemProcessRunner: ProcessRunner {
 }
 
 /// Eén uitvoering van een proces. De continuation wordt precies één keer hervat:
-/// bij normale afronding, timeout of annulering. Alle toestand zit achter `lock`.
-private final class ProcessRun: @unchecked Sendable {
-    private let lock = NSLock()
+/// bij normale afronding, timeout of annulering. Alle toestand zit achter `state`.
+private final class ProcessRun: Sendable {
+    private struct State {
+        var continuation: CheckedContinuation<ProcessOutput, any Error>?
+        var pendingResult: Result<ProcessOutput, any Error>?
+        var finished = false
+        var timer: Task<Void, Never>?
+    }
+
+    private let state = Mutex(State())
     private let process = Process()
     private let stdoutPipe = Pipe()
     private let stderrPipe = Pipe()
-    private let readers = DispatchGroup()
     private let executable: URL
     private let arguments: [String]
     private let timeout: Duration
-
-    private var stdoutData = Data()
-    private var stderrData = Data()
-    private var continuation: CheckedContinuation<ProcessOutput, any Error>?
-    private var pendingResult: Result<ProcessOutput, any Error>?
-    private var finished = false
-    private var timer: Task<Void, Never>?
 
     init(executable: URL, arguments: [String], timeout: Duration) {
         self.executable = executable
@@ -61,12 +61,12 @@ private final class ProcessRun: @unchecked Sendable {
     }
 
     func start(_ continuation: CheckedContinuation<ProcessOutput, any Error>) {
-        lock.withLock {
-            if let pendingResult {
+        state.withLock { locked in
+            if let pendingResult = locked.pendingResult {
                 continuation.resume(with: pendingResult)
                 return
             }
-            self.continuation = continuation
+            locked.continuation = continuation
 
             process.executableURL = executable
             process.arguments = arguments
@@ -79,37 +79,38 @@ private final class ProcessRun: @unchecked Sendable {
             process.standardInput = FileHandle.nullDevice
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
-            process.terminationHandler = { [self] finishedProcess in
-                didTerminate(finishedProcess.terminationStatus)
+            // De exitcode wacht in de stream: terminationHandler kan op een andere thread vuren
+            // voordat start() klaar is.
+            let (exits, exit) = AsyncStream.makeStream(of: Int32.self, bufferingPolicy: .bufferingNewest(1))
+            process.terminationHandler = { finishedProcess in
+                exit.yield(finishedProcess.terminationStatus)
+                exit.finish()
             }
 
-            // Beide readers moeten al geregistreerd zijn vóór launch: terminationHandler kan
-            // op een andere thread vuren voordat start() klaar is.
-            readers.enter()
-            readers.enter()
             do {
                 try process.run()
             } catch {
-                readers.leave()
-                readers.leave()
                 process.terminationHandler = nil
-                finishLocked(.failure(error))
+                Self.finish(&locked, .failure(error))
                 return
             }
 
-            // Pipes concurrent leegtrekken, anders blokkeert een grote output het proces.
-            DispatchQueue.global().async { [self] in
-                let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-                lock.withLock { stdoutData = data }
-                readers.leave()
-            }
-            DispatchQueue.global().async { [self] in
-                let data = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-                lock.withLock { stderrData = data }
-                readers.leave()
+            // Pipes tegelijk leegtrekken, anders blokkeert een grote output het proces. De
+            // uitvoer is compleet als het proces klaar is en beide pipes leeg zijn.
+            let stdout = Self.readToEnd(stdoutPipe.fileHandleForReading)
+            let stderr = Self.readToEnd(stderrPipe.fileHandleForReading)
+            Task { [self] in
+                var status: Int32 = 0
+                for await code in exits { status = code }
+                let output = ProcessOutput(
+                    status: status,
+                    stdout: String(decoding: await stdout.value, as: UTF8.self),
+                    stderr: String(decoding: await stderr.value, as: UTF8.self)
+                )
+                state.withLock { Self.finish(&$0, .success(output)) }
             }
 
-            timer = Task { [self] in
+            locked.timer = Task { [self] in
                 do {
                     try await Task.sleep(for: timeout)
                 } catch {
@@ -122,38 +123,48 @@ private final class ProcessRun: @unchecked Sendable {
 
     /// Beëindigt het proces (indien nog actief) en hervat met `result`, tenzij al afgerond.
     func stop(_ result: Result<ProcessOutput, any Error>) {
-        lock.withLock {
-            guard !finished else { return }
+        state.withLock { locked in
+            guard !locked.finished else { return }
             if process.isRunning {
                 process.terminate()
             }
-            finishLocked(result)
+            Self.finish(&locked, result)
         }
     }
 
-    private func didTerminate(_ status: Int32) {
-        readers.notify(queue: .global()) { [self] in
-            lock.withLock {
-                finishLocked(.success(ProcessOutput(
-                    status: status,
-                    stdout: String(decoding: stdoutData, as: UTF8.self),
-                    stderr: String(decoding: stderrData, as: UTF8.self)
-                )))
+    /// Alles tot het einde van de pipe, zonder een thread te blokkeren: `readabilityHandler`
+    /// geeft elk stuk dat binnenkomt, en een leeg stuk is het einde.
+    private static func readToEnd(_ handle: FileHandle) -> Task<Data, Never> {
+        let (chunks, chunk) = AsyncStream.makeStream(of: Data.self)
+        handle.readabilityHandler = { handle in
+            let data = handle.availableData
+            if data.isEmpty {
+                handle.readabilityHandler = nil
+                chunk.finish()
+            } else {
+                chunk.yield(data)
             }
         }
+        return Task {
+            var data = Data()
+            for await part in chunks {
+                data.append(part)
+            }
+            return data
+        }
     }
 
-    /// Moet onder `lock` worden aangeroepen.
-    private func finishLocked(_ result: Result<ProcessOutput, any Error>) {
-        guard !finished else { return }
-        finished = true
-        timer?.cancel()
-        timer = nil
-        if let continuation {
+    /// Alleen binnen `state.withLock` aanroepen.
+    private static func finish(_ locked: inout State, _ result: Result<ProcessOutput, any Error>) {
+        guard !locked.finished else { return }
+        locked.finished = true
+        locked.timer?.cancel()
+        locked.timer = nil
+        if let continuation = locked.continuation {
             continuation.resume(with: result)
-            self.continuation = nil
+            locked.continuation = nil
         } else {
-            pendingResult = result
+            locked.pendingResult = result
         }
     }
 }

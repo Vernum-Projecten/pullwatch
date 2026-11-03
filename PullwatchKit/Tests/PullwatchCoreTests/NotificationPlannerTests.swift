@@ -107,11 +107,10 @@ import PullwatchTestSupport
         #expect(NotificationImportance.of(.pullRequest).playsSound)
     }
 
-    @Test func tagsMergedAndNewVersionsArePassiveAndSilent() {
-        for kind in [NotificationKind.tag, .merged, .packageUpdate, .appUpdate] {
-            #expect(NotificationImportance.of(kind).level == .passive)
-            #expect(!NotificationImportance.of(kind).playsSound)
-        }
+    @Test(arguments: [NotificationKind.tag, .merged, .packageUpdate, .appUpdate])
+    func tagsMergedAndNewVersionsArePassiveAndSilent(kind: NotificationKind) {
+        #expect(NotificationImportance.of(kind).level == .passive)
+        #expect(!NotificationImportance.of(kind).playsSound)
     }
 
     @Test func vulnerabilitiesLeadAndTheWorstLeadsMost() {
@@ -126,13 +125,12 @@ import PullwatchTestSupport
         #expect(NotificationImportance.of(.securityAlert, severityRank: 9).relevance == critical.relevance)
     }
 
-    @Test func quietHoursMakeEverythingPassiveAndSilent() {
-        for kind in NotificationKind.allCases {
-            let quiet = NotificationImportance.of(kind, severityRank: 4, quiet: true)
-            #expect(quiet.level == .passive)
-            #expect(!quiet.playsSound)
-            #expect(quiet.relevance == NotificationImportance.of(kind, severityRank: 4).relevance)
-        }
+    @Test(arguments: NotificationKind.allCases)
+    func quietHoursMakeEverythingPassiveAndSilent(kind: NotificationKind) {
+        let quiet = NotificationImportance.of(kind, severityRank: 4, quiet: true)
+        #expect(quiet.level == .passive)
+        #expect(!quiet.playsSound)
+        #expect(quiet.relevance == NotificationImportance.of(kind, severityRank: 4).relevance)
     }
 
     @Test func aSummaryIsAsImportantAsItsStrongestItem() {

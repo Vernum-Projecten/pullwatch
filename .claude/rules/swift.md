@@ -107,10 +107,13 @@ CI treats warnings as errors.
 - `async`/`await`, `Task`, task groups and actors. No `DispatchQueue`,
   `DispatchGroup`, completion handlers or Combine: Apple ships an `async`
   form of the APIs we use (`UNUserNotificationCenter.add`,
-  `notificationSettings()`, `FileHandle.bytes`), and callbacks lose
+  `notificationSettings()`, `URLSession.data(for:)`), and callbacks lose
   cancellation and error propagation. When a callback API has no `async`
-  form, wrap it once with `withCheckedThrowingContinuation` and resume
-  exactly once.
+  form, wrap it once: `withCheckedThrowingContinuation` for one result
+  (resumed exactly once), `AsyncStream.makeStream` for a series
+  (`ProcessRunner` turns `terminationHandler` and `readabilityHandler` into
+  streams). Not `FileHandle.bytes` on a pipe: with several processes at once
+  it can miss the end of the output and hang until the timeout.
 - Cancellation is cooperative. A long call takes
   `withTaskCancellationHandler` to stop its work (terminate the process,
   cancel the request); a loop checks `Task.isCancelled` or calls
