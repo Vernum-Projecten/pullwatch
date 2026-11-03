@@ -65,8 +65,16 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey
             case .tag(let tag):
-                content.title = String(localized: "\(tag.repo): nieuwe tag", comment: "Meldingstitel; repo")
-                content.body = Self.body(tag.name, author: tag.authorName)
+                // Een release (ook van een tag die er al was) heet naar zijn titel.
+                switch tag.release?.isPrerelease {
+                case true?:
+                    content.title = String(localized: "\(tag.repo): nieuwe pre-release", comment: "Meldingstitel; repo")
+                case false?:
+                    content.title = String(localized: "\(tag.repo): nieuwe release", comment: "Meldingstitel; repo")
+                case nil:
+                    content.title = String(localized: "\(tag.repo): nieuwe tag", comment: "Meldingstitel; repo")
+                }
+                content.body = Self.body(tag.releaseTitle ?? tag.name, author: tag.authorName)
                 content.userInfo = ["url": tag.webURL.absoluteString, "key": tag.dedupKey]
                 identifier = tag.dedupKey
             case .completed(let pr):
@@ -78,6 +86,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 switch kind {
                 case .pullRequest: content.title = String(localized: "\(count) nieuwe PR's", comment: "Meldingstitel; aantal")
                 case .tag: content.title = String(localized: "\(count) nieuwe tags", comment: "Meldingstitel; aantal")
+                case .release: content.title = String(localized: "\(count) nieuwe releases", comment: "Meldingstitel; aantal")
                 case .completed: content.title = String(localized: "\(count) PR's completed", comment: "Meldingstitel; aantal gemergde PR's")
                 }
                 content.body = lines.joined(separator: "\n")

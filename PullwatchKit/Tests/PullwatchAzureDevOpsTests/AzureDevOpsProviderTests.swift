@@ -187,6 +187,53 @@ import PullwatchTestSupport
         #expect(batch.httpMethod == "POST")
     }
 
+    @Test func tagWithoutCreatorGetsItsTaggerOrCommitAuthor() async throws {
+        let http = MockHTTPClient()
+        http.on("repositories/api/refs", body: #"""
+        {"value":[
+          {"name":"refs/tags/v1","objectId":"c1"},
+          {"name":"refs/tags/v2","objectId":"t2","peeledObjectId":"c2"},
+          {"name":"refs/tags/v3","objectId":"t3","peeledObjectId":"c3","creator":{"displayName":"Jan"}}
+        ]}
+        """#)
+        http.on("repositories/api/annotatedtags/t2", body: #"""
+        {"name":"v2","objectId":"t2","taggedBy":{"name":"Piet de Vries","email":"piet@example.com","date":"2026-10-01T10:00:00Z"}}
+        """#)
+        http.on("repositories/api/commitsbatch", body: #"""
+        {"count":1,"value":[{"commitId":"c1","author":{"name":"Anna Bakker","date":"2026-08-01T10:00:00Z"}}]}
+        """#)
+
+        let tags = try await makeProvider(http).tags(in: ["proj/api"]).tags
+
+        #expect(tags.map(\.name) == ["v1", "v2", "v3"])
+        #expect(tags.map(\.authorName) == ["Anna Bakker", "Piet de Vries", "Jan"])
+        let urls = http.requests.compactMap { $0.url?.absoluteString }
+        #expect(urls.first?.contains("peelTags=true") == true)
+        #expect(!urls.contains { $0.contains("annotatedtags/t3") }) // de creator is genoeg
+        #expect(urls.count == 3)
+    }
+
+    @Test func tagsWithCreatorsNeedNoExtraRequests() async throws {
+        let http = MockHTTPClient()
+        http.on("repositories/api/refs", body: #"{"value":[{"name":"refs/tags/v1","objectId":"t1","peeledObjectId":"c1","creator":{"displayName":"Jan"}}]}"#)
+
+        _ = try await makeProvider(http).tags(in: ["proj/api"])
+
+        #expect(http.requests.count == 1)
+    }
+
+    @Test func datedTagWithoutCreatorUsesTheCommitAuthor() async throws {
+        let http = MockHTTPClient()
+        http.on("repositories/api/refs", body: #"{"value":[{"name":"refs/tags/v1","objectId":"c1"}]}"#)
+        http.on("repositories/api/commitsbatch", body: #"""
+        {"count":1,"value":[{"commitId":"c1","author":{"name":"Anna Bakker","date":"2026-08-01T10:00:00Z"},"committer":{"date":"2026-08-01T10:00:00Z"}}]}
+        """#)
+
+        let tags = try await makeProvider(http).datedTags(in: "proj/api", limit: 10)
+
+        #expect(tags.map(\.authorName) == ["Anna Bakker"])
+    }
+
     @Test func tagURLEncodesName() async throws {
         let http = MockHTTPClient()
         http.on("_apis/git/repositories/api/refs", body: #"{"value":[{"name":"refs/tags/release/2.0+b"}]}"#)

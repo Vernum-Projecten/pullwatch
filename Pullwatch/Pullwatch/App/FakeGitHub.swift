@@ -74,7 +74,7 @@ nonisolated final class FakeGitHub: HTTPClient {
             case "/search/issues":
                 body = #"{"total_count":0,"items":[]}"#
             case "/graphql":
-                body = #"{"data":{"repository":null}}"#
+                body = #"{"data":{}}"#
             default:
                 // Tags, bomen, bestanden: leeg, zodat polls en checks gewoon doorlopen.
                 body = path.hasSuffix("/tags") ? "[]" : #"{"tree":[]}"#
@@ -123,10 +123,39 @@ nonisolated private enum FakeWorld {
         "linguist#12": [(nil, "Jan de Vries")],
     ]
 
-    static let tags: [String: [String]] = [
-        "hello-world": ["v1.2.0", "v1.1.0"],
-        "spoon-knife": ["v3.0.1"],
-        "linguist": ["v9.4.0", "v9.3.2"],
+    /// Een tag: geannoteerd (met een tagger) of licht (alleen de auteur van de commit; zonder
+    /// login een naam uit git), met of zonder release.
+    struct FakeTag {
+        struct Release {
+            let title: String
+            let author: String
+            var isPrerelease = false
+        }
+
+        let name: String
+        let daysAgo: Double
+        /// GitHub-login van de tagger; nil voor een lichte tag.
+        var tagger: String?
+        /// Auteur van de commit: een login of, met `committerLogin` uit, een naam uit git.
+        var committer = "mona"
+        var committerLogin = true
+        var release: Release?
+    }
+
+    static let tags: [String: [FakeTag]] = [
+        "hello-world": [
+            FakeTag(name: "v1.3.0-beta.1", daysAgo: 0.3, tagger: "hubot",
+                    release: .init(title: "Greetings in five languages (beta)", author: "hubot", isPrerelease: true)),
+            FakeTag(name: "v1.2.0", daysAgo: 3, tagger: "mona", release: .init(title: "Dutch greeting", author: "github-actions[bot]")),
+            FakeTag(name: "v1.1.0", daysAgo: 33, committer: "jdoe"),
+        ],
+        "spoon-knife": [
+            FakeTag(name: "v3.0.1", daysAgo: 5, tagger: "jdoe", release: .init(title: "Fork button", author: "jdoe")),
+        ],
+        "linguist": [
+            FakeTag(name: "v9.4.0", daysAgo: 1.5, tagger: "amelie"),
+            FakeTag(name: "v9.3.2", daysAgo: 40, committer: "Jan de Vries", committerLogin: false),
+        ],
     ]
 
     static let files: [String: [String: String]] = [
@@ -186,16 +215,13 @@ nonisolated private enum FakeWorld {
         if path == "/search/issues" { return search(query: url.query() ?? "") }
         if path == "/graphql" {
             let isCoAuthorQuery = request.httpBody.map { String(decoding: $0, as: UTF8.self).contains("pullRequest(number") } ?? false
-            return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : datedTags(body: request.httpBody)
+            return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : tagsAndReleases(body: request.httpBody)
         }
         let parts = url.pathComponents
         // /repos/octocat/<repo>/...
         guard parts.count >= 5, parts[1] == "repos", parts[2] == FakeGitHub.login else { return nil }
         let repo = parts[3]
         switch parts[4] {
-        case "tags":
-            let names = tags[repo] ?? []
-            return "[" + names.map { #"{"name":"\#($0)"}"# }.joined(separator: ",") + "]"
         case "git":
             let paths = files[repo].map { Array($0.keys).sorted() } ?? []
             return #"{"tree":["# + paths.map { #"{"path":"\#($0)","type":"blob"}"# }.joined(separator: ",") + "]}"
@@ -221,21 +247,42 @@ nonisolated private enum FakeWorld {
         return #"{"total_count":\#(items.count),"items":["# + items.joined(separator: ",") + "]}"
     }
 
-    /// De GraphQL-vraag naar tags met datum (`GitHubProvider.datedTags`): de tags van de repo,
-    /// de eerste een paar dagen oud en elke volgende een maand ouder.
-    static func datedTags(body: Data?) -> String {
-        struct Query: Decodable {
-            struct Variables: Decodable { let owner: String; let name: String }
-            let variables: Variables
+    /// De GraphQL-vraag naar tags en releases (`GitHubProvider.tags`): per alias (`r0`, `r1`, …)
+    /// de tags van die repo met hun tagger of commit-auteur, en de releases. Alleen repo's van
+    /// octocat bestaan; de rest is `null`, zoals bij GitHub.
+    static func tagsAndReleases(body: Data?) -> String {
+        struct Query: Decodable { let variables: [String: String] }
+        let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
+        func actor(_ login: String?, name: String) -> String {
+            let user = login.map { #"{"login":"\#($0)","avatarUrl":"https://github.com/\#($0).png?size=40"}"# } ?? "null"
+            return #"{"name":"\#(name)","avatarUrl":null,"user":\#(user)}"#
         }
-        let query = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }
-        guard let query, query.variables.owner == FakeGitHub.login, let names = tags[query.variables.name] else {
-            return #"{"data":{"repository":null}}"#
+        var fields: [String] = []
+        for index in 0... {
+            guard let owner = variables["o\(index)"], let name = variables["n\(index)"] else { break }
+            guard owner == FakeGitHub.login, let list = tags[name] else {
+                fields.append(#""r\#(index)":null"#)
+                continue
+            }
+            let refs = list.map { tag -> String in
+                let author = actor(tag.committerLogin ? tag.committer : nil, name: tag.committer)
+                let commit = #"{"committedDate":"\#(iso(tag.daysAgo + 0.1))","author":\#(author)}"#
+                guard let tagger = tag.tagger else { return #"{"name":"\#(tag.name)","target":\#(commit)}"# }
+                let taggerJSON = #"{"name":"\#(tagger)","avatarUrl":null,"date":"\#(iso(tag.daysAgo))","#
+                    + #""user":{"login":"\#(tagger)","avatarUrl":"https://github.com/\#(tagger).png?size=40"}}"#
+                return #"{"name":"\#(tag.name)","target":{"tagger":\#(taggerJSON),"target":\#(commit)}}"#
+            }
+            let releases = list.compactMap { tag -> String? in
+                guard let release = tag.release else { return nil }
+                return #"{"id":"RE_\#(name)_\#(tag.name)","tagName":"\#(tag.name)","name":"\#(release.title)","isDraft":false,"#
+                    + #""isPrerelease":\#(release.isPrerelease),"publishedAt":"\#(iso(tag.daysAgo))","updatedAt":"\#(iso(tag.daysAgo))","#
+                    + #""url":"https://github.com/octocat/\#(name)/releases/tag/\#(tag.name)","#
+                    + #""author":{"login":"\#(release.author)","avatarUrl":"https://github.com/\#(release.author).png?size=40"}}"#
+            }
+            fields.append(#""r\#(index)":{"refs":{"totalCount":\#(refs.count),"nodes":["# + refs.joined(separator: ",") + "]},"
+                + #""releases":{"totalCount":\#(releases.count),"nodes":["# + releases.joined(separator: ",") + "]}}")
         }
-        let nodes = names.enumerated().map { index, name in
-            #"{"name":"\#(name)","target":{"committedDate":"\#(iso(3 + Double(index) * 30))"}}"#
-        }
-        return #"{"data":{"repository":{"refs":{"nodes":["# + nodes.joined(separator: ",") + "]}}}}"
+        return #"{"data":{"# + fields.joined(separator: ",") + "}}"
     }
 
     /// De GraphQL-vraag naar commit-auteurs (`GitHubProvider.coAuthors`): per alias de auteur

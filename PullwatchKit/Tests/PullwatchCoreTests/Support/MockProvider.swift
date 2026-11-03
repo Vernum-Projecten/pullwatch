@@ -19,6 +19,10 @@ actor MockProvider: PRProvider {
     /// Laatste aan `pullRequests(updatedSince:limit:)` doorgegeven `since` (nil = nog nooit aangeroepen).
     private(set) var lastSyncSince: Date??
     private(set) var tagFetchCount = 0
+    /// Vingerafdruk per repo (lowercased) die `tags(in:unchanged:)` geeft; leeg = geen vingerafdrukken.
+    private var fingerprints: [String: String] = [:]
+    /// Laatste aan `tags(in:unchanged:)` doorgegeven vingerafdrukken.
+    private(set) var lastUnchanged: [String: String] = [:]
     private(set) var invalidateCount = 0
     private var coAuthorList: [String: [Person]] = [:]
     private var coAuthorError: ProviderError?
@@ -41,6 +45,7 @@ actor MockProvider: PRProvider {
     func set(coAuthorError: ProviderError?) { self.coAuthorError = coAuthorError }
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
+    func set(fingerprints: [String: String]) { self.fingerprints = fingerprints }
     /// Repo's die `tags(in:)` als onbereikbaar meldt (404/403).
     func set(unavailableTagRepos: [String]) { self.unavailableTagRepos = Set(unavailableTagRepos.map { $0.lowercased() }) }
 
@@ -81,6 +86,20 @@ actor MockProvider: PRProvider {
             tags: tagList.filter { wanted.contains($0.repo.lowercased()) },
             unavailableRepos: repos.filter { unavailableTagRepos.contains($0.lowercased()) }
         )
+    }
+
+    /// Met vingerafdrukken: een repo waarvan de bekende vingerafdruk gelijk is komt zonder tags terug.
+    func tags(in repos: [String], unchanged: [String: String]) async throws -> TagFetch {
+        lastUnchanged = unchanged
+        var fetch = try await tags(in: repos)
+        guard !fingerprints.isEmpty else { return fetch }
+        let available = repos.filter { !unavailableTagRepos.contains($0.lowercased()) }
+        let same = Set(available.filter { unchanged[$0] != nil && unchanged[$0] == fingerprints[$0.lowercased()] }.map { $0.lowercased() })
+        fetch.tags.removeAll { same.contains($0.repo.lowercased()) }
+        fetch.unchangedRepos = available.filter { same.contains($0.lowercased()) }
+        fetch.fingerprints = Dictionary(available.compactMap { repo in fingerprints[repo.lowercased()].map { (repo, $0) } },
+                                        uniquingKeysWith: { first, _ in first })
+        return fetch
     }
 
     func datedTags(in repo: String, limit: Int) async throws -> [Tag] {

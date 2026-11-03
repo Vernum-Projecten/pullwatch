@@ -2,17 +2,24 @@ import PullwatchCore
 import SwiftUI
 
 /// De auteur van een PR met wie er meewerkte: kleine gestapelde foto's en "mona en 2 anderen".
-/// De tooltip en VoiceOver noemen iedereen bij naam. Zonder co-auteurs alleen de auteur.
+/// De tooltip en VoiceOver noemen iedereen bij naam. Zonder co-auteurs alleen de auteur, met
+/// `avatarURL` (de maker van een tag of release) met zijn foto ervoor.
 struct ContributorsLabel: View {
     let author: String
     let coAuthors: [Person]
     let kind: ProviderKind
+    var avatarURL: URL? = nil
 
     /// Hooguit zoveel foto's; de tekst noemt het aantal.
     private let maxAvatars = 3
 
     var body: some View {
-        if coAuthors.isEmpty {
+        if coAuthors.isEmpty, let avatarURL {
+            HStack(spacing: 5) {
+                PersonAvatar(url: avatarURL)
+                Text(verbatim: author).lineLimit(1)
+            }
+        } else if coAuthors.isEmpty {
             Text(verbatim: author).lineLimit(1)
         } else {
             HStack(spacing: 5) {

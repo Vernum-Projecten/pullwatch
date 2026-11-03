@@ -8,13 +8,18 @@ import Foundation
 /// geprunet, zodat een repo na een lange tag-storing opnieuw stil seedt. `syncMarks` bevat per
 /// account (`accountId.uuidString`) de laatste geslaagde geschiedenis-sync. `coAuthors` bevat per
 /// PR (dedupKey) de opgehaalde co-auteurs en de `PullRequest.revision` waarbij ze horen, zodat
-/// een PR die niet veranderde geen extra verzoek kost; ook geprunet met `seen`.
+/// een PR die niet veranderde geen extra verzoek kost; ook geprunet met `seen`. `tagFingerprints`
+/// bevat per tag-repo (dezelfde key als `tagSeeded`) de vingerafdruk van zijn nieuwste tag en
+/// release (`TagFetch.fingerprints`), zodat een repo die niet veranderde in de volgende poll niet
+/// helemaal opgehaald wordt; het verdwijnt samen met de `tagSeeded`-entry. Een repo met een
+/// vingerafdruk is ook al eens met releases opgehaald: pas daarna wordt een nieuwe release gemeld.
 public struct SeenState: Codable, Equatable, Sendable {
     public var seen: [String: Date] = [:]
     public var lastSettings: [String: FilterSettings] = [:]
     public var tagSeeded: [String: Date] = [:]
     public var syncMarks: [String: SyncMark] = [:]
     public var coAuthors: [String: CoAuthorMark] = [:]
+    public var tagFingerprints: [String: String] = [:]
 
     public init() {}
 
@@ -28,6 +33,8 @@ public struct SeenState: Codable, Equatable, Sendable {
         syncMarks = try container.decodeIfPresent([String: SyncMark].self, forKey: .syncMarks) ?? [:]
         // Ontbreekt in seen.json van vóór de co-auteurs.
         coAuthors = try container.decodeIfPresent([String: CoAuthorMark].self, forKey: .coAuthors) ?? [:]
+        // Ontbreekt in seen.json van vóór de releases.
+        tagFingerprints = try container.decodeIfPresent([String: String].self, forKey: .tagFingerprints) ?? [:]
     }
 
     public func contains(_ key: String) -> Bool {
@@ -43,6 +50,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter { now.timeIntervalSince($0.value) <= maxAge }
         tagSeeded = tagSeeded.filter { now.timeIntervalSince($0.value) <= maxAge }
         coAuthors = coAuthors.filter { now.timeIntervalSince($0.value.at) <= maxAge }
+        dropOrphanFingerprints()
     }
 
     /// Prunet alleen `seen`-, `tagSeeded`- en `coAuthors`-entries waarvan de key met één van
@@ -55,6 +63,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter(isFresh)
         tagSeeded = tagSeeded.filter(isFresh)
         coAuthors = coAuthors.filter { isFresh($0.key, $0.value.at) }
+        dropOrphanFingerprints()
     }
 
     /// Verwijdert `seen`-, `tagSeeded`- en `coAuthors`-entries waarvan de key niet met één van `keyPrefixes` begint.
@@ -62,6 +71,22 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen = seen.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         tagSeeded = tagSeeded.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         coAuthors = coAuthors.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
+        dropOrphanFingerprints()
+    }
+
+    /// Vingerafdrukken horen bij een `tagSeeded`-entry: zonder die entry seedt de repo opnieuw.
+    public mutating func dropOrphanFingerprints() {
+        tagFingerprints = tagFingerprints.filter { tagSeeded[$0.key] != nil }
+    }
+
+    /// Ververst de `seen`-datum van alle tags (en hun releases) van één tag-repo
+    /// (`"{accountId}:{repo.lowercased()}"`), ook die deze poll niet ophaalde: anders zou prune ze
+    /// na een maand vergeten en meldt de volgende volledige poll ze als nieuw.
+    public mutating func refreshTags(ofRepo repoKey: String, at date: Date) {
+        let prefix = repoKey + ":tag:"
+        for key in seen.keys where key.hasPrefix(prefix) {
+            seen[key] = date
+        }
     }
 }
 

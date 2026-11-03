@@ -1,7 +1,7 @@
 import Foundation
 
 public enum NotificationKind: Equatable, Sendable {
-    case pullRequest, tag, completed
+    case pullRequest, tag, release, completed
 }
 
 public enum PlannedNotification: Equatable, Sendable {
@@ -14,10 +14,13 @@ public enum PlannedNotification: Equatable, Sendable {
 public enum NotificationPlanner {
     public static let burstThreshold = 3
 
-    /// PR's eerst, dan tags, dan completed PR's; elk deel wordt apart tegen de burst-drempel gehouden.
+    /// PR's eerst, dan releases, dan tags zonder release, dan completed PR's; elk deel wordt apart
+    /// tegen de burst-drempel gehouden. Een release heet in de samenvatting naar zijn titel.
     public static func plan(pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest] = []) -> [PlannedNotification] {
         planKind(pullRequests, kind: .pullRequest, single: { .pullRequest($0) }, line: { "\($0.repo): \($0.title)" })
-            + planKind(tags, kind: .tag, single: { .tag($0) }, line: { "\($0.repo): \($0.name)" })
+            + planKind(tags.filter { $0.release != nil }, kind: .release, single: { .tag($0) },
+                       line: { "\($0.repo): \($0.releaseTitle ?? $0.name)" })
+            + planKind(tags.filter { $0.release == nil }, kind: .tag, single: { .tag($0) }, line: { "\($0.repo): \($0.name)" })
             + planKind(completed, kind: .completed, single: { .completed($0) }, line: { "\($0.repo): \($0.title)" })
     }
 

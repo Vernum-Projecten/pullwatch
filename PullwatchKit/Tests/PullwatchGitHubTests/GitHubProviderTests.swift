@@ -150,63 +150,202 @@ import PullwatchTestSupport
         #expect(try await makeProvider(http).openPullRequests().count == 101)
     }
 
-    // MARK: - Tags
+    // MARK: - Tags en releases
 
-    @Test func parsesTagsAcrossPages() async throws {
-        let http = MockHTTPClient()
-        let page1 = (1...100).map { #"{"name":"v\#($0)"}"# }.joined(separator: ",")
-        http.on("page=2", body: #"[{"name":"v101"}]"#)
-        http.on("repos/acme/api/tags", body: "[\(page1)]")
-
-        let tags = try await makeProvider(http).tags(in: ["acme/api"]).tags
-
-        #expect(tags.count == 101)
-        #expect(tags.allSatisfy { $0.repo == "acme/api" && $0.authorName == nil && $0.accountId == fixedAccountId })
+    /// Eén repo in een GraphQL-antwoord: `refs` en `releases` als JSON-lijsten van nodes.
+    func repoJSON(refs: [String], releases: [String] = [], refCount: Int? = nil, releaseCount: Int? = nil) -> String {
+        #"{"refs":{"totalCount":\#(refCount ?? refs.count),"nodes":[\#(refs.joined(separator: ","))]},"#
+            + #""releases":{"totalCount":\#(releaseCount ?? releases.count),"nodes":[\#(releases.joined(separator: ","))]}}"#
     }
 
-    @Test func datedTagsComeFromGraphQLWithTaggerOrCommitDate() async throws {
+    func graphQL(_ repos: [String?]) -> String {
+        let fields = repos.enumerated().map { #""r\#($0.offset)":\#($0.element ?? "null")"# }
+        return #"{"data":{\#(fields.joined(separator: ","))}}"#
+    }
+
+    func lightweightTag(_ name: String, date: String = "2026-08-01T10:00:00Z", author: String = #"{"name":"Jan Jansen","avatarUrl":"https://avatars.githubusercontent.com/u/e?email=jan","user":null}"#) -> String {
+        #"{"name":"\#(name)","target":{"committedDate":"\#(date)","author":\#(author)}}"#
+    }
+
+    func release(_ tag: String, name: String?, login: String, prerelease: Bool = false, draft: Bool = false, id: String? = nil) -> String {
+        let title = name.map { #""\#($0)""# } ?? "null"
+        let releaseId = id ?? "RE_" + tag
+        return #"{"id":"\#(releaseId)","tagName":"\#(tag)","name":\#(title),"isDraft":\#(draft),"isPrerelease":\#(prerelease),"#
+            + #""publishedAt":"2026-11-02T13:31:28Z","updatedAt":"2026-11-02T13:31:28Z","#
+            + #""url":"https://github.com/acme/api/releases/tag/\#(tag)","author":{"login":"\#(login)","avatarUrl":"https://avatars.githubusercontent.com/in/15368?v=4"}}"#
+    }
+
+    /// Zoals `v5.6.0-rc10` van FerroHEALTH/FerroEHR: een geannoteerde tag van een persoon, met een
+    /// pre-release die `github-actions[bot]` publiceerde.
+    let annotatedByPerson = #"""
+    {"name":"v5.6.0-rc10","target":{
+      "tagger":{"name":"Ruben Talstra","avatarUrl":"https://avatars.githubusercontent.com/u/14235001?v=4","date":"2026-11-02T13:54:42+01:00",
+                "user":{"login":"rubentalstra","avatarUrl":"https://avatars.githubusercontent.com/u/14235001?u=x&v=4"}},
+      "target":{"committedDate":"2026-11-02T12:50:57Z","author":{"name":"Ruben Talstra","avatarUrl":null,"user":{"login":"rubentalstra","avatarUrl":null}}}}}
+    """#
+
+    @Test func tagOfAPersonWithABotReleaseShowsThePersonAndThePrerelease() async throws {
         let http = MockHTTPClient()
-        http.on("api.github.com/graphql", body: #"""
-        {"data":{"repository":{"refs":{"nodes":[
-          {"name":"v2","target":{"tagger":{"date":"2026-10-01T10:00:00Z"},"target":{"committedDate":"2026-09-30T10:00:00Z"}}},
-          {"name":"v1","target":{"committedDate":"2026-08-01T10:00:00Z"}},
-          {"name":"tree","target":{}}
-        ]}}}}
-        """#)
+        http.on("api.github.com/graphql", body: graphQL([repoJSON(
+            refs: [annotatedByPerson],
+            releases: [release("v5.6.0-rc10", name: "5.6.0-rc10", login: "github-actions[bot]", prerelease: true)]
+        )]))
+
+        let tag = try #require(try await makeProvider(http).tags(in: ["acme/api"]).tags.first)
+
+        #expect(tag.authorName == "rubentalstra")
+        #expect(tag.authorAvatarURL?.absoluteString == "https://avatars.githubusercontent.com/u/14235001?u=x&v=4")
+        #expect(tag.release?.isPrerelease == true)
+        #expect(tag.release?.title == "5.6.0-rc10")
+        #expect(tag.release?.authorLogin == "github-actions[bot]")
+        #expect(tag.releaseTitle == "5.6.0-rc10")
+        #expect(tag.webURL.absoluteString == "https://github.com/acme/api/releases/tag/v5.6.0-rc10")
+        #expect(tag.createdAt == DateParsing.parse("2026-11-02T12:54:42Z"))
+        #expect(tag.accountId == fixedAccountId && tag.repo == "acme/api")
+    }
+
+    @Test func authorIsTheReleaseAuthorThenTheTaggerThenTheCommitAuthor() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: graphQL([repoJSON(
+            refs: [lightweightTag("v3"), lightweightTag("v2"), lightweightTag("v1"), annotatedByPerson],
+            releases: [
+                release("v3", name: "Drie", login: "hubot", draft: true),
+                release("v2", name: "Twee", login: "mona"),
+            ]
+        )]))
+
+        let tags = try await makeProvider(http).tags(in: ["acme/api"]).tags
+        let byName = Dictionary(uniqueKeysWithValues: tags.map { ($0.name, $0) })
+
+        #expect(byName["v2"]?.authorName == "mona") // een mens publiceerde de release
+        #expect(byName["v2"]?.release?.isPrerelease == false)
+        #expect(byName["v2"]?.releaseTitle == "Twee")
+        #expect(byName["v1"]?.authorName == "Jan Jansen") // lichte tag: de commit-auteur, zonder GitHub-account
+        #expect(byName["v1"]?.release == nil)
+        #expect(byName["v3"]?.release == nil) // concepten tellen niet
+        #expect(byName["v3"]?.webURL.absoluteString == "https://github.com/acme/api/tree/v3")
+        #expect(byName["v5.6.0-rc10"]?.authorName == "rubentalstra") // geannoteerd, zonder release: de tagger
+    }
+
+    @Test func requestAsksForTagsReleasesAndAuthorsOfEveryRepoWithAliases() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: graphQL([repoJSON(refs: [lightweightTag("v1")]), repoJSON(refs: [lightweightTag("v9")])]))
+
+        let tags = try await makeProvider(http).tags(in: ["acme/api", "jane/web"]).tags
+
+        #expect(tags.map(\.repo) == ["acme/api", "jane/web"])
+        #expect(http.requests.count == 1)
+        let request = try #require(http.requests.first)
+        #expect(request.httpMethod == "POST")
+        let body = try #require(request.httpBody.flatMap { try JSONSerialization.jsonObject(with: $0) as? [String: Any] })
+        let variables = try #require(body["variables"] as? [String: String])
+        #expect(variables == ["o0": "acme", "n0": "api", "o1": "jane", "n1": "web"])
+        let query = try #require(body["query"] as? String)
+        for field in ["r0: repository(owner: $o0, name: $n0)", "r1: repository(owner: $o1, name: $n1)",
+                      "first: 100", "TAG_COMMIT_DATE", "releases(first: 20", "isPrerelease", "isDraft", "tagger", "author"] {
+            #expect(query.contains(field), "\(field)")
+        }
+    }
+
+    @Test func manyReposAreSplitIntoBatches() async throws {
+        let http = MockHTTPClient()
+        let repos = (0..<12).map { "acme/r\($0)" }
+        http.on("api.github.com/graphql", body: graphQL(Array(repeating: repoJSON(refs: [lightweightTag("v1")]), count: 10)))
+
+        let fetch = try await makeProvider(http).tags(in: repos)
+
+        #expect(http.requests.count == 2)
+        #expect(fetch.tags.count == 12)
+        #expect(Set(fetch.fingerprints.keys) == Set(repos))
+    }
+
+    @Test func unchangedRepoCostsOneSmallRequestAndNoTags() async throws {
+        let http = MockHTTPClient()
+        let body = graphQL([repoJSON(refs: [lightweightTag("v2")], releases: [release("v2", name: nil, login: "mona")], refCount: 40, releaseCount: 3)])
+        http.on("api.github.com/graphql", body: body)
+        let provider = makeProvider(http)
+        let first = try await provider.tags(in: ["acme/api"])
+        let fingerprint = try #require(first.fingerprints["acme/api"])
+
+        let second = try await provider.tags(in: ["acme/api"], unchanged: ["acme/api": fingerprint])
+
+        #expect(second.tags.isEmpty)
+        #expect(second.unchangedRepos == ["acme/api"])
+        #expect(second.fingerprints["acme/api"] == fingerprint)
+        #expect(http.requests.count == 2)
+        let query = try #require(http.requests.last?.httpBody.flatMap { try JSONSerialization.jsonObject(with: $0) as? [String: Any] }?["query"] as? String)
+        #expect(query.contains("first: 1,") && query.contains("releases(first: 1,"))
+    }
+
+    @Test func changedRepoIsFetchedInFull() async throws {
+        let http = MockHTTPClient()
+        http.onSequence("api.github.com/graphql", bodies: [
+            // De kleine vraag: een nieuwe release.
+            graphQL([repoJSON(refs: [lightweightTag("v2")], releases: [release("v2", name: "Twee", login: "mona", id: "RE_new")])]),
+            graphQL([repoJSON(refs: [lightweightTag("v2"), lightweightTag("v1")], releases: [release("v2", name: "Twee", login: "mona", id: "RE_new")])]),
+        ])
+
+        let fetch = try await makeProvider(http).tags(in: ["acme/api"], unchanged: ["acme/api": "oud"])
+
+        #expect(http.requests.count == 2)
+        #expect(fetch.unchangedRepos.isEmpty)
+        #expect(fetch.tags.map(\.name) == ["v2", "v1"])
+        #expect(fetch.tags.first?.release != nil)
+        #expect(fetch.fingerprints["acme/api"] != "oud")
+    }
+
+    @Test func fingerprintChangesWithANewTagOrRelease() async throws {
+        func fingerprint(_ body: String) async throws -> String? {
+            let http = MockHTTPClient()
+            http.on("api.github.com/graphql", body: body)
+            return try await makeProvider(http).tags(in: ["acme/api"]).fingerprints["acme/api"]
+        }
+        let base = try await fingerprint(graphQL([repoJSON(refs: [lightweightTag("v1")])]))
+        let newTag = try await fingerprint(graphQL([repoJSON(refs: [lightweightTag("v2"), lightweightTag("v1")])]))
+        let newRelease = try await fingerprint(graphQL([repoJSON(refs: [lightweightTag("v1")], releases: [release("v1", name: nil, login: "mona")])]))
+        let promoted = try await fingerprint(graphQL([repoJSON(refs: [lightweightTag("v1")], releases: [release("v1", name: nil, login: "mona", prerelease: true)])]))
+
+        #expect(Set([base, newTag, newRelease, promoted]).count == 4)
+    }
+
+    @Test func datedTagsAreTheNewestTagsWithADate() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: graphQL([repoJSON(refs: [
+            lightweightTag("v1", date: "2026-08-01T10:00:00Z"),
+            annotatedByPerson,
+            #"{"name":"tree","target":{}}"#,
+            #"{"name":"gone","target":null}"#,
+        ])]))
 
         let tags = try await makeProvider(http).datedTags(in: "acme/api", limit: 50)
 
-        #expect(tags.map(\.name) == ["v2", "v1"])
-        #expect(tags.first?.createdAt == DateParsing.parse("2026-10-01T10:00:00Z"))
+        #expect(tags.map(\.name) == ["v5.6.0-rc10", "v1"])
         #expect(tags.allSatisfy { $0.repo == "acme/api" && $0.accountId == fixedAccountId })
-        let request = try #require(http.requests.first)
-        #expect(request.httpMethod == "POST")
-        let body = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
-        #expect(body.contains(#""owner":"acme""#) && body.contains(#""name":"api""#) && body.contains(#""first":50"#))
+        #expect(try await makeProvider(http).datedTags(in: "acme/api", limit: 1).map(\.name) == ["v5.6.0-rc10"])
     }
 
     @Test func datedTagsOfMissingRepoAreEmpty() async throws {
         let http = MockHTTPClient()
-        http.on("api.github.com/graphql", body: #"{"data":{"repository":null},"errors":[{"type":"NOT_FOUND"}]}"#)
+        http.on("api.github.com/graphql", body: #"{"data":{"r0":null},"errors":[{"type":"NOT_FOUND"}]}"#)
 
         #expect(try await makeProvider(http).datedTags(in: "acme/gone", limit: 50).isEmpty)
     }
 
-    @Test func tagURLEncodesName() async throws {
+    @Test func tagURLWithoutReleaseEncodesName() async throws {
         let http = MockHTTPClient()
-        http.on("repos/acme/api/tags", body: #"[{"name":"release/1.0"},{"name":"v1+b"}]"#)
+        http.on("api.github.com/graphql", body: graphQL([repoJSON(refs: [lightweightTag("release/1.0"), lightweightTag("v1+b")])]))
 
         let tags = try await makeProvider(http).tags(in: ["acme/api"]).tags
 
         #expect(tags.map(\.webURL.absoluteString) == [
-            "https://github.com/acme/api/releases/tag/release%2F1.0",
-            "https://github.com/acme/api/releases/tag/v1%2Bb",
+            "https://github.com/acme/api/tree/release%2F1.0",
+            "https://github.com/acme/api/tree/v1%2Bb",
         ])
     }
 
     @Test func missingRepoYieldsNoTags() async throws {
         let http = MockHTTPClient()
-        http.on("repos/acme/gone/tags", status: 404, body: "{}")
+        http.on("api.github.com/graphql", body: #"{"data":{"r0":null},"errors":[{"type":"NOT_FOUND","path":["r0"]}]}"#)
 
         let fetch = try await makeProvider(http).tags(in: ["acme/gone"])
 
@@ -216,21 +355,39 @@ import PullwatchTestSupport
 
     @Test func forbiddenRepoIsSkippedOthersStillYieldTags() async throws {
         let http = MockHTTPClient()
-        // 403 zonder rate-limit-headers (SSO, rechten, IP-allowlist) → .unauthorized.
-        http.on("repos/acme/secret/tags", status: 403, body: #"{"message":"Resource protected by organization SAML enforcement"}"#)
-        http.on("repos/acme/api/tags", body: #"[{"name":"v1"}]"#)
+        // SAML of geen rechten op één repo: GraphQL geeft daar null met een FORBIDDEN-fout.
+        http.on("api.github.com/graphql", body: #"{"data":{"r0":null,"r1":\#(repoJSON(refs: [lightweightTag("v1")]))},"errors":[{"type":"FORBIDDEN","path":["r0"]}]}"#)
 
         let fetch = try await makeProvider(http).tags(in: ["acme/secret", "acme/api"])
-        let tags = fetch.tags
 
         #expect(fetch.unavailableRepos == ["acme/secret"])
-        #expect(tags.map(\.name) == ["v1"])
-        #expect(tags.allSatisfy { $0.repo == "acme/api" })
+        #expect(fetch.tags.map(\.name) == ["v1"])
+        #expect(fetch.tags.allSatisfy { $0.repo == "acme/api" })
+    }
+
+    @Test func forbiddenBatchMarksItsReposUnavailable() async throws {
+        let http = MockHTTPClient()
+        // 403 zonder rate-limit-headers (SSO, rechten, IP-allowlist) → .unauthorized.
+        http.on("api.github.com/graphql", status: 403, body: #"{"message":"Resource protected by organization SAML enforcement"}"#)
+
+        let fetch = try await makeProvider(http).tags(in: ["acme/secret", "acme/api"])
+
+        #expect(fetch.tags.isEmpty)
+        #expect(fetch.unavailableRepos == ["acme/secret", "acme/api"])
+    }
+
+    @Test func graphQLRateLimitThrowsRateLimitedUntilReset() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", headers: ["X-RateLimit-Reset": "1900000000"], body: #"{"errors":[{"type":"RATE_LIMITED","message":"API rate limit exceeded"}]}"#)
+
+        await #expect(throws: ProviderError.rateLimited(until: Date(timeIntervalSince1970: 1_900_000_000))) {
+            _ = try await makeProvider(http).tags(in: ["acme/api"])
+        }
     }
 
     @Test func tagRequestFailureOtherThanNotFoundPropagates() async throws {
         let http = MockHTTPClient()
-        http.on("repos/acme/api/tags", status: 500, body: "{}")
+        http.on("api.github.com/graphql", status: 500, body: "{}")
 
         await #expect(throws: ProviderError.self) {
             _ = try await makeProvider(http).tags(in: ["acme/api"])

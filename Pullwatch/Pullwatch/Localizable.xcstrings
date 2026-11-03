@@ -562,6 +562,52 @@
         }
       }
     },
+    "%@: nieuwe pre-release": {
+      "comment": "Meldingstitel; repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: neues Pre-Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: new pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ : nouvelle préversion"
+          }
+        }
+      }
+    },
+    "%@: nieuwe release": {
+      "comment": "Meldingstitel; repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: neues Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: new release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ : nouvelle version publiée"
+          }
+        }
+      }
+    },
     "%@: nieuwe tag": {
       "comment": "Meldingstitel; repo",
       "localizations": {
@@ -967,6 +1013,83 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld nieuwe kwetsbaarheden"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld nieuwe releases": {
+      "comment": "Meldingstitel; aantal",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neues Release"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Releases"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new release"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new releases"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelle version publiée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouvelles versions publiées"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe release"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe releases"
                 }
               }
             }
@@ -2162,6 +2285,28 @@
         }
       }
     },
+    "Alle tags, alleen releases of alleen tags zonder release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Tags, nur Releases oder nur Tags ohne Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All tags, only releases or only tags without a release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les tags, seulement les versions publiées ou seulement les tags sans version publiée"
+          }
+        }
+      }
+    },
     "Alleen de PR's van deze auteur": {
       "localizations": {
         "de": {
@@ -2250,6 +2395,28 @@
         }
       }
     },
+    "Alleen releases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Releases"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releases only"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions publiées seulement"
+          }
+        }
+      }
+    },
     "Alleen transitief": {
       "localizations": {
         "de": {
@@ -2291,6 +2458,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seulement de %@"
+          }
+        }
+      }
+    },
+    "Alles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout"
           }
         }
       }
@@ -3744,6 +3933,28 @@
         }
       }
     },
+    "Geen releases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Releases"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No releases"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune version publiée"
+          }
+        }
+      }
+    },
     "Geen repo's": {
       "localizations": {
         "de": {
@@ -3768,6 +3979,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen repo's"
+          }
+        }
+      }
+    },
+    "Geen tags zonder release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Tags ohne Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tags without a release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun tag sans version publiée"
           }
         }
       }
@@ -4706,6 +4939,28 @@
         }
       }
     },
+    "Kies Alles om alle tags te zien.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle Alle, um alle Tags zu sehen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose All to see every tag."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez Tout pour voir tous les tags."
+          }
+        }
+      }
+    },
     "Kies links een account, of voeg er een toe met +.": {
       "localizations": {
         "de": {
@@ -5441,24 +5696,24 @@
         }
       }
     },
-    "Melding bij nieuwe tags": {
+    "Melding bij nieuwe tags en releases": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mitteilung bei neuen Tags"
+            "value": "Mitteilung bei neuen Tags und Releases"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notify About New Tags"
+            "value": "Notify about new tags and releases"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notifier les nouveaux tags"
+            "value": "Notifier les nouveaux tags et versions publiées"
           }
         }
       }
@@ -5795,6 +6050,28 @@
         }
       }
     },
+    "Nieuwe tags en releases in het menu, de geschiedenis en de meldingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Tags und Releases im Menü, im Verlauf und in Mitteilungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tags and releases in the menu, the history and notifications"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveaux tags et versions publiées dans le menu, l’historique et les notifications"
+          }
+        }
+      }
+    },
     "Nieuwe tags in de repo's die je volgt komen hier te staan.": {
       "localizations": {
         "de": {
@@ -5813,28 +6090,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Les nouveaux tags des dépôts que vous suivez apparaissent ici."
-          }
-        }
-      }
-    },
-    "Nieuwe tags in het menu, de geschiedenis en de meldingen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neue Tags im Menü, im Verlauf und in den Mitteilungen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New tags in the menu, the history and notifications"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nouveaux tags dans le menu, l’historique et les notifications"
           }
         }
       }
@@ -7339,6 +7594,28 @@
         }
       }
     },
+    "Pre-release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pre-Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préversion"
+          }
+        }
+      }
+    },
     "Probleem": {
       "localizations": {
         "de": {
@@ -7847,6 +8124,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch, un compte signale une erreur"
+          }
+        }
+      }
+    },
+    "Release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version publiée"
           }
         }
       }
@@ -8504,6 +8803,28 @@
         }
       }
     },
+    "Tags en releases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags und Releases"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags and Releases"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags et versions publiées"
+          }
+        }
+      }
+    },
     "Tags ophalen…": {
       "localizations": {
         "de": {
@@ -8545,6 +8866,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivre les tags de %@"
+          }
+        }
+      }
+    },
+    "Tags zonder release": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags ohne Release"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags without a release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags sans version publiée"
           }
         }
       }
@@ -8729,6 +9072,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Token ongeldig of verlopen. Werk het bij in Instellingen."
+          }
+        }
+      }
+    },
+    "Tonen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher"
           }
         }
       }
