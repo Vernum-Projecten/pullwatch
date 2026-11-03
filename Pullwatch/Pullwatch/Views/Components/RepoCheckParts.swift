@@ -2,6 +2,7 @@ import AppKit
 import PullwatchCore
 import SwiftUI
 
+/// Eén taal of framework van een repo: versie, status en wat er in de laatste release stond.
 struct ComponentRow: View {
     let component: ComponentVersion
     /// Nieuwste tag en hetzelfde onderdeel daarin; nil als de repo geen tags heeft.
@@ -10,11 +11,13 @@ struct ComponentRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(component.label)
-            Text(component.versionText).monospacedDigit().foregroundStyle(.secondary)
-            VersionStatusPill(status: component.status)
+            Text(verbatim: component.versionText).monospacedDigit().foregroundStyle(.secondary)
+            Pill(text: component.status.label, tint: component.status.color)
             // Ter info, zonder status: wat op main al bijgewerkt is telt niet.
             if let release, let old = release.component, old.version != component.version {
-                Text("\(old.version) in \(release.tag)", comment: "Versie in de laatste release, tagnaam").monospacedDigit().foregroundStyle(.tertiary)
+                Text("\(old.version) in \(release.tag)", comment: "Versie in de laatste release, tagnaam")
+                    .monospacedDigit()
+                    .foregroundStyle(.tertiary)
             }
         }
         .help(component.sources.joined(separator: "\n"))
@@ -28,58 +31,40 @@ extension ComponentVersion {
     }
 }
 
+/// De kwetsbaarheden van een repo, inklapbaar; met per stuk de ernst, het package en of het al
+/// in de laatste release zat.
 struct VulnerabilityList: View {
     let repo: RepoVersions
-    @State var isExpanded = false
     /// Klik op een package dat in Versies staat; nil laat het package als tekst staan.
     var showPackage: ((String) -> Void)? = nil
     var knownPackages: Set<String> = []
 
+    @State private var isExpanded = true
 
-    private var vulnerabilities: [Vulnerability] { repo.vulnerabilities }
-
-    private var title: String {
-        let count = vulnerabilities.count
-        let bySeverity = ["CRITICAL", "HIGH", "MODERATE", "LOW"].compactMap { severity -> String? in
-            let n = vulnerabilities.filter { $0.severity == severity }.count
-            return n > 0 ? "\(n) \(severity.lowercased())" : nil
-        }
-        let detail = bySeverity.isEmpty ? "" : " (\(bySeverity.joined(separator: ", ")))"
-        var text = (count == 1 ? String(localized: "1 kwetsbaarheid") : String(localized: "\(count) kwetsbaarheden")) + detail
-        if let release = repo.release, release.error == nil {
-            let inRelease = vulnerabilities.filter { repo.isInRelease($0) == true }.count
-            text += ", " + String(localized: "\(inRelease) ook in \(release.tag)", comment: "Aantal kwetsbaarheden, tagnaam")
-        }
-        return text
+    /// Hoeveel er ook in de laatste release zitten, met die tag; nil zonder gecheckte release.
+    private var inRelease: (count: Int, tag: String)? {
+        guard let release = repo.release, release.error == nil else { return nil }
+        return (repo.vulnerabilities.filter { repo.isInRelease($0) == true }.count, release.tag)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.15)) { isExpanded.toggle() }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.right")
-                        .font(.caption.bold())
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .foregroundStyle(.secondary)
-                    Label(title, systemImage: "exclamationmark.shield")
-                        .foregroundStyle(VersionStatus.eol.color)
-                }
-                .contentShape(Rectangle())
+        DisclosureGroup(isExpanded: $isExpanded) {
+            ForEach(repo.vulnerabilities, id: \.rowId) { vulnerability in
+                VulnerabilityRow(
+                    vulnerability: vulnerability,
+                    location: repo.location(of: vulnerability),
+                    showPackage: knownPackages.contains(vulnerability.package) ? showPackage : nil
+                )
             }
-            .buttonStyle(.plain)
-            if isExpanded {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(Array(vulnerabilities.enumerated()), id: \.offset) { _, vulnerability in
-                        VulnerabilityRow(
-                            vulnerability: vulnerability,
-                            location: repo.location(of: vulnerability),
-                            showPackage: knownPackages.contains(vulnerability.package) ? showPackage : nil
-                        )
-                    }
+        } label: {
+            VStack(alignment: .leading, spacing: 1) {
+                Label("\(repo.vulnerabilities.count) kwetsbaarheden", systemImage: "exclamationmark.shield")
+                    .foregroundStyle(VersionStatus.eol.color)
+                if let inRelease {
+                    Text("\(inRelease.count) ook in \(inRelease.tag)", comment: "Aantal kwetsbaarheden, tagnaam")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .padding(.leading, 16)
             }
         }
     }
@@ -93,7 +78,7 @@ private struct VulnerabilityRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
             HStack(spacing: 6) {
-                SeverityPill(severity: vulnerability.severity)
+                Pill(text: Vulnerability.severityLabel(vulnerability.severity), tint: Vulnerability.severityColor(vulnerability.severity))
                 Link(vulnerability.cve ?? vulnerability.id, destination: vulnerability.url)
                 if let showPackage {
                     Button(packageText) { showPackage(vulnerability.package) }
@@ -101,14 +86,15 @@ private struct VulnerabilityRow: View {
                         .monospacedDigit()
                         .help("Toon dit package in Versies, met alle repo's die het gebruiken")
                 } else {
-                    Text(packageText).monospacedDigit().foregroundStyle(.secondary)
+                    Text(verbatim: packageText).monospacedDigit().foregroundStyle(.secondary)
                 }
                 if let location {
-                    LocationPill(location: location)
+                    Pill(text: location.label, tint: location.color)
+                        .help(Text(location.help))
                 }
             }
             if let summary = vulnerability.summary {
-                Text(summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                Text(verbatim: summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         }
         .help(Text(verbatim: "\(vulnerability.id)\n\(vulnerability.source)"))
@@ -120,22 +106,46 @@ private struct VulnerabilityRow: View {
     }
 }
 
+extension Vulnerability {
+    /// Vaste id voor lijsten: hetzelfde advies kan meerdere packages of versies raken.
+    var rowId: String { "\(id) \(package) \(version)" }
+
+    static func severityLabel(_ severity: String?) -> LocalizedStringResource {
+        switch severity {
+        case "CRITICAL": "Kritiek"
+        case "HIGH": "Hoog"
+        case "MODERATE", "MEDIUM": "Gemiddeld"
+        case "LOW": "Laag"
+        default: "Onbekend"
+        }
+    }
+
+    static func severityColor(_ severity: String?) -> Color {
+        switch severity {
+        case "CRITICAL": .red
+        case "HIGH": .orange
+        case "MODERATE", "MEDIUM": .yellow
+        default: .gray
+        }
+    }
+}
+
 /// Of een kwetsbaarheid van main ook in de laatste release zit.
 enum VulnerabilityLocation {
     case alsoInRelease(tag: String)
     case mainOnly
 
-    var label: String {
+    var label: LocalizedStringResource {
         switch self {
-        case .alsoInRelease(let tag): String(localized: "ook in \(tag)", comment: "Tagnaam")
-        case .mainOnly: String(localized: "alleen main")
+        case .alsoInRelease(let tag): "ook in \(tag)"
+        case .mainOnly: "alleen main"
         }
     }
 
-    var help: String {
+    var help: LocalizedStringResource {
         switch self {
-        case .alsoInRelease(let tag): String(localized: "Zit ook in de laatste release (\(tag))", comment: "Tagnaam")
-        case .mainOnly: String(localized: "Nieuw sinds de laatste release; nog niet uitgebracht")
+        case .alsoInRelease(let tag): "Zit ook in de laatste release (\(tag))"
+        case .mainOnly: "Nieuw sinds de laatste release; nog niet uitgebracht"
         }
     }
 
@@ -147,63 +157,25 @@ enum VulnerabilityLocation {
     }
 }
 
-private struct LocationPill: View {
-    let location: VulnerabilityLocation
-
-    var body: some View {
-        Text(location.label)
-            .font(.caption2)
-            .foregroundStyle(location.color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .overlay(Capsule().strokeBorder(location.color.opacity(0.5)))
-            .help(location.help)
-    }
-}
-
 extension RepoVersions {
     /// nil als er geen release gecheckt is.
     func location(of vulnerability: Vulnerability) -> VulnerabilityLocation? {
         guard let release, let inRelease = isInRelease(vulnerability) else { return nil }
         return inRelease ? .alsoInRelease(tag: release.tag) : .mainOnly
     }
-}
 
-private struct SeverityPill: View {
-    let severity: String?
-
-    private var color: Color {
-        switch severity {
-        case "CRITICAL": .red
-        case "HIGH": .orange
-        case "MODERATE", "MEDIUM": .yellow
-        default: .gray
-        }
-    }
-
-    var body: some View {
-        Text((severity ?? "?").capitalized)
-            .font(.caption2.bold())
-            .foregroundStyle(color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(color.opacity(0.15), in: Capsule())
-    }
-}
-
-extension RepoVersions {
     /// Platte tekst voor het klembord: repo, onderdelen en kwetsbaarheden.
     var clipboardText: String {
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)")) }
         for component in components {
-            lines.append("\(component.label) \(component.versionText) (\(component.status.label))")
+            lines.append("\(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
         }
         if let release {
             lines.append(String(localized: "Laatste tag \(release.tag):"))
             if let error = release.error { lines.append(String(localized: "Fout: \(error)")) }
             for component in release.components {
-                lines.append("  \(component.label) \(component.versionText) (\(component.status.label))")
+                lines.append("  \(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
             }
         }
         if let vulnerabilityError { lines.append(vulnerabilityError) }
@@ -211,7 +183,7 @@ extension RepoVersions {
             lines.append(String(localized: "Kwetsbaarheden:"))
             for v in vulnerabilities {
                 var line = "- \(v.cve ?? v.id)"
-                if let location = location(of: v) { line += " {\(location.label)}" }
+                if let location = location(of: v) { line += " {\(String(localized: location.label))}" }
                 if let severity = v.severity { line += " [\(severity)]" }
                 line += " \(v.package) \(v.version)"
                 if let fixedIn = v.fixedIn { line += " → \(fixedIn)" }
@@ -234,26 +206,12 @@ extension VersionStatus {
         }
     }
 
-    var label: String {
+    var label: LocalizedStringResource {
         switch self {
-        case .current: String(localized: "Actueel")
-        case .behind: String(localized: "Achter")
-        case .eol: String(localized: "EOL")
-        case .unknown: String(localized: "Onbekend")
+        case .current: "Actueel"
+        case .behind: "Achter"
+        case .eol: "EOL"
+        case .unknown: "Onbekend"
         }
-    }
-}
-
-/// Kleine gekleurde pill met de versiestatus van een onderdeel.
-struct VersionStatusPill: View {
-    let status: VersionStatus
-
-    var body: some View {
-        Text(status.label)
-            .font(.caption2.bold())
-            .foregroundStyle(status.color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(status.color.opacity(0.15), in: Capsule())
     }
 }

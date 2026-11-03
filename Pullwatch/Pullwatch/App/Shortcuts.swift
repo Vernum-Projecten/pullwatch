@@ -1,3 +1,4 @@
+import AppKit
 import PullwatchCore
 import SwiftUI
 
@@ -9,74 +10,105 @@ enum BrowserTarget: Equatable {
     case page(URL)
 }
 
-extension FocusedValues {
-    @Entry var browserTarget: BrowserTarget?
+/// De repo waar het zichtbare onderdeel over gaat: de selectie in een lijst, of de geopende
+/// repo-pagina. Voor de repo-opdrachten in het menu Ga, die ook in de knoppenbalk staan.
+struct RepoTarget: Equatable {
+    /// `RepoSummary.id`.
+    let id: String
+    /// De pagina van deze repo staat al open.
+    let isOpen: Bool
 }
 
-/// Menu "Ga" met sneltoetsen: ⌘1–5 voor de onderdelen, ⌘F zoeken, ⌘R verversen, ⌘[ terug, ⌘O openen.
+extension FocusedValues {
+    @Entry var browserTarget: BrowserTarget?
+    @Entry var repoTarget: RepoTarget?
+    /// De focus van het zoekveld van het zichtbare onderdeel, voor ⌘F.
+    @Entry var searchFocus: FocusState<Bool>.Binding?
+}
+
+extension View {
+    /// Geeft ⌘F (Zoeken in het menu Ga) het zoekveld van deze `.searchable`.
+    func searchShortcut() -> some View {
+        modifier(SearchShortcut())
+    }
+}
+
+private struct SearchShortcut: ViewModifier {
+    @FocusState private var isFocused: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .searchFocused($isFocused)
+            .focusedSceneValue(\.searchFocus, $isFocused)
+    }
+}
+
+/// Menu "Ga" met sneltoetsen: ⌘1–5 voor de onderdelen, ⌘R verversen, ⌘[ terug, ⌘O openen, en elke
+/// knop uit de knoppenbalk, zodat niets alleen daar te vinden is. ⌘F zet de focus in het zoekveld
+/// van het zichtbare onderdeel.
 struct ShortcutCommands: Commands {
     let model: AppModel
     @FocusedValue(\.browserTarget) private var browserTarget
+    @FocusedValue(\.repoTarget) private var repoTarget
+    @FocusedValue(\.searchFocus) private var searchFocus
 
     var body: some Commands {
         CommandMenu("Ga") {
-            ForEach(Array([MainSection.pullRequests, .tags, .repos, .versions, .stats].enumerated()), id: \.element) { index, section in
+            ForEach(MainSection.allCases) { section in
                 Button(section.title) { model.show(section) }
-                .keyboardShortcut(KeyEquivalent(Character(String(index + 1))), modifiers: .command)
+                    .keyboardShortcut(section.shortcut, modifiers: .command)
             }
             Divider()
-            Button("Zoeken") { model.searchFocusRequest += 1 }
+            Button("Zoeken") { searchFocus?.wrappedValue = true }
                 .keyboardShortcut("f")
+                .disabled(searchFocus == nil)
             Button("Verversen") { model.refreshCurrent() }
                 .keyboardShortcut("r")
             Button("Terug") { model.goBack() }
                 .keyboardShortcut("[")
-                .disabled(model.selectedRepoId == nil)
+                .disabled(model.path.isEmpty)
             Button("Open in browser") {
                 if let browserTarget { model.open(browserTarget) }
             }
             .keyboardShortcut("o")
             .disabled(browserTarget == nil || browserTarget == .history([]))
-        }
-    }
-}
-
-/// Geeft het zoekveld de focus bij ⌘F.
-struct SearchFocus: ViewModifier {
-    let model: AppModel
-    @FocusState private var isFocused: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .focused($isFocused)
-            .onChange(of: model.searchFocusRequest) { isFocused = true }
-    }
-}
-
-extension View {
-    func searchFocus(_ model: AppModel) -> some View {
-        modifier(SearchFocus(model: model))
-    }
-}
-
-/// Label boven een lijst voor een filter dat van elders kwam, met ✕ om het weg te halen.
-struct FilterChip: View {
-    let title: String
-    let systemImage: String
-    let remove: () -> Void
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Label(title, systemImage: systemImage)
-            Button(action: remove) {
-                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+            Divider()
+            Button("Open de pagina van de repo") {
+                if let repoTarget { model.showRepo(id: repoTarget.id) }
             }
-            .buttonStyle(.borderless)
-            .help("Filter weghalen")
+            .keyboardShortcut(.downArrow)
+            .disabled(repoTarget == nil || repoTarget?.isOpen == true)
+            Button("Statistieken van de repo") {
+                if let repoTarget { model.showStats(repoId: repoTarget.id) }
+            }
+            .keyboardShortcut("s", modifiers: [.command, .option])
+            .disabled(repoTarget?.isOpen != true)
+            Button("Kopieer de versies van de repo") {
+                guard let text = repoTarget.flatMap({ model.repoSummariesById[$0.id] })?.versions?.clipboardText else { return }
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(text, forType: .string)
+            }
+            .keyboardShortcut("c", modifiers: [.command, .shift])
+            .disabled(repoTarget?.isOpen != true || repoTarget.flatMap { model.repoSummariesById[$0.id] }?.versions == nil)
+            Divider()
+            Button("Geschiedenis opnieuw ophalen") {
+                Task { await model.refetchHistory() }
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+            .disabled(model.refetch != nil)
+            Button("Alle repo's checken") {
+                Task { await model.checkVersions() }
+            }
+            .keyboardShortcut("r", modifiers: [.command, .option])
+            .disabled(model.versionCheck != nil)
         }
-        .font(.callout)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(Color.accentColor.opacity(0.12), in: Capsule())
+    }
+}
+
+extension MainSection {
+    /// ⌘1 tot ⌘5, in de volgorde van de zijbalk.
+    var shortcut: KeyEquivalent {
+        let index = Self.allCases.firstIndex(of: self) ?? 0
+        return KeyEquivalent(Character(String(index + 1)))
     }
 }

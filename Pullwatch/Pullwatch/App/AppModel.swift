@@ -33,6 +33,7 @@ final class AppModel {
     }
     private(set) var history: History {
         didSet {
+            statsCache = [:]
             recomputeRepoSummaries()
             recomputeMenu()
         }
@@ -71,12 +72,6 @@ final class AppModel {
         windowRequest = WindowRequest(window: window)
     }
 
-    /// Opent het hoofdvenster op een onderdeel.
-    func show(_ section: MainSection) {
-        mainSection = section
-        show(.main)
-    }
-
     /// Bij een eerste start opent het welkomstvenster vanzelf; niet als host van de unit-tests.
     var opensOnboardingAtLaunch: Bool { needsOnboarding && !Self.isTestHost }
 
@@ -89,32 +84,38 @@ final class AppModel {
     var onboardingCompleted: Bool { config.onboardingCompleted }
     /// Eerste start: nog geen bruikbaar account en het welkomstvenster nooit afgerond.
     var needsOnboarding: Bool { !onboardingCompleted && config.pollableAccounts.isEmpty }
-    /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
-    var sidebarSelection: SidebarItem? = .section(
-        UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests
-    ) {
+    /// Gekozen onderdeel of project in de zijbalk. Het hoofdvenster onthoudt het onderdeel zelf
+    /// (`@SceneStorage`) en zet het hier bij openen, als er nog niets gekozen is.
+    var sidebarSelection: SidebarItem? {
         didSet {
-            // Alleen het onderdeel wordt onthouden; een project kan bij de volgende start weg zijn.
-            UserDefaults.standard.set(mainSection.rawValue, forKey: "mainSection")
-            if !isNavigating {
-                selectedRepoId = nil
-                statsRepoId = nil
-                historyFilter = nil
+            // Zelf iets anders kiezen begint bovenaan dat onderdeel, zonder filters van elders.
+            if !isNavigating, oldValue != sidebarSelection {
+                path = []
+                historyTokens = []
             }
         }
     }
 
-    /// Geopende repo in het onderdeel Repo's (`RepoSummary.id`); nil toont de lijst.
-    var selectedRepoId: String?
-    /// Statistieken gefilterd op één repo (`RepoSummary.id`), vanaf de repo-pagina.
-    var statsRepoId: String?
-    /// Tijdens een sprong naar een repo of statistieken blijft de selectie binnen het onderdeel staan.
+    /// Pagina's op de `NavigationStack` van het zichtbare onderdeel (repo-pagina, statistieken van
+    /// een repo); leeg toont de lijst van het onderdeel.
+    var path: [Route] = []
+    /// Auteur- en repofilters op PR's of Tags vanaf een andere plek; tokens in het zoekveld.
+    var historyTokens: [HistoryToken] = []
+    /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
+    var packagesSearch: String?
+    /// Tijdens een sprong naar een ander onderdeel blijven pad en filters van die sprong staan.
     @ObservationIgnored private var isNavigating = false
 
     /// Bewaard en alleen opnieuw berekend als config, geschiedenis of rapport verandert: de zijbalk,
     /// lijsten en repo-pagina lezen ze bij elke schermupdate.
     private(set) var repoSummaries: [RepoSummary] = []
     private(set) var packageSummaries: [PackageSummary] = []
+    /// Zelfde als `repoSummaries`, op `RepoSummary.id`, voor pagina's die één repo tonen.
+    private(set) var repoSummariesById: [String: RepoSummary] = [:]
+    /// Projecten en tellers van de zijbalk.
+    private(set) var sidebar = SidebarContent()
+    /// Accountnamen op id, voor projectnamen die bij twee accounts voorkomen.
+    private(set) var accountNames: [UUID: String] = [:]
 
     private func recomputeMenu() {
         let pullRequests = history.latest(.pullRequest, limit: 5)
@@ -131,31 +132,84 @@ final class AppModel {
         repoSummaries = RepoOverview.summaries(
             accounts: config.accounts, report: versionReport, history: history, packageSummaries: packageSummaries
         )
+        repoSummariesById = Dictionary(repoSummaries.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        recomputeSidebar()
     }
 
-    /// Opent de pagina van een repo, bv. vanuit PR's of Versies.
-    func showRepo(id: String) {
-        navigate(to: .repos)
-        selectedRepoId = id
+    private func recomputeSidebar() {
+        let names = Dictionary(config.accounts.map { ($0.id, $0.displayName) }, uniquingKeysWith: { first, _ in first })
+        if names != accountNames { accountNames = names }
+        let content = SidebarContent(
+            pullRequestGroups: history.groups(.pullRequest, accountNames: names),
+            tagGroups: history.groups(.tag, accountNames: names),
+            repoGroups: RepoOverview.groups(repoSummaries, accountNames: names),
+            badges: [
+                .pullRequests: history.unreadCount(.pullRequest),
+                .tags: history.unreadCount(.tag),
+                .repos: repoSummaries.filter { $0.health == .problem }.count,
+                .versions: PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count,
+            ]
+        )
+        // Alleen bij een echte wijziging, zodat de zijbalk niet bij elke poll opnieuw tekent.
+        if content != sidebar { sidebar = content }
     }
 
-    /// Extra filter op PR's of Tags vanaf een andere plek (auteur uit Statistieken, repo-pagina).
-    var historyFilter: HistoryFilter?
-    /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
-    var packagesSearch: String?
-    /// Verhoogd door ⌘F; het zoekveld van het zichtbare onderdeel pakt de focus.
-    var searchFocusRequest = 0
+    /// Statistieken per periode en filter, bewaard tot de geschiedenis verandert of na tien
+    /// minuten (de periode schuift op). Leest `history`, zodat een view die dit vraagt bijwerkt
+    /// als die verandert.
+    func activityStats(period: StatsPeriod, filter: ActivityFilter) -> ActivityStats {
+        let history = history
+        let key = StatsKey(period: period, filter: filter)
+        let now = Date()
+        if let cached = statsCache[key], now.timeIntervalSince(cached.at) < 600 { return cached.stats }
+        let stats = ActivityStats.compute(history: history, period: period, filter: filter, now: now)
+        statsCache[key] = (now, stats)
+        return stats
+    }
 
+    private struct StatsKey: Hashable {
+        let period: StatsPeriod
+        let filter: ActivityFilter
+    }
+
+    @ObservationIgnored private var statsCache: [StatsKey: (at: Date, stats: ActivityStats)] = [:]
+
+    /// Opent een onderdeel vanaf een andere plek (menu, melding, sprong): bovenaan, zonder filters.
     private func navigate(to section: MainSection) {
         isNavigating = true
         sidebarSelection = .section(section)
+        path = []
+        historyTokens = []
         isNavigating = false
+    }
+
+    /// Opent het hoofdvenster op een onderdeel.
+    func show(_ section: MainSection) {
+        navigate(to: section)
+        show(.main)
+    }
+
+    /// Opent de pagina van een repo bovenop het zichtbare onderdeel, zodat terug weer daar uitkomt.
+    func showRepo(id: String) {
+        if sidebarSelection == nil { navigate(to: .repos) }
+        guard path.last != .repo(id) else { return }
+        path.append(.repo(id))
+    }
+
+    func showRepo(accountId: UUID, repo: String) {
+        showRepo(id: repoId(accountId: accountId, repo: repo))
+    }
+
+    /// `RepoSummary.id` van een repo uit de geschiedenis (de naam kan in hoofdletters verschillen).
+    func repoId(accountId: UUID, repo: String) -> String {
+        repoSummaries.first { $0.accountId == accountId && $0.repo.caseInsensitiveCompare(repo) == .orderedSame }?.id
+            ?? "\(accountId.uuidString)/\(repo)"
     }
 
     /// PR's of Tags, gefilterd op auteur en/of repo.
     func showHistory(_ kind: ItemKind, author: String? = nil, repo: HistoryRepo? = nil) {
         navigate(to: kind == .pullRequest ? .pullRequests : .tags)
-        historyFilter = HistoryFilter(author: author, repo: repo)
+        historyTokens = [author.map(HistoryToken.author), repo.map(HistoryToken.repo)].compactMap(\.self)
     }
 
     /// Versies, gezocht op een package.
@@ -164,36 +218,34 @@ final class AppModel {
         packagesSearch = name
     }
 
-    /// ⌘R: de geopende repo opnieuw checken, in PR's/Tags/Statistieken pollen, anders alles checken.
+    /// Statistieken van één repo, bovenop de repo-pagina.
+    func showStats(repoId: String) {
+        path.append(.stats(repoId: repoId))
+    }
+
+    /// ⌘[ in het menu Ga: één pagina terug op de stack van het zichtbare onderdeel.
+    func goBack() {
+        if !path.isEmpty { path.removeLast() }
+    }
+
+    /// ⌘R: de geopende repo opnieuw checken, in PR's, Tags en Statistieken pollen, anders alles checken.
     func refreshCurrent() {
+        if case .repo(let id)? = path.last, let summary = repoSummariesById[id] {
+            Task { await refreshVersions(of: summary) }
+            return
+        }
         switch mainSection {
-        case .repos:
-            if let id = selectedRepoId, let summary = repoSummaries.first(where: { $0.id == id }) {
-                Task { await refreshVersions(of: summary) }
-            } else {
-                Task { await checkVersions() }
-            }
-        case .versions:
+        case .repos, .versions:
             Task { await checkVersions() }
         case .pullRequests, .tags, .stats:
             Task { await refreshNow() }
         }
     }
 
-    /// ⌘[ en Esc: van een repo-pagina terug naar de lijst.
-    func goBack() {
-        selectedRepoId = nil
-    }
-
-    /// Opent Statistieken voor één repo.
-    func showStats(repoId: String) {
-        navigate(to: .stats)
-        statsRepoId = repoId
-    }
-
-    func showRepo(accountId: UUID, repo: String) {
-        let id = repoSummaries.first { $0.accountId == accountId && $0.repo.caseInsensitiveCompare(repo) == .orderedSame }?.id
-        showRepo(id: id ?? "\(accountId.uuidString)/\(repo)")
+    /// Volgen en meldingen van één repo, als binding voor de schakelaars op de repo-pagina.
+    subscript(watch repo: String, account accountId: UUID) -> WatchSet {
+        get { config.accounts.first { $0.id == accountId }?.watch(for: repo) ?? .none }
+        set { setWatch(newValue, repo: repo, accountId: accountId) }
     }
 
     /// Volgen en meldingen van één repo, direct opgeslagen; daarna meteen pollen.
@@ -204,29 +256,15 @@ final class AppModel {
         Task { await refreshNow() }
     }
 
-    /// Onderdeel van het hoofdvenster; een gekozen project hoort bij PR's of Tags.
-    var mainSection: MainSection {
-        get {
-            switch sidebarSelection {
-            case .section(let section): section
-            case .group(.pullRequest, _): .pullRequests
-            case .group(.tag, _): .tags
-            case .repoGroup: .repos
-            case nil: .pullRequests
-            }
-        }
-        set { sidebarSelection = .section(newValue) }
-    }
+    /// Onderdeel van het hoofdvenster; een gekozen project hoort bij PR's, Tags of Repo's.
+    var mainSection: MainSection { sidebarSelection?.section ?? .pullRequests }
     /// Per package/runtime-cyclus de nieuwste versie die je in het onderdeel Versies gezien hebt.
     private(set) var seenPackageVersions: [String: String] =
         UserDefaults.standard.dictionary(forKey: "seenPackageVersions") as? [String: String] ?? [:] {
-        didSet { UserDefaults.standard.set(seenPackageVersions, forKey: "seenPackageVersions") }
-    }
-
-
-    /// Packages met een nieuwe versie die nog niet gezien is; teller in de zijbalk.
-    var unseenPackageUpdates: Int {
-        PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count
+        didSet {
+            UserDefaults.standard.set(seenPackageVersions, forKey: "seenPackageVersions")
+            recomputeSidebar()
+        }
     }
 
     /// Alles wat nu in Versies staat telt als gezien.
@@ -361,6 +399,12 @@ final class AppModel {
         if !needsOnboarding {
             Task { [weak self] in await self?.requestNotifications() }
         }
+
+        #if DEBUG
+        Task { [weak self] in
+            if let self { await SnapshotTour.runIfRequested(self) }
+        }
+        #endif
 
         loopTask = Task { [weak self] in
             guard let self else { return }
@@ -793,10 +837,4 @@ final class AppModel {
             logger.error("history opslaan mislukt: \(error.localizedDescription)")
         }
     }
-}
-
-/// Filter op PR's of Tags dat vanaf een andere plek komt; staat als label boven de lijst.
-struct HistoryFilter: Equatable {
-    var author: String?
-    var repo: HistoryRepo?
 }
