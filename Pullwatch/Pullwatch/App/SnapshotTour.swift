@@ -79,10 +79,33 @@ enum SnapshotTour {
             steps.append(("repo-stats", { model.showStats(repoId: repo.id) }))
             steps.append(("repo-history-token", { model.showHistory(.pullRequest, repo: HistoryRepo(accountId: repo.accountId, repo: repo.repo)) }))
         }
+        // Een losse repo van een andere organisatie (de nep-openEHR) in de lijst van Repo's.
+        if let extra = model.repoSummaries.first(where: { $0.repo.hasPrefix("openEHR/") }) {
+            steps.append(("repo-detail-extra", {
+                model.show(.repos)
+                model.showRepo(id: extra.id)
+            }))
+        }
+        steps.append(("repos-again", { model.show(.repos) }))
         for (name, step) in steps {
             step()
             try? await Task.sleep(for: .seconds(1.5))
             SnapshotCamera.shoot(name, windowId: WindowID.main.rawValue)
+            try? await Task.sleep(for: .seconds(0.8))
+        }
+        // "Volg een repository…": het blad fotografeert zichzelf ("watch-repository").
+        model.watchRepository()
+        try? await Task.sleep(for: .seconds(2))
+        model.isWatchingRepository = false
+        try? await Task.sleep(for: .seconds(1))
+        // De lijst van het account in Instellingen, met "Andere repositories" onderaan.
+        model.show(.settings)
+        try? await Task.sleep(for: .seconds(3))
+        let settings = "com_apple_SwiftUI_Settings_window"
+        for page in 1...6 {
+            SnapshotCamera.scroll(windowId: settings, pages: Double(page))
+            try? await Task.sleep(for: .seconds(0.6))
+            SnapshotCamera.shoot("settings-repos-\(page)", windowId: settings)
             try? await Task.sleep(for: .seconds(0.8))
         }
     }

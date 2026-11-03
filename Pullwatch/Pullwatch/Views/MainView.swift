@@ -31,7 +31,14 @@ struct MainView: View {
         }
         .onChange(of: model.mainSection) { _, section in
             storedSection = section
-        }    }
+        }
+        // "Volg een repository…" uit het menu Ga of de knoppenbalk van Repo's.
+        .sheet(isPresented: $model.isWatchingRepository) {
+            WatchRepositorySheet(model: model, accounts: model.accountsForExtraRepos) { accountId, check in
+                model.addExtraRepository(check, to: accountId)
+            }
+        }
+    }
 }
 
 /// De zijbalk: PR's, Tags en Statistieken onder Geschiedenis, Repo's en Versies onder Controle,

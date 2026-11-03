@@ -18,6 +18,11 @@ enum WindowID: String {
     case about
 }
 
+/// Waarom een ingetypte of geplakte repository niet toegevoegd kan worden, in gewone woorden.
+struct RepositoryInputError: Error, Equatable {
+    let message: String
+}
+
 /// Een verzoek om een venster te openen; elk verzoek is nieuw, ook voor hetzelfde venster.
 struct WindowRequest: Equatable {
     let window: WindowID
@@ -767,6 +772,97 @@ final class AppModel {
     /// De repositories die bij een account te volgen zijn (van alle eigenaren).
     func repositories(for account: Account, pat: String? = nil) async throws -> [String] {
         try await provider(for: account, pat: pat).listRepos()
+    }
+
+    /// Wat Pullwatch deze sessie over de losse repo's weet, per `extraRepoKey`: zonder inloggen
+    /// gelezen, of niet (meer) gevonden. Ontbreekt: met het token, of nog niet bekeken.
+    private(set) var extraRepoStatus: [String: ExtraRepoStatus] = [:]
+
+    enum ExtraRepoStatus: Equatable {
+        case readWithoutSignIn
+        case problem(String)
+    }
+
+    func extraRepoKey(accountId: UUID, repo: String) -> String {
+        "\(accountId.uuidString)/\(repo.lowercased())"
+    }
+
+    /// Leest wat iemand intypte of plakte en controleert de repo met één verzoek. Geeft de
+    /// repo zoals de dienst hem schrijft, of een foutmelding in gewone woorden.
+    func checkRepository(_ input: String, for account: Account, pat: String? = nil) async -> Result<RepositoryCheck, RepositoryInputError> {
+        let repo: String
+        do {
+            repo = try RepositoryReference.parse(input, kind: account.kind, organization: account.organization)
+        } catch {
+            return .failure(RepositoryInputError(message: error.userMessage))
+        }
+        if account.isExtra(repo) {
+            return .failure(RepositoryInputError(message: RepositoryProblem.alreadyAdded(repo).userMessage))
+        }
+        do {
+            let check = try await provider(for: account, pat: pat).checkRepository(repo)
+            if account.isExtra(check.name) {
+                return .failure(RepositoryInputError(message: RepositoryProblem.alreadyAdded(check.name).userMessage))
+            }
+            remember(check, accountId: account.id)
+            return .success(check)
+        } catch let problem as RepositoryProblem {
+            return .failure(RepositoryInputError(message: problem.userMessage))
+        } catch let error as ProviderError {
+            return .failure(RepositoryInputError(message: error.userMessage))
+        } catch {
+            return .failure(RepositoryInputError(message: error.localizedDescription))
+        }
+    }
+
+    /// Kijkt eens per sessie hoe de losse repo's van een account te lezen zijn, voor de regel
+    /// "Gelezen zonder inloggen" of een melding als er een niet meer gevonden wordt.
+    func refreshExtraRepoStatus(_ account: Account, pat: String? = nil) async {
+        let unknown = account.extraRepos.filter { extraRepoChecked.insert(extraRepoKey(accountId: account.id, repo: $0)).inserted }
+        guard !unknown.isEmpty else { return }
+        let provider = provider(for: account, pat: pat)
+        for repo in unknown {
+            do {
+                remember(try await provider.checkRepository(repo), accountId: account.id)
+            } catch let error as ProviderError {
+                if case .rateLimited = error {
+                    extraRepoChecked.remove(extraRepoKey(accountId: account.id, repo: repo))
+                    continue
+                }
+                extraRepoStatus[extraRepoKey(accountId: account.id, repo: repo)] = .problem(error.userMessage)
+            } catch {
+                extraRepoChecked.remove(extraRepoKey(accountId: account.id, repo: repo))
+            }
+        }
+    }
+
+    @ObservationIgnored private var extraRepoChecked: Set<String> = []
+
+    private func remember(_ check: RepositoryCheck, accountId: UUID) {
+        let key = extraRepoKey(accountId: accountId, repo: check.name)
+        extraRepoChecked.insert(key)
+        extraRepoStatus[key] = check.readWithoutSignIn ? .readWithoutSignIn : nil
+    }
+
+    /// Voegt een gecontroleerde losse repo toe aan een bewaard account en volgt er de PR's van.
+    func addExtraRepository(_ check: RepositoryCheck, to accountId: UUID) {
+        guard var account = config.accounts.first(where: { $0.id == accountId }) else { return }
+        account.addExtraRepo(check.name)
+        updateAccount(account)
+    }
+
+    /// Of "Volg een repository…" open moet in het hoofdvenster (menu Ga, knoppenbalk van Repo's).
+    var isWatchingRepository = false
+
+    /// Accounts waar je een losse repo aan kunt toevoegen.
+    var accountsForExtraRepos: [Account] {
+        config.accounts.filter { $0.isComplete && $0.kind.supportsExtraRepos }
+    }
+
+    func watchRepository() {
+        guard !accountsForExtraRepos.isEmpty else { return }
+        show(.main)
+        isWatchingRepository = true
     }
 
     /// Opnieuw pollen kort na de laatste wijziging, niet bij elke klik.

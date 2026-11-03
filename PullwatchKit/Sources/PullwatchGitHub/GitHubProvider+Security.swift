@@ -6,6 +6,8 @@ import PullwatchCore
 /// voor de volgende). Een 403 of 404 is geen fout: dan staat het uit of mag de app het niet.
 extension GitHubProvider {
     public func securityAlerts(in repo: String) async throws -> SecurityScan? {
+        // Zonder token mag niemand de meldingen zien; de kleine limiet bewaren we voor de rest.
+        if readsWithoutToken(repo) { return nil }
         let base = apiBase.appending(path: "repos").appending(path: repo)
         let web = URL(string: "https://github.com")!.appending(path: repo).appending(path: "security")
         var feeds: [SecurityFeed] = []

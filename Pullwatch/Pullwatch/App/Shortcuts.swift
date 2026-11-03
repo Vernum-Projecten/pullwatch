@@ -114,6 +114,9 @@ struct ShortcutCommands: Commands {
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
             .disabled(repoTarget?.isOpen != true || repoTarget.flatMap { model.repoSummariesById[$0.id] }?.versions == nil)
+            Button("Volg een repository…") { model.watchRepository() }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
+                .disabled(model.accountsForExtraRepos.isEmpty)
             Divider()
             Button("Geschiedenis opnieuw ophalen") {
                 Task { await model.refetchHistory() }

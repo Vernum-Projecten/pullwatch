@@ -338,6 +338,21 @@ public actor AzureDevOpsProvider: PRProvider {
         await tokenSource.invalidate()
     }
 
+    /// Een losse repo (`project/repo`) binnen de organisatie van het account: één verzoek naar de
+    /// repository. Azure DevOps kent geen openbaar lezen zonder inloggen voor deze API's.
+    public func checkRepository(_ repo: String) async throws -> RepositoryCheck {
+        let parts = repo.split(separator: "/", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else { throw ProviderError.noAccess(repo) }
+        let (data, response) = try await send(
+            baseURL.appending(path: parts[0]).appending(path: "_apis/git/repositories").appending(path: parts[1]),
+            apiVersion: "7.1"
+        )
+        if response.statusCode == 404 || response.statusCode == 403 { throw ProviderError.noAccess(repo) }
+        try HTTPStatus.check(response, now: now())
+        let found = try JSONDecoding.decode(SingleRepositoryDTO.self, from: data)
+        return RepositoryCheck(name: "\(found.project.name)/\(found.name)")
+    }
+
     private func projects() async throws -> [String] {
         if let projectCache, now().timeIntervalSince(projectCache.fetchedAt) < 3600 {
             return projectCache.names
@@ -453,6 +468,12 @@ private struct ProjectDTO: Decodable {
 
 private struct RepositoryDTO: Decodable {
     let name: String
+}
+
+private struct SingleRepositoryDTO: Decodable {
+    struct Project: Decodable { let name: String }
+    let name: String
+    let project: Project
 }
 
 private struct PullRequestDTO: Decodable {

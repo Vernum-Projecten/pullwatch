@@ -11,13 +11,18 @@ enum SnapshotCamera {
     }
 
     /// Bewaart het venster met deze id-prefix (of het voorste venster) als `<naam>.png`, na een
-    /// korte pauze zodat de layout klaar is.
-    static func shoot(_ name: String, windowId: String? = nil) {
+    /// korte pauze zodat de layout klaar is. Met `sheet` het blad dat op dat venster openstaat.
+    static func shoot(_ name: String, windowId: String? = nil, sheet: Bool = false) {
         guard let directory else { return }
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(400))
-            let window = windowId.flatMap { id in NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true } }
+            var window = windowId.flatMap { id in NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true } }
                 ?? NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible && $0.contentView != nil }
+            if sheet {
+                window = windowId == nil
+                    ? NSApp.windows.first { $0.attachedSheet != nil }?.attachedSheet
+                    : window?.attachedSheet
+            }
             guard
                 // Het frame van het venster, zodat knoppenbalk en titel er ook op staan.
                 let view = window?.contentView?.superview ?? window?.contentView,

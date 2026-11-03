@@ -55,7 +55,11 @@ public enum RepoOverview {
             entries.append((versions.accountId, versions.repo, versions))
         }
         for account in accounts {
-            for (repo, watch) in account.repoWatch where watch.prs || watch.tags || watch.completed {
+            // Ook een losse repo die de standaard volgt (en dus niet in `repoWatch` staat).
+            let follows = { (watch: WatchSet) in watch.prs || watch.tags || watch.completed }
+            let followed = account.repoWatch.filter { follows($0.value) }.keys.sorted()
+                + account.extraRepos.filter { follows(account.watch(for: $0)) }
+            for repo in followed {
                 let known = entries.contains { $0.accountId == account.id && $0.repo.caseInsensitiveCompare(repo) == .orderedSame }
                 if !known { entries.append((account.id, repo, nil)) }
             }
