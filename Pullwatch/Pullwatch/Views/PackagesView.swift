@@ -15,6 +15,8 @@ struct PackagesView: View {
     @State private var sections: [PackageSection] = []
     /// Opengeklapte package- en repo-rijen.
     @State private var expandedRows: Set<PackageNode.ID> = []
+    /// Of Sinds past; alleen dat, zodat de tabel niet bij elke pixel opnieuw tekent.
+    @State private var showsSince = true
 
     private func isExpanded(_ node: PackageNode) -> Binding<Bool> {
         Binding(
@@ -59,31 +61,35 @@ struct PackagesView: View {
     }
 
     var body: some View {
+        // Smal (het kleinste venster): Sinds valt weg en staat dan in de tooltip van de versie,
+        // zodat de tabel zonder zijwaarts scrollen past.
         Table(of: PackageNode.self, selection: $selection) {
             TableColumn("Package") { node in
                 PackageNameCell(node: node)
             }
-            .width(min: 180, ideal: 230)
+            .width(min: 140, ideal: 180)
             TableColumn("Versie") { node in
-                PackageVersionCell(node: node)
+                PackageVersionCell(node: node, showsSince: !showsSince)
             }
-            .width(min: 90, ideal: 120)
+            .width(min: 70, ideal: 80)
             TableColumn("Status") { node in
                 PackageUpdateCell(node: node)
             }
-            .width(min: 170, ideal: 225)
+            .width(min: 140, ideal: 180)
             TableColumn("Stand") { node in
                 PackageStatusCell(node: node)
             }
-            .width(min: 140, ideal: 220)
-            TableColumn("Sinds") { node in
-                if case .package(let row) = node, row.summary.state == .updateAvailable, let since = row.summary.since {
-                    Text(since, format: .relative(presentation: .named))
-                        .foregroundStyle(.secondary)
-                        .help(Text("Sinds wanneer deze versie de nieuwste is"))
+            .width(min: 110, ideal: 150)
+            if showsSince {
+                TableColumn("Sinds") { node in
+                    if case .package(let row) = node, row.summary.state == .updateAvailable, let since = row.summary.since {
+                        Text(since, format: .relative(presentation: .named))
+                            .foregroundStyle(.secondary)
+                            .help(Text("Sinds wanneer deze versie de nieuwste is"))
+                    }
                 }
+                .width(min: 80, ideal: 100)
             }
-            .width(min: 80, ideal: 110)
         } rows: {
             ForEach(sections) { section in
                 Section(isExpanded: $expansion[section.kind]) {
@@ -144,6 +150,9 @@ struct PackagesView: View {
                 }
             }
         }
+        // Met of zonder Sinds een nieuwe tabel, zodat de kolommen opnieuw op hun ideale breedte beginnen.
+        .id(showsSince)
+        .onGeometryChange(for: Bool.self) { $0.size.width >= 760 } action: { showsSince = $0 }
         .searchable(text: $searchText, prompt: Text("Zoek op package of repo…"))
         .searchShortcut()
         .navigationTitle(Text("Afhankelijkheden"))
@@ -326,14 +335,9 @@ private struct PackageNameCell: View {
                 Text(verbatim: row.summary.kind).font(.caption).foregroundStyle(.secondary)
             }
         case .user(let row):
-            HStack(spacing: 6) {
-                Text(verbatim: row.user.repo).lineLimit(1)
-                if row.standing == .transitiveOnly {
-                    Pill(text: "Alleen transitief", tint: .secondary)
-                        .help(Text("Deze repo vraagt het package niet zelf; het komt binnen via andere packages"))
-                }
-            }
-            .help(Text("Dubbelklik om de pagina van deze repo te openen"))
+            Text(verbatim: row.user.repo)
+                .lineLimit(1)
+                .help(Text("Dubbelklik om de pagina van deze repo te openen"))
         case .install(let row):
             Label(Workspace.name(row.install.workspace), systemImage: "folder")
                 .foregroundStyle(.secondary)
@@ -345,12 +349,17 @@ private struct PackageNameCell: View {
 
 private struct PackageVersionCell: View {
     let node: PackageNode
+    /// Sinds wanneer de versie de nieuwste is in de tooltip, als de kolom Sinds er niet staat.
+    var showsSince = false
 
     var body: some View {
         switch node {
         case .package(let row):
             Text(verbatim: row.summary.latest ?? "").monospacedDigit()
                 .foregroundStyle(row.summary.state == .updateAvailable ? .green : .secondary)
+                .help(showsSince && row.summary.state == .updateAvailable
+                      ? row.summary.since.map { Text("Nieuwste sinds \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
+                      : Text(verbatim: ""))
         case .user(let row):
             VersionLabel(version: row.user.version, standing: row.standing)
         case .install(let row):
@@ -403,6 +412,11 @@ private struct PackageStatusCell: View {
             case .unchecked:
                 Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)
             }
+        case .user(let row) where row.standing == .transitiveOnly:
+            Text("Alleen transitief")
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .help(Text("Deze repo vraagt het package niet zelf; het komt binnen via andere packages"))
         case .user(let row):
             if row.user.installs.count > 1 {
                 // Meer versies: hoeveel; één versie op meer plekken: welke workspaces.

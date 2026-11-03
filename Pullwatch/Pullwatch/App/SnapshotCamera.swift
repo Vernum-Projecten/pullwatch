@@ -37,6 +37,14 @@ enum SnapshotCamera {
                 sidebar.cacheDisplay(in: sidebar.visibleRect, to: sidebarRep)
                 try? sidebarRep.representation(using: .png, properties: [:])?.write(to: directory.appending(path: "\(name)-sidebar.png"))
             }
+            // Het inspectievenster rechts staat in Liquid Glass en tekent niet mee; wat erin staat
+            // (het document van de scrollview zonder tabel) apart wel, over de hele hoogte.
+            if let inspector = scrollViews(in: view).first(where: {
+                $0.convert($0.bounds, to: nil).minX > view.bounds.width * 0.55 && outlineOrTableViews(in: $0).isEmpty
+            }), let document = inspector.documentView, let rep = document.bitmapImageRepForCachingDisplay(in: document.bounds) {
+                document.cacheDisplay(in: document.bounds, to: rep)
+                try? rep.representation(using: .png, properties: [:])?.write(to: directory.appending(path: "\(name)-inspector.png"))
+            }
         }
     }
 
@@ -73,6 +81,10 @@ enum SnapshotCamera {
 
     private static func scrollViews(in view: NSView) -> [NSScrollView] {
         ((view as? NSScrollView).map { [$0] } ?? []) + view.subviews.flatMap(scrollViews)
+    }
+
+    private static func outlineOrTableViews(in view: NSView) -> [NSTableView] {
+        (view as? NSTableView).map { [$0] } ?? view.subviews.flatMap(outlineOrTableViews)
     }
 
     private static func outlineViews(in view: NSView) -> [NSOutlineView] {
