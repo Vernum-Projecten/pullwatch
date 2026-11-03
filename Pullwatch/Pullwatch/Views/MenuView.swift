@@ -17,7 +17,7 @@ struct MenuView: View {
             )
 
             if let update = model.availableUpdate {
-                UpdateBanner(update: update)
+                UpdateBanner(update: update) { MenuPanel.close(); model.installUpdate() }
             }
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
@@ -115,6 +115,8 @@ private struct MenuHeader: View {
 
 private struct UpdateBanner: View {
     let update: AvailableUpdate
+    /// Sparkle's venster openen (alleen als de update in de app installeert).
+    let install: () -> Void
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -124,7 +126,11 @@ private struct UpdateBanner: View {
             Spacer()
             Button("Release notes") { openURL(update.pageURL) }
                 .buttonStyle(.link)
-            Button("Downloaden") { openURL(update.downloadURL ?? update.pageURL) }
+            if update.installsInApp {
+                Button("Installeren", action: install)
+            } else {
+                Button("Downloaden") { openURL(update.downloadURL ?? update.pageURL) }
+            }
         }
         .font(.callout)
     }

@@ -287,6 +287,16 @@ private struct GeneralSettingsView: View {
 
             Section {
                 Toggle("Automatisch op updates controleren", isOn: $model.checksForUpdates)
+                if model.installsUpdatesInApp {
+                    Toggle(
+                        "Updates automatisch installeren",
+                        isOn: Binding(get: { model.installsUpdatesAutomatically }, set: { model.setInstallsUpdatesAutomatically($0) })
+                    )
+                    .disabled(!model.checksForUpdates)
+                    .help("Pullwatch downloadt een update op de achtergrond en installeert hem als je de app afsluit.")
+                    Toggle("Testversies aanbieden", isOn: $model.includesTestVersions)
+                        .help("Ook pre-releases van Pullwatch, voordat ze voor iedereen uitkomen.")
+                }
                 LabeledContent {
                     HStack {
                         if model.isCheckingForUpdates { ProgressView().controlSize(.small) }

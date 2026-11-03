@@ -10,6 +10,11 @@ CURRENT_PROJECT_VERSION = 9
 // bestaande gebruikers hangen aan deze bundle id.
 PRODUCT_BUNDLE_IDENTIFIER = nl.torrisi.pullwatch
 
+// De eigenaar van de releases op GitHub (github.com/<eigenaar>/pullwatch): de updatecheck en
+// Sparkle lezen daar de nieuwste release en zijn appcast.xml. Een fork die eigen releases
+// maakt, zet hier zijn eigen naam; verder verschilt er niets.
+PW_RELEASES_OWNER = alessandro823
+
 // Swift voor het app-target: de app is UI met één model op de main actor, dus alles is
 // standaard @MainActor (Xcode's standaard voor nieuwe apps sinds Swift 6.2). PullwatchKit
 // blijft standaard nonisolated. De taalinstellingen voor alle targets staan op projectniveau.

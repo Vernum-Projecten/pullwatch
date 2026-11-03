@@ -14,6 +14,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     var onOpen: ((String) -> Void)?
     /// Klik op een melding die bij een onderdeel van het hoofdvenster hoort (bv. nieuwe versies).
     var onOpenSection: ((String) -> Void)?
+    /// Klik op de melding van een update die Sparkle in de app installeert.
+    var onInstallUpdate: (() -> Void)?
 
     private var center: UNUserNotificationCenter { .current() }
 
@@ -175,12 +177,18 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         add(UNNotificationRequest(identifier: "packages-\(lines.joined(separator: ","))", content: content, trigger: nil))
     }
 
-    /// Klik opent de DMG (of de releasepagina als die er niet bij staat).
+    /// Klik opent Sparkle's venster om te installeren, of zonder Sparkle de DMG (of de
+    /// releasepagina als die er niet bij staat).
     func deliverUpdate(_ update: AvailableUpdate) {
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Pullwatch \(update.version) is beschikbaar", comment: "Meldingstitel; versienummer")
-        content.body = String(localized: "Klik om te downloaden.")
-        content.userInfo = ["url": (update.downloadURL ?? update.pageURL).absoluteString]
+        if update.installsInApp {
+            content.body = String(localized: "Klik om te installeren.")
+            content.userInfo = ["action": "install-update"]
+        } else {
+            content.body = String(localized: "Klik om te downloaden.")
+            content.userInfo = ["url": (update.downloadURL ?? update.pageURL).absoluteString]
+        }
         add(UNNotificationRequest(identifier: "update-\(update.version)", content: content, trigger: nil))
     }
 
@@ -207,7 +215,11 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let urlString = info["url"] as? String
         let key = info["key"] as? String
         let section = info["section"] as? String
+        let installsUpdate = info["action"] as? String == "install-update"
         await MainActor.run {
+            if installsUpdate {
+                self.onInstallUpdate?()
+            }
             if let section {
                 self.onOpenSection?(section)
             }

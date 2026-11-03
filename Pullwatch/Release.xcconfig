@@ -5,3 +5,9 @@
 // "Inloggen met GitHub" niet aan, alleen een token. Openbaar, geen geheim.
 PW_GITHUB_CLIENT_ID =
 PW_GITHUB_APP_SLUG =
+
+// Sparkle's openbare EdDSA-sleutel voor updates in de app (docs/releasing.md, "Sparkle's key").
+// De privésleutel staat in het Actions-secret SPARKLE_PRIVATE_KEY en in de Keychain van de
+// maintainer, nooit in een bestand. Leeg: de release installeert geen updates in de app en
+// toont alleen de melding met de downloadknop; release.yml weigert dan een release te maken.
+SPARKLE_PUBLIC_ED_KEY =

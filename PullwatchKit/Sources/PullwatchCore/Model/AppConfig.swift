@@ -10,6 +10,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var autoVersionCheck: Bool
     /// Eens per dag kijken of er een nieuwere Pullwatch op GitHub staat.
     public var checkForUpdates: Bool
+    /// Ook testversies (pre-releases, Sparkle's `beta`-kanaal) aanbieden. Standaard uit.
+    public var includeTestVersions: Bool
     /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
     public var notifyPackageUpdates: Bool
     /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
@@ -25,6 +27,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         historyRetention: HistoryRetention = .oneYear,
         autoVersionCheck: Bool = true,
         checkForUpdates: Bool = true,
+        includeTestVersions: Bool = false,
         notifyPackageUpdates: Bool = true,
         notifySecurityAlerts: Bool = false,
         onboardingCompleted: Bool = false
@@ -34,6 +37,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.historyRetention = historyRetention
         self.autoVersionCheck = autoVersionCheck
         self.checkForUpdates = checkForUpdates
+        self.includeTestVersions = includeTestVersions
         self.notifyPackageUpdates = notifyPackageUpdates
         self.notifySecurityAlerts = notifySecurityAlerts
         self.onboardingCompleted = onboardingCompleted
@@ -46,6 +50,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         historyRetention = try c.decodeIfPresent(HistoryRetention.self, forKey: .historyRetention) ?? .oneYear
         autoVersionCheck = try c.decodeIfPresent(Bool.self, forKey: .autoVersionCheck) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
+        includeTestVersions = try c.decodeIfPresent(Bool.self, forKey: .includeTestVersions) ?? false
         notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
         notifySecurityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false

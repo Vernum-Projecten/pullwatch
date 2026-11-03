@@ -5320,6 +5320,34 @@
         }
       }
     },
+    "Installeren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installeren"
+          }
+        }
+      }
+    },
     "Instellingen": {
       "localizations": {
         "de": {
@@ -5687,6 +5715,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klik om te downloaden."
+          }
+        }
+      }
+    },
+    "Klik om te installeren.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Installieren klicken."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click to install."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cliquez pour installer."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klik om te installeren."
           }
         }
       }
@@ -7054,6 +7110,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non lu"
+          }
+        }
+      }
+    },
+    "Ook pre-releases van Pullwatch, voordat ze voor iedereen uitkomen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch Vorabversionen von Pullwatch, bevor sie für alle erscheinen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also pre-releases of Pullwatch, before they come out for everyone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aussi les préversions de Pullwatch, avant leur sortie pour tout le monde."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ook pre-releases van Pullwatch, voordat ze voor iedereen uitkomen."
           }
         }
       }
@@ -8637,6 +8721,34 @@
         }
       }
     },
+    "Pullwatch downloadt een update op de achtergrond en installeert hem als je de app afsluit.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch lädt ein Update im Hintergrund und installiert es, wenn du die App beendest."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch downloads an update in the background and installs it when you quit the app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch télécharge une mise à jour en arrière-plan et l’installe quand vous quittez l’app."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch downloadt een update op de achtergrond en installeert hem als je de app afsluit."
+          }
+        }
+      }
+    },
     "Pullwatch draait in de menubalk, rechtsboven naast de klok. Het heeft geen icoon in het Dock en geen venster zolang je er niets mee doet.": {
       "localizations": {
         "de": {
@@ -9834,6 +9946,34 @@
         }
       }
     },
+    "Testversies aanbieden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testversionen anbieten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include test versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inclure les versions de test"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testversies aanbieden"
+          }
+        }
+      }
+    },
     "Titel": {
       "localizations": {
         "de": {
@@ -10185,6 +10325,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mises à jour"
+          }
+        }
+      }
+    },
+    "Updates automatisch installeren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates automatisch installieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install updates automatically"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer les mises à jour automatiquement"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates automatisch installeren"
           }
         }
       }
