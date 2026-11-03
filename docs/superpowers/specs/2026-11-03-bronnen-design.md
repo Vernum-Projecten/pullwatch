@@ -74,7 +74,9 @@ Pullwatch")
 | Verbinding | Wat | Schakelaar |
 |---|---|---|
 | Servers van je accounts | Per account de server (github.com, een GitHub Enterprise-server of GHE.com, dev.azure.com, gitlab.com of een eigen GitLab): PR's, tags, repo's, manifesten en lockfiles. Eén rij per account, met het adres waar de provider echt mee praat: `api.github.com`, `api.<naam>.ghe.com`, `<server>/api/v3`, `dev.azure.com/<organisatie>` of `<server>/api/v4` (`SourcesOverview.server(of:)`). | Geen; uitzetten gaat via het account zelf. |
-| Updatecheck van Pullwatch | `api.github.com` (releases van Pullwatch) en de appcast op `github.com` (Sparkle) | Geen eigen schakelaar hier; de rij toont de stand van "Zoek naar updates" in Algemeen en linkt daarheen. |
+| Inloggen bij GitHub | De device flow en het vernieuwen van het token (`github.com/login/device/code`, `github.com/login/oauth/access_token`) voor accounts die via de GitHub App inloggen. De GitHub App staat op github.com, ook bij een Enterprise-account. Alleen als zo'n account er is. | Geen; staat aan zolang een van die accounts aan staat. |
+| Profielfoto's | `<server>/<login>.png` op de server van elk GitHub-account (github.com, een GitHub Enterprise-server of GHE.com), en `avatars.githubusercontent.com`, waar github.com naar doorstuurt en waar de foto's van auteurs staan. Alleen als er een GitHub-account is. | Geen; staat aan zolang een GitHub-account aan staat. |
+| Updatecheck van Pullwatch | `api.github.com` (releases van Pullwatch) en de appcast op `github.com` (Sparkle), in één rij met beide adressen | Geen eigen schakelaar hier; de rij toont de stand van "Automatisch op updates controleren" in Algemeen en linkt daarheen. |
 
 De bouwer controleert deze lijst tegen de code: als er een externe aanroep is
 die hier ontbreekt, hoort die er ook bij. De lijst in de app moet compleet zijn,

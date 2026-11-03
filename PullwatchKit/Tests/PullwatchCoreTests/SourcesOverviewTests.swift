@@ -44,7 +44,7 @@ import PullwatchTestSupport
         let line = try #require(text.split(separator: "\n").first { $0.contains(enterprise.displayName) })
         #expect(line.contains("https://ghe.example.com"))
         #expect(line.contains(": aan."))
-        #expect(SourcesOverview.otherConnections(config: config).contains { $0.url.host() == "ghe.example.com" })
+        #expect(SourcesOverview.otherConnections(config: config, locale: dutch).contains { $0.urls.contains { $0.host() == "ghe.example.com" } })
     }
 
     @Test func accountServerIsTheAddressTheProviderCalls() {
@@ -59,6 +59,9 @@ import PullwatchTestSupport
         #expect(server(.azureDevOps) == "https://dev.azure.com/acme")
         #expect(server(.gitLab) == "https://gitlab.com/api/v4")
         #expect(server(.gitLab, "https://git.example.com") == "https://git.example.com/api/v4")
+        // Een adres met "/" aan het eind geeft geen dubbele "/".
+        #expect(server(.gitLab, "https://git.example.com/") == "https://git.example.com/api/v4")
+        #expect(server(.gitHub, "https://ghe.example.com/") == "https://ghe.example.com/api/v3")
     }
 
     @Test func pausedAccountAndUpdateCheckShowTheirState() {
@@ -70,10 +73,44 @@ import PullwatchTestSupport
         #expect(text.contains("- \(paused.displayName): uit."))
         #expect(text.contains("https://dev.azure.com/acme"))
         let updates = text.split(separator: "\n").filter { $0.contains("Updatecheck van Pullwatch") }
-        #expect(updates.count == 2)
-        #expect(updates.allSatisfy { $0.contains(": uit.") })
-        let hosts = SourcesOverview.otherConnections(config: config).map { $0.url.host() }
-        #expect(hosts == ["dev.azure.com", "api.github.com", "github.com"])
+        #expect(updates.count == 1, "de updatecheck is één regel met twee adressen")
+        #expect(updates.allSatisfy { $0.contains(": uit.") && $0.contains("https://api.github.com") && $0.contains("https://github.com") })
+        let connections = SourcesOverview.otherConnections(config: config, locale: dutch)
+        #expect(connections.map { $0.urls.map { $0.host() } } == [["dev.azure.com"], ["api.github.com", "github.com"]])
+        #expect(connections.last?.detail.contains("Automatisch op updates controleren staat uit") == true)
+    }
+
+    @Test func gitHubSignInAndProfilePicturesAreListed() throws {
+        let app = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
+        let enterprise = Account(kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: URL(string: "https://ghe.example.com"))
+        let config = AppConfig(accounts: [app, enterprise])
+
+        let connections = SourcesOverview.otherConnections(config: config, locale: dutch)
+
+        let signIn = try #require(connections.first { $0.name == "Inloggen bij GitHub" })
+        #expect(signIn.urls.map(\.absoluteString) == ["https://github.com"])
+        let pictures = try #require(connections.first { $0.name == "Profielfoto's" })
+        #expect(pictures.urls.map(\.absoluteString) == ["https://github.com", "https://avatars.githubusercontent.com", "https://ghe.example.com"])
+        let text = text(config)
+        #expect(text.contains("- Inloggen bij GitHub: aan."))
+        #expect(text.contains("- Profielfoto's: aan."))
+    }
+
+    @Test func signInAndPicturesFollowTheAccounts() {
+        // Zonder GitHub-account geen van beide; met alleen een uitgezet account staan ze uit.
+        let azure = Account(kind: .azureDevOps, organization: "acme", authMethod: .pat)
+        let none = SourcesOverview.otherConnections(config: AppConfig(accounts: [azure]), locale: dutch).map(\.name)
+        #expect(!none.contains("Inloggen bij GitHub") && !none.contains("Profielfoto's"))
+
+        let token = Account(kind: .gitHub, organization: "octo", authMethod: .pat)
+        let withToken = SourcesOverview.otherConnections(config: AppConfig(accounts: [token]), locale: dutch).map(\.name)
+        #expect(!withToken.contains("Inloggen bij GitHub"), "met een token logt Pullwatch niet in via GitHub")
+        #expect(withToken.contains("Profielfoto's"))
+
+        let paused = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp, isPaused: true)
+        let text = text(AppConfig(accounts: [paused]))
+        #expect(text.contains("- Inloggen bij GitHub: uit."))
+        #expect(text.contains("- Profielfoto's: uit."))
     }
 
     @Test func textHasNoSeparatorsOrDashes() {
@@ -119,7 +156,7 @@ import PullwatchTestSupport
             #expect(called.contains(host), "\(host) werd niet aangeroepen")
         }
         let listed = Set(DataSource.all.flatMap(\.endpoints).compactMap { $0.host() })
-            .union(SourcesOverview.otherConnections(config: config).compactMap { $0.url.host() })
+            .union(SourcesOverview.otherConnections(config: config, locale: dutch).flatMap(\.urls).compactMap { $0.host() })
         for host in called.sorted() {
             #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
         }

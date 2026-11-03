@@ -36,11 +36,13 @@ public enum SourcesOverview {
         return lines.joined(separator: "\n") + "\n"
     }
 
-    /// De verbindingen buiten `DataSource.all`: één per account (de server waar de provider van
-    /// dat account echt mee praat), plus de updatecheck op `api.github.com` en `github.com`. De
-    /// `detail` noemt ook de stand: een uitgezet account, en of "Automatisch op updates controleren" aan staat.
-    public static func otherConnections(config: AppConfig) -> [(name: String, url: URL, detail: String)] {
-        connections(config: config, bundle: .localizedCore, locale: .current).map { ($0.row.name, $0.row.urls[0], $0.detail) }
+    /// De verbindingen buiten `DataSource.all`, één rij per verbinding (in de tekst en op het
+    /// tabblad): per account de server waar de provider van dat account echt mee praat; inloggen
+    /// bij GitHub (als een account via de GitHub App inlogt); de profielfoto's (als er een
+    /// GitHub-account is); en de updatecheck op `api.github.com` en `github.com`. De `detail`
+    /// noemt ook de stand: een uitgezet account, en of "Automatisch op updates controleren" aan staat.
+    public static func otherConnections(config: AppConfig, locale: Locale = .current) -> [(name: String, urls: [URL], detail: String)] {
+        connections(config: config, bundle: bundle(for: locale), locale: locale).map { ($0.row.name, $0.row.urls, $0.detail) }
     }
 
     /// Het adres waar de provider van `account` echt mee praat, zoals de providers het opbouwen:
@@ -60,10 +62,9 @@ public enum SourcesOverview {
             if host.split(separator: ".").count == 3, host.hasSuffix(".ghe.com") {
                 return URL(string: "https://api.\(host)")!
             }
-            return URL(string: instance.absoluteString + "/api/v3")!
+            return instance.appending(path: "api/v3")
         case .gitLab:
-            let base = instance ?? URL(string: "https://gitlab.com")!
-            return URL(string: base.absoluteString + "/api/v4")!
+            return (instance ?? URL(string: "https://gitlab.com")!).appending(path: "api/v4")
         }
     }
 
@@ -103,23 +104,52 @@ public enum SourcesOverview {
             return Connection(row: Row(name: account.displayName, isOn: !account.isPaused, summary: summary, urls: [server(of: account)]),
                               detail: detail)
         }
-        let name = String(localized: "Updatecheck van Pullwatch", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen")
-        let updates = [
-            (URL(string: "https://api.github.com")!,
-             String(localized: "Zoekt naar een nieuwe versie van Pullwatch", bundle: bundle, locale: locale,
-                    comment: "Updatecheck: de releases van Pullwatch op api.github.com")),
-            (URL(string: "https://github.com")!,
-             String(localized: "Haalt de appcast en de updates van Pullwatch op", bundle: bundle, locale: locale,
-                    comment: "Updatecheck: de appcast en downloads op github.com")),
-        ].map { url, summary in
-            let detail = config.checkForUpdates
-                ? String(localized: "\(summary); Automatisch op updates controleren staat aan", bundle: bundle, locale: locale,
-                         comment: "Beschrijving van de updatecheck met de stand van de instelling in Algemeen")
-                : String(localized: "\(summary); Automatisch op updates controleren staat uit", bundle: bundle, locale: locale,
-                         comment: "Beschrijving van de updatecheck met de stand van de instelling in Algemeen")
-            return Connection(row: Row(name: name, isOn: config.checkForUpdates, summary: summary, urls: [url]), detail: detail)
+        let gitHub = config.accounts.filter { $0.kind == .gitHub }
+        var others: [Connection] = []
+
+        // De device flow en het vernieuwen van het token gaan naar de GitHub App van
+        // `GitHubAppConfig.main`, en die staat altijd op github.com, ook bij een Enterprise-account.
+        let signingIn = gitHub.filter { $0.authMethod == .gitHubApp }
+        if !signingIn.isEmpty {
+            let summary = String(localized: "Inloggen met de GitHub App en het token daarvan vernieuwen", bundle: bundle, locale: locale,
+                                 comment: "Wat Pullwatch bij het inloggen bij GitHub doet")
+            others.append(Connection(
+                row: Row(name: String(localized: "Inloggen bij GitHub", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen"),
+                         isOn: signingIn.contains { !$0.isPaused }, summary: summary, urls: [URL(string: "https://github.com")!]),
+                detail: summary))
         }
-        return accounts + updates
+
+        // `<web>/<login>.png` (`Account.gitHubAvatarURL`) op de server van elk GitHub-account;
+        // github.com stuurt door naar avatars.githubusercontent.com, waar ook de foto's staan die de API noemt.
+        if !gitHub.isEmpty {
+            var urls: [URL] = []
+            for account in gitHub {
+                let web = account.effectiveInstanceURL ?? URL(string: "https://github.com")!
+                guard !urls.contains(web) else { continue }
+                urls.append(web)
+                if web.host() == "github.com" { urls.append(URL(string: "https://avatars.githubusercontent.com")!) }
+            }
+            let summary = String(localized: "Profielfoto's van je accounts en van de auteurs van PR's en tags", bundle: bundle, locale: locale,
+                                 comment: "Wat Pullwatch voor de profielfoto's ophaalt")
+            others.append(Connection(
+                row: Row(name: String(localized: "Profielfoto's", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen"),
+                         isOn: gitHub.contains { !$0.isPaused }, summary: summary, urls: urls),
+                detail: summary))
+        }
+
+        let summary = String(localized: "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op", bundle: bundle, locale: locale,
+                             comment: "Updatecheck: de releases op api.github.com, de appcast en downloads op github.com")
+        let detail = config.checkForUpdates
+            ? String(localized: "\(summary); Automatisch op updates controleren staat aan", bundle: bundle, locale: locale,
+                     comment: "Beschrijving van de updatecheck met de stand van de instelling in Algemeen")
+            : String(localized: "\(summary); Automatisch op updates controleren staat uit", bundle: bundle, locale: locale,
+                     comment: "Beschrijving van de updatecheck met de stand van de instelling in Algemeen")
+        others.append(Connection(
+            row: Row(name: String(localized: "Updatecheck van Pullwatch", bundle: bundle, locale: locale, comment: "Verbinding in het overzicht van bronnen"),
+                     isOn: config.checkForUpdates, summary: summary,
+                     urls: [URL(string: "https://api.github.com")!, URL(string: "https://github.com")!]),
+            detail: detail))
+        return accounts + others
     }
 
     /// De teksten van PullwatchCore in de taal van `locale`, als de bundle die heeft; anders in de

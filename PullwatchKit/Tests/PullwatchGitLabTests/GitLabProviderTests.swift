@@ -24,6 +24,17 @@ import PullwatchTestSupport
         http.on("\(api)groups/acme?", body: GitLabFixtures.group)
     }
 
+    /// Het overzicht van bronnen (PullwatchCore kent de provider niet) noemt dezelfde API.
+    @Test func sourcesOverviewNamesTheSameAPI() async {
+        for instance in [nil, "https://gitlab.com", "https://git.example.com", "https://example.com/gitlab"].map({ $0.flatMap(URL.init(string:)) }) {
+            let account = Account(kind: .gitLab, organization: "acme", authMethod: .pat, instanceURL: instance)
+            let provider = makeProvider(MockHTTPClient(), instance: instance)
+            let endpoint = await provider.endpoint("projects")
+            #expect(SourcesOverview.server(of: account).appending(path: "projects") == endpoint,
+                    "\(String(describing: instance))")
+        }
+    }
+
     func urls(_ http: MockHTTPClient) -> [String] {
         http.requests.compactMap { $0.url?.absoluteString }
     }

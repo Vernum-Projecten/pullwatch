@@ -679,31 +679,60 @@
         }
       }
     },
-    "Haalt de appcast en de updates van Pullwatch op": {
-      "comment": "Updatecheck: de appcast en downloads op github.com",
+    "Inloggen bij GitHub": {
+      "comment": "Verbinding in het overzicht van bronnen",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lädt den Appcast und die Updates von Pullwatch"
+            "value": "Anmeldung bei GitHub"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloads the appcast and the updates of Pullwatch"
+            "value": "Signing in to GitHub"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Télécharge l’appcast et les mises à jour de Pullwatch"
+            "value": "Connexion à GitHub"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haalt de appcast en de updates van Pullwatch op"
+            "value": "Inloggen bij GitHub"
+          }
+        }
+      }
+    },
+    "Inloggen met de GitHub App en het token daarvan vernieuwen": {
+      "comment": "Wat Pullwatch bij het inloggen bij GitHub doet",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meldet sich mit der GitHub App an und erneuert deren Token"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signs in with the GitHub App and renews its token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecte avec la GitHub App et renouvelle son jeton"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inloggen met de GitHub App en het token daarvan vernieuwen"
           }
         }
       }
@@ -1075,6 +1104,64 @@
         }
       }
     },
+    "Profielfoto's": {
+      "comment": "Verbinding in het overzicht van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilbilder"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile pictures"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos de profil"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielfoto's"
+          }
+        }
+      }
+    },
+    "Profielfoto's van je accounts en van de auteurs van PR's en tags": {
+      "comment": "Wat Pullwatch voor de profielfoto's ophaalt",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilbilder deiner Konten und der Autoren von Pull Requests und Tags"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile pictures of your accounts and of the authors of pull requests and tags"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos de profil de tes comptes et des auteurs des pull requests et des tags"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielfoto's van je accounts en van de auteurs van PR's en tags"
+          }
+        }
+      }
+    },
     "Pullwatch %@: bronnen (%@)": {
       "comment": "Kop van het gekopieerde overzicht van bronnen: versie, datum",
       "localizations": {
@@ -1358,31 +1445,31 @@
         }
       }
     },
-    "Zoekt naar een nieuwe versie van Pullwatch": {
-      "comment": "Updatecheck: de releases van Pullwatch op api.github.com",
+    "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op": {
+      "comment": "Updatecheck: de releases op api.github.com, de appcast en downloads op github.com",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sucht nach einer neuen Version von Pullwatch"
+            "value": "Sucht nach einer neuen Version von Pullwatch und lädt die Updates"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Looks for a new version of Pullwatch"
+            "value": "Looks for a new version of Pullwatch and downloads the updates"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recherche une nouvelle version de Pullwatch"
+            "value": "Recherche une nouvelle version de Pullwatch et télécharge les mises à jour"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zoekt naar een nieuwe versie van Pullwatch"
+            "value": "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op"
           }
         }
       }
