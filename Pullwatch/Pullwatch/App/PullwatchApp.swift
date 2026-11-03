@@ -101,7 +101,14 @@ private struct MenuBarLabel: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            Image(systemName: model.menuBarSymbol)
+            if model.hasPollError {
+                Image(systemName: "exclamationmark.triangle")
+                    .accessibilityLabel(Text("Pullwatch, een account geeft een fout"))
+            } else {
+                // Het pull-request-teken van het app-icoon, als template.
+                Image(.menuBarIcon)
+                    .accessibilityLabel(Text(verbatim: "Pullwatch"))
+            }
             if model.history.unreadCount > 0 {
                 Image(systemName: "circle.fill")
                     .imageScale(.small)
