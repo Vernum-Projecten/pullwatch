@@ -3262,6 +3262,34 @@
         }
       }
     },
+    "Automatisch (taal van macOS)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch (Sprache von macOS)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic (macOS language)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatique (langue de macOS)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch (taal van macOS)"
+          }
+        }
+      }
+    },
     "Automatisch op updates controleren": {
       "localizations": {
         "de": {
@@ -8619,6 +8647,34 @@
         }
       }
     },
+    "Opnieuw starten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu starten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrer"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw starten"
+          }
+        }
+      }
+    },
     "Opslaan": {
       "localizations": {
         "de": {
@@ -10567,6 +10623,34 @@
         }
       }
     },
+    "Start Pullwatch opnieuw om de taal te wijzigen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte Pullwatch neu, um die Sprache zu ändern."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Pullwatch to change the language."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrez Pullwatch pour changer de langue."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Pullwatch opnieuw om de taal te wijzigen."
+          }
+        }
+      }
+    },
     "Starten bij inloggen": {
       "localizations": {
         "de": {
@@ -10735,6 +10819,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arrête la récupération ; ce qui est déjà arrivé reste"
+          }
+        }
+      }
+    },
+    "Taal": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taal"
           }
         }
       }

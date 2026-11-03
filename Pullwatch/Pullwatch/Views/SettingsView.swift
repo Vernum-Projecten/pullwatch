@@ -277,9 +277,26 @@ private struct AddAccountSheet: View {
 private struct GeneralSettingsView: View {
     @Bindable var model: AppModel
     @State private var logLevel = Log.minimum
+    @State private var language = AppLanguage.current(in: .standard)
 
     var body: some View {
         Form {
+            Section {
+                Picker("Taal", selection: $language) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(verbatim: language.name).tag(language)
+                    }
+                }
+                .onChange(of: language) { _, language in AppLanguage.select(language, in: .standard) }
+                if language != AppLanguage.atLaunch {
+                    LabeledContent {
+                        Button("Opnieuw starten") { AppLanguage.relaunch() }
+                    } label: {
+                        Text("Start Pullwatch opnieuw om de taal te wijzigen.")
+                    }
+                }
+            }
+
             Section {
                 Picker("Kijk elke", selection: $model.pollInterval) {
                     ForEach(AppModel.pollIntervals, id: \.self) { seconds in
