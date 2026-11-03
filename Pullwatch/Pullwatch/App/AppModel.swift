@@ -494,7 +494,7 @@ final class AppModel {
 
     /// Wie er met de GitHub App is ingelogd bij dit account; nil als dat (nog) niet lukt.
     func gitHubLogin(_ accountId: UUID) async -> String? {
-        let account = Account(id: accountId, kind: .gitHub, displayName: "", organization: "", authMethod: .gitHubApp)
+        let account = Account(id: accountId, kind: .gitHub, organization: "", authMethod: .gitHubApp)
         return try? await ProviderFactory.make(account, secrets: secrets, gitHubApp: gitHubApp).currentUserId()
     }
 

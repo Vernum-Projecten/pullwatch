@@ -62,7 +62,7 @@ private actor FileProvider: PRProvider {
     }
 
     func account(_ watch: [String: WatchSet], default fallback: NewRepoDefault = .none) -> Account {
-        Account(kind: .gitHub, displayName: "Acme", organization: "acme", authMethod: .pat, repoWatch: watch, newRepoDefault: fallback)
+        Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: watch, newRepoDefault: fallback)
     }
 
     @Test func checksOnlyFollowedReposAndSortsWorstFirst() async {
@@ -186,7 +186,7 @@ private actor FileProvider: PRProvider {
         let good = FileProvider(repos: ["acme/ok", "acme/broken"], files: ["acme/ok": [:]], brokenRepos: ["acme/broken"])
         let failing = FileProvider(repos: nil, files: [:])
         let first = account(["acme/ok": .prs, "acme/broken": .prs])
-        let second = Account(kind: .gitHub, displayName: "Kapot", organization: "kapot", authMethod: .pat)
+        let second = Account(kind: .gitHub, organization: "kapot", authMethod: .pat)
         let checker = VersionChecker(makeProvider: { $0.id == first.id ? good : failing }, http: http, now: { now })
 
         let report = await checker.run(accounts: [first, second])
@@ -194,7 +194,7 @@ private actor FileProvider: PRProvider {
         let byRepo = Dictionary(uniqueKeysWithValues: report.repos.map { ($0.repo, $0) })
         #expect(byRepo["acme/ok"]?.error == nil)
         #expect(byRepo["acme/broken"]?.error == ProviderError.server(status: 500).userMessage)
-        #expect(byRepo["Kapot"]?.error == ProviderError.unauthorized.userMessage)
+        #expect(byRepo[second.displayName]?.error == ProviderError.unauthorized.userMessage)
     }
 
     @Test func unknownWhenReleasesUnavailable() async {
@@ -278,7 +278,7 @@ private actor FileProvider: PRProvider {
     let now = Date(timeIntervalSince1970: 1_792_000_000)
 
     func account() -> Account {
-        Account(kind: .gitHub, displayName: "Acme", organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs, "acme/b": .prs])
+        Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs, "acme/b": .prs])
     }
 
     @Test func attachesVulnerabilitiesPerRepoWithOneSharedQuery() async {
@@ -332,7 +332,7 @@ private actor FileProvider: PRProvider {
             "composer.json": #"{"require":{"symfony/console":"^7.2"}}"#,
             "composer.lock": #"{"packages":[{"name":"symfony/console","version":"v7.4.8"}]}"#,
         ]])
-        let account = Account(kind: .azureDevOps, displayName: "x", organization: "x", authMethod: .pat, repoWatch: ["p/api": .prs])
+        let account = Account(kind: .azureDevOps, organization: "x", authMethod: .pat, repoWatch: ["p/api": .prs])
 
         let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { Date(timeIntervalSince1970: 1_792_000_000) })
             .run(accounts: [account])
@@ -352,7 +352,7 @@ private actor FileProvider: PRProvider {
             "Cargo.toml": "[workspace.package]\nrust-version = \"1.98\"\n",
             "rust-toolchain.toml": "[toolchain]\nchannel = \"1.99.1\"\n",
         ]])
-        let account = Account(kind: .gitHub, displayName: "f", organization: "f", authMethod: .pat, repoWatch: ["f/ehr": .prs])
+        let account = Account(kind: .gitHub, organization: "f", authMethod: .pat, repoWatch: ["f/ehr": .prs])
 
         let report = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { Date(timeIntervalSince1970: 1_792_000_000) })
             .run(accounts: [account])
@@ -368,7 +368,7 @@ private actor FileProvider: PRProvider {
 
     func run(_ files: [String: String]) async -> [ComponentVersion] {
         let provider = FileProvider(repos: ["t/go-tool"], files: ["t/go-tool": files])
-        let account = Account(kind: .azureDevOps, displayName: "t", organization: "t", authMethod: .pat, repoWatch: ["t/go-tool": .prs])
+        let account = Account(kind: .azureDevOps, organization: "t", authMethod: .pat, repoWatch: ["t/go-tool": .prs])
         let report = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now }).run(accounts: [account])
         return report.repos.first?.components ?? []
     }
@@ -410,7 +410,7 @@ private actor FileProvider: PRProvider {
         let http = MockHTTPClient()
         http.on("products/go", body: #"{"result":{"releases":[{"name":"1.27","releaseDate":"2026-08-19","isEol":false,"latest":{"name":"1.27.3"}}]}}"#)
         let provider = FileProvider(repos: nil, files: ["a/one": ["go.mod": "go 1.27.2"]])
-        let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
+        let account = Account(kind: .gitHub, organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
         let (fresh, latest) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
 
@@ -451,7 +451,7 @@ private actor FileProvider: PRProvider {
             ],
             tags: ["a/one": ["v0.9.0", "v1.0.0"]]
         )
-        let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
+        let account = Account(kind: .gitHub, organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
         let repo = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one").repo
 
@@ -468,7 +468,7 @@ private actor FileProvider: PRProvider {
 
     @Test func noTagsMeansNoRelease() async {
         let provider = FileProvider(repos: ["a/one"], files: ["a/one": [:]])
-        let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
+        let account = Account(kind: .gitHub, organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
         let repo = await VersionChecker(makeProvider: { _ in provider }, http: MockHTTPClient(), now: { now }).run(account: account, repo: "a/one").repo
 
@@ -492,7 +492,7 @@ private actor FileProvider: PRProvider {
 
 @Suite struct ScanFailureTests {
     let now = Date(timeIntervalSince1970: 1_792_000_000)
-    let account = Account(kind: .gitHub, displayName: "a", organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
+    let account = Account(kind: .gitHub, organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
     func check(_ failure: ProviderError, http: MockHTTPClient = MockHTTPClient()) async -> RepoVersions {
         let provider = FileProvider(

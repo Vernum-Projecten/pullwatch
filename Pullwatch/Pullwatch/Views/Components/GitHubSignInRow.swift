@@ -75,11 +75,9 @@ struct GitHubSignInRow: View {
                         onSignedOut()
                     }
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Link("Installeer Pullwatch op een account of organisatie", destination: model.gitHubApp.installURL)
-                    Text("Pullwatch ziet alleen repositories waar de app geïnstalleerd is. Bij een organisatie installeert een eigenaar hem, of keurt je verzoek goed.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                .task(id: login == nil) {
+                    // Bestaand account: de login opzoeken, zodat er staat wie er is ingelogd.
+                    if login == nil, let found = await model.gitHubLogin(accountId) { phase = .signedIn(found) }
                 }
             }
             if let error {

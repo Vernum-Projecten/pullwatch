@@ -168,11 +168,11 @@ private struct PackageRow: View {
                 switch summary.state {
                 case .updateAvailable:
                     Text("\(summary.latest ?? "") beschikbaar", comment: "Versienummer").foregroundStyle(.green).fontWeight(.medium)
-                    Text(summary.behind.count == 1 ? String(localized: "· 1 repo achter") : String(localized: "· \(summary.behind.count) repo's achter"))
+                    Text(summary.behind.count == 1 ? String(localized: "1 repo loopt achter") : String(localized: "\(summary.behind.count) repo's lopen achter"))
                         .foregroundStyle(.secondary)
                 case .current:
                     Text(verbatim: summary.latest ?? "").foregroundStyle(.secondary).monospacedDigit()
-                    Text(summary.current.count == 1 ? String(localized: "· 1 repo") : String(localized: "· \(summary.current.count) repo's"))
+                    Text(summary.current.count == 1 ? String(localized: "gebruikt in 1 repo") : String(localized: "gebruikt in \(summary.current.count) repo's"))
                         .foregroundStyle(.secondary)
                 case .unchecked:
                     Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)

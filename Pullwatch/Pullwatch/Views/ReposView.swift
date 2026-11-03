@@ -218,7 +218,7 @@ private struct RepoDetailView: View {
                                 HStack(spacing: 6) {
                                     if let state = item.entry.prState { StatePill(state: state) }
                                     Text(item.entry.title).fontWeight(item.isRead ? .regular : .bold).lineLimit(1)
-                                    Text(verbatim: "· \(item.entry.author ?? String(localized: "onbekend")) ·").foregroundStyle(.secondary)
+                                    Text(verbatim: "\(item.entry.author ?? String(localized: "onbekend")),").foregroundStyle(.secondary)
                                     Text(item.detectedAt, format: .relative(presentation: .named)).foregroundStyle(.secondary)
                                 }
                                 .contentShape(Rectangle())
@@ -321,12 +321,12 @@ private struct RepoDetailView: View {
 
     private var subtitle: String {
         var parts: [String] = []
-        if let account { parts.append("\(account.displayName) · \(account.kind == .azureDevOps ? "Azure DevOps" : "GitHub")") }
+        if let account { parts.append(account.displayName) }
         if let tag = summary.latestTag { parts.append(String(localized: "laatste tag \(tag)", comment: "Tagnaam")) }
         if let report = model.versionReport, summary.versions != nil {
             parts.append(String(localized: "gecheckt \(report.checkedAt.formatted(date: .abbreviated, time: .shortened))"))
         }
-        return parts.joined(separator: " · ")
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder

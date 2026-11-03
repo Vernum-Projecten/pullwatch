@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct ModelsTests {
     @Test func accountDefaults() {
-        let account = Account(kind: .gitHub, displayName: "Eigen", organization: "alessandro", authMethod: .cli)
+        let account = Account(kind: .gitHub, organization: "alessandro", authMethod: .cli)
         #expect(account.repoWatch.isEmpty)
         #expect(account.newRepoDefault == .prs)
         #expect(account.includeDrafts == false)
@@ -134,9 +134,23 @@ import Testing
 
         #expect(try store.load() == nil)
 
-        let accounts = [Account(kind: .azureDevOps, displayName: "Werk", organization: "acme", authMethod: .pat)]
+        let accounts = [Account(kind: .azureDevOps, organization: "acme", authMethod: .pat)]
         try store.save(accounts)
         #expect(try store.load() == accounts)
+    }
+
+    @Test func accountNameFollowsKindAndOrganization() throws {
+        let octo = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp).displayName
+        #expect(octo == String(localized: "\("octo") op \("GitHub")", bundle: .localizedCore))
+        #expect(octo.contains("octo") && octo.contains("GitHub"))
+        #expect(Account(kind: .azureDevOps, organization: " ", authMethod: .cli).displayName == "Azure DevOps")
+        // Een vroeger zelf gekozen naam wordt genegeerd; de naam wordt nog wel geschreven voor oudere versies.
+        let old = #"{"id":"00000000-0000-0000-0000-000000000009","kind":"gitHub","displayName":"Mijn werk","organization":"acme","authMethod":"pat","repoWatch":{},"newRepoDefault":"prs","includeDrafts":false,"hideOwn":true}"#
+        let account = try JSONDecoder().decode(Account.self, from: Data(old.utf8))
+        #expect(account.displayName == Account(kind: .gitHub, organization: "acme", authMethod: .pat).displayName)
+        #expect(!account.displayName.contains("Mijn werk"))
+        let written = try JSONSerialization.jsonObject(with: JSONEncoder().encode(account)) as? [String: Any]
+        #expect(written?["displayName"] as? String == account.displayName)
     }
 
     @Test func appPathsLiveInApplicationSupport() {
@@ -160,7 +174,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: dir.deletingLastPathComponent()) }
         let store = JSONFileStore<[Account]>(url: dir.appending(path: "config.json"))
 
-        let accounts = [Account(kind: .gitHub, displayName: "Eigen", organization: "alessandro", authMethod: .cli)]
+        let accounts = [Account(kind: .gitHub, organization: "alessandro", authMethod: .cli)]
         try store.save(accounts)
         #expect(try store.load() == accounts)
     }

@@ -61,7 +61,6 @@ extension Account {
         Account(
             id: id,
             kind: kind,
-            displayName: "Test",
             organization: organization,
             authMethod: .pat,
             repoWatch: repoWatch,

@@ -24,8 +24,8 @@ private struct AccountsSettingsView: View {
             VStack(alignment: .leading, spacing: 0) {
                 List(model.config.accounts, selection: $selection) { account in
                     VStack(alignment: .leading) {
-                        Text(account.displayName)
-                        Text("\(account.kind == .azureDevOps ? "Azure DevOps" : "GitHub") · \(account.organization)")
+                        Text(verbatim: account.organization.isEmpty ? account.kind.name : account.organization)
+                        Text(verbatim: account.kind.name)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -71,7 +71,6 @@ private struct AccountsSettingsView: View {
     private func add(_ kind: ProviderKind) {
         let account = Account(
             kind: kind,
-            displayName: kind == .azureDevOps ? "Azure DevOps" : "GitHub",
             organization: "",
             authMethod: model.defaultAuthMethod(for: kind)
         )
@@ -125,9 +124,11 @@ private struct GeneralSettingsView: View {
             ))
             .help("Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is")
             HStack {
-                Text("Versie \(AppModel.currentVersion)").foregroundStyle(.secondary)
-                if let message = model.updateCheckMessage {
-                    Text(verbatim: "· \(message)").foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Versie \(AppModel.currentVersion)").foregroundStyle(.secondary)
+                    if let message = model.updateCheckMessage {
+                        Text(verbatim: message).font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
                 if model.isCheckingForUpdates {

@@ -121,7 +121,7 @@ import Testing
         let secrets = InMemorySecretStore()
         let http = MockHTTPClient()
         http.on("api.github.com/user", body: #"{"login":"octo","id":1}"#)
-        let account = Account(kind: .gitHub, displayName: "GitHub", organization: "octo", authMethod: .gitHubApp)
+        let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
         try GitHubAppTokenStore(accountId: account.id, secrets: secrets)
             .save(GitHubAppTokens(access: "ghu_from_app", accessExpires: .distantFuture, refresh: "r"))
         let provider = ProviderFactory.make(account, secrets: secrets, http: http, gitHubApp: config)

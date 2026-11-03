@@ -46,7 +46,7 @@ import Testing
 @Suite struct SilentRepoTests {
     @Test func silencedKindsAreDroppedPerRepo() {
         let account = Account(
-            id: fixedAccountId, kind: .gitHub, displayName: "a", organization: "p", authMethod: .pat,
+            id: fixedAccountId, kind: .gitHub, organization: "p", authMethod: .pat,
             repoWatch: [
                 "p/quiet": WatchSet(prs: true, tags: true, completed: true, notifyPRs: false, notifyCompleted: false),
                 "p/loud": .both,

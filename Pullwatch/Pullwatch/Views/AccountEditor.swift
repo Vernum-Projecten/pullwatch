@@ -43,9 +43,9 @@ struct AccountEditor: View {
     var body: some View {
         Form {
             Section("Account") {
-                // Met de GitHub App volgen naam en eigenaar uit het inloggen; niets om te typen.
+                // De naam volgt de organisatie (`Account.displayName`). Met de GitHub App komt ook
+                // de eigenaar uit het inloggen: dan valt er niets te typen.
                 if draft.authMethod != .gitHubApp {
-                    TextField("Naam", text: $draft.displayName)
                     TextField(draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"), text: $draft.organization)
                 }
                 Picker("Authenticatie", selection: $draft.authMethod) {
@@ -191,6 +191,10 @@ struct AccountEditor: View {
             storedPAT = model.hasStoredPAT(draft.id)
             signedInWithGitHub = model.hasGitHubAppTokens(draft.id)
         }
+        #if DEBUG
+        .onChange(of: installationOwners) { _, _ in SnapshotCamera.shoot("account-editor", windowId: "main") }
+        .onChange(of: availableRepos) { _, _ in SnapshotCamera.shoot("account-editor-repos", windowId: "main") }
+        #endif
         .task(id: signedInWithGitHub && draft.authMethod == .gitHubApp) {
             guard signedInWithGitHub && draft.authMethod == .gitHubApp else { return }
             await loadInstallations()
@@ -201,7 +205,6 @@ struct AccountEditor: View {
         }
         .onChange(of: draft.organization) { _, owner in
             guard draft.authMethod == .gitHubApp, !owner.isEmpty else { return }
-            if isGeneratedName(draft.displayName) { draft.displayName = "GitHub · \(owner)" }
             reposTask?.cancel()
             reposTask = Task { await loadRepos() }
         }
@@ -217,13 +220,15 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    /// Kies waar de repositories staan: het eigen account of een organisatie met de app.
+    /// Kies waar de repositories staan: het eigen account of een organisatie met de app. Direct
+    /// onder het inloggen, met daaronder de link om de app ergens anders te installeren.
     @ViewBuilder private var ownerPicker: some View {
         if let owners = installationOwners {
             if owners.isEmpty {
                 Text("Pullwatch is nog nergens geïnstalleerd. Installeer het op je account of een organisatie; daarna verschijnt die hier.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                installLink(first: true)
             } else {
                 Picker("Repositories van", selection: $draft.organization) {
                     if !owners.contains(draft.organization) {
@@ -234,6 +239,7 @@ struct AccountEditor: View {
                     }
                 }
                 .accessibilityIdentifier("github.owner")
+                installLink(first: false)
             }
         } else {
             HStack(spacing: 6) {
@@ -243,15 +249,23 @@ struct AccountEditor: View {
         }
     }
 
+    private func installLink(first: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Link(first ? "Installeer Pullwatch op een account of organisatie" : "Installeer Pullwatch op een ander account of organisatie",
+                 destination: model.gitHubApp.installURL)
+                .font(.callout)
+            Text("Bij een organisatie installeert een eigenaar Pullwatch, of keurt je verzoek goed.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private func loadInstallations() async {
         do {
             let owners = try await model.gitHubInstallationOwners(draft.id)
             installationOwners = owners
             // Eén plek: die meteen kiezen. De naam volgt de eigenaar, tenzij die al zelf gekozen was.
             if draft.organization.isEmpty, owners.count == 1 { draft.organization = owners[0] }
-            if !draft.organization.isEmpty, isGeneratedName(draft.displayName) {
-                draft.displayName = "GitHub · \(draft.organization)"
-            }
         } catch let error as ProviderError {
             repoError = error.userMessage
             installationOwners = []
@@ -261,21 +275,15 @@ struct AccountEditor: View {
         }
     }
 
-    /// Een naam die Pullwatch zelf gaf ("GitHub" of "GitHub · …"), en dus mee mag veranderen.
-    private func isGeneratedName(_ name: String) -> Bool {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        return trimmed.isEmpty || trimmed == "GitHub" || trimmed.hasPrefix("GitHub · ")
-    }
-
     private var hasRequiredFields: Bool {
-        !draft.displayName.trimmingCharacters(in: .whitespaces).isEmpty
-            && !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
+        !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     private var validationMessage: LocalizedStringKey? {
-        if !hasRequiredFields { return "Naam en organisatie zijn verplicht" }
-        if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         if draft.authMethod == .gitHubApp && !signedInWithGitHub { return "Log eerst in bij GitHub" }
+        if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Kies waar je repositories staan" }
+        if !hasRequiredFields { return draft.kind == .azureDevOps ? "Vul de organisatie in" : "Vul de owner in" }
+        if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }
 

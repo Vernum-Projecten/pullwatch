@@ -25,12 +25,15 @@ Set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` when
 ## Follow the code that is there
 
 This is Alessandro's codebase; our work goes back to him as one combined
-pull request at the end, so it reads like his code.
+pull request at the end. Rewriting and restructuring it is allowed (CLAUDE.md,
+Hard rules); keep these conventions while doing so.
 
 - **Comments and design documents are Dutch**, like the rest of the code and
   `docs/superpowers/`. Commit subjects, PR titles and issues are English.
-- Formatting is Xcode's (Ctrl-I indentation, 4 spaces). Do not reformat
-  lines you did not change; a pull request shows only its own change.
+- Formatting is Xcode's (Ctrl-I indentation, 4 spaces). Reformat only what a
+  pull request is about, so its diff stays readable.
+- No "·" separators or em dashes in user-facing text: a translated phrase,
+  a second line in `.secondary`, or separate views.
 - `PullwatchCore` (`PullwatchKit/Sources/PullwatchCore/`, by area) holds
   everything without a window: providers, polling, history, version checks,
   the update check. The app (`Pullwatch/Pullwatch/`) only wires (`App/`) and

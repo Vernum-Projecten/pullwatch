@@ -182,7 +182,6 @@ private struct AccountStep: View {
     private func add(_ kind: ProviderKind) {
         let account = Account(
             kind: kind,
-            displayName: kind == .azureDevOps ? "Azure DevOps" : "GitHub",
             organization: "",
             authMethod: model.defaultAuthMethod(for: kind)
         )
