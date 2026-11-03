@@ -1656,28 +1656,6 @@
         }
       }
     },
-    "Bij een organisatie installeert een eigenaar Pullwatch, of keurt je verzoek goed.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei einer Organisation installiert ein Eigentümer Pullwatch oder genehmigt deine Anfrage."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For an organization, an owner installs Pullwatch or approves your request."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pour une organisation, un propriétaire installe Pullwatch ou approuve votre demande."
-          }
-        }
-      }
-    },
     "Bijgewerkt": {
       "localizations": {
         "de": {
@@ -2522,6 +2500,28 @@
         }
       }
     },
+    "Gekopieerd": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copié"
+          }
+        }
+      }
+    },
     "Gemerged": {
       "localizations": {
         "de": {
@@ -2812,46 +2812,24 @@
         }
       }
     },
-    "Installeer Pullwatch op een account of organisatie": {
+    "Installeer Pullwatch op GitHub": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pullwatch für ein Konto oder eine Organisation installieren"
+            "value": "Pullwatch auf GitHub installieren"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install Pullwatch on an account or organization"
+            "value": "Install Pullwatch on GitHub"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installer Pullwatch sur un compte ou une organisation"
-          }
-        }
-      }
-    },
-    "Installeer Pullwatch op een ander account of organisatie": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch für ein anderes Konto oder eine andere Organisation installieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Install Pullwatch on another account or organization"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installer Pullwatch sur un autre compte ou une autre organisation"
+            "value": "Installer Pullwatch sur GitHub"
           }
         }
       }
@@ -2940,6 +2918,28 @@
         }
       }
     },
+    "Je code": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Code"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your code"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre code"
+          }
+        }
+      }
+    },
     "Je eerste account": {
       "localizations": {
         "de": {
@@ -3012,6 +3012,28 @@
         }
       }
     },
+    "Je persoonlijke account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein persönliches Konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your personal account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre compte personnel"
+          }
+        }
+      }
+    },
     "Kies waar je repositories staan": {
       "localizations": {
         "de": {
@@ -3030,50 +3052,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisissez où se trouvent vos dépôts"
-          }
-        }
-      }
-    },
-    "Kies…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auswählen …"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choisir…"
-          }
-        }
-      }
-    },
-    "Kijken waar Pullwatch is geïnstalleerd…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prüfe, wo Pullwatch installiert ist …"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checking where Pullwatch is installed…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recherche des emplacements où Pullwatch est installé…"
           }
         }
       }
@@ -3178,24 +3156,24 @@
         }
       }
     },
-    "Kopieer": {
+    "Kopieer code": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kopieren"
+            "value": "Code kopieren"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy"
+            "value": "Copy Code"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copier"
+            "value": "Copier le code"
           }
         }
       }
@@ -3458,6 +3436,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Connectez-vous avec GitHub, choisissez où se trouvent vos dépôts et lesquels suivre, puis cliquez sur Ajouter."
+          }
+        }
+      }
+    },
+    "Logniveau": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protokollstufe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log Level"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niveau de journalisation"
           }
         }
       }
@@ -4172,6 +4172,28 @@
         }
       }
     },
+    "Op een ander account of organisatie installeren…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für ein anderes Konto oder eine andere Organisation installieren …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install on Another Account or Organization…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer sur un autre compte ou une autre organisation…"
+          }
+        }
+      }
+    },
     "Open": {
       "localizations": {
         "de": {
@@ -4224,6 +4246,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open %@"
+          }
+        }
+      }
+    },
+    "Open Console": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konsole öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Console"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Console"
           }
         }
       }
@@ -4486,6 +4530,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ophalen… %lld/%lld accounts"
+          }
+        }
+      }
+    },
+    "Opnieuw kijken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Again"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier à nouveau"
           }
         }
       }
@@ -4848,24 +4914,24 @@
         }
       }
     },
-    "Plak deze code op github.com en keur Pullwatch goed:": {
+    "Plak hem op github.com/login/device en keur Pullwatch goed. Pullwatch wacht hier tot dat gebeurd is.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Füge diesen Code auf github.com ein und erlaube Pullwatch:"
+            "value": "Füge ihn auf github.com/login/device ein und erlaube Pullwatch. Pullwatch wartet hier, bis das passiert ist."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paste this code on github.com and approve Pullwatch:"
+            "value": "Paste it on github.com/login/device and approve Pullwatch. Pullwatch waits here until you have."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collez ce code sur github.com et autorisez Pullwatch :"
+            "value": "Collez-le sur github.com/login/device et autorisez Pullwatch. Pullwatch attend ici jusqu’à ce que ce soit fait."
           }
         }
       }
@@ -5032,6 +5098,28 @@
         }
       }
     },
+    "Pullwatch installeren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch installieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer Pullwatch"
+          }
+        }
+      }
+    },
     "Pullwatch instellen…": {
       "localizations": {
         "de": {
@@ -5050,28 +5138,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Configurer Pullwatch…"
-          }
-        }
-      }
-    },
-    "Pullwatch is nog nergens geïnstalleerd. Installeer het op je account of een organisatie; daarna verschijnt die hier.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch ist noch nirgends installiert. Installiere es für dein Konto oder eine Organisation; danach erscheint sie hier."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch isn’t installed anywhere yet. Install it on your account or an organization; it then appears here."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch n’est encore installé nulle part. Installez-le sur votre compte ou une organisation ; elle apparaîtra ensuite ici."
           }
         }
       }
@@ -5138,6 +5204,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch signale les nouvelles pull requests et les nouveaux tags d’Azure DevOps et de GitHub, conserve un historique consultable et vérifie vos dépôts à la recherche de versions obsolètes et de vulnérabilités connues."
+          }
+        }
+      }
+    },
+    "Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch sieht nur Repositorys, in denen die App installiert ist: in deinem eigenen Konto oder in einer Organisation (dort installiert ein Eigentümer sie oder genehmigt deine Anfrage)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch only sees repositories where the app is installed: on your own account, or on an organization (where an owner installs it or approves your request)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ne voit que les dépôts où l’app est installée : sur votre propre compte ou sur une organisation (où un propriétaire l’installe ou approuve votre demande)."
           }
         }
       }
@@ -5993,6 +6081,28 @@
         }
       }
     },
+    "Vanaf dit niveau schrijft Pullwatch naar het systeemlog. In Console zoek je op nl.torrisi.pullwatch.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ab dieser Stufe schreibt Pullwatch ins Systemprotokoll. Suche in der Konsole nach nl.torrisi.pullwatch."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch writes to the system log from this level up. In Console, search for nl.torrisi.pullwatch."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À partir de ce niveau, Pullwatch écrit dans le journal système. Dans Console, recherchez nl.torrisi.pullwatch."
+          }
+        }
+      }
+    },
     "Verbonden als %@": {
       "comment": "Naam van de ingelogde gebruiker",
       "localizations": {
@@ -6412,6 +6522,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Où se trouvent les dépôts que vous voulez suivre ? Vous pourrez ajouter d’autres comptes plus tard dans les Réglages."
+          }
+        }
+      }
+    },
+    "Wachten op de installatie op github.com…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte auf die Installation auf github.com …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the installation on github.com…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente de l’installation sur github.com…"
           }
         }
       }

@@ -43,33 +43,43 @@ public actor GitHubProvider: PRProvider {
     }
 
     /// Waar de Pullwatch GitHub App is geïnstalleerd en de ingelogde persoon bij kan: de accounts
-    /// en organisaties die als eigenaar te kiezen zijn. Alleen met een token van de GitHub App.
-    public func installationOwners() async throws -> [String] {
+    /// en organisaties die als eigenaar te kiezen zijn, het eigen account eerst, dan de
+    /// organisaties op naam. Alleen met een token van de GitHub App.
+    public func installationOwners() async throws -> [GitHubOwner] {
         struct Page: Decodable {
             struct Installation: Decodable {
-                struct Owner: Decodable { let login: String }
+                struct Owner: Decodable {
+                    let login: String
+                    let type: String?
+                }
                 let account: Owner
             }
             let totalCount: Int
             let installations: [Installation]
         }
-        var owners: [String] = []
+        var owners: [GitHubOwner] = []
         var page = 1
         while true {
             let response: Page = try await get(
                 apiBase.appending(path: "user/installations"),
                 query: [URLQueryItem(name: "per_page", value: "100"), URLQueryItem(name: "page", value: "\(page)")]
             )
-            owners += response.installations.map(\.account.login)
+            owners += response.installations.map {
+                GitHubOwner(login: $0.account.login, isOrganization: $0.account.type == "Organization")
+            }
             if response.installations.isEmpty || owners.count >= response.totalCount { break }
             page += 1
         }
         let me = try? await currentUserId()
-        // Eigen account eerst, dan de organisaties op naam.
         return owners.sorted { lhs, rhs in
-            if lhs == me { return true }
-            if rhs == me { return false }
-            return lhs.localizedCaseInsensitiveCompare(rhs) == .orderedAscending
+            if lhs.login == me { return true }
+            if rhs.login == me { return false }
+            if lhs.isOrganization != rhs.isOrganization { return !lhs.isOrganization }
+            return lhs.login.localizedCaseInsensitiveCompare(rhs.login) == .orderedAscending
+        }.map { owner in
+            var owner = owner
+            owner.isSignedInUser = owner.login == me
+            return owner
         }
     }
 

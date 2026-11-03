@@ -3,7 +3,7 @@ import os
 import PullwatchCore
 import UserNotifications
 
-private let logger = Logger(subsystem: "nl.torrisi.pullwatch", category: "notifier")
+private let logger = Log(category: "notifier")
 
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {

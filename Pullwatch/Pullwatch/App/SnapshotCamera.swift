@@ -10,14 +10,16 @@ enum SnapshotCamera {
         UserDefaults.standard.string(forKey: "PullwatchSnapshotDirectory").map { URL(filePath: $0, directoryHint: .isDirectory) }
     }
 
-    /// Bewaart het venster met deze id-prefix als `<naam>.png`, na een korte pauze zodat de
-    /// layout klaar is.
-    static func shoot(_ name: String, windowId: String) {
+    /// Bewaart het venster met deze id-prefix (of het voorste venster) als `<naam>.png`, na een
+    /// korte pauze zodat de layout klaar is.
+    static func shoot(_ name: String, windowId: String? = nil) {
         guard let directory else { return }
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(400))
+            let window = windowId.flatMap { id in NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true } }
+                ?? NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible && $0.contentView != nil }
             guard
-                let view = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix(windowId) == true })?.contentView,
+                let view = window?.contentView,
                 let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)
             else { return }
             view.cacheDisplay(in: view.bounds, to: rep)

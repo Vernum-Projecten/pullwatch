@@ -109,10 +109,13 @@ import Testing
 
     @Test func listsWhereTheAppIsInstalledOwnAccountFirst() async throws {
         let http = MockHTTPClient()
-        http.on("user/installations", body: #"{"total_count":3,"installations":[{"account":{"login":"Vernum-Projecten"}},{"account":{"login":"octo"}},{"account":{"login":"acme"}}]}"#)
+        http.on("user/installations", body: #"{"total_count":3,"installations":[{"account":{"login":"Vernum-Projecten","type":"Organization"}},{"account":{"login":"octo","type":"User"}},{"account":{"login":"acme","type":"Organization"}}]}"#)
         http.on("api.github.com/user", body: #"{"login":"octo","id":1}"#)
         let provider = GitHubProvider(accountId: UUID(), owner: "", tokenSource: StaticTokenSource(token: "t"), http: http)
-        #expect(try await provider.installationOwners() == ["octo", "acme", "Vernum-Projecten"])
+        let owners = try await provider.installationOwners()
+        #expect(owners.map(\.login) == ["octo", "acme", "Vernum-Projecten"])
+        #expect(owners.map(\.isOrganization) == [false, true, true])
+        #expect(owners.map(\.isSignedInUser) == [true, false, false])
         let url = try #require(http.requests.first?.url?.absoluteString)
         #expect(url.contains("per_page=100"))
     }

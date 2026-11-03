@@ -33,6 +33,22 @@ public struct GitHubAppConfig: Sendable, Equatable {
     public var installURL: URL { web.appending(path: "apps/\(slug)/installations/new") }
 }
 
+/// Een plek waar de GitHub App geïnstalleerd is: het eigen account of een organisatie.
+public struct GitHubOwner: Hashable, Sendable, Identifiable {
+    public var login: String
+    public var isOrganization: Bool
+    /// Het account van wie er is ingelogd.
+    public var isSignedInUser = false
+
+    public var id: String { login }
+
+    public init(login: String, isOrganization: Bool, isSignedInUser: Bool = false) {
+        self.login = login
+        self.isOrganization = isOrganization
+        self.isSignedInUser = isSignedInUser
+    }
+}
+
 /// Een user access token en zijn refresh token: het token geldt 8 uur, de refresh token 6 maanden.
 public struct GitHubAppTokens: Codable, Sendable, Equatable {
     public var access: String

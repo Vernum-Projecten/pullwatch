@@ -1,130 +1,190 @@
-import AppKit
 import PullwatchCore
 import SwiftUI
 
-/// "Inloggen met GitHub" via de device flow: Pullwatch zet de code op het klembord en opent
-/// github.com/login/device, de persoon plakt de code en keurt goed, en de rij wacht tot GitHub
-/// het token geeft. Daarna een link om de app te installeren waar de repositories staan.
+/// Inloggen met GitHub: een knop, dan de code (op het klembord) met "Open github.com", dan wie
+/// er is ingelogd. Tekent alleen `GitHubSignIn`; alle werk gebeurt daar.
 struct GitHubSignInRow: View {
-    let model: AppModel
-    let accountId: UUID
-    /// Na inloggen: de login van wie er inlogde.
-    let onSignedIn: (String) -> Void
-    var onSignedOut: () -> Void = {}
-
-    private enum Phase: Equatable {
-        case signedOut
-        case starting
-        case waiting(DeviceCode)
-        case signedIn(String?)
-    }
-
-    @State private var phase = Phase.signedOut
-    @State private var error: String?
-    @State private var task: Task<Void, Never>?
+    let signIn: GitHubSignIn
 
     var body: some View {
-        Group {
-            switch phase {
-            case .signedOut, .starting:
-                HStack {
-                    Button("Inloggen met GitHub") { start() }
-                        .disabled(phase == .starting)
-                        .accessibilityIdentifier("github.signIn")
-                    if phase == .starting { ProgressView().controlSize(.small) }
-                }
+        switch signIn.phase {
+        case .signedOut:
+            LabeledContent {
+                Button("Inloggen met GitHub") { signIn.start() }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("github.signIn")
+            } label: {
+                Text("GitHub")
                 Text("Je logt in op github.com; Pullwatch krijgt alleen leestoegang tot pull requests, tags en bestanden.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            case .waiting(let code):
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Plak deze code op github.com en keur Pullwatch goed:")
-                    HStack(spacing: 12) {
-                        Text(verbatim: code.userCode)
-                            .font(.system(.title2, design: .monospaced).weight(.semibold))
-                            .textSelection(.enabled)
-                            .accessibilityIdentifier("github.userCode")
-                        Button("Kopieer") { copy(code.userCode) }
-                        Button("Open github.com") { NSWorkspace.shared.open(code.verificationURL) }
+            }
+            errorRow
+        case .requestingCode:
+            LabeledContent("GitHub") {
+                ProgressView().controlSize(.small)
+            }
+        case .waitingForApproval(let code):
+            WaitingForApproval(code: code, signIn: signIn)
+            errorRow
+        case .signedIn(let login):
+            LabeledContent {
+                Button("Afmelden") { signIn.signOut() }
+            } label: {
+                Label {
+                    if let login {
+                        Text("Ingelogd als @\(login)")
+                    } else {
+                        Text("Ingelogd bij GitHub")
                     }
-                    HStack(spacing: 6) {
-                        ProgressView().controlSize(.small)
-                        Text("Wachten op goedkeuring…").foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Annuleren") {
-                            task?.cancel()
-                            phase = .signedOut
-                        }
+                } icon: {
+                    if let login {
+                        AccountAvatar(gitHubLogin: login, size: 20)
+                    } else {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
                 }
-            case .signedIn(let login):
+            }
+            .accessibilityIdentifier("github.signedIn")
+        }
+    }
+
+    @ViewBuilder private var errorRow: some View {
+        if let error = signIn.error {
+            Label(error, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+                .accessibilityIdentifier("github.error")
+        }
+    }
+}
+
+/// De code om op github.com in te vullen, groot en selecteerbaar, met de twee acties.
+private struct WaitingForApproval: View {
+    let code: DeviceCode
+    let signIn: GitHubSignIn
+
+    var body: some View {
+        LabeledContent {
+            Text(verbatim: code.userCode)
+                .font(.system(.title, design: .monospaced).weight(.semibold))
+                .textSelection(.enabled)
+                .accessibilityIdentifier("github.userCode")
+        } label: {
+            Text("Je code")
+            Text("Plak hem op github.com/login/device en keur Pullwatch goed. Pullwatch wacht hier tot dat gebeurd is.")
+        }
+        HStack {
+            Button("Open github.com") { signIn.openVerificationPage() }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("github.openVerification")
+            Button {
+                signIn.copyCode()
+            } label: {
+                if signIn.codeCopied {
+                    Label("Gekopieerd", systemImage: "checkmark")
+                } else {
+                    Label("Kopieer code", systemImage: "doc.on.doc")
+                }
+            }
+            .accessibilityIdentifier("github.copyCode")
+            Spacer()
+            ProgressView().controlSize(.small)
+            Text("Wachten op goedkeuring…").foregroundStyle(.secondary)
+            Button("Annuleren") { signIn.cancel() }
+        }
+    }
+}
+
+/// Waar de app geïnstalleerd is: de eigenaar kiezen uit een lijst (eigen account eerst, dan de
+/// organisaties), of eerst installeren. Na "installeren" blijft hij kijken tot die er is.
+struct GitHubInstallationsRow: View {
+    let signIn: GitHubSignIn
+    @Binding var owner: String
+
+    var body: some View {
+        switch signIn.installations {
+        case .unknown:
+            LabeledContent("Repositories van") {
+                ProgressView().controlSize(.small)
+            }
+        case .none:
+            LabeledContent {
+                Button("Pullwatch installeren") { signIn.install() }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("github.install")
+            } label: {
+                Text("Installeer Pullwatch op GitHub")
+                Text("Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).")
+            }
+            HStack(spacing: 6) {
+                if signIn.waitingForInstall {
+                    ProgressView().controlSize(.small)
+                    Text("Wachten op de installatie op github.com…").foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Opnieuw kijken") { Task { await signIn.refreshInstallations() } }
+                    .disabled(signIn.checkingInstallations)
+                    .accessibilityIdentifier("github.recheck")
+            }
+            errorRow
+        case .found(let owners):
+            ForEach(owners) { candidate in
+                OwnerRow(owner: candidate, isSelected: candidate.login == owner) { owner = candidate.login }
+            }
+            Button {
+                signIn.install()
+            } label: {
                 HStack {
-                    Label {
-                        if let login {
-                            Text("Ingelogd als @\(login)")
-                        } else {
-                            Text("Ingelogd bij GitHub")
-                        }
-                    } icon: {
-                        if let login {
-                            AccountAvatar(gitHubLogin: login, size: 20)
-                        } else {
-                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                        }
-                    }
+                    Label("Op een ander account of organisatie installeren…", systemImage: "plus.circle")
                     Spacer()
-                    Button("Afmelden") {
-                        model.signOutOfGitHub(accountId)
-                        phase = .signedOut
-                        onSignedOut()
-                    }
+                    if signIn.waitingForInstall { ProgressView().controlSize(.small) }
                 }
-                .task(id: login == nil) {
-                    // Bestaand account: de login opzoeken, zodat er staat wie er is ingelogd.
-                    if login == nil, let found = await model.gitHubLogin(accountId) { phase = .signedIn(found) }
-                }
+                .contentShape(.rect)
             }
-            if let error {
-                Text(error).font(.caption).foregroundStyle(.red)
-            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.tint)
+            .accessibilityIdentifier("github.installElsewhere")
+            errorRow
         }
-        .onAppear {
-            if case .signedOut = phase, model.hasGitHubAppTokens(accountId) { phase = .signedIn(nil) }
-        }
-        .onDisappear { task?.cancel() }
     }
 
-    private func copy(_ code: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(code, forType: .string)
+    @ViewBuilder private var errorRow: some View {
+        if let error = signIn.error {
+            Label(error, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+        }
+    }
+}
+
+/// Eén plek in de lijst: foto, naam en soort, met een vinkje als hij gekozen is. Een knop, zodat
+/// hij met Tab en spatie werkt en VoiceOver "geselecteerd" zegt.
+private struct OwnerRow: View {
+    let owner: GitHubOwner
+    let isSelected: Bool
+    let select: () -> Void
+
+    var body: some View {
+        Button(action: select) {
+            HStack(spacing: 10) {
+                AccountAvatar(gitHubLogin: owner.login, size: 28)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(verbatim: owner.login)
+                    Text(kind).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tint)
+                }
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityIdentifier("github.owner.\(owner.login)")
     }
 
-    private func start() {
-        error = nil
-        phase = .starting
-        task = Task {
-            do {
-                let code = try await model.startGitHubSignIn()
-                // Zoals `gh auth login`: de code staat al op het klembord en de browser gaat open.
-                copy(code.userCode)
-                NSWorkspace.shared.open(code.verificationURL)
-                phase = .waiting(code)
-                try await model.finishGitHubSignIn(code, accountId: accountId)
-                let login = await model.gitHubLogin(accountId)
-                phase = .signedIn(login)
-                if let login { onSignedIn(login) }
-            } catch is CancellationError {
-                phase = .signedOut
-            } catch let failure as GitHubSignInError {
-                error = failure.userMessage
-                phase = .signedOut
-            } catch let failure as ProviderError {
-                error = failure.userMessage
-                phase = .signedOut
-            } catch {
-                self.error = error.localizedDescription
-                phase = .signedOut
-            }
-        }
+    private var kind: LocalizedStringKey {
+        if owner.isSignedInUser { "Je persoonlijke account" } else if owner.isOrganization { "Organisatie" } else { "Account" }
     }
 }

@@ -17,10 +17,9 @@ struct AccountEditor: View {
     @State private var reposTask: Task<Void, Never>?
     /// Accounts waarmee `gh` is ingelogd; leeg tot ze geladen zijn.
     @State private var ghAccounts: [String] = []
-    /// Er staan tokens van de GitHub App bij dit account.
-    @State private var signedInWithGitHub = false
-    /// Waar de GitHub App is geïnstalleerd: de eigenaren om uit te kiezen; nil tot ze geladen zijn.
-    @State private var installationOwners: [String]?
+    /// Inloggen met GitHub voor dit account (code, goedkeuring, installaties); nil bij een
+    /// andere manier van inloggen.
+    @State private var signIn: GitHubSignIn?
     /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
     private let originalAuthMethod: AuthMethod
 
@@ -60,17 +59,8 @@ struct AccountEditor: View {
                         Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
                     }
                 }
-                if draft.authMethod == .gitHubApp {
-                    GitHubSignInRow(model: model, accountId: draft.id) { _ in
-                        signedInWithGitHub = true
-                        Task { await loadInstallations() }
-                    } onSignedOut: {
-                        signedInWithGitHub = false
-                        installationOwners = nil
-                    }
-                    if signedInWithGitHub {
-                        ownerPicker
-                    }
+                if draft.authMethod == .gitHubApp, let signIn {
+                    GitHubSignInRow(signIn: signIn)
                 }
                 // Eerst hoe je inlogt, dan waar de repositories staan, dan het token. De naam volgt de
                 // organisatie (`Account.displayName`); met de GitHub App komt de eigenaar uit het
@@ -105,6 +95,12 @@ struct AccountEditor: View {
                         Text(connectionMessage).font(.caption)
                     }
                 }
+                }
+            }
+
+            if draft.authMethod == .gitHubApp, let signIn, signIn.isSignedIn {
+                Section("Repositories van") {
+                    GitHubInstallationsRow(signIn: signIn, owner: $draft.organization)
                 }
             }
 
@@ -199,18 +195,38 @@ struct AccountEditor: View {
         .formStyle(.grouped)
         .onAppear {
             storedPAT = model.hasStoredPAT(draft.id)
-            signedInWithGitHub = model.hasGitHubAppTokens(draft.id)
+        }
+        .task(id: draft.authMethod) {
+            guard draft.authMethod == .gitHubApp else {
+                signIn = nil
+                return
+            }
+            let signIn = self.signIn ?? GitHubSignIn(model: model, accountId: draft.id)
+            self.signIn = signIn
+            // Terug in de app (bijvoorbeeld van de installatiepagina op github.com): opnieuw kijken.
+            for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
+                await signIn.refreshInstallations()
+            }
         }
         #if DEBUG
-        .onChange(of: installationOwners) { _, _ in SnapshotCamera.shoot("account-editor", windowId: "main") }
-        .onChange(of: availableRepos) { _, _ in SnapshotCamera.shoot("account-editor-repos", windowId: "main") }
+        .onChange(of: signIn?.phase) { _, phase in
+            let name = switch phase {
+            case .signedOut, nil: "signed-out"
+            case .requestingCode: "requesting-code"
+            case .waitingForApproval: "waiting-for-approval"
+            case .signedIn: "signed-in"
+            }
+            SnapshotCamera.shoot("github-\(name)")
+        }
+        .onChange(of: signIn?.waitingForInstall) { _, waiting in
+            if waiting == true { SnapshotCamera.shoot("github-waiting-for-install") }
+        }
+        .onChange(of: availableRepos) { _, _ in SnapshotCamera.shoot("github-repositories") }
         #endif
-        .task(id: signedInWithGitHub && draft.authMethod == .gitHubApp) {
-            guard signedInWithGitHub && draft.authMethod == .gitHubApp else { return }
-            await loadInstallations()
-            // Terug van de installatiepagina op github.com: de lijst opnieuw ophalen.
-            for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
-                await loadInstallations()
+        .onChange(of: signIn?.installations) { _, installations in
+            // Eén plek waar de app staat: die meteen kiezen.
+            if case .found(let owners) = installations, owners.count == 1, draft.organization.isEmpty {
+                draft.organization = owners[0].login
             }
         }
         .onChange(of: draft.organization) { _, owner in
@@ -230,67 +246,12 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    /// Kies waar de repositories staan: het eigen account of een organisatie met de app. Direct
-    /// onder het inloggen, met daaronder de link om de app ergens anders te installeren.
-    @ViewBuilder private var ownerPicker: some View {
-        if let owners = installationOwners {
-            if owners.isEmpty {
-                Text("Pullwatch is nog nergens geïnstalleerd. Installeer het op je account of een organisatie; daarna verschijnt die hier.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                installLink(first: true)
-            } else {
-                Picker("Repositories van", selection: $draft.organization) {
-                    if !owners.contains(draft.organization) {
-                        Text("Kies…").tag(draft.organization)
-                    }
-                    ForEach(owners, id: \.self) { owner in
-                        Text(verbatim: owner).tag(owner)
-                    }
-                }
-                .accessibilityIdentifier("github.owner")
-                installLink(first: false)
-            }
-        } else {
-            HStack(spacing: 6) {
-                ProgressView().controlSize(.small)
-                Text("Kijken waar Pullwatch is geïnstalleerd…").foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func installLink(first: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Link(first ? "Installeer Pullwatch op een account of organisatie" : "Installeer Pullwatch op een ander account of organisatie",
-                 destination: model.gitHubApp.installURL)
-                .font(.callout)
-            Text("Bij een organisatie installeert een eigenaar Pullwatch, of keurt je verzoek goed.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private func loadInstallations() async {
-        do {
-            let owners = try await model.gitHubInstallationOwners(draft.id)
-            installationOwners = owners
-            // Eén plek: die meteen kiezen. De naam volgt de eigenaar, tenzij die al zelf gekozen was.
-            if draft.organization.isEmpty, owners.count == 1 { draft.organization = owners[0] }
-        } catch let error as ProviderError {
-            repoError = error.userMessage
-            installationOwners = []
-        } catch {
-            repoError = error.localizedDescription
-            installationOwners = []
-        }
-    }
-
     private var hasRequiredFields: Bool {
         !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     private var validationMessage: LocalizedStringKey? {
-        if draft.authMethod == .gitHubApp && !signedInWithGitHub { return "Log eerst in bij GitHub" }
+        if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
         if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Kies waar je repositories staan" }
         if !hasRequiredFields { return draft.kind == .azureDevOps ? "Vul de organisatie in" : "Vul de owner in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
@@ -341,7 +302,7 @@ struct AccountEditor: View {
     }
 
     private func provider() -> any PRProvider {
-        ProviderFactory.make(draft, pat: pat.isEmpty ? nil : pat)
+        model.provider(for: draft, pat: pat.isEmpty ? nil : pat)
     }
 
     private func testConnection() async {

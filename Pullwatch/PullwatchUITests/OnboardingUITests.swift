@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 
 /// De eerste start: een lege datamap (`-PullwatchDataDirectory`), dus geen accounts en geen
@@ -18,7 +19,7 @@ final class OnboardingUITests: XCTestCase {
         try? FileManager.default.removeItem(at: dataDirectory)
     }
 
-    private func launchFirstRun(language: String = "nl") -> XCUIApplication {
+    private func launchFirstRun(language: String = "nl", fakeGitHub: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = [
             "-PullwatchDataDirectory", dataDirectory.path(percentEncoded: false),
@@ -27,6 +28,7 @@ final class OnboardingUITests: XCTestCase {
             // De echte vraag om meldingen is een systeemvenster buiten de app.
             "-PullwatchSkipNotificationRequest", "YES",
         ]
+        if fakeGitHub { app.launchArguments += ["-PullwatchFakeGitHub", "YES"] }
         if let shots = ProcessInfo.processInfo.environment["PULLWATCH_SHOTS"] {
             app.launchArguments += ["-PullwatchSnapshotDirectory", URL(filePath: shots).appending(path: language).path(percentEncoded: false)]
         }
@@ -58,6 +60,32 @@ final class OnboardingUITests: XCTestCase {
 
     func testTheWelcomeInEnglish() {
         walkThrough(language: "en")
+    }
+
+    /// De hele "Inloggen met GitHub" tegen het nagespeelde GitHub: de code staat op het klembord,
+    /// na goedkeuring volgt installeren, daarna de eigenaar, de repositories en Toevoegen.
+    func testSignInWithGitHubFromCodeToAddedAccount() {
+        let app = launchFirstRun(language: "en", fakeGitHub: true)
+        XCTAssertTrue(element(app, "onboarding.welcome").waitForExistence(timeout: 15))
+        tap(app, "onboarding.start")
+        tap(app, "onboarding.addGitHub")
+        tap(app, "github.signIn")
+
+        XCTAssertTrue(element(app, "github.userCode").waitForExistence(timeout: 10), "de code verschijnt")
+        XCTAssertEqual(NSPasteboard.general.string(forType: .string), "WDJB-MJHT", "de code staat op het klembord")
+
+        XCTAssertTrue(element(app, "github.signedIn").waitForExistence(timeout: 15), "na goedkeuring: ingelogd")
+        tap(app, "github.install")
+        XCTAssertTrue(element(app, "github.owner.octocat").waitForExistence(timeout: 15), "na installeren: het eigen account verschijnt vanzelf")
+        XCTAssertTrue(element(app, "github.owner.github").exists, "en de organisatie eronder")
+        tap(app, "github.owner.github")
+
+        let add = element(app, "account.save")
+        let enabled = NSPredicate(format: "isEnabled == true")
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: enabled, evaluatedWith: add)], timeout: 10), .completed, "Toevoegen kan")
+        // Toevoegen is de standaardknop; onder in het formulier, dus met Return, zoals met het toetsenbord.
+        app.typeKey(.return, modifierFlags: [])
+        XCTAssertTrue(element(app, "onboarding.finish").waitForExistence(timeout: 10), "na Toevoegen de laatste stap")
     }
 
     private func walkThrough(language: String) {
