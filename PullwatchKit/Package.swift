@@ -23,7 +23,8 @@ let package = Package(
 
         // Mocks en fixtures die de testtargets delen; geen product, dus nooit in de app.
         .target(name: "PullwatchTestSupport", dependencies: ["PullwatchCore"], path: "Tests/PullwatchTestSupport"),
-        .testTarget(name: "PullwatchCoreTests", dependencies: ["PullwatchCore", "PullwatchTestSupport"]),
+        // Echte OSV-records (api.osv.dev) van elke database, voor de bronnen van een kwetsbaarheid.
+        .testTarget(name: "PullwatchCoreTests", dependencies: ["PullwatchCore", "PullwatchTestSupport"], resources: [.copy("Fixtures")]),
         .testTarget(name: "PullwatchGitHubTests", dependencies: ["PullwatchGitHub", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchAzureDevOpsTests", dependencies: ["PullwatchAzureDevOps", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchGitLabTests", dependencies: ["PullwatchGitLab", "PullwatchTestSupport"]),

@@ -500,6 +500,9 @@ private struct RepoControlSection: View {
                         context: context
                     )
                 }
+                if !versions.withdrawnVulnerabilities.isEmpty {
+                    WithdrawnAdvisoriesNote(vulnerabilities: versions.withdrawnVulnerabilities)
+                }
             } else {
                 Text("Nog niet gecheckt").foregroundStyle(.secondary)
             }

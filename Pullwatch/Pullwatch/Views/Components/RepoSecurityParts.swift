@@ -241,17 +241,19 @@ extension GitHubAdvisory.AffectedPackage {
 }
 
 extension Vulnerability {
-    /// "CVE-2019-10744, GHSA-jf85-cpcp-j695": de CVE (of het OSV-id) en het GHSA-id als dat anders is.
-    func identifiers(_ advisory: GitHubAdvisory?) -> String {
-        let primary = cve ?? advisory?.cveId ?? id
-        guard let ghsa = ghsa ?? advisory?.ghsaId, ghsa != primary else { return primary }
-        return "\(primary), \(ghsa)"
+    /// "RUSTSEC-2026-0387 (RustSec), ook GHSA-… en CVE-…": de OSV-id met zijn database en de andere
+    /// ids, ook die alleen GitHubs advies kent; `maxAliases` houdt een melding kort.
+    func identifiers(_ advisory: GitHubAdvisory?, maxAliases: Int? = nil) -> String {
+        sourceLine(adding: [advisory?.ghsaId, advisory?.cveId], maxAliases: maxAliases)
     }
 
-    /// "Kritiek, CVSS 9.1": GitHubs ernst (anders die van OSV) en de CVSS-score; nil als geen van beide bekend is.
+    /// "Gemiddeld, CVSS 5.9": de ernst uit de beste bron (`severityAssessment`) en de CVSS-score;
+    /// nil als geen bron er een geeft.
     func severityText(_ advisory: GitHubAdvisory?) -> String? {
-        let level = (advisory?.severity ?? severity).map { String(localized: Vulnerability.severityLabel($0)) }
-        let parts = [level, advisory?.cvssText].compactMap { $0 }
+        let assessment = severityAssessment(advisory)
+        let level = assessment.level.map { String(localized: Vulnerability.severityLabel($0)) }
+        let score = assessment.score.map { "CVSS \($0.formatted(.number.precision(.fractionLength(1))))" }
+        let parts = [level, score].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: ", ")
     }
 }

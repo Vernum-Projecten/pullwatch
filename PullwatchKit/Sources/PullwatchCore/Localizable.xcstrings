@@ -1,6 +1,35 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "%@ (%@), ook %@": {
+      "comment": "Id van een kwetsbaarheid, korte naam van de database, de andere ids van hetzelfde lek",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@), auch %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@), also %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@), aussi %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@), ook %3$@"
+          }
+        }
+      }
+    },
     "%@ niet gevonden (installeer via Homebrew)": {
       "localizations": {
         "de": {
@@ -391,6 +420,179 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dit project staat op %1$@; dit account hoort bij %2$@. Voeg het toe bij een account van die server."
+          }
+        }
+      }
+    },
+    "Ernst uit CVSS %@ van %@": {
+      "comment": "CVSS-versie, korte naam van de database (of NVD, of CNA)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad aus CVSS %1$@ von %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity from CVSS %1$@ by %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité selon CVSS %1$@ de %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ernst uit CVSS %1$@ van %2$@"
+          }
+        }
+      }
+    },
+    "Ernst uit CVSS %@ van %@ (%@)": {
+      "comment": "CVSS-versie, korte naam van de database, id van het record met de vector",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad aus CVSS %1$@ von %2$@ (%3$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity from CVSS %1$@ by %2$@ (%3$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité selon CVSS %1$@ de %2$@ (%3$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ernst uit CVSS %1$@ van %2$@ (%3$@)"
+          }
+        }
+      }
+    },
+    "Ernst uit GitHub-advies %@": {
+      "comment": "GHSA-id",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad aus GitHub-Advisory %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity from GitHub advisory %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité selon l'avis GitHub %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ernst uit GitHub-advies %@"
+          }
+        }
+      }
+    },
+    "Ernst volgens %@": {
+      "comment": "Korte naam van de database",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad laut %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity according to %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité selon %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ernst volgens %@"
+          }
+        }
+      }
+    },
+    "Ernst volgens %@ (%@)": {
+      "comment": "Korte naam van de database, id van het record",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schweregrad laut %1$@ (%2$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Severity according to %1$@ (%2$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravité selon %1$@ (%2$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ernst volgens %1$@ (%2$@)"
+          }
+        }
+      }
+    },
+    "Geen bron geeft een ernst": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Quelle nennt einen Schweregrad"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No source gives a severity"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune source n'indique de gravité"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen bron geeft een ernst"
           }
         }
       }
