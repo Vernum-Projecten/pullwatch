@@ -43,6 +43,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Pullwatch/PullwatchTests/`: hosted Swift Testing suites for the built app
   (bundle id, menu-bar app, languages, translations complete, SF Symbols).
   While XCTest hosts the app, `AppDelegate` does not start polling.
+  `Pullwatch/PullwatchUITests/`: XCUITests that launch the app with an empty
+  data folder (`-PullwatchDataDirectory <dir>`, read by `AppPaths`) and walk
+  the first-run onboarding in Dutch and English. In debug builds
+  `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
+  PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed.
 - `PullwatchKit/`: the local Swift package (`Package.swift`) with the
   `PullwatchCore` module, everything without a window, by area under
   `Sources/PullwatchCore/`: `Model/` (models, `AppConfig`), `Providers/`
@@ -99,7 +104,15 @@ shellcheck scripts/*/*.sh .claude/hooks/*.sh .githooks/*
 
 A UI change is looked at before it is called done: run the app (⌘R in Xcode),
 open every screen it touches in light and dark mode, in Dutch and English,
-at the smallest window size, and check for truncation and overflow.
+at the smallest window size, and check for truncation and overflow. For the
+onboarding, `TEST_RUNNER_PULLWATCH_SHOTS=<dir> xcodebuild test … -only-testing:PullwatchUITests`
+saves every step as PNG per language. UI tests quit a running Pullwatch
+(same bundle id) first.
+
+After changing user-facing text, `bash scripts/dev/sync-strings.sh` writes the
+new keys into both String Catalogs (xcodebuild alone does not); add the
+English, German and French for each before committing. `LocalizationTests`
+fails while an entry misses a language.
 
 ## Formatting
 

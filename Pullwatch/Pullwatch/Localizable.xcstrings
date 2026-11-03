@@ -2,6 +2,7 @@
   "sourceLanguage": "nl",
   "strings": {
     "%@ %@ beschikbaar": {
+      "comment": "Package, versie",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -30,6 +31,7 @@
       }
     },
     "%@ beschikbaar": {
+      "comment": "Versienummer",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -224,6 +226,9 @@
           }
         }
       }
+    },
+    "%lld": {
+      "shouldTranslate": false
     },
     "%lld CVE's": {
       "localizations": {
@@ -786,6 +791,50 @@
         }
       }
     },
+    "Aan": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activées"
+          }
+        }
+      }
+    },
+    "Aan de slag": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los geht’s"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get Started"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commencer"
+          }
+        }
+      }
+    },
     "Account": {
       "localizations": {
         "de": {
@@ -1179,6 +1228,7 @@
       }
     },
     "Alles": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1486,6 +1536,28 @@
         }
       }
     },
+    "Bijna klaar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fast fertig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almost Done"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presque terminé"
+          }
+        }
+      }
+    },
     "Bots verbergen": {
       "localizations": {
         "de": {
@@ -1627,6 +1699,7 @@
       }
     },
     "Check welke gevolgde repo's achterlopen op taal- of frameworkversie.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1930,6 +2003,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "EOL"
+          }
+        }
+      }
+    },
+    "Een gebruiker of organisatie op github.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Benutzer oder eine Organisation auf github.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A user or organization on github.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un utilisateur ou une organisation sur github.com"
+          }
+        }
+      }
+    },
+    "Een organisatie op dev.azure.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation auf dev.azure.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization on dev.azure.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation sur dev.azure.com"
           }
         }
       }
@@ -2327,6 +2444,7 @@
       }
     },
     "Geschiedenis": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2383,6 +2501,7 @@
       }
     },
     "Geschiedenis…": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2634,6 +2753,28 @@
         }
       }
     },
+    "Je eerste account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein erstes Konto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your First Account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre premier compte"
+          }
+        }
+      }
+    },
     "Je hebt de nieuwste versie (%@)": {
       "localizations": {
         "de": {
@@ -2658,6 +2799,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je hebt de nieuwste versie (%@)"
+          }
+        }
+      }
+    },
+    "Je kunt meldingen later aanzetten in Systeeminstellingen → Meldingen → Pullwatch.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst Mitteilungen später in Systemeinstellungen → Mitteilungen → Pullwatch aktivieren."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can turn notifications on later in System Settings → Notifications → Pullwatch."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous pourrez activer les notifications plus tard dans Réglages Système → Notifications → Pullwatch."
           }
         }
       }
@@ -2690,6 +2853,28 @@
         }
       }
     },
+    "Klaar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
+          }
+        }
+      }
+    },
     "Klik om te downloaden.": {
       "localizations": {
         "de": {
@@ -2714,6 +2899,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klik om te downloaden."
+          }
+        }
+      }
+    },
+    "Klik voortaan op het icoon in de menubalk voor je PR's en tags, of open Pullwatch opnieuw voor het hoofdvenster.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicke ab jetzt auf das Symbol in der Menüleiste für deine PRs und Tags, oder öffne Pullwatch erneut für das Hauptfenster."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From now on, click the icon in the menu bar for your PRs and tags, or open Pullwatch again for the main window."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désormais, cliquez sur l’icône dans la barre des menus pour vos PR et tags, ou rouvrez Pullwatch pour la fenêtre principale."
           }
         }
       }
@@ -2747,6 +2954,7 @@
       }
     },
     "Kopieer de versies van deze repo naar het klembord": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2858,6 +3066,28 @@
         }
       }
     },
+    "Later instellen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später einrichten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up Later"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurer plus tard"
+          }
+        }
+      }
+    },
     "Leest de versies in alle gevolgde repo's en zoekt de nieuwste versie op bij endoflife.date en de package-registers": {
       "localizations": {
         "de": {
@@ -2887,6 +3117,7 @@
       }
     },
     "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3166,6 +3397,28 @@
         }
       }
     },
+    "Meldingen toestaan": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungen erlauben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Notifications"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser les notifications"
+          }
+        }
+      }
+    },
     "Meldingen uit voor alle zichtbare repo's": {
       "localizations": {
         "de": {
@@ -3307,6 +3560,7 @@
       }
     },
     "Niets herkend": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3447,6 +3701,7 @@
       }
     },
     "Nieuwste tag; ook gecheckt, zodat je ziet wat er in de laatste release zit": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3498,6 +3753,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nieuwste versie niet op te halen"
+          }
+        }
+      }
+    },
+    "Nog geen account ingesteld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch kein Konto eingerichtet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No account set up yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun compte configuré"
           }
         }
       }
@@ -3839,6 +4116,7 @@
       }
     },
     "Open het versie-overzicht": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -4007,6 +4285,7 @@
       }
     },
     "Opnieuw checken": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -4510,7 +4789,52 @@
         }
       }
     },
+    "Pullwatch draait in de menubalk, rechtsboven naast de klok. Het heeft geen icoon in het Dock en geen venster zolang je er niets mee doet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch läuft in der Menüleiste, oben rechts neben der Uhr. Es hat kein Symbol im Dock und kein Fenster, solange du es nicht benutzt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch runs in the menu bar, at the top right next to the clock. It has no icon in the Dock and no window until you use it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch se trouve dans la barre des menus, en haut à droite près de l’horloge. Il n’a pas d’icône dans le Dock ni de fenêtre tant que vous ne l’utilisez pas."
+          }
+        }
+      }
+    },
+    "Pullwatch instellen…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch einrichten …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up Pullwatch…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurer Pullwatch…"
+          }
+        }
+      }
+    },
     "Pullwatch instellingen": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -4534,6 +4858,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch instellingen"
+          }
+        }
+      }
+    },
+    "Pullwatch meldt een nieuwe PR of tag zodra die er is. macOS vraagt één keer om toestemming.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch meldet einen neuen PR oder Tag, sobald er da ist. macOS fragt einmal nach der Erlaubnis."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch tells you about a new PR or tag as soon as it appears. macOS asks for permission once."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch vous signale une nouvelle PR ou un nouveau tag dès son apparition. macOS demande l’autorisation une seule fois."
+          }
+        }
+      }
+    },
+    "Pullwatch meldt nieuwe pull requests en tags uit Azure DevOps en GitHub, houdt een doorzoekbare geschiedenis bij en checkt je repo's op verouderde versies en bekende kwetsbaarheden.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch meldet neue Pull Requests und Tags aus Azure DevOps und GitHub, führt einen durchsuchbaren Verlauf und prüft deine Repositorys auf veraltete Versionen und bekannte Schwachstellen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch tells you about new pull requests and tags in Azure DevOps and GitHub, keeps a searchable history and checks your repositories for outdated versions and known vulnerabilities."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch signale les nouvelles pull requests et les nouveaux tags d’Azure DevOps et de GitHub, conserve un historique consultable et vérifie vos dépôts à la recherche de versions obsolètes et de vulnérabilités connues."
+          }
+        }
+      }
+    },
+    "Pullwatch-icoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch-Symbol"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch icon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icône de Pullwatch"
           }
         }
       }
@@ -4623,6 +5013,7 @@
       }
     },
     "Repo-controle": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -4819,6 +5210,7 @@
       }
     },
     "Sorteren": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5324,6 +5716,7 @@
       }
     },
     "Toon de versies van %@": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5352,6 +5745,7 @@
       }
     },
     "Toon deze repo in Repo-controle": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5408,6 +5802,7 @@
       }
     },
     "Toon versies van %@": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5459,6 +5854,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Type"
+          }
+        }
+      }
+    },
+    "Uit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivées"
           }
         }
       }
@@ -5577,6 +5994,7 @@
       }
     },
     "Versies checken": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5633,6 +6051,7 @@
       }
     },
     "Versies…": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5684,6 +6103,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verversen"
+          }
+        }
+      }
+    },
+    "Voeg een GitHub- of Azure DevOps-account toe om pull requests en tags te volgen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge ein GitHub- oder Azure-DevOps-Konto hinzu, um Pull Requests und Tags zu folgen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a GitHub or Azure DevOps account to follow pull requests and tags."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez un compte GitHub ou Azure DevOps pour suivre les pull requests et les tags."
           }
         }
       }
@@ -5740,6 +6181,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volgen"
+          }
+        }
+      }
+    },
+    "Volgende": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivant"
+          }
+        }
+      }
+    },
+    "Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die Angaben ein und klicke auf Sichern. Mit der GitHub CLI (gh auth login) oder der Azure CLI (az login) brauchst du kein Token."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill in the details and click Save. With the GitHub CLI (gh auth login) or the Azure CLI (az login) you don’t need a token."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez les informations et cliquez sur Enregistrer. Avec GitHub CLI (gh auth login) ou Azure CLI (az login), aucun jeton n’est nécessaire."
+          }
+        }
+      }
+    },
+    "Waar staan de repositories die je wilt volgen? Je kunt later meer accounts toevoegen onder Instellingen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wo liegen die Repositorys, denen du folgen möchtest? Weitere Konten kannst du später in den Einstellungen hinzufügen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where are the repositories you want to follow? You can add more accounts later in Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où se trouvent les dépôts que vous voulez suivre ? Vous pourrez ajouter d’autres comptes plus tard dans les Réglages."
           }
         }
       }
@@ -5828,6 +6335,28 @@
         }
       }
     },
+    "Welkom bij Pullwatch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bienvenue dans Pullwatch"
+          }
+        }
+      }
+    },
     "Zie Versies… in het menu": {
       "localizations": {
         "de": {
@@ -5852,6 +6381,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zie Versies… in het menu"
+          }
+        }
+      }
+    },
+    "Zie je het icoon niet? Bij een volle menubalk of de camera-uitsparing kan macOS het verbergen; onder Systeeminstellingen → Menubalk bepaal je welke icoontjes er staan.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siehst du das Symbol nicht? Bei voller Menüleiste oder hinter der Kameraaussparung kann macOS es ausblenden; unter Systemeinstellungen → Menüleiste legst du fest, welche Symbole erscheinen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t see the icon? macOS can hide it when the menu bar is full or behind the camera notch; System Settings → Menu Bar controls which icons appear."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous ne voyez pas l’icône ? macOS peut la masquer si la barre des menus est pleine ou derrière l’encoche de la caméra ; Réglages Système → Barre des menus détermine les icônes affichées."
           }
         }
       }
@@ -5914,6 +6465,7 @@
       }
     },
     "Zoek in %@…": {
+      "comment": "Projectnaam",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -5998,6 +6550,7 @@
       }
     },
     "Zoek op repo, taal, versie of CVE…": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -6250,6 +6803,7 @@
       }
     },
     "laatste tag %@": {
+      "comment": "Tagnaam",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -6419,6 +6973,7 @@
       }
     },
     "vs. %@": {
+      "comment": "Tagnaam",
       "localizations": {
         "de": {
           "stringUnit": {

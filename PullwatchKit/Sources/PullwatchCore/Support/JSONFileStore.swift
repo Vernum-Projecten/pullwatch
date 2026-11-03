@@ -26,9 +26,18 @@ public struct JSONFileStore<Value: Codable & Sendable>: Sendable {
 }
 
 public enum AppPaths {
-    public static func file(_ name: String) -> URL {
-        URL.applicationSupportDirectory
-            .appending(path: "Pullwatch")
-            .appending(path: name)
+    /// Launch-argument (`-PullwatchDataDirectory <map>`) waarmee de app met een eigen, lege
+    /// datamap start: voor UI-tests, zodat die nooit de echte config en geschiedenis gebruiken.
+    public static let directoryOverrideKey = "PullwatchDataDirectory"
+
+    public static func file(_ name: String, defaults: UserDefaults = .standard) -> URL {
+        directory(defaults: defaults).appending(path: name)
+    }
+
+    public static func directory(defaults: UserDefaults = .standard) -> URL {
+        if let override = defaults.string(forKey: directoryOverrideKey), !override.isEmpty {
+            return URL(filePath: override, directoryHint: .isDirectory)
+        }
+        return URL.applicationSupportDirectory.appending(path: "Pullwatch")
     }
 }

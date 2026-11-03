@@ -1,5 +1,4 @@
 import PullwatchCore
-import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
@@ -83,8 +82,6 @@ private struct AccountsSettingsView: View {
 
 private struct GeneralSettingsView: View {
     let model: AppModel
-    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
-    @State private var loginError: String?
     @State private var language = AppLanguage.current
 
     private let intervals = [60, 120, 300, 600, 900]
@@ -139,23 +136,7 @@ private struct GeneralSettingsView: View {
                 Button("Nu controleren") { Task { await model.checkForUpdates(manual: true) } }
                     .disabled(model.isCheckingForUpdates)
             }
-            Toggle("Starten bij inloggen", isOn: $launchAtLogin)
-                .onChange(of: launchAtLogin) { _, enabled in
-                    do {
-                        if enabled {
-                            try SMAppService.mainApp.register()
-                        } else {
-                            try SMAppService.mainApp.unregister()
-                        }
-                        loginError = nil
-                    } catch {
-                        loginError = error.localizedDescription
-                        launchAtLogin = SMAppService.mainApp.status == .enabled
-                    }
-                }
-            if let loginError {
-                Text(loginError).font(.caption).foregroundStyle(.red)
-            }
+            LaunchAtLoginToggle()
             Picker("Taal", selection: $language) {
                 ForEach(AppLanguage.allCases) { language in
                     Text(verbatim: language.name).tag(language)

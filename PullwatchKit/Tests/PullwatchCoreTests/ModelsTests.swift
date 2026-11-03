@@ -144,6 +144,16 @@ import Testing
         #expect(url.path(percentEncoded: false).hasSuffix("Application Support/Pullwatch/config.json"))
     }
 
+    @Test func appPathsFollowTheDataDirectoryArgument() throws {
+        let suite = "pullwatch.tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("/tmp/pullwatch ui test", forKey: AppPaths.directoryOverrideKey)
+        #expect(AppPaths.file("config.json", defaults: defaults).path(percentEncoded: false) == "/tmp/pullwatch ui test/config.json")
+        defaults.set("", forKey: AppPaths.directoryOverrideKey)
+        #expect(AppPaths.file("config.json", defaults: defaults).path(percentEncoded: false).hasSuffix("Application Support/Pullwatch/config.json"))
+    }
+
     @Test func jsonFileStoreWorksWithSpacesInPath() throws {
         let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
             .appending(path: "Application Support")

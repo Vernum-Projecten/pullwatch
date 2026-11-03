@@ -17,8 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// De app opnieuw openen terwijl hij al draait (Finder, Spotlight, Launchpad, `open`)
     /// opent het hoofdvenster; anders gebeurt er zichtbaar niets en lijkt Pullwatch kapot.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if let openMainWindow = AppModel.shared.openMainWindow {
-            openMainWindow()
+        let model = AppModel.shared
+        if let open = model.needsOnboarding ? model.openOnboarding : model.openMainWindow {
+            open()
         } else {
             NSApp.activate()
         }
@@ -31,7 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 final class DockIcon {
     static let shared = DockIcon()
-    static let windowIds = ["main"]
+    static let windowIds = ["main", "onboarding"]
 
     func start() {
         let center = NotificationCenter.default
@@ -85,6 +86,12 @@ struct PullwatchApp: App {
             }
         }
         .windowResizability(.contentMinSize)
+
+        Window("Welkom bij Pullwatch", id: "onboarding") {
+            OnboardingView(model: model)
+        }
+        .windowResizability(.contentMinSize)
+        .defaultPosition(.center)
     }
 }
 
@@ -104,6 +111,15 @@ private struct MenuBarLabel: View {
             model.openMainWindow = {
                 openWindow(id: "main")
                 NSApp.activate()
+            }
+            model.openOnboarding = {
+                openWindow(id: "onboarding")
+                NSApp.activate()
+            }
+            // Eerste start: meteen het welkomstvenster, anders lijkt de app niet te starten.
+            // Niet als host van de unit-tests.
+            if model.needsOnboarding && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+                model.openOnboarding?()
             }
         }
     }

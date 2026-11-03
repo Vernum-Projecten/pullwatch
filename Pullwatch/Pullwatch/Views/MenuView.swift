@@ -43,13 +43,26 @@ struct MenuView: View {
                 .font(.callout)
             }
 
-            if !model.notificationsAllowed {
+            if !model.notificationsAllowed && !model.needsOnboarding {
                 Label("Meldingen staan uit in Systeeminstellingen", systemImage: "bell.slash")
                     .font(.caption)
                     .foregroundStyle(.orange)
             }
 
             Divider()
+
+            if model.config.pollableAccounts.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Nog geen account ingesteld", systemImage: "person.crop.circle.badge.plus")
+                        .font(.callout.weight(.semibold))
+                    Text("Voeg een GitHub- of Azure DevOps-account toe om pull requests en tags te volgen.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    OpenWindowButton(title: "Pullwatch instellen…", windowId: "onboarding")
+                        .accessibilityIdentifier("menu.setUp")
+                }
+                Divider()
+            }
 
             SectionHeader(title: "Pull requests")
             let pullRequests = model.history.latest(.pullRequest, limit: 5)
