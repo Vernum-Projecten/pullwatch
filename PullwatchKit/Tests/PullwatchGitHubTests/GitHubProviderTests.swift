@@ -19,6 +19,34 @@ import PullwatchTestSupport
         GitHubProvider(accountId: fixedAccountId, owner: owner, tokenSource: StaticTokenSource(token: "ghtok"), http: http)
     }
 
+    @Test func followsSeveralOwnersWithOneSearchEach() async throws {
+        let http = MockHTTPClient()
+        http.on("org:acme", body: #"{"total_count":1,"items":[\#(item(number: 1, repo: "acme/web"))]}"#)
+        http.on("user:jane", body: #"{"total_count":1,"items":[\#(item(number: 2, repo: "jane/dotfiles"))]}"#)
+        http.on("users/acme", body: #"{"type":"Organization"}"#)
+        http.on("users/jane", body: #"{"type":"User"}"#)
+        let provider = GitHubProvider(accountId: fixedAccountId, owners: ["jane", "acme"], tokenSource: StaticTokenSource(token: "t"), http: http)
+
+        let prs = try await provider.openPullRequests()
+
+        #expect(Set(prs.map(\.repo)) == ["acme/web", "jane/dotfiles"], "PR's van het eigen account en de organisatie samen")
+        let searches = http.requests.compactMap(\.url?.absoluteString).filter { $0.contains("search/issues") }
+        #expect(searches.count == 2)
+    }
+
+    @Test func listsTheRepositoriesOfEveryOwner() async throws {
+        let http = MockHTTPClient()
+        http.on("api.github.com/user?", body: #"{"login":"jane"}"#)
+        http.on("users/acme", body: #"{"type":"Organization"}"#)
+        http.on("users/jane", body: #"{"type":"User"}"#)
+        http.on("orgs/acme/repos", body: #"[{"full_name":"acme/web"}]"#)
+        http.on("user/repos", body: #"[{"full_name":"jane/dotfiles"},{"full_name":"jane/zed"}]"#)
+        http.on("api.github.com/user", body: #"{"login":"jane"}"#)
+        let provider = GitHubProvider(accountId: fixedAccountId, owners: ["jane", "acme"], tokenSource: StaticTokenSource(token: "t"), http: http)
+
+        #expect(try await provider.listRepos() == ["acme/web", "jane/dotfiles", "jane/zed"])
+    }
+
     @Test func searchesOpenPullRequestsForOrganization() async throws {
         let http = MockHTTPClient()
         http.on("search/issues", body: #"{"total_count":1,"items":[\#(item(number: 5, draft: true))]}"#)

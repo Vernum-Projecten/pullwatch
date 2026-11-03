@@ -121,7 +121,7 @@ struct AccountEditor: View {
 
             if draft.authMethod == .gitHubApp, let signIn, signIn.isSignedIn {
                 Section("Repositories van") {
-                    GitHubInstallationsRow(signIn: signIn, owner: $draft.organization)
+                    GitHubInstallationsRow(signIn: signIn, owners: $draft.owners)
                 }
             }
 
@@ -250,14 +250,27 @@ struct AccountEditor: View {
         }
         .onChange(of: availableRepos) { _, _ in SnapshotCamera.shoot("github-repositories") }
         #endif
-        .onChange(of: signIn?.installations) { _, installations in
-            // Eén plek waar de app staat: die meteen kiezen.
-            if case .found(let owners) = installations, owners.count == 1, draft.organization.isEmpty {
-                draft.organization = owners[0].login
+        .onChange(of: signIn?.installations) { old, installations in
+            guard case .found(let found) = installations else { return }
+            let logins = found.map(\.login)
+            switch old {
+            case .found(let before)?:
+                // Terwijl dit venster open is ergens anders geïnstalleerd: die nieuwe plek volgen.
+                let known = before.map(\.login)
+                draft.owners += logins.filter { !known.contains($0) && !draft.owners.contains($0) }
+            case .none?:
+                // Daarnet nog nergens geïnstalleerd, nu wel: wat er nu staat volgen.
+                draft.owners += logins.filter { !draft.owners.contains($0) }
+            case .unknown?, nil:
+                // De lijst voor het eerst: een nieuw account volgt alles, een bestaand blijft zoals het was.
+                if isNew && draft.owners.isEmpty { draft.owners = logins }
             }
         }
-        .onChange(of: draft.organization) { _, owner in
-            guard draft.authMethod == .gitHubApp, !owner.isEmpty else { return }
+        .onChange(of: signIn?.login) { _, login in
+            if let login { draft.login = login }
+        }
+        .onChange(of: draft.owners) { _, owners in
+            guard draft.authMethod == .gitHubApp, !owners.isEmpty else { return }
             reposTask?.cancel()
             reposTask = Task { await loadRepos() }
         }
@@ -273,13 +286,11 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    private var hasRequiredFields: Bool {
-        !draft.organization.trimmingCharacters(in: .whitespaces).isEmpty
-    }
+    private var hasRequiredFields: Bool { draft.isComplete }
 
     private var validationMessage: LocalizedStringKey? {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
-        if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Kies waar je repositories staan" }
+        if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Volg minstens één plek" }
         if !hasRequiredFields { return draft.kind == .azureDevOps ? "Vul de organisatie in" : "Vul de owner in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil

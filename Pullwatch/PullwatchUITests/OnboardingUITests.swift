@@ -78,6 +78,7 @@ final class OnboardingUITests: XCTestCase {
         tap(app, "github.install")
         XCTAssertTrue(element(app, "github.owner.octocat").waitForExistence(timeout: 15), "na installeren: het eigen account verschijnt vanzelf")
         XCTAssertTrue(element(app, "github.owner.github").exists, "en de organisatie eronder")
+        // Net ingelogd: alles waar de app staat wordt gevolgd; de organisatie hier weer uitzetten.
         tap(app, "github.owner.github")
 
         let add = element(app, "account.save")

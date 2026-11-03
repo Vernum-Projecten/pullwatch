@@ -125,8 +125,11 @@ enum RepoWatchCoding {
 public struct Account: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var kind: ProviderKind
-    /// Azure DevOps-organisatie of GitHub-owner (user of org).
-    public var organization: String
+    /// Wat dit account volgt: Azure DevOps-organisatie, of bij GitHub het eigen account en/of
+    /// organisaties. Eén inlog kan meerdere eigenaren volgen.
+    public var owners: [String]
+    /// Wie er via de GitHub App is ingelogd (de login, zonder @); nil bij een token of CLI.
+    public var login: String?
     public var authMethod: AuthMethod
     /// Per repo wat gevolgd wordt. Azure DevOps: "project/repo", GitHub: "owner/repo".
     public var repoWatch: [String: WatchSet]
@@ -137,20 +140,33 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// GitHub CLI: welk `gh`-account (login) het token levert; nil = het actieve account.
     public var cliUser: String?
 
-    /// Naam in lijsten en meldingen: de organisatie op de dienst, bijvoorbeeld "octo op GitHub";
-    /// zonder organisatie alleen de dienst.
-    public var displayName: String {
-        let organization = organization.trimmingCharacters(in: .whitespaces)
-        guard !organization.isEmpty else { return kind.name }
-        return String(localized: "\(organization) op \(kind.name)", bundle: .localizedCore, comment: "Organisatie of gebruiker, dienst (GitHub of Azure DevOps)")
+    /// De eerste (of enige) eigenaar; voor Azure DevOps de organisatie. Zetten maakt er de enige van.
+    public var organization: String {
+        get { owners.first ?? "" }
+        set {
+            let value = newValue.trimmingCharacters(in: .whitespaces)
+            owners = value.isEmpty ? [] : [value]
+        }
     }
 
-    /// Een account met organisatie: alleen zo'n account wordt bewaard en gepold.
-    public var isComplete: Bool { !organization.trimmingCharacters(in: .whitespaces).isEmpty }
+    /// Naam in lijsten en meldingen: "@login op GitHub" na inloggen met GitHub, anders de
+    /// eigenaar(s) op de dienst ("octo op GitHub"); zonder eigenaar alleen de dienst.
+    public var displayName: String {
+        if let login, !login.isEmpty {
+            return String(localized: "@\(login) op \(kind.name)", bundle: .localizedCore, comment: "GitHub-login, dienst")
+        }
+        let named = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        guard !named.isEmpty else { return kind.name }
+        let list = named.formatted(.list(type: .and))
+        return String(localized: "\(list) op \(kind.name)", bundle: .localizedCore, comment: "Organisatie(s) of gebruiker(s), dienst (GitHub of Azure DevOps)")
+    }
 
-    /// Profielfoto van de GitHub-gebruiker of -organisatie (openbaar, zonder token); Azure DevOps
-    /// geeft foto's alleen met inloggen, dus daar nil.
-    public var avatarURL: URL? { Self.gitHubAvatarURL(organization, kind: kind) }
+    /// Een account dat minstens één eigenaar volgt: alleen zo'n account wordt bewaard en gepold.
+    public var isComplete: Bool { owners.contains { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+
+    /// Profielfoto van wie er inlogde, anders van de eerste eigenaar (openbaar, zonder token);
+    /// Azure DevOps geeft foto's alleen met inloggen, dus daar nil.
+    public var avatarURL: URL? { Self.gitHubAvatarURL(login ?? organization, kind: kind) }
 
     public static func gitHubAvatarURL(_ login: String, kind: ProviderKind = .gitHub, size: Int = 128) -> URL? {
         let login = login.trimmingCharacters(in: .whitespaces)
@@ -164,6 +180,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         kind: ProviderKind,
         organization: String,
         authMethod: AuthMethod,
+        login: String? = nil,
         repoWatch: [String: WatchSet] = [:],
         newRepoDefault: NewRepoDefault = .prs,
         includeDrafts: Bool = false,
@@ -172,7 +189,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     ) {
         self.id = id
         self.kind = kind
-        self.organization = organization
+        let organization = organization.trimmingCharacters(in: .whitespaces)
+        self.owners = organization.isEmpty ? [] : [organization]
+        self.login = login
         self.authMethod = authMethod
         self.repoWatch = repoWatch
         self.newRepoDefault = newRepoDefault
@@ -182,15 +201,22 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser
     }
 
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(UUID.self, forKey: .id)
         kind = try c.decode(ProviderKind.self, forKey: .kind)
-        // Een vroeger zelf gekozen `displayName` wordt niet meer gelezen: de naam volgt de organisatie.
-        organization = try c.decode(String.self, forKey: .organization)
+        // Een vroeger zelf gekozen `displayName` wordt niet meer gelezen: de naam volgt de eigenaren.
+        // Van voor meerdere eigenaren: alleen `organization`, die dan de enige eigenaar wordt.
+        if let owners = try c.decodeIfPresent([String].self, forKey: .owners) {
+            self.owners = owners
+        } else {
+            let organization = try c.decode(String.self, forKey: .organization)
+            owners = organization.isEmpty ? [] : [organization]
+        }
+        login = try c.decodeIfPresent(String.self, forKey: .login)
         authMethod = try c.decode(AuthMethod.self, forKey: .authMethod)
         (repoWatch, newRepoDefault) = try RepoWatchCoding.decode(from: decoder)
         includeDrafts = try c.decode(Bool.self, forKey: .includeDrafts)
@@ -204,7 +230,10 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encode(kind, forKey: .kind)
         // Nog wel geschreven: oudere Pullwatch-versies hebben het veld nodig om de config te lezen.
         try c.encode(displayName, forKey: .displayName)
+        // Ook `organization` (de eerste eigenaar): oudere versies lezen alleen dat veld.
         try c.encode(organization, forKey: .organization)
+        try c.encode(owners, forKey: .owners)
+        try c.encodeIfPresent(login, forKey: .login)
         try c.encode(authMethod, forKey: .authMethod)
         try c.encode(repoWatch, forKey: .repoWatch)
         try c.encode(newRepoDefault, forKey: .newRepoDefault)

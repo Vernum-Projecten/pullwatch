@@ -5,14 +5,29 @@ public actor GitHubProvider: PRProvider {
     private enum OwnerKind { case organization, user }
 
     private let accountId: UUID
-    private let owner: String
+    /// De gevolgde eigenaren: het eigen account en/of organisaties.
+    private let owners: [String]
     private let tokenSource: any TokenSource
     private let http: any HTTPClient
     private let now: @Sendable () -> Date
     private let apiBase = URL(string: "https://api.github.com")!
     private let pageSize = 100
     private let maxPages = 10
-    private var ownerKind: OwnerKind?
+    private var ownerKinds: [String: OwnerKind] = [:]
+
+    public init(
+        accountId: UUID,
+        owners: [String],
+        tokenSource: any TokenSource,
+        http: any HTTPClient,
+        now: @escaping @Sendable () -> Date = { Date() }
+    ) {
+        self.accountId = accountId
+        self.owners = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        self.tokenSource = tokenSource
+        self.http = http
+        self.now = now
+    }
 
     public init(
         accountId: UUID,
@@ -21,11 +36,7 @@ public actor GitHubProvider: PRProvider {
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
-        self.accountId = accountId
-        self.owner = owner
-        self.tokenSource = tokenSource
-        self.http = http
-        self.now = now
+        self.init(accountId: accountId, owners: [owner], tokenSource: tokenSource, http: http, now: now)
     }
 
     public func currentUserId() async throws -> String {
@@ -35,10 +46,12 @@ public actor GitHubProvider: PRProvider {
 
     public func testConnection() async throws -> String {
         let login = try await currentUserId()
-        do {
-            _ = try await resolveOwnerKind()
-        } catch ProviderError.server(status: 404) {
-            throw ProviderError.noAccess(owner)
+        for owner in owners {
+            do {
+                _ = try await resolveOwnerKind(owner)
+            } catch ProviderError.server(status: 404) {
+                throw ProviderError.noAccess(owner)
+            }
         }
         return login
     }
@@ -84,10 +97,17 @@ public actor GitHubProvider: PRProvider {
         }
     }
 
+    /// De repositories van alle gevolgde eigenaren, op naam.
     public func listRepos() async throws -> [String] {
+        var names: [String] = []
+        for owner in owners { names += try await listRepos(of: owner) }
+        return Array(Set(names)).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    private func listRepos(of owner: String) async throws -> [String] {
         let url: URL
         var query: [URLQueryItem] = []
-        switch try await resolveOwnerKind() {
+        switch try await resolveOwnerKind(owner) {
         case .organization:
             url = apiBase.appending(path: "orgs").appending(path: owner).appending(path: "repos")
         case .user:
@@ -110,11 +130,18 @@ public actor GitHubProvider: PRProvider {
             names += repos.map(\.fullName)
             if repos.count < pageSize { break }
         }
-        return names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        return names
     }
 
+    /// Open PR's bij alle gevolgde eigenaren: één zoekopdracht per eigenaar (`user:` of `org:`).
     public func openPullRequests() async throws -> [PullRequest] {
-        let qualifier = try await resolveOwnerKind() == .organization ? "org" : "user"
+        var result: [PullRequest] = []
+        for owner in owners { result += try await openPullRequests(of: owner) }
+        return result
+    }
+
+    private func openPullRequests(of owner: String) async throws -> [PullRequest] {
+        let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
         var result: [PullRequest] = []
         for page in 1...maxPages {
             let response: SearchDTO = try await get(apiBase.appending(path: "search/issues"), query: [
@@ -130,8 +157,17 @@ public actor GitHubProvider: PRProvider {
         return result
     }
 
+    /// Bijgewerkte PR's bij alle gevolgde eigenaren, nieuwste eerst, samen hooguit `limit`.
     public func pullRequests(updatedSince since: Date?, limit: Int) async throws -> [PullRequest] {
-        let qualifier = try await resolveOwnerKind() == .organization ? "org" : "user"
+        var result: [PullRequest] = []
+        for owner in owners { result += try await pullRequests(of: owner, updatedSince: since, limit: limit) }
+        guard owners.count > 1 else { return result }
+        // Over eigenaren heen de recentste eerst (gesloten, anders geopend), zodat de grens eerlijk is.
+        return Array(result.sorted { ($0.closedAt ?? $0.createdAt) > ($1.closedAt ?? $1.createdAt) }.prefix(limit))
+    }
+
+    private func pullRequests(of owner: String, updatedSince since: Date?, limit: Int) async throws -> [PullRequest] {
+        let qualifier = try await resolveOwnerKind(owner) == .organization ? "org" : "user"
         var q = "is:pr \(qualifier):\(owner)"
         if let since {
             q += " updated:>=" + since.formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
@@ -216,11 +252,11 @@ public actor GitHubProvider: PRProvider {
         await tokenSource.invalidate()
     }
 
-    private func resolveOwnerKind() async throws -> OwnerKind {
-        if let ownerKind { return ownerKind }
+    private func resolveOwnerKind(_ owner: String) async throws -> OwnerKind {
+        if let kind = ownerKinds[owner] { return kind }
         let info: OwnerDTO = try await get(apiBase.appending(path: "users").appending(path: owner))
         let kind: OwnerKind = info.type == "Organization" ? .organization : .user
-        ownerKind = kind
+        ownerKinds[owner] = kind
         return kind
     }
 

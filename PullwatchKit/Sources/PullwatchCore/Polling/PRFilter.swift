@@ -84,7 +84,8 @@ extension Account {
     public var filterSettings: FilterSettings {
         FilterSettings(
             kind: kind,
-            organization: organization,
+            // Alle eigenaren: een andere keuze telt als een andere instelling (opnieuw beginnen).
+            organization: owners.joined(separator: ","),
             repoWatch: repoWatch,
             newRepoDefault: newRepoDefault,
             includeDrafts: includeDrafts,

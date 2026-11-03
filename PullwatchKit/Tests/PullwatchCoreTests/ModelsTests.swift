@@ -154,6 +154,27 @@ import PullwatchTestSupport
         #expect(written?["displayName"] as? String == account.displayName)
     }
 
+    @Test func oneSignInFollowsSeveralOwners() throws {
+        // Van voor meerdere eigenaren: alleen `organization`.
+        let old = #"{"id":"00000000-0000-0000-0000-000000000009","kind":"gitHub","displayName":"x","organization":"acme","authMethod":"pat","repoWatch":{},"newRepoDefault":"prs","includeDrafts":false,"hideOwn":true}"#
+        let migrated = try JSONDecoder().decode(Account.self, from: Data(old.utf8))
+        #expect(migrated.owners == ["acme"])
+        #expect(migrated.filterSettings.organization == "acme", "bestaande accounts beginnen niet opnieuw")
+
+        var account = Account(kind: .gitHub, organization: "", authMethod: .gitHubApp, login: "jane")
+        #expect(!account.isComplete)
+        account.owners = ["jane", "acme"]
+        #expect(account.isComplete)
+        #expect(account.displayName == String(localized: "@\("jane") op \("GitHub")", bundle: .localizedCore))
+        #expect(account.avatarURL?.absoluteString.contains("github.com/jane.png") == true)
+
+        let again = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(account))
+        #expect(again.owners == ["jane", "acme"])
+        #expect(again.login == "jane")
+        let written = try JSONSerialization.jsonObject(with: JSONEncoder().encode(account)) as? [String: Any]
+        #expect(written?["organization"] as? String == "jane", "oudere versies lezen de eerste eigenaar")
+    }
+
     @Test func onlyAccountsWithAnOrganisationAreComplete() {
         #expect(!Account(kind: .gitHub, organization: "  ", authMethod: .gitHubApp).isComplete)
         #expect(Account(kind: .azureDevOps, organization: "contoso", authMethod: .cli).isComplete)
