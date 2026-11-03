@@ -5,6 +5,9 @@ import UserNotifications
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Als host van de unit-tests niet pollen, melden of naar updates kijken: dat zou met
+        // de echte accounts en tokens van de ontwikkelaar gebeuren.
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
         _ = AppLanguage.atLaunch
         UNUserNotificationCenter.current().delegate = Notifier.shared
         AppModel.shared.start()

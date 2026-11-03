@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "PullwatchCore",
     defaultLocalization: "nl",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("26.6")],
     products: [
         .library(name: "PullwatchCore", targets: ["PullwatchCore"]),
     ],

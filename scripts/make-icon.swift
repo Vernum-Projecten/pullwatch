@@ -1,5 +1,5 @@
 // Tekent het app-icoon (1024×1024) en schrijft alle formaten naar de AppIcon-set.
-// Gebruik: swift scripts/make-icon.swift App/Assets.xcassets/AppIcon.appiconset
+// Gebruik: swift scripts/make-icon.swift Pullwatch/Pullwatch/Assets.xcassets/AppIcon.appiconset
 import AppKit
 
 let outDir = URL(fileURLWithPath: CommandLine.arguments[1])
