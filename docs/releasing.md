@@ -15,9 +15,12 @@ adapted: `.github/workflows/release.yml` runs on a tag and calls the same
   up by one with every release and never down: the coming updater (Sparkle,
   #9) compares build numbers and never installs a lower one.
 - `CHANGELOG.md` (Keep a Changelog) has a section `## [X.Y.Z] - YYYY-MM-DD`
-  for every release; that section is the release's notes.
+  for every release; that section is the release's notes. Between releases
+  each change waits as a fragment in `changelog.d/` (`changelog.d/README.md`),
+  and the cut writes the fragments into that section.
 
-`scripts/release/check-version.sh vX.Y.Z` checks all three and is the
+`scripts/release/check-version.sh vX.Y.Z` checks all three, refuses a tag
+while `changelog.d/` still holds a fragment, and is the
 release workflow's first step. It warns when `Pullwatch/Release.xcconfig`
 has no GitHub App (`docs/github-app.md`), because such a release offers only
 a token, not Sign in with GitHub.
@@ -89,9 +92,13 @@ published release always points at the commit it was built from.
 
 On a branch `release/vX.Y.Z`:
 
-1. In `CHANGELOG.md`, move the entries under `[Unreleased]` to a new
-   `## [X.Y.Z] - YYYY-MM-DD`, leave an empty `## [Unreleased]` above it, and
-   update the links at the bottom.
+1. Check the notes with
+   `bash scripts/release/changelog.sh --preview X.Y.Z`, then run
+   `bash scripts/release/changelog.sh --assemble X.Y.Z YYYY-MM-DD`. It
+   writes `## [X.Y.Z] - YYYY-MM-DD` under a fresh, empty `## [Unreleased]`
+   in `CHANGELOG.md` from the fragments in `changelog.d/`, in Keep a
+   Changelog order, updates the links at the bottom and `git rm`s the
+   fragments. Read the section and commit it.
 2. In `Pullwatch/App.xcconfig`, set `MARKETING_VERSION = X.Y.Z` and raise
    `CURRENT_PROJECT_VERSION` by one.
 3. Run the gates (`CLAUDE.md`, Gates) and
