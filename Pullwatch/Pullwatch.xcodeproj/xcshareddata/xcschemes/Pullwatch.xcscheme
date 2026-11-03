@@ -38,6 +38,17 @@
                ReferencedContainer = "container:Pullwatch.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "000000000000000400000000"
+               BuildableName = "PullwatchUITests.xctest"
+               BlueprintName = "PullwatchUITests"
+               ReferencedContainer = "container:Pullwatch.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -114,7 +114,7 @@ The check runs once a day (can be turned off under Settings → General) and on 
 ## Known quirks
 
 - With an ad-hoc signed local build (from Xcode or `release.sh --unsigned`), macOS may ask for Keychain access again after each install for PAT accounts; choose "Always Allow".
-- On first launch Pullwatch asks for permission to send notifications.
+- On first launch Pullwatch opens a welcome window: where the menu bar icon is, your first account, then notifications and launch at login. Opening Pullwatch again while it runs opens the main window (or the welcome window while no account is set up).
 - Running from Xcode while an installed Pullwatch is open gives you two menu bar icons; quit the installed one first via **Stop** in the menu.
 
 ## Data

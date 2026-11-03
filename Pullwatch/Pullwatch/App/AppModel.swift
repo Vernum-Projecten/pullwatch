@@ -39,6 +39,12 @@ final class AppModel {
     /// Opent het hoofdvenster; gezet door een altijd aanwezige view (het menubalk-label), want
     /// `openWindow` bestaat alleen in de SwiftUI-omgeving.
     @ObservationIgnored var openMainWindow: (() -> Void)?
+    /// Opent het welkomstvenster; gezet door het menubalk-label, zoals `openMainWindow`.
+    @ObservationIgnored var openOnboarding: (() -> Void)?
+    /// Het welkomstvenster is afgerond (of overgeslagen); daarna komt het niet vanzelf terug.
+    private(set) var onboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingCompleted")
+    /// Eerste start: nog geen bruikbaar account en het welkomstvenster nooit afgerond.
+    var needsOnboarding: Bool { !onboardingCompleted && config.pollableAccounts.isEmpty }
     /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
     var sidebarSelection: SidebarItem? = .section(
         UserDefaults.standard.string(forKey: "mainSection").flatMap(MainSection.init) ?? .pullRequests
@@ -281,9 +287,12 @@ final class AppModel {
             }
         }
 
-        Task { [weak self] in
-            guard let self else { return }
-            self.notificationsAllowed = await self.notifier.requestAuthorization()
+        // Wie al een account heeft (ook van voor het welkomstvenster) krijgt het niet te zien.
+        if !onboardingCompleted && !config.pollableAccounts.isEmpty { completeOnboarding() }
+        // Bij een eerste start vraagt het welkomstvenster om meldingen, met uitleg erbij;
+        // anders zoals altijd bij het opstarten (macOS vraagt het maar één keer).
+        if !needsOnboarding {
+            Task { [weak self] in await self?.requestNotifications() }
         }
 
         loopTask = Task { [weak self] in
@@ -435,6 +444,16 @@ final class AppModel {
         statuses[id] = nil
         saveConfig()
         saveHistory()
+    }
+
+    func completeOnboarding() {
+        onboardingCompleted = true
+        UserDefaults.standard.set(true, forKey: "onboardingCompleted")
+    }
+
+    /// Vraagt macOS om meldingen; toont de vraag alleen de eerste keer.
+    func requestNotifications() async {
+        notificationsAllowed = await notifier.requestAuthorization()
     }
 
     func hasStoredPAT(_ id: UUID) -> Bool {
