@@ -145,15 +145,20 @@ public struct VersionReport: Codable, Equatable, Sendable {
     public let advisories: [String: GitHubAdvisory]
     /// GHSA-ids en CVE's waar GitHub geen advies voor had, met het moment van vragen.
     public let advisoryMisses: [String: Date]
+    /// Wat de registers per versie zeggen, per `PackageUse.key`: voor de blokkades en de nieuwste
+    /// bruikbare versie (`UpdateContext`), en als cache voor de volgende check (`VersionChecker`).
+    public let packageMetadata: [String: PackageMetadata]
 
     public init(
         checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:],
-        advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:]
+        advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:],
+        packageMetadata: [String: PackageMetadata] = [:]
     ) {
         self.checkedAt = checkedAt
         self.latestPackages = latestPackages
         self.advisories = advisories
         self.advisoryMisses = advisoryMisses
+        self.packageMetadata = packageMetadata
         self.repos = repos.sorted {
             if $0.severity != $1.severity { return $0.severity > $1.severity }
             if $0.advisoryCount != $1.advisoryCount { return $0.advisoryCount > $1.advisoryCount }
@@ -162,10 +167,11 @@ public struct VersionReport: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case checkedAt, repos, latestPackages, advisories, advisoryMisses
+        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata
     }
 
-    /// versions.json van vóór het package-overzicht heeft geen `latestPackages`.
+    /// versions.json van vóór het package-overzicht heeft geen `latestPackages`, van vóór de
+    /// blokkades geen `packageMetadata`.
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         checkedAt = try c.decode(Date.self, forKey: .checkedAt)
@@ -173,26 +179,33 @@ public struct VersionReport: Codable, Equatable, Sendable {
         latestPackages = try c.decodeIfPresent([String: PackageLatest].self, forKey: .latestPackages) ?? [:]
         advisories = try c.decodeIfPresent([String: GitHubAdvisory].self, forKey: .advisories) ?? [:]
         advisoryMisses = try c.decodeIfPresent([String: Date].self, forKey: .advisoryMisses) ?? [:]
+        packageMetadata = try c.decodeIfPresent([String: PackageMetadata].self, forKey: .packageMetadata) ?? [:]
     }
 }
 
 extension VersionReport {
     /// Vervangt één repo; `checkedAt` blijft het tijdstip van de laatste volledige check. Nieuwste
     /// versies uit `latest` komen erbij; bij een ongewijzigde versie of mislukte opzoeking blijft de oude.
-    public func replacing(_ repo: RepoVersions, latest: [String: PackageLatest] = [:]) -> VersionReport {
+    /// Metadata uit `metadata` vervangt die van hetzelfde package.
+    public func replacing(
+        _ repo: RepoVersions, latest: [String: PackageLatest] = [:], metadata: [String: PackageMetadata] = [:]
+    ) -> VersionReport {
         let merged = latestPackages.merging(latest) { old, new in PackageLatest.keepsOld(old, over: new) ? old : new }
         // Een repo die bij de laatste volledige check nog niet gevolgd werd, komt erbij.
         let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
         return VersionReport(
-            checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses
+            checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses,
+            packageMetadata: packageMetadata.merging(metadata) { _, new in new }
         )
     }
 
-    /// Vervangt of voegt meerdere repo's toe (`runMissing`), zoals `replacing(_:latest:)`.
-    public func replacing(_ repos: [RepoVersions], latest: [String: PackageLatest] = [:]) -> VersionReport {
+    /// Vervangt of voegt meerdere repo's toe (`runMissing`), zoals `replacing(_:latest:metadata:)`.
+    public func replacing(
+        _ repos: [RepoVersions], latest: [String: PackageLatest] = [:], metadata: [String: PackageMetadata] = [:]
+    ) -> VersionReport {
         var report = self
         for (index, repo) in repos.enumerated() {
-            report = report.replacing(repo, latest: index == 0 ? latest : [:])
+            report = report.replacing(repo, latest: index == 0 ? latest : [:], metadata: index == 0 ? metadata : [:])
         }
         return report
     }
@@ -233,15 +246,20 @@ public struct VersionChecker: Sendable {
     let makeProvider: @Sendable (Account) -> any PRProvider
     let http: any HTTPClient
     let now: @Sendable () -> Date
+    /// `VersionReport.packageMetadata` van de vorige check: wat daarin per versie al opgehaald
+    /// is (dependencies, een go.mod), gaat niet opnieuw de deur uit.
+    let metadataCache: [String: PackageMetadata]
 
     public init(
         makeProvider: @escaping @Sendable (Account) -> any PRProvider,
         http: any HTTPClient = URLSessionHTTPClient(),
-        now: @escaping @Sendable () -> Date = { Date() }
+        now: @escaping @Sendable () -> Date = { Date() },
+        metadataCache: [String: PackageMetadata] = [:]
     ) {
         self.makeProvider = makeProvider
         self.http = http
         self.now = now
+        self.metadataCache = metadataCache
     }
 
     /// `progress(done, total)` na het bepalen van de repo's en na elke gescande repo.
@@ -263,14 +281,16 @@ public struct VersionChecker: Sendable {
         }
 
         let checked = await check(targets, progress: progress)
-        return VersionReport(checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest)
+        return VersionReport(checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest, packageMetadata: checked.metadata)
     }
 
     /// Checkt één repo opnieuw, bv. na een fix; het resultaat vervangt de regel in het rapport
-    /// (`VersionReport.replacing(_:latest:)`).
-    public func run(account: Account, repo: String) async -> (repo: RepoVersions, latest: [String: PackageLatest]) {
+    /// (`VersionReport.replacing(_:latest:metadata:)`).
+    public func run(
+        account: Account, repo: String
+    ) async -> (repo: RepoVersions, latest: [String: PackageLatest], metadata: [String: PackageMetadata]) {
         let checked = await check([(account, makeProvider(account), [repo])], progress: { _, _ in })
-        return (checked.repos.first ?? RepoVersions(accountId: account.id, repo: repo, components: []), checked.latest)
+        return (checked.repos.first ?? RepoVersions(accountId: account.id, repo: repo, components: []), checked.latest, checked.metadata)
     }
 
     /// Checkt alleen de gevolgde repo's die nog niet in `report` staan (net gevolgd of nieuw bij
@@ -280,7 +300,7 @@ public struct VersionChecker: Sendable {
         accounts: [Account],
         in report: VersionReport,
         progress: @escaping @Sendable (Int, Int) async -> Void = { _, _ in }
-    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest]) {
+    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest], metadata: [String: PackageMetadata]) {
         let known = Set(report.repos.map { "\($0.accountId.uuidString)/\($0.repo.lowercased())" })
         var targets: [(account: Account, provider: any PRProvider, repos: [String])] = []
         for account in accounts {
@@ -293,15 +313,15 @@ public struct VersionChecker: Sendable {
             }
             if !repos.isEmpty { targets.append((account, provider, repos)) }
         }
-        guard !targets.isEmpty else { return ([], [:]) }
+        guard !targets.isEmpty else { return ([], [:], [:]) }
         return await check(targets, progress: progress)
     }
 
-    /// Stap 2 t/m 5 voor de opgegeven repo's per account.
+    /// Stap 2 t/m 6 voor de opgegeven repo's per account.
     private func check(
         _ targets: [(account: Account, provider: any PRProvider, repos: [String])],
         progress: @escaping @Sendable (Int, Int) async -> Void
-    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest]) {
+    ) async -> (repos: [RepoVersions], latest: [String: PackageLatest], metadata: [String: PackageMetadata]) {
         var results: [RepoVersions] = []
         // 2. Bestanden scannen; accounts parallel, repo's per account na elkaar.
         let total = targets.reduce(0) { $0 + $1.repos.count }
@@ -364,26 +384,16 @@ public struct VersionChecker: Sendable {
             }
         }
 
-        // 4b. Nieuwste versie per direct gebruikt package op de default branch, één keer per package,
-        //     hoeveel installs en versies het ook heeft.
+        // 4b. Nieuwste versie en metadata per versie (`RegistryMetadata`) per direct gebruikt package
+        //     op de default branch, één document per package, hoeveel installs en versies het ook heeft.
         let mainScans = scanned.compactMap { try? $0.found.get().main }
         let packages = Dictionary(mainScans.flatMap(\.directDependencies).map { ($0.key, $0) }, uniquingKeysWith: { first, _ in first })
+        let floors = Self.floors(mainScans.flatMap(\.dependencies))
         let checkedAt = now()
         var latest: [String: PackageLatest] = [:]
-        await withTaskGroup(of: (String, String?).self) { group in
-            var pending = packages.values.makeIterator()
-            func addNext() {
-                guard let package = pending.next() else { return }
-                group.addTask {
-                    (package.key, await PackageRegistry.latest(ecosystem: package.ecosystem, name: package.name, http: http, now: checkedAt))
-                }
-            }
-            // Niet honderden verzoeken tegelijk: hooguit acht lopen er.
-            for _ in 0..<Self.registryConcurrency { addNext() }
-            for await (key, version) in group {
-                latest[key] = PackageLatest(version: version, seenAt: checkedAt)
-                addNext()
-            }
+        var metadata = await fetchMetadata(Array(packages.keys), floors: floors, date: checkedAt)
+        for key in packages.keys {
+            latest[key] = PackageLatest(version: metadata[key]?.latest, seenAt: checkedAt)
         }
 
         // 5. Per repo samenvoegen en beoordelen.
@@ -442,10 +452,122 @@ public struct VersionChecker: Sendable {
                 ))
             }
         }
-        return (results, latest)
+
+        // 6. Wat de blokkades nog missen: ouders van transitieve installs, de dependencies van
+        //    een paar versies (binair zoeken naar de laagste ouder die past), een go.mod of de
+        //    versielijst van een Go-module. Per ronde alleen wat de vorige ronde vroeg.
+        metadata = await completingMetadata(metadata, repos: results, latest: latest, floors: floors, attempted: Set(packages.keys), date: checkedAt)
+        return (results, latest, metadata)
     }
 
     static let registryConcurrency = 8
+    /// Hoeveel keer de check ontbrekende metadata ophaalt; binair zoeken in ~250 versies past erin.
+    static let metadataRounds = 8
+
+    /// Per `PackageUse.key` de oudste geïnstalleerde versie en alle geïnstalleerde versies.
+    static func floors(_ dependencies: [Dependency]) -> [String: (floor: String, keep: Set<String>)] {
+        var result: [String: (floor: String, keep: Set<String>)] = [:]
+        for dependency in dependencies {
+            let key = "\(dependency.ecosystem):\(dependency.name)"
+            if var entry = result[key] {
+                if isOlder(dependency.version, than: entry.floor) { entry.floor = dependency.version }
+                entry.keep.insert(dependency.version)
+                result[key] = entry
+            } else {
+                result[key] = (dependency.version, [dependency.version])
+            }
+        }
+        return result
+    }
+
+    /// Haalt het document van elk package in `keys` ("ecosysteem:naam"), hooguit acht tegelijk.
+    private func fetchMetadata(
+        _ keys: [String], floors: [String: (floor: String, keep: Set<String>)], date: Date
+    ) async -> [String: PackageMetadata] {
+        var result: [String: PackageMetadata] = [:]
+        let cache = metadataCache
+        await withTaskGroup(of: (String, PackageMetadata?).self) { group in
+            var pending = keys.sorted().makeIterator()
+            func addNext() {
+                guard let key = pending.next(), case let (ecosystem, name)? = Self.split(key) else { return }
+                group.addTask {
+                    (key, await RegistryMetadata.fetch(
+                        ecosystem: ecosystem, name: name, floor: floors[key]?.floor, keep: floors[key]?.keep ?? [], cached: cache[key],
+                        http: http, now: date
+                    ))
+                }
+            }
+            // Niet honderden verzoeken tegelijk: hooguit acht lopen er.
+            for _ in 0..<Self.registryConcurrency { addNext() }
+            for await (key, metadata) in group {
+                if let metadata { result[key] = metadata }
+                addNext()
+            }
+        }
+        return result
+    }
+
+    /// "npm:@scope/naam" → ("npm", "@scope/naam").
+    static func split(_ key: String) -> (String, String)? {
+        guard let colon = key.firstIndex(of: ":") else { return nil }
+        return (String(key[..<colon]), String(key[key.index(after: colon)...]))
+    }
+
+    /// Stap 6: haalt in rondes op wat `VersionReport.updateNeeds()` nog mist, elk ding één keer.
+    private func completingMetadata(
+        _ start: [String: PackageMetadata], repos: [RepoVersions], latest: [String: PackageLatest],
+        floors: [String: (floor: String, keep: Set<String>)], attempted: Set<String>, date: Date
+    ) async -> [String: PackageMetadata] {
+        var metadata = start
+        var attemptedPackages = attempted
+        var attemptedDetails: Set<DetailRequest> = []
+        var attemptedLists: Set<String> = []
+        let cache = metadataCache
+        for _ in 0..<Self.metadataRounds {
+            let needs = VersionReport(checkedAt: date, repos: repos, latestPackages: latest, packageMetadata: metadata).updateNeeds()
+            let packages = needs.packages.subtracting(attemptedPackages)
+            let lists = needs.versionLists.subtracting(attemptedLists)
+            let details = needs.details.subtracting(attemptedDetails)
+            guard !packages.isEmpty || !lists.isEmpty || !details.isEmpty else { break }
+            attemptedPackages.formUnion(packages)
+            attemptedLists.formUnion(lists)
+            attemptedDetails.formUnion(details)
+
+            metadata.merge(await fetchMetadata(Array(packages), floors: floors, date: date)) { _, new in new }
+
+            for key in lists.sorted() {
+                guard case let (_, name)? = Self.split(key), var package = metadata[key],
+                      let versions = await RegistryMetadata.goVersions(module: name, http: http, now: date) else { continue }
+                for version in versions where package.versions[version] == nil { package.versions[version] = VersionMetadata() }
+                package.isComplete = true
+                metadata[key] = package.pruned(floor: floors[key]?.floor, keep: floors[key]?.keep ?? []).filling(from: cache[key])
+            }
+
+            let fetched = await withTaskGroup(of: (DetailRequest, VersionMetadata?).self) { group in
+                var pending = details.sorted { ($0.key, $0.version) < ($1.key, $1.version) }.makeIterator()
+                func addNext() {
+                    guard let request = pending.next() else { return }
+                    group.addTask {
+                        (request, await RegistryMetadata.detail(ecosystem: request.ecosystem, name: request.name, version: request.version, http: http, now: date))
+                    }
+                }
+                for _ in 0..<Self.registryConcurrency { addNext() }
+                var result: [(DetailRequest, VersionMetadata)] = []
+                for await (request, detail) in group {
+                    if let detail { result.append((request, detail)) }
+                    addNext()
+                }
+                return result
+            }
+            for (request, detail) in fetched {
+                guard var version = metadata[request.key]?.versions[request.version] else { continue }
+                version.dependencies = detail.dependencies ?? [:]
+                version.runtimes.merge(detail.runtimes) { _, new in new }
+                metadata[request.key]?.versions[request.version] = version
+            }
+        }
+        return metadata
+    }
 
     struct ScannedRepo: Sendable {
         let accountId: UUID

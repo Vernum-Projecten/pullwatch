@@ -40,7 +40,8 @@ extension VersionReport {
         return VersionReport(
             checkedAt: checkedAt, repos: repos, latestPackages: latestPackages,
             advisories: previous.advisories.merging(advisories) { _, new in new },
-            advisoryMisses: previous.advisoryMisses.merging(advisoryMisses) { _, new in new }
+            advisoryMisses: previous.advisoryMisses.merging(advisoryMisses) { _, new in new },
+            packageMetadata: packageMetadata
         )
     }
 
@@ -60,7 +61,8 @@ extension VersionReport {
         advisories = advisories.filter { usedGHSA.contains($0.key) || $0.value.cveId.map(usedCVEs.contains) == true }
         misses = misses.filter { usedGHSA.contains($0.key) || usedCVEs.contains($0.key) }
         return VersionReport(
-            checkedAt: checkedAt, repos: repos, latestPackages: latestPackages, advisories: advisories, advisoryMisses: misses
+            checkedAt: checkedAt, repos: repos, latestPackages: latestPackages, advisories: advisories, advisoryMisses: misses,
+            packageMetadata: packageMetadata
         )
     }
 }

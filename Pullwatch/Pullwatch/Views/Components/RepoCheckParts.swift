@@ -255,9 +255,17 @@ enum Workspace {
 }
 
 extension VulnerabilityFix {
+    /// De zinnen van vóór de blokkades; #85 geeft binnen bereik, manifest en elke blokkade een eigen zin.
     var text: LocalizedStringResource {
         switch self {
-        case .update(let package, let version): "Werk \(package) bij naar \(version)"
+        case .update(let package, let version), .withinRange(let package, let version), .needsManifestChange(let package, let version):
+            "Werk \(package) bij naar \(version)"
+        case .blocked(_, _, .package(let parent, _, let minimum?)):
+            "Werk \(parent) bij naar \(minimum)"
+        case .blocked(let package, let version, .package(let parent, _, nil)):
+            "Werk \(parent) bij, zodat het \(package) \(version) of nieuwer binnenhaalt"
+        case .blocked(let package, let version, .peer), .blocked(let package, let version, .runtime):
+            "Werk \(package) bij naar \(version)"
         case .updateParent(let parent, let package, let minimum): "Werk \(parent) bij, zodat het \(package) \(minimum) of nieuwer binnenhaalt"
         case .none: "Nog geen versie met een oplossing"
         }

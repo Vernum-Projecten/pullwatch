@@ -5,7 +5,7 @@ import PullwatchTestSupport
 
 /// Provider met vaste repo's en bestanden; `repos == nil` laat `listRepos` falen.
 /// Bestanden op een tag staan onder "repo@tag".
-private actor FileProvider: PRProvider {
+actor FileProvider: PRProvider {
     let repos: [String]?
     let files: [String: [String: String]]
     let brokenRepos: Set<String>
@@ -367,7 +367,7 @@ private actor FileProvider: PRProvider {
         let provider = FileProvider(repos: nil, files: ["a/one": ["go.mod": "go 1.27.2"]])
         let account = Account(kind: .gitHub, organization: "a", authMethod: .pat, repoWatch: ["a/one": .prs])
 
-        let (fresh, latest) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
+        let (fresh, latest, _) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).run(account: account, repo: "a/one")
 
         #expect(fresh.components.first?.status == .current)
         #expect(latest.isEmpty)
@@ -502,8 +502,9 @@ private actor FileProvider: PRProvider {
         // Gesorteerd: express@4.21.0, lodash@4.17.15, lodash@4.17.21.
         http.on("querybatch", body: #"{"results":[{},{"vulns":[{"id":"GHSA-a"}]},{}]}"#)
         http.on("vulns/GHSA-a", body: #"{"id":"GHSA-a","aliases":["CVE-2020-8203"],"database_specific":{"severity":"HIGH"},"affected":[{"package":{"name":"lodash","ecosystem":"npm"},"ranges":[{"events":[{"fixed":"4.17.19"}]}]}]}"#)
-        http.on("registry.npmjs.org/lodash/latest", body: #"{"version":"4.17.21"}"#)
-        http.on("registry.npmjs.org/express/latest", body: #"{"version":"5.1.0"}"#)
+        // Het verkorte packument: één document per package met de nieuwste versie en elke versie.
+        http.on("registry.npmjs.org/lodash", body: #"{"name":"lodash","dist-tags":{"latest":"4.17.21"},"versions":{"4.17.21":{"name":"lodash","version":"4.17.21"}}}"#)
+        http.on("registry.npmjs.org/express", body: #"{"name":"express","dist-tags":{"latest":"5.1.0"},"versions":{"5.1.0":{"name":"express","version":"5.1.0","engines":{"node":">= 18"}}}}"#)
         let provider = FileProvider(repos: ["acme/a", "acme/b"], files: [
             "acme/a": ["package-lock.json": Self.lock],
             "acme/b": ["package-lock.json": Self.lock],
@@ -516,8 +517,9 @@ private actor FileProvider: PRProvider {
         #expect(batches.count == 1)
         let body = try JSONSerialization.jsonObject(with: try #require(batches.first?.httpBody)) as? [String: [[String: Any]]]
         #expect(body?["queries"]?.count == 3)
-        #expect(http.requests.filter { $0.url!.absoluteString.contains("registry.npmjs.org/lodash/") }.count == 1)
-        #expect(http.requests.filter { $0.url!.absoluteString.contains("registry.npmjs.org/express/") }.count == 1)
+        #expect(http.requests.filter { $0.url!.absoluteString.hasSuffix("registry.npmjs.org/lodash") }.count == 1)
+        #expect(http.requests.filter { $0.url!.absoluteString.hasSuffix("registry.npmjs.org/express") }.count == 1)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("registry.npmjs.org") }.count == 2)
         #expect(http.requests.filter { $0.url!.absoluteString.contains("vulns/GHSA-a") }.count == 1)
 
         #expect(report.repos.count == 2)
@@ -547,7 +549,7 @@ private actor FileProvider: PRProvider {
         let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs, "acme/new": .prs])
         let known = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: account.id, repo: "acme/a", components: [])])
 
-        let (repos, _) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).runMissing(accounts: [account], in: known)
+        let (repos, _, _) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).runMissing(accounts: [account], in: known)
 
         #expect(repos.map(\.repo) == ["acme/new"])
         let lodash = try #require(repos.first?.packages.first { $0.name == "lodash" })
@@ -561,8 +563,8 @@ private actor FileProvider: PRProvider {
     @Test func gemfileLockGivesDirectGemsWithTheirLatestVersion() async throws {
         let http = MockHTTPClient()
         http.on("querybatch", body: #"{"results":[{},{},{}]}"#)
-        http.on("rubygems.org/api/v1/versions/sinatra/latest.json", body: #"{"version":"4.1.0"}"#)
-        http.on("rubygems.org/api/v1/versions/rspec/latest.json", body: #"{"version":"3.13.0"}"#)
+        http.on("rubygems.org/api/v1/versions/sinatra.json", body: #"[{"number":"4.1.0","platform":"ruby","prerelease":false,"ruby_version":">= 2.7.8","rubygems_version":">= 0"},{"number":"3.2.0","platform":"ruby","prerelease":false,"ruby_version":">= 2.6.0","rubygems_version":">= 0"}]"#)
+        http.on("rubygems.org/api/v1/versions/rspec.json", body: #"[{"number":"3.13.0","platform":"ruby","prerelease":false,"ruby_version":">= 0","rubygems_version":">= 0"}]"#)
         let lock = """
         GEM
           remote: https://rubygems.org/
@@ -586,6 +588,6 @@ private actor FileProvider: PRProvider {
         #expect(packages.map(\.name).sorted() == ["rspec", "sinatra"])
         #expect(packages.first { $0.name == "rspec" }?.installs.first?.kind == .dev)
         #expect(report.latestPackages["RubyGems:sinatra"]?.version == "4.1.0")
-        #expect(http.requests.filter { $0.url!.absoluteString.contains("versions/rack/") }.isEmpty)
+        #expect(http.requests.filter { $0.url!.absoluteString.contains("versions/rack") }.isEmpty)
     }
 }

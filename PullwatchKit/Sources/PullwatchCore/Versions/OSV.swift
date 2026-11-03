@@ -23,11 +23,15 @@ public struct Vulnerability: Codable, Hashable, Sendable {
     public let scope: DependencyScope
     public let kind: DependencyKind
     public let via: [String]
+    /// Het gevraagde bereik van de install (`Dependency.requested`); nil als onbekend en in
+    /// versions.json van vóór de blokkades.
+    public let requested: String?
 
     public init(
         id: String, cve: String?, ghsa: String? = nil, summary: String?, severity: String?, ecosystem: String,
         package: String, version: String, fixedIn: String?, source: String,
-        workspace: String? = nil, scope: DependencyScope = .unknown, kind: DependencyKind = .runtime, via: [String] = []
+        workspace: String? = nil, scope: DependencyScope = .unknown, kind: DependencyKind = .runtime, via: [String] = [],
+        requested: String? = nil
     ) {
         self.id = id
         self.cve = cve
@@ -43,10 +47,11 @@ public struct Vulnerability: Codable, Hashable, Sendable {
         self.scope = scope
         self.kind = kind
         self.via = via
+        self.requested = requested
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, cve, ghsa, summary, severity, ecosystem, package, version, fixedIn, source, workspace, scope, kind, via
+        case id, cve, ghsa, summary, severity, ecosystem, package, version, fixedIn, source, workspace, scope, kind, via, requested
     }
 
     /// versions.json van vóór de installs heeft geen workspace, scope, soort en via.
@@ -66,7 +71,8 @@ public struct Vulnerability: Codable, Hashable, Sendable {
             workspace: try c.decodeIfPresent(String.self, forKey: .workspace),
             scope: try c.decodeIfPresent(DependencyScope.self, forKey: .scope) ?? .unknown,
             kind: try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime,
-            via: try c.decodeIfPresent([String].self, forKey: .via) ?? []
+            via: try c.decodeIfPresent([String].self, forKey: .via) ?? [],
+            requested: try c.decodeIfPresent(String.self, forKey: .requested)
         )
     }
 
@@ -238,7 +244,8 @@ public enum OSV {
                     workspace: dependency.workspace,
                     scope: dependency.scope,
                     kind: dependency.kind,
-                    via: dependency.via
+                    via: dependency.via,
+                    requested: dependency.requested
                 ))
             }
         }

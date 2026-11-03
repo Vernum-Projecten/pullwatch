@@ -126,6 +126,7 @@ extension VersionReport {
             var since: Date?
             var users: [PackageUser] = []
         }
+        let index = RegistryIndex(packageMetadata)
         var order: [String] = []
         var groups: [String: Group] = [:]
         func add(_ id: String, _ make: @autoclosure () -> Group, _ user: PackageUser) {
@@ -147,6 +148,7 @@ extension VersionReport {
             }
         }
         for repo in repos where repo.error == nil {
+            let context = UpdateContext(repo: repo, index: index)
             for component in repo.components where StackDetector.lockedPackages[component.product] == nil {
                 guard let cycle = component.cycle, let latest = component.cycleLatest else { continue }
                 add("runtime:\(component.product):\(cycle)",
@@ -159,15 +161,16 @@ extension VersionReport {
                     Group(label: package.name, kind: PackageVersions.kind(ofEcosystem: package.ecosystem),
                           latest: latest?.version, since: latest?.version == nil ? nil : latest?.seenAt),
                     PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
-                                updates: package.updates(latest: latest?.version)))
+                                updates: package.updates(latest: latest?.version, context: context)))
             }
         }
         // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben; een
         // package dat nergens direct gebruikt wordt krijgt geen eigen regel.
         for repo in repos where repo.error == nil {
+            let context = UpdateContext(repo: repo, index: index)
             for package in repo.otherPackages where groups[package.key] != nil {
                 let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
-                                       updates: package.updates(latest: latestPackages[package.key]?.version))
+                                       updates: package.updates(latest: latestPackages[package.key]?.version, context: context))
                 if user.isTransitiveOnly, groups[package.key]?.users.contains(where: { $0.repoId == repo.id }) == false {
                     groups[package.key]?.users.append(user)
                 }
@@ -208,7 +211,8 @@ extension VersionReport {
             }
         }
         return VersionReport(
-            checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses
+            checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses,
+            packageMetadata: packageMetadata
         )
     }
 
