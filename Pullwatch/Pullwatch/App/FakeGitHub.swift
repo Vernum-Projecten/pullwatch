@@ -222,6 +222,7 @@ nonisolated private enum FakeWorld {
             return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : tagsAndReleases(body: request.httpBody)
         }
         let parts = url.pathComponents
+        if let extra = extraRepoResponse(parts) { return extra }
         // /repos/octocat/<repo>/...
         guard parts.count >= 5, parts[1] == "repos", parts[2] == FakeGitHub.login else { return nil }
         let repo = parts[3]
@@ -243,9 +244,41 @@ nonisolated private enum FakeWorld {
         }
     }
 
+    /// Een losse repo van een andere organisatie, voor "Andere repositories": openbaar, maar de
+    /// GitHub App is er niet geïnstalleerd. Met token geeft GitHub hier 404 (zie `status(of:)`),
+    /// zonder token wel antwoord, zoals bij de echte openEHR/specifications-AM.
+    static let extraOwner = "openEHR"
+    static let extraRepo = "specifications-AM"
+
+    static let extraPullRequests: [PR] = [
+        PR(repo: extraRepo, number: 50, title: "Clarify the rules for archetype slots", author: "wolandscat", daysAgo: 3, state: "open"),
+        PR(repo: extraRepo, number: 48, title: "Fix typos in the ADL 2 grammar", author: "pieterbos", daysAgo: 25, state: "merged"),
+    ]
+
+    private static func extraRepoResponse(_ parts: [String]) -> String? {
+        guard parts.count >= 4, parts[1] == "repos", parts[2] == extraOwner, parts[3] == extraRepo else { return nil }
+        guard parts.count >= 5 else { return #"{"full_name":"\#(extraOwner)/\#(extraRepo)","private":false}"# }
+        switch parts[4] {
+        case "tags":
+            return #"[{"name":"Release-2.3.0"},{"name":"Release-2.2.0"}]"#
+        case "releases":
+            return #"[{"id":147607295,"tag_name":"Release-2.3.0","name":"AM Release 2.3.0","draft":false,"prerelease":false,"#
+                + #""published_at":"\#(iso(9))","html_url":"https://github.com/\#(extraOwner)/\#(extraRepo)/releases/tag/Release-2.3.0","#
+                + #""author":{"login":"wolandscat","avatar_url":"https://github.com/wolandscat.png?size=40"}}]"#
+        case "git":
+            return #"{"tree":[{"path":"README.md","type":"blob"}]}"#
+        default:
+            return nil
+        }
+    }
+
     /// 403 voor secret scanning (geen recht), 404 voor code scanning zonder analyse; de rest 200.
+    /// De losse repo van openEHR geeft met token 404 (app niet geïnstalleerd), zonder token 200.
     static func status(of request: URLRequest) -> Int {
         let parts = request.url?.pathComponents ?? []
+        if parts.count >= 4, parts[1] == "repos", parts[2] == extraOwner {
+            return request.value(forHTTPHeaderField: "Authorization") == nil ? 200 : 404
+        }
         guard parts.count >= 5, parts[1] == "repos" else { return 200 }
         switch parts[4] {
         case "secret-scanning": return 403
@@ -291,13 +324,16 @@ nonisolated private enum FakeWorld {
     static func search(query: String) -> String {
         let decoded = query.removingPercentEncoding ?? query
         let onlyOpen = decoded.contains("is:open")
-        let items = pullRequests.filter { !onlyOpen || $0.state == "open" }.map { pr -> String in
+        // De losse repo van openEHR heeft een eigen zoekopdracht (`repo:`); de rest is van octocat.
+        let isExtra = decoded.contains("repo:\(extraOwner)/\(extraRepo)")
+        let owner = isExtra ? extraOwner : FakeGitHub.login
+        let items = (isExtra ? extraPullRequests : pullRequests).filter { !onlyOpen || $0.state == "open" }.map { pr -> String in
             let closed = pr.state == "open" ? "null" : #""\#(iso(pr.daysAgo - 0.5))""#
             let merged = pr.state == "merged" ? #""\#(iso(pr.daysAgo - 0.5))""# : "null"
             return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","updated_at":"\#(iso(pr.daysAgo))","draft":false,"#
                 + #""state":"\#(pr.state == "open" ? "open" : "closed")","closed_at":\#(closed),"pull_request":{"merged_at":\#(merged)},"#
-                + #""user":{"login":"\#(pr.author)"},"html_url":"https://github.com/octocat/\#(pr.repo)/pull/\#(pr.number)","#
-                + #""repository_url":"https://api.github.com/repos/octocat/\#(pr.repo)"}"#
+                + #""user":{"login":"\#(pr.author)"},"html_url":"https://github.com/\#(owner)/\#(pr.repo)/pull/\#(pr.number)","#
+                + #""repository_url":"https://api.github.com/repos/\#(owner)/\#(pr.repo)"}"#
         }
         return #"{"total_count":\#(items.count),"items":["# + items.joined(separator: ",") + "]}"
     }

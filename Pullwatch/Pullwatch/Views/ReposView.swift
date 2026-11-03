@@ -174,6 +174,15 @@ struct ReposView: View {
         .navigationTitle(groupName.map { Text(verbatim: $0) } ?? Text("Repo's"))
         .navigationSubtitle(CheckedSubtitle.text(model.versionReport?.checkedAt))
         .toolbar {
+            ToolbarItem {
+                Button {
+                    model.watchRepository()
+                } label: {
+                    Label("Volg een repository…", systemImage: "plus")
+                }
+                .disabled(model.accountsForExtraRepos.isEmpty)
+                .help("Een losse repository volgen, ook een openbare van een andere organisatie")
+            }
             CheckAllToolbarItem(model: model)
         }
         .onChange(of: Query(text: searchText, sortOrder: sortOrder, summaries: model.repoSummaries), initial: true) {

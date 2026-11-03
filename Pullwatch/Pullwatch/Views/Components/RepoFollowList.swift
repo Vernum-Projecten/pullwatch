@@ -57,6 +57,15 @@ extension WatchKind {
         }
     }
 
+    /// Het "alle"-vinkje boven de andere (losse) repositories.
+    var allOtherLabel: Text {
+        switch self {
+        case .pullRequests: Text("Alle PR's van de andere repositories volgen")
+        case .tags: Text("Alle tags van de andere repositories volgen")
+        case .merged: Text("Alle gemergde PR's van de andere repositories volgen")
+        }
+    }
+
     var notifyTitle: LocalizedStringKey {
         switch self {
         case .pullRequests: "Melding bij nieuwe PR's"
@@ -78,10 +87,14 @@ extension NewRepoDefault {
 
 /// De repositories van een account: per eigenaar (of Azure DevOps-project) een sectie met per
 /// repo drie vinkjes (PR's, tags, gemerged) in vaste kolommen, en in de kop per kolom "alle".
+/// Daaronder "Andere repositories": losse repo's die je zelf toevoegt (`Account.extraRepos`).
 /// Meldingen per soort zitten in het contextmenu van een rij en op de repo-pagina. Hoort in
 /// een `Form`.
 struct RepoFollowList: View {
+    let model: AppModel
     @Binding var account: Account
+    /// Een nieuw token dat nog niet bewaard is, voor het controleren van een losse repo.
+    var pat: String?
     /// Wat de dienst als repositories gaf; blijft staan tijdens opnieuw laden.
     let available: [String]
     let isLoading: Bool
@@ -90,6 +103,7 @@ struct RepoFollowList: View {
     /// Opent de pagina van een repo in het hoofdvenster; nil voor een account dat nog niet bewaard is.
     var openRepo: ((String) -> Void)?
     @State private var search = ""
+    @State private var isAddingRepo = false
 
     var body: some View {
         Section {
@@ -137,13 +151,42 @@ struct RepoFollowList: View {
                 OwnerHeader(account: $account, owner: group.owner, repos: group.repos)
             }
         }
+
+        Section {
+            ForEach(extras, id: \.self) { repo in
+                RepoWatchRow(
+                    account: $account, repo: repo, openRepo: openRepo,
+                    showsOwner: true,
+                    status: model.extraRepoStatus[model.extraRepoKey(accountId: account.id, repo: repo)],
+                    remove: { account.removeExtraRepo(repo) }
+                )
+            }
+            Button("Repository toevoegen…") { isAddingRepo = true }
+        } header: {
+            OwnerHeader(account: $account, owner: nil, repos: extras)
+        } footer: {
+            Text("Losse repositories naast die van je eigenaren, zoals een openbare repository van een andere organisatie. Weghalen met een rechtermuisklik of de Delete-toets.")
+        }
+        .sheet(isPresented: $isAddingRepo) {
+            WatchRepositorySheet(model: model, accounts: [account], pat: pat) { _, check in
+                account.addExtraRepo(check.name)
+            }
+        }
+        .task(id: account.extraRepos) {
+            await model.refreshExtraRepoStatus(account, pat: pat)
+        }
     }
 
-    /// De repo's die er zijn en die al gevolgd werden, gezocht, per eigenaar in de volgorde van
-    /// het account (eigen account eerst).
+    /// De losse repo's, gezocht.
+    private var extras: [String] {
+        account.extraRepos.filter { search.isEmpty || $0.localizedCaseInsensitiveContains(search) }
+    }
+
+    /// De repo's die er zijn en die al gevolgd werden (zonder de losse), gezocht, per eigenaar in
+    /// de volgorde van het account (eigen account eerst).
     private var groups: [(owner: String, repos: [String])] {
         let names = Account.mergedRepoNames(available: available, configured: Array(account.repoWatch.keys))
-            .filter { search.isEmpty || $0.localizedCaseInsensitiveContains(search) }
+            .filter { !account.isExtra($0) && (search.isEmpty || $0.localizedCaseInsensitiveContains(search)) }
         let byOwner = Dictionary(grouping: names) { $0.split(separator: "/", maxSplits: 1).first.map(String.init) ?? $0 }
         let order = account.owners
         return byOwner.keys.sorted { lhs, rhs in
@@ -165,52 +208,80 @@ private struct WatchColumn: ViewModifier {
 
 /// Kop van een eigenaar: foto en naam, en per kolom de titel met een "alle"-vinkje (gemengd als
 /// maar een deel gevolgd wordt). "Alle" geldt voor de repo's die de zoekopdracht toont.
+/// Zonder eigenaar is het de kop van de andere (losse) repositories.
 private struct OwnerHeader: View {
     @Binding var account: Account
-    let owner: String
+    let owner: String?
     let repos: [String]
 
     var body: some View {
         HStack(alignment: .bottom) {
             HStack(spacing: 6) {
-                if account.kind == .gitHub {
-                    AccountAvatar(gitHubLogin: owner, size: 16)
+                if let owner {
+                    if account.kind == .gitHub {
+                        AccountAvatar(gitHubLogin: owner, size: 16)
+                    }
+                    Text(verbatim: owner)
+                } else {
+                    Text("Andere repositories")
                 }
-                Text(verbatim: owner)
             }
             Spacer()
-            ForEach(WatchKind.allCases) { kind in
-                VStack(spacing: 2) {
-                    Text(kind.columnTitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                    Toggle(sources: repos.map { $account[$0, follows: kind] }, isOn: \.self) {
-                        kind.allLabel(owner)
+            // Zonder losse repo's zijn er geen kolommen om aan te vinken.
+            if !repos.isEmpty || owner != nil {
+                ForEach(WatchKind.allCases) { kind in
+                    VStack(spacing: 2) {
+                        Text(kind.columnTitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Toggle(sources: repos.map { $account[$0, follows: kind] }, isOn: \.self) {
+                            if let owner { kind.allLabel(owner) } else { kind.allOtherLabel }
+                        }
+                        .toggleStyle(.checkbox)
+                        .labelsHidden()
                     }
-                    .toggleStyle(.checkbox)
-                    .labelsHidden()
+                    .modifier(WatchColumn())
+                    .help(kind.help)
                 }
-                .modifier(WatchColumn())
-                .help(kind.help)
             }
         }
     }
 }
 
 /// Eén repo: de naam en drie vinkjes. Gemerged kan alleen met PR's aan. Rechtermuisklik (en
-/// VoiceOver-acties): de meldingen per soort en de pagina van de repo.
+/// VoiceOver-acties): de meldingen per soort en de pagina van de repo. Een losse repo toont zijn
+/// eigenaar erbij, eventueel hoe hij gelezen wordt, en is weg te halen (menu of Delete).
 private struct RepoWatchRow: View {
     @Binding var account: Account
     let repo: String
     let openRepo: ((String) -> Void)?
+    var showsOwner = false
+    var status: AppModel.ExtraRepoStatus?
+    var remove: (() -> Void)?
 
     var body: some View {
         HStack {
-            Text(verbatim: repo.split(separator: "/", maxSplits: 1).last.map(String.init) ?? repo)
-                .lineLimit(1)
-                .truncationMode(.middle)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: showsOwner ? repo : (repo.split(separator: "/", maxSplits: 1).last.map(String.init) ?? repo))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                switch status {
+                case .readWithoutSignIn:
+                    Text("Gelezen zonder inloggen")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .help("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub")
+                case .problem(let message):
+                    Label(message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .lineLimit(2)
+                case nil:
+                    EmptyView()
+                }
+            }
             Spacer()
             ForEach(WatchKind.allCases) { kind in
                 Toggle(isOn: $account[repo, follows: kind]) {
@@ -224,6 +295,8 @@ private struct RepoWatchRow: View {
             }
         }
         .contentShape(.rect)
+        .focusable(remove != nil)
+        .onDeleteCommand(perform: remove)
         .contextMenu { menu }
         .accessibilityActions { menu }
     }
@@ -236,6 +309,10 @@ private struct RepoWatchRow: View {
         if let openRepo {
             Divider()
             Button("Open de pagina van de repo") { openRepo(repo) }
+        }
+        if let remove {
+            Divider()
+            Button("Haal weg uit de lijst", role: .destructive, action: remove)
         }
     }
 }

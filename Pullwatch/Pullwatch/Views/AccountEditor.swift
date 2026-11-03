@@ -224,7 +224,8 @@ struct AccountEditor: View {
 
             if draft.isComplete {
                 RepoFollowList(
-                    account: $draft, available: availableRepos, isLoading: isLoadingRepos, error: repoError,
+                    model: model, account: $draft, pat: pat.isEmpty ? nil : pat,
+                    available: availableRepos, isLoading: isLoadingRepos, error: repoError,
                     reload: { reloadCount += 1 },
                     openRepo: isNew ? nil : { repo in
                         model.showRepo(accountId: draft.id, repo: repo)
