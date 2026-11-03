@@ -1,6 +1,23 @@
 import PullwatchCore
 import SwiftUI
 
+/// Kleine gekleurde pill: soort, PR-status, versiestatus, ernst, plek van een kwetsbaarheid of
+/// een kort label in de repolijst. De enige pill in de app, zodat ze er overal hetzelfde uitzien.
+struct Pill: View {
+    let text: LocalizedStringResource
+    let tint: Color
+
+    var body: some View {
+        Text(text)
+            .font(.caption2.bold())
+            .foregroundStyle(tint)
+            .lineLimit(1)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(tint.opacity(0.15), in: Capsule())
+    }
+}
+
 extension ItemKind {
     var color: Color {
         switch self {
@@ -16,25 +33,11 @@ extension ItemKind {
         }
     }
 
-    var pillText: String {
+    var pillText: LocalizedStringResource {
         switch self {
         case .pullRequest: "PR"
-        case .tag: "TAG"
+        case .tag: "Tag"
         }
-    }
-}
-
-/// Kleine gekleurde pill met de soort van een item.
-struct KindPill: View {
-    let kind: ItemKind
-
-    var body: some View {
-        Text(kind.pillText)
-            .font(.caption2.bold())
-            .foregroundStyle(kind.color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(kind.color.opacity(0.15), in: Capsule())
     }
 }
 
@@ -47,25 +50,11 @@ extension PRState {
         }
     }
 
-    var label: String {
+    var label: LocalizedStringResource {
         switch self {
-        case .open: String(localized: "Open")
-        case .merged: String(localized: "Gemerged")
-        case .closed: String(localized: "Gesloten")
+        case .open: "Open"
+        case .merged: "Gemerged"
+        case .closed: "Gesloten"
         }
-    }
-}
-
-/// Kleine gekleurde pill met de status van een pull request.
-struct StatePill: View {
-    let state: PRState
-
-    var body: some View {
-        Text(state.label)
-            .font(.caption2.bold())
-            .foregroundStyle(state.color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(state.color.opacity(0.15), in: Capsule())
     }
 }

@@ -15,4 +15,14 @@ import Testing
     func kindSymbolsExist(_ kind: ItemKind) {
         #expect(NSImage(systemSymbolName: kind.symbol, accessibilityDescription: nil) != nil)
     }
+
+    @Test(arguments: MainSection.allCases)
+    func sectionSymbolsExist(_ section: MainSection) {
+        #expect(NSImage(systemSymbolName: section.symbol, accessibilityDescription: nil) != nil)
+    }
+
+    @Test(arguments: [RepoHealth.problem, .behind, .ok, .unknown])
+    func healthSymbolsExist(_ health: RepoHealth) {
+        #expect(NSImage(systemSymbolName: health.symbol, accessibilityDescription: nil) != nil)
+    }
 }
