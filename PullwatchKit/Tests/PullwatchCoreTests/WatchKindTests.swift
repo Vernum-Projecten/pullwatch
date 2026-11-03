@@ -27,10 +27,9 @@ import Testing
         for kind in WatchKind.allCases { #expect(watch[follows: kind] == (kind != .merged)) }
     }
 
-    @Test func newRepoDefaultsStillDecode() throws {
-        for raw in ["none", "prs", "prsAndTags"] {
-            let decoded = try JSONDecoder().decode(NewRepoDefault.self, from: Data("\"\(raw)\"".utf8))
-            #expect(decoded.rawValue == raw)
-        }
+    @Test(arguments: ["none", "prs", "prsAndTags"])
+    func newRepoDefaultsStillDecode(raw: String) throws {
+        let decoded = try JSONDecoder().decode(NewRepoDefault.self, from: Data("\"\(raw)\"".utf8))
+        #expect(decoded.rawValue == raw)
     }
 }

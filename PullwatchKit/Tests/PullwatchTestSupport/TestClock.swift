@@ -1,14 +1,14 @@
 import Foundation
+import Synchronization
 
-package final class TestClock: @unchecked Sendable {
+package final class TestClock: Sendable {
     package init() {}
 
-    private let lock = NSLock()
-    private var current = Date(timeIntervalSince1970: 1_760_000_000)
+    private let current = Mutex(Date(timeIntervalSince1970: 1_760_000_000))
 
-    package var now: Date { lock.withLock { current } }
+    package var now: Date { current.withLock { $0 } }
 
     package func advance(_ seconds: TimeInterval) {
-        lock.withLock { current += seconds }
+        current.withLock { $0 += seconds }
     }
 }

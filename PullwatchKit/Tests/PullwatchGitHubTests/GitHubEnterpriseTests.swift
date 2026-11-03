@@ -20,15 +20,14 @@ import PullwatchTestSupport
 
     // MARK: - Adressen
 
-    @Test func gitHubDotComKeepsItsAddresses() {
-        for instance in [nil, URL(string: "https://github.com")] {
-            let endpoints = GitHubEndpoints(instanceURL: instance)
-            #expect(endpoints.flavor == .dotCom)
-            #expect(endpoints.web.absoluteString == "https://github.com")
-            #expect(endpoints.api.absoluteString == "https://api.github.com")
-            #expect(endpoints.graphQL.absoluteString == "https://api.github.com/graphql")
-            #expect(endpoints.cliHost == "github.com")
-        }
+    @Test(arguments: [nil, URL(string: "https://github.com")])
+    func gitHubDotComKeepsItsAddresses(instance: URL?) {
+        let endpoints = GitHubEndpoints(instanceURL: instance)
+        #expect(endpoints.flavor == .dotCom)
+        #expect(endpoints.web.absoluteString == "https://github.com")
+        #expect(endpoints.api.absoluteString == "https://api.github.com")
+        #expect(endpoints.graphQL.absoluteString == "https://api.github.com/graphql")
+        #expect(endpoints.cliHost == "github.com")
     }
 
     @Test func enterpriseServerUsesApiV3AndApiGraphQL() {
@@ -208,16 +207,15 @@ import PullwatchTestSupport
         #expect(urls(http) == ["https://github.example.com/api/v3/repos/other/tool"])
     }
 
-    @Test func noAnonymousFallbackOnAServerOrGHECom() async {
-        for instance in [Self.server, URL(string: "https://acme.ghe.com")!] {
-            let http = MockHTTPClient()
-            http.on("repos/other/tool", status: 404, body: #"{"message":"Not Found"}"#)
-            await #expect(throws: ProviderError.noAccess("other/tool")) {
-                try await makeExtraProvider(http, instance: instance).checkRepository("other/tool")
-            }
-            #expect(http.requests.count == 1, "geen tweede verzoek zonder token")
-            #expect(http.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer ghes-token" })
+    @Test(arguments: [Self.server, URL(string: "https://acme.ghe.com")!])
+    func noAnonymousFallbackOnAServerOrGHECom(instance: URL) async {
+        let http = MockHTTPClient()
+        http.on("repos/other/tool", status: 404, body: #"{"message":"Not Found"}"#)
+        await #expect(throws: ProviderError.noAccess("other/tool")) {
+            try await makeExtraProvider(http, instance: instance).checkRepository("other/tool")
         }
+        #expect(http.requests.count == 1, "geen tweede verzoek zonder token")
+        #expect(http.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer ghes-token" })
     }
 
     @Test func gitHubDotComKeepsTheAnonymousFallback() async throws {

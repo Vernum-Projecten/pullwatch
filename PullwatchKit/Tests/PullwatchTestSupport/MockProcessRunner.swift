@@ -1,24 +1,28 @@
 import Foundation
 import PullwatchCore
+import Synchronization
 
-package final class MockProcessRunner: ProcessRunner, @unchecked Sendable {
+package final class MockProcessRunner: ProcessRunner {
     package init() {}
 
-    private let lock = NSLock()
-    private var _output = ProcessOutput(status: 0, stdout: "", stderr: "")
-    private var _calls: [(URL, [String])] = []
-
-    package var output: ProcessOutput {
-        get { lock.withLock { _output } }
-        set { lock.withLock { _output = newValue } }
+    private struct State {
+        var output = ProcessOutput(status: 0, stdout: "", stderr: "")
+        var calls: [(URL, [String])] = []
     }
 
-    package var calls: [(URL, [String])] { lock.withLock { _calls } }
+    private let state = Mutex(State())
+
+    package var output: ProcessOutput {
+        get { state.withLock { $0.output } }
+        set { state.withLock { $0.output = newValue } }
+    }
+
+    package var calls: [(URL, [String])] { state.withLock { $0.calls } }
 
     package func run(_ executable: URL, _ arguments: [String]) async throws -> ProcessOutput {
-        lock.withLock {
-            _calls.append((executable, arguments))
-            return _output
+        state.withLock {
+            $0.calls.append((executable, arguments))
+            return $0.output
         }
     }
 }

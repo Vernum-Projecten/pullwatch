@@ -1,9 +1,10 @@
 import Foundation
 import PullwatchCore
+import Synchronization
 
 /// Route-matching op substring van de volledige URL; de EERSTE geregistreerde match wint.
 /// Registreer dus specifieke routes vóór algemene.
-package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
+package final class MockHTTPClient: HTTPClient {
     package init() {}
 
     private struct Route {
@@ -15,39 +16,42 @@ package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         var authorized: Bool? = nil
     }
 
-    private let lock = NSLock()
-    private var routes: [Route] = []
-    private var recorded: [URLRequest] = []
-    private var sequences: [String: [String]] = [:]
+    private struct State {
+        var routes: [Route] = []
+        var recorded: [URLRequest] = []
+        var sequences: [String: [String]] = [:]
+    }
 
-    package var requests: [URLRequest] { lock.withLock { recorded } }
+    private let state = Mutex(State())
+
+    package var requests: [URLRequest] { state.withLock { $0.recorded } }
 
     package func on(_ substring: String, status: Int = 200, headers: [String: String] = [:], body: String) {
-        lock.withLock { routes.append(Route(substring: substring, status: status, headers: headers, body: body)) }
+        state.withLock { $0.routes.append(Route(substring: substring, status: status, headers: headers, body: body)) }
     }
 
     /// Als `on`, maar alleen voor verzoeken met (`authorized: true`) of zonder token.
     package func on(_ substring: String, authorized: Bool, status: Int = 200, headers: [String: String] = [:], body: String) {
-        lock.withLock {
-            routes.append(Route(substring: substring, status: status, headers: headers, body: body, authorized: authorized))
+        state.withLock {
+            $0.routes.append(Route(substring: substring, status: status, headers: headers, body: body, authorized: authorized))
         }
     }
 
     /// Antwoorden die na elkaar komen voor dezelfde route; het laatste blijft daarna gelden.
     package func onSequence(_ substring: String, bodies: [String]) {
-        lock.withLock { sequences[substring, default: []].append(contentsOf: bodies) }
+        state.withLock { $0.sequences[substring, default: []].append(contentsOf: bodies) }
     }
 
     package func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let url = request.url!
-        let route: Route? = lock.withLock {
-            recorded.append(request)
-            if let key = sequences.keys.first(where: { url.absoluteString.contains($0) }), let body = sequences[key]?.first {
-                if sequences[key]!.count > 1 { sequences[key]!.removeFirst() }
+        let route: Route? = state.withLock { state in
+            state.recorded.append(request)
+            if let key = state.sequences.keys.first(where: { url.absoluteString.contains($0) }), let body = state.sequences[key]?.first {
+                if state.sequences[key]!.count > 1 { state.sequences[key]!.removeFirst() }
                 return Route(substring: key, status: 200, headers: [:], body: body)
             }
             let authorized = request.value(forHTTPHeaderField: "Authorization") != nil
-            return routes.first { route in
+            return state.routes.first { route in
                 url.absoluteString.contains(route.substring) && (route.authorized.map { $0 == authorized } ?? true)
             }
         }

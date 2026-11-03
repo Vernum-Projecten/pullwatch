@@ -1,23 +1,23 @@
 import Foundation
+import Synchronization
 import Testing
 @testable import PullwatchCore
 
 /// Geeft vaste bytes terug (MockHTTPClient kent alleen tekst) en telt de verzoeken.
-private final class BytesClient: HTTPClient, @unchecked Sendable {
+private final class BytesClient: HTTPClient {
     let body: Data
     let status: Int
-    private let lock = NSLock()
-    private var count = 0
+    private let count = Mutex(0)
 
     init(body: Data, status: Int = 200) {
         self.body = body
         self.status = status
     }
 
-    var requests: Int { lock.withLock { count } }
+    var requests: Int { count.withLock { $0 } }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        lock.withLock { count += 1 }
+        count.withLock { $0 += 1 }
         return (body, HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!)
     }
 }
