@@ -2789,6 +2789,28 @@
         }
       }
     },
+    "Alleen een https-adres, bijvoorbeeld https://github.example.com of https://acme.ghe.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur eine https-Adresse, zum Beispiel https://github.example.com oder https://acme.ghe.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only an https address, for example https://github.example.com or https://acme.ghe.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement une adresse https, par exemple https://github.example.com ou https://acme.ghe.com"
+          }
+        }
+      }
+    },
     "Alleen een https-adres, bijvoorbeeld https://gitlab.example.com": {
       "localizations": {
         "de": {
@@ -4102,6 +4124,28 @@
         }
       }
     },
+    "Een classic token met de scopes repo en read:org, of een fine-grained token met leestoegang": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein klassisches Token mit den Scopes repo und read:org, oder ein Fine-grained-Token mit Lesezugriff"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A classic token with the repo and read:org scopes, or a fine-grained token with read access"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un jeton classique avec les portées repo et read:org, ou un jeton fine-grained avec accès en lecture"
+          }
+        }
+      }
+    },
     "Een doorzoekbare geschiedenis en statistieken per repository": {
       "localizations": {
         "de": {
@@ -4120,6 +4164,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un historique consultable et des statistiques par dépôt"
+          }
+        }
+      }
+    },
+    "Een gebruiker of organisatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Benutzer oder eine Organisation"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A user or organization"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un utilisateur ou une organisation"
           }
         }
       }
@@ -5231,6 +5297,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub CLI (gh auth login)"
+          }
+        }
+      }
+    },
+    "GitHub Enterprise Server, of je eigen subdomein op ghe.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Enterprise Server, oder deine eigene Subdomain auf ghe.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Enterprise Server, or your own subdomain on ghe.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Enterprise Server, ou votre propre sous-domaine sur ghe.com"
           }
         }
       }
@@ -6420,6 +6508,29 @@
         }
       }
     },
+    "Log eerst in met `gh auth login --hostname %@`.": {
+      "comment": "De host van de GitHub Enterprise-server",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich zuerst mit `gh auth login --hostname %@` an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in first with `gh auth login --hostname %@`."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous d’abord avec `gh auth login --hostname %@`."
+          }
+        }
+      }
+    },
     "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen.": {
       "localizations": {
         "de": {
@@ -6852,6 +6963,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nom"
+          }
+        }
+      }
+    },
+    "Niet beschikbaar op deze server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Server nicht verfügbar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not available on this server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non disponible sur ce serveur"
           }
         }
       }
@@ -11493,6 +11626,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez un jeton"
+          }
+        }
+      }
+    },
+    "Vul het adres van je GitHub Enterprise-server in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die Adresse deines GitHub-Enterprise-Servers ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the address of your GitHub Enterprise server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez l’adresse de votre serveur GitHub Enterprise"
+          }
+        }
+      }
+    },
+    "Vul je server, een token en je gebruiker of organisatie in, en klik op Toevoegen. Met de GitHub CLI heb je geen token nodig.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deinen Server, ein Token und deinen Benutzer oder deine Organisation ein und klicke auf Hinzufügen. Mit der GitHub CLI brauchst du kein Token."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your server, a token and your user or organization, and click Add. With the GitHub CLI you need no token."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez votre serveur, un jeton et votre utilisateur ou organisation, puis cliquez sur Ajouter. Avec la GitHub CLI, aucun jeton n’est nécessaire."
           }
         }
       }

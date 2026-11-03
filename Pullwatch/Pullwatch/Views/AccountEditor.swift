@@ -42,7 +42,7 @@ struct AccountEditor: View {
     /// zodra het geldig is.
     @State private var instanceText: String
     /// GitHub: op GitHub Enterprise (Server of GHE.com) in plaats van github.com.
-    @State private var isEnterprise: Bool
+    private let isEnterprise: Bool
     /// GitLab: de groepen en gebruikers zoals getypt, met komma's; `draft.owners` volgt.
     @State private var ownersText: String
     /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
@@ -67,7 +67,7 @@ struct AccountEditor: View {
         self.saveAction = saveAction
         _draft = State(initialValue: original)
         _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? "")
-        _isEnterprise = State(initialValue: original.kind == .gitHub && (enterprise || original.isGitHubEnterprise))
+        isEnterprise = original.kind == .gitHub && (enterprise || original.isGitHubEnterprise)
         _ownersText = State(initialValue: original.owners.joined(separator: ", "))
         originalAuthMethod = original.authMethod
         isNew = !model.config.accounts.contains { $0.id == original.id }
@@ -139,15 +139,6 @@ struct AccountEditor: View {
     var body: some View {
         Form {
             Section("Inloggen") {
-                // Een nieuw GitHub-account kiest eerst waar het staat.
-                if isNew && draft.kind == .gitHub {
-                    Picker("Waar", selection: $isEnterprise) {
-                        Text(verbatim: "GitHub.com").tag(false)
-                        Text(verbatim: "GitHub Enterprise").tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .accessibilityIdentifier("account.gitHubFlavor")
-                }
                 if isNew {
                     Picker("Authenticatie", selection: $draft.authMethod) {
                         if offersGitHubApp {
@@ -335,17 +326,6 @@ struct AccountEditor: View {
             saveAction?.blockedReason = validationMessage
         }
         .onChange(of: validationMessage) { _, message in saveAction?.blockedReason = message }
-        // github.com of GitHub Enterprise: de server en de manier van inloggen gaan mee.
-        .onChange(of: isEnterprise) { _, enterprise in
-            if enterprise {
-                if draft.authMethod == .gitHubApp { draft.authMethod = .pat }
-            } else {
-                instanceText = ""
-                draft.instanceURL = nil
-                draft.authMethod = model.defaultAuthMethod(for: .gitHub)
-            }
-            draft.cliUser = nil
-        }
         .onChange(of: saveError) { _, error in saveAction?.error = error }
         .task(id: draft.authMethod) {
             guard draft.authMethod == .gitHubApp else {

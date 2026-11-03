@@ -40,6 +40,8 @@ private struct AccountsSettingsView: View {
     @State private var selection: UUID?
     /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
     @State private var draft: Account?
+    /// Het nieuwe account is een GitHub-account op GitHub Enterprise.
+    @State private var draftIsEnterprise = false
     @State private var confirmsRemoval = false
 
     var body: some View {
@@ -74,7 +76,7 @@ private struct AccountsSettingsView: View {
         .onChange(of: selection) { _, _ in SnapshotCamera.shoot("settings-accounts-selected", windowId: "com_apple_SwiftUI_Settings_window") }
         #endif
         .sheet(item: $draft) { account in
-            AddAccountSheet(model: model, draft: account) { saved in
+            AddAccountSheet(model: model, draft: account, enterprise: draftIsEnterprise) { saved in
                 draft = nil
                 if saved { selection = account.id }
             }
@@ -89,12 +91,14 @@ private struct AccountsSettingsView: View {
                 selection = model.config.accounts.first?.id
             }
         } message: { account in
-            Text("\(account.displayName) en de geschiedenis ervan verdwijnen uit Pullwatch. Op \(account.kind.name) verandert niets.")
+            Text("\(account.displayName) en de geschiedenis ervan verdwijnen uit Pullwatch. Op \(account.serviceName) verandert niets.")
         }
     }
 
-    private func add(_ kind: ProviderKind) {
-        draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+    /// `enterprise`: GitHub Enterprise, waar de Pullwatch-app niet bestaat; daar eerst een token.
+    private func add(_ kind: ProviderKind, enterprise: Bool) {
+        draftIsEnterprise = enterprise
+        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
     }
 }
 
@@ -184,20 +188,25 @@ private struct AccountCard: View {
 /// in de Mac-instellingen.
 private struct AccountListButtons: View {
     let canRemove: Bool
-    let add: (ProviderKind) -> Void
+    let add: (_ kind: ProviderKind, _ enterprise: Bool) -> Void
     let remove: () -> Void
+
+    /// GitHub twee keer: github.com en GitHub Enterprise.
+    private static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
+        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false),
+    ]
 
     var body: some View {
         HStack(spacing: 0) {
             Menu {
-                ForEach([ProviderKind.gitHub, .azureDevOps, .gitLab], id: \.self) { kind in
+                ForEach(Array(Self.choices.enumerated()), id: \.offset) { _, choice in
                     Button {
-                        add(kind)
+                        add(choice.kind, choice.enterprise)
                     } label: {
                         Label {
-                            Text(verbatim: kind.name)
+                            Text(verbatim: choice.enterprise ? "GitHub Enterprise" : choice.kind.name)
                         } icon: {
-                            ProviderMark.menuIcon(for: kind)
+                            ProviderMark.menuIcon(for: choice.kind)
                         }
                     }
                 }
@@ -233,12 +242,13 @@ private struct AccountListButtons: View {
 private struct AddAccountSheet: View {
     let model: AppModel
     let draft: Account
+    let enterprise: Bool
     let onClose: (_ saved: Bool) -> Void
     @State private var saveAction = AccountSaveAction()
 
     var body: some View {
         VStack(spacing: 0) {
-            AccountEditor(model: model, original: draft, saveAction: saveAction) { onClose(true) }
+            AccountEditor(model: model, original: draft, enterprise: enterprise, saveAction: saveAction) { onClose(true) }
             Divider()
             HStack {
                 Button("Annuleren", role: .cancel) {

@@ -66,6 +66,11 @@ struct HistoryView: View {
         model.config.accounts.first { $0.id == item.entry.accountId }?.kind ?? .azureDevOps
     }
 
+    /// De server van het account (github.com of GitHub Enterprise), voor de foto's bij de auteur.
+    private func web(of item: HistoryItem) -> URL? {
+        model.config.accounts.first { $0.id == item.entry.accountId }?.effectiveInstanceURL
+    }
+
     private func open(_ ids: Set<HistoryItem.ID>) {
         model.open(.history(Array(ids)))
     }
@@ -119,7 +124,7 @@ struct HistoryView: View {
                 if let author = item.entry.author {
                     ContributorsLabel(
                         author: author, coAuthors: item.entry.coAuthors, kind: kind(of: item),
-                        avatarURL: item.entry.authorAvatarURL
+                        web: web(of: item), avatarURL: item.entry.authorAvatarURL
                     )
                 } else {
                     Text("onbekend").foregroundStyle(.secondary)

@@ -37,6 +37,12 @@ struct RepoSecuritySection: View {
                     } label: {
                         Text(feed.kind.title)
                     }
+                case .notAvailable:
+                    LabeledContent {
+                        Text("Niet beschikbaar op deze server").foregroundStyle(.secondary)
+                    } label: {
+                        Text(feed.kind.title)
+                    }
                 case .failed:
                     LabeledContent {
                         Text(verbatim: feed.message ?? "").foregroundStyle(.orange).lineLimit(2)
@@ -290,6 +296,8 @@ extension SecurityScan {
                 lines.append("\(title): \(String(localized: "Toestemming nodig"))")
             case .notEnabled:
                 lines.append("\(title): \(String(localized: "Staat uit"))")
+            case .notAvailable:
+                lines.append("\(title): \(String(localized: "Niet beschikbaar op deze server"))")
             case .failed:
                 lines.append("\(title): \(feed.message ?? "")")
             }
