@@ -1,4 +1,7 @@
 import AppKit
+import PullwatchCore
+
+nonisolated private let logger = Log(category: "language")
 
 /// Taal van de app: volgt macOS, of een vaste keuze via `AppleLanguages` in de eigen defaults.
 /// Een wijziging werkt pas na een herstart.
@@ -42,7 +45,12 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     @MainActor static func relaunch() {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, _ in
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
+            // Mislukt het starten, dan blijft deze instantie draaien: afsluiten laat niets over.
+            if let error {
+                logger.error("Opnieuw starten mislukt: \(error.localizedDescription)")
+                return
+            }
             DispatchQueue.main.async { NSApp.terminate(nil) }
         }
     }

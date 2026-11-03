@@ -5,6 +5,8 @@ import UserNotifications
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // De taal van deze run vastleggen voordat Instellingen iets kan wijzigen.
+        _ = AppLanguage.atLaunch
         // Als host van de unit-tests niet pollen, melden of naar updates kijken: dat zou met
         // de echte accounts en tokens van de ontwikkelaar gebeuren.
         if AppModel.isTestHost { return }
