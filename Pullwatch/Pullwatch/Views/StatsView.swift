@@ -257,6 +257,7 @@ extension PRStatus {
         switch self {
         case .open: "Open"
         case .draft: "Draft"
+        case .queued: "In wachtrij"
         case .merged: saysCompleted ? "Afgerond" : "Gemerged"
         case .closed: "Gesloten"
         }
@@ -268,6 +269,8 @@ extension PRStateCounts {
         switch status {
         case .open: open
         case .draft: draft
+        // Een PR in de rij is nog open en telt daar mee, zoals in de grafiek: geen eigen regel.
+        case .queued: 0
         case .merged: merged
         case .closed: closed
         }

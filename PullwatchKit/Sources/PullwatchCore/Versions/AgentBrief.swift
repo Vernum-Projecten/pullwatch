@@ -270,7 +270,7 @@ public enum AgentBrief {
         var brief = Brief(title: "pull requests", repository: repository)
         let rows = items.compactMap { item -> [String]? in
             guard case .pullRequest(let pr) = item.entry else { return nil }
-            let state = pr.state == .open && pr.isDraft ? "draft" : pr.state.rawValue
+            let state = pr.state == .open && pr.isDraft ? "draft" : (pr.isQueued ? "queued" : pr.state.rawValue)
             return ["\(pr.number)", pr.title, state, pr.authorName, day(pr.createdAt, in: repository.timeZone), pr.webURL.absoluteString]
         }
         if rows.isEmpty {

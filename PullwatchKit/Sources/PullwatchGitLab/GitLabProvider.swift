@@ -36,6 +36,9 @@ public actor GitLabProvider: PRProvider {
     var projectAccess: [String: (access: ProjectAccess, at: Date)] = [:]
     /// Tot wanneer de limiet voor verzoeken zonder token op is.
     var anonymousPausedUntil: Date?
+    /// Projecten (lowercased) zonder merge trains die dit token mag lezen (geen Premium, uit,
+    /// of geen rechten): die krijgen geen vraag meer naar hun train tot `mergeTrainRetry` voorbij is.
+    var withoutMergeTrains: [String: Date] = [:]
 
     public static let defaultInstanceURL = URL(string: "https://gitlab.com")!
 
@@ -139,7 +142,7 @@ public actor GitLabProvider: PRProvider {
             URLQueryItem(name: "order_by", value: "updated_at"),
             URLQueryItem(name: "sort", value: "desc"),
         ], limit: .max)
-        return result
+        return await withMergeTrains(result)
     }
 
     /// Merge requests in elke status, recentst bijgewerkt eerst, samen hooguit `limit`; met
@@ -212,7 +215,10 @@ public actor GitLabProvider: PRProvider {
             state: state,
             closedAt: closedAt.flatMap(DateParsing.parse),
             // De laatste commit van de bronbranch: verandert bij elke push, niet bij een reactie.
-            revision: dto.sha ?? dto.updatedAt
+            revision: dto.sha ?? dto.updatedAt,
+            // "Merge als de pipeline slaagt" (auto-merge), ook hoe een merge request in een merge
+            // train komt; de plek in de train komt erbij in `withMergeTrains`.
+            mergeQueue: state == .open && dto.mergeWhenPipelineSucceeds == true ? MergeQueueEntry(kind: .autoMerge) : nil
         )
         if let name = dto.author.name, !name.isEmpty { authorNames[pullRequest.dedupKey] = name }
         return pullRequest
@@ -572,6 +578,8 @@ struct MergeRequestDTO: Decodable {
     let webUrl: String
     let references: References?
     let sha: String?
+    /// Auto-merge staat aan: merge zodra de pipeline slaagt, of in de merge train.
+    let mergeWhenPipelineSucceeds: Bool?
 }
 
 private struct TagDTO: Decodable {

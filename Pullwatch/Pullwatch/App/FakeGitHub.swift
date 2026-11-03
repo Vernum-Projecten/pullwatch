@@ -104,8 +104,9 @@ nonisolated private enum FakeWorld {
         var isDraft = false
     }
 
-    // Alle vier de statussen komen voor (open, draft, gemerged, gesloten zonder merge), zodat de
-    // statistieken in de rondleiding ze allemaal tonen.
+    // Alle vijf de statussen komen voor (open, draft, in de merge queue, gemerged, gesloten zonder
+    // merge), zodat de lijsten en statistieken in de rondleiding ze allemaal tonen. Welke PR in de
+    // rij staat zegt `mergeQueue`.
     static let pullRequests: [PR] = [
         PR(repo: "hello-world", number: 42, title: "Try a dark theme for the page", author: "jdoe", daysAgo: 3, state: "open", isDraft: true),
         PR(repo: "hello-world", number: 41, title: "Bump lodash to 4.17.21", author: "dependabot[bot]", daysAgo: 0.2, state: "open"),
@@ -444,8 +445,14 @@ nonisolated private enum FakeWorld {
     ]
     static let checksForbiddenRepo = "linguist"
 
-    /// De GraphQL-vraag naar commit-auteurs en checks (`GitHubProvider.details`): per alias de
-    /// auteur van de PR en zijn co-auteurs uit `coAuthors`, en de telling uit `checks`.
+    /// De open PR's ("repo#nummer") in de merge queue, met hun plek (vanaf 1, zoals GitHub).
+    static let mergeQueue: [String: Int] = [
+        "hello-world#40": 1,
+    ]
+
+    /// De GraphQL-vraag naar commit-auteurs, checks en de merge queue (`GitHubProvider.details`
+    /// en `withMergeQueues`): per alias de auteur van de PR en zijn co-auteurs uit `coAuthors`, de
+    /// telling uit `checks` en de plek uit `mergeQueue`.
     static func coAuthorCommits(body: Data?) -> String {
         struct Query: Decodable {
             enum Value: Decodable {
@@ -486,6 +493,14 @@ nonisolated private enum FakeWorld {
                 if repo == checksForbiddenRepo {
                     errors.append(#"{"type":"FORBIDDEN","path":["pr\#(index)","pullRequest","headCommit","nodes",0,"commit","statusCheckRollup"],"#
                         + #""message":"Resource not accessible by integration"}"#)
+                }
+            }
+            if asked.contains("isInMergeQueue") {
+                if let position = mergeQueue["\(repo)#\(number)"] {
+                    parts.append(#""isInMergeQueue":true,"mergeQueueEntry":{"state":"AWAITING_CHECKS","position":\#(position),"#
+                        + #""enqueuedAt":"\#(iso(0.05))"}"#)
+                } else {
+                    parts.append(#""isInMergeQueue":false,"mergeQueueEntry":null"#)
                 }
             }
             fields.append(#""pr\#(index)":{"pullRequest":{"# + parts.joined(separator: ",") + "}}")

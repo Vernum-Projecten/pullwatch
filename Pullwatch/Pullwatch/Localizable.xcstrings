@@ -4290,16 +4290,16 @@
     },
     "Bij GitHub Enterprise en een eigen GitLab-server vraagt Pullwatch de checks aan die server.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For GitHub Enterprise and your own GitLab server, Pullwatch asks that server for the checks."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Bei GitHub Enterprise und einem eigenen GitLab-Server fragt Pullwatch die Checks bei diesem Server ab."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For GitHub Enterprise and your own GitLab server, Pullwatch asks that server for the checks."
           }
         },
         "fr": {
@@ -7742,6 +7742,34 @@
         }
       }
     },
+    "In wachtrij": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Warteschlange"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queued"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En file d'attente"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In wachtrij"
+          }
+        }
+      }
+    },
     "Ingelogd als @%@": {
       "localizations": {
         "de": {
@@ -8708,16 +8736,16 @@
     },
     "Kopieer een kopje van deze pagina als opdracht in Markdown voor een AI-agent": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy a section of this page as a Markdown brief for an AI agent"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Einen Abschnitt dieser Seite als Markdown-Auftrag für einen KI-Agenten kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy a section of this page as a Markdown brief for an AI agent"
           }
         },
         "fr": {
@@ -8730,16 +8758,16 @@
     },
     "Kopieer het overzicht van alle bronnen naar het klembord": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy the overview of every source to the clipboard"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Übersicht aller Quellen in die Zwischenablage kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy the overview of every source to the clipboard"
           }
         },
         "fr": {
@@ -9937,16 +9965,16 @@
     },
     "Niet gecontroleerd": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not checked"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nicht geprüft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked"
           }
         },
         "fr": {
@@ -12999,6 +13027,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pull request, gesloten"
+          }
+        }
+      }
+    },
+    "Pull request, in de wachtrij": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, in der Warteschlange"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, queued"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, en file d'attente"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, in de wachtrij"
+          }
+        }
+      }
+    },
+    "Pull request, in de wachtrij, plek %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request, in der Warteschlange, Position %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, queued, position %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, en file d'attente, position %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request, in de wachtrij, plek %lld"
           }
         }
       }

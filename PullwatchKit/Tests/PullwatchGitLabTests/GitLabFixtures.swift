@@ -46,7 +46,8 @@ enum GitLabFixtures {
         authorName: String = "Alice Example",
         mergedAt: String? = nil,
         closedAt: String? = nil,
-        sha: String = "a1b2c3d4"
+        sha: String = "a1b2c3d4",
+        autoMerge: Bool = false
     ) -> String {
         let merged = mergedAt.map { "\"\($0)\"" } ?? "null"
         let closed = closedAt.map { "\"\($0)\"" } ?? "null"
@@ -59,7 +60,7 @@ enum GitLabFixtures {
                    "avatar_url":"https://gitlab.com/uploads/-/system/user/avatar/5/avatar.png",
                    "web_url":"https://gitlab.com/\#(author)"},
          "draft":\#(draft),"work_in_progress":\#(draft),"merge_status":"can_be_merged",
-         "sha":"\#(sha)","merge_commit_sha":null,
+         "merge_when_pipeline_succeeds":\#(autoMerge),"sha":"\#(sha)","merge_commit_sha":null,
          "references":{"short":"!\#(iid)","relative":"!\#(iid)","full":"\#(project)!\#(iid)"},
          "web_url":"https://gitlab.com/\#(project)/-/merge_requests/\#(iid)"}
         """#

@@ -398,7 +398,10 @@ public actor AzureDevOpsProvider: PRProvider {
             webURL: webURL,
             state: state,
             closedAt: dto.closedDate.flatMap(DateParsing.parse),
-            revision: dto.lastMergeSourceCommit?.commitId
+            revision: dto.lastMergeSourceCommit?.commitId,
+            // Auto-complete aan: de PR voltooit vanzelf zodra de policies slagen. Azure DevOps
+            // geeft geen plek in een rij en geen tijdstip.
+            mergeQueue: state == .open && dto.autoCompleteSetBy != nil ? MergeQueueEntry(kind: .autoComplete) : nil
         )
         if let email = dto.createdBy.uniqueName { authorEmails[pullRequest.dedupKey] = email }
         if let id = dto.repository.project.id { projectIds[pullRequest.dedupKey] = id }
@@ -509,6 +512,8 @@ private struct PullRequestDTO: Decodable {
     let repository: Repository
     /// De laatste commit van de bronbranch; verandert bij elke push.
     let lastMergeSourceCommit: CommitRef?
+    /// Wie auto-complete aanzette; ontbreekt als het uit staat.
+    let autoCompleteSetBy: Identity?
 }
 
 /// Een commit van een PR, of los opgehaald voor het volledige bericht.

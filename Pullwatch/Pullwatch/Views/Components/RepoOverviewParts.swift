@@ -110,8 +110,8 @@ struct PullRequestRow: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            if let state = item.entry.prState {
-                Pill(text: state.label, tint: state.color)
+            if let pill = item.entry.statePill {
+                Pill(text: pill.text, tint: pill.tint)
             }
             Text(verbatim: item.entry.title)
                 .fontWeight(item.isRead ? .regular : .semibold)

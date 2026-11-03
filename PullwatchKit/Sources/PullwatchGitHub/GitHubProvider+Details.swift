@@ -106,7 +106,7 @@ extension GitHubProvider {
 }
 
 /// GraphQL: per PR (alias `pr0`, `pr1`, …; variabelen `o0`/`n0`/`p0`) de commit-auteurs met
-/// co-auteurs en/of de telling van de checks op de laatste commit.
+/// co-auteurs, de telling van de checks op de laatste commit en/of de plek in de merge queue.
 struct PRDetailQuery: Encodable {
     let query: String
     let variables: [String: Variable]
@@ -115,8 +115,10 @@ struct PRDetailQuery: Encodable {
         let pr: PullRequest
         let coAuthors: Bool
         let checks: Bool
+        /// Of de PR in de merge queue staat en op welke plek (`GitHubProvider+MergeQueue`).
+        var mergeQueue = false
 
-        var withoutChecks: Wanted { Wanted(pr: pr, coAuthors: coAuthors, checks: false) }
+        var withoutChecks: Wanted { Wanted(pr: pr, coAuthors: coAuthors, checks: false, mergeQueue: mergeQueue) }
     }
 
     enum Variable: Encodable {
@@ -149,6 +151,9 @@ struct PRDetailQuery: Encodable {
                     checkRunCountsByState { state count } statusContextCountsByState { state count } } } } } }
                     """)
             }
+            if item.mergeQueue {
+                selections.append("isInMergeQueue mergeQueueEntry { state position enqueuedAt }")
+            }
             if selections.isEmpty { selections.append("number") }
             fields.append("""
                   pr\(index): repository(owner: $o\(index), name: $n\(index)) {
@@ -170,6 +175,8 @@ struct PRDetailQuery: Encodable {
         struct PullRequestNode: Decodable {
             let commits: Commits?
             let headCommit: HeadCommits?
+            let isInMergeQueue: Bool?
+            let mergeQueueEntry: MergeQueueEntryNode?
 
             /// De telling over alle check-runs en commit-statussen van de laatste commit; zonder
             /// checks (`statusCheckRollup` is dan `null`) een lege telling.
@@ -184,6 +191,12 @@ struct PRDetailQuery: Encodable {
                 }
                 return counts
             }
+        }
+        /// `MergeQueueEntry`: `position` telt vanaf 1 (de eerste in de rij heeft 1).
+        struct MergeQueueEntryNode: Decodable {
+            let state: String?
+            let position: Int?
+            let enqueuedAt: String?
         }
         struct Commits: Decodable { let nodes: [CommitNode] }
         struct CommitNode: Decodable { let commit: Commit }

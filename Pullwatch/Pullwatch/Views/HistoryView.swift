@@ -291,10 +291,11 @@ nonisolated extension HistoryItem {
     var glyphSortKey: Int {
         switch entry.prStatus {
         case .open: 0
-        case .draft: 1
-        case .merged: 2
-        case .closed: 3
-        case nil: 4
+        case .queued: 1
+        case .draft: 2
+        case .merged: 3
+        case .closed: 4
+        case nil: 5
         }
     }
 }
