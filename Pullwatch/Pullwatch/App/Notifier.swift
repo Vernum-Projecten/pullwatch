@@ -29,6 +29,19 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         await Self.authorizationGranted()
     }
 
+    /// Of macOS al gevraagd heeft, en wat het antwoord was.
+    func authorizationStatus() async -> UNAuthorizationStatus {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+    }
+
+    /// Opent de meldingsinstellingen van Pullwatch in Systeeminstellingen.
+    static func openSystemSettings() {
+        let id = Bundle.main.bundleIdentifier ?? "nl.torrisi.pullwatch"
+        let app = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(id)")!
+        let all = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension")!
+        if !NSWorkspace.shared.open(app) { NSWorkspace.shared.open(all) }
+    }
+
     private nonisolated static func authorizationGranted() async -> Bool {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         return status == .authorized || status == .provisional

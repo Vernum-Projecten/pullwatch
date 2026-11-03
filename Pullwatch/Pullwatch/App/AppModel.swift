@@ -2,6 +2,7 @@ import AppKit
 import Observation
 import os
 import PullwatchCore
+import UserNotifications
 
 private let logger = Logger(subsystem: "nl.torrisi.pullwatch", category: "app")
 
@@ -454,6 +455,12 @@ final class AppModel {
     /// Vraagt macOS om meldingen; toont de vraag alleen de eerste keer.
     func requestNotifications() async {
         notificationsAllowed = await notifier.requestAuthorization()
+    }
+
+    func notificationStatus() async -> UNAuthorizationStatus {
+        let status = await notifier.authorizationStatus()
+        notificationsAllowed = status == .authorized || status == .provisional
+        return status
     }
 
     func hasStoredPAT(_ id: UUID) -> Bool {

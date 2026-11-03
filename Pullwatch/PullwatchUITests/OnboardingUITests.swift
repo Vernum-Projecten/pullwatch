@@ -25,6 +25,8 @@ final class OnboardingUITests: XCTestCase {
             "-onboardingCompleted", "NO",
             "-ApplePersistenceIgnoreState", "YES",
             "-AppleLanguages", "(\(language))",
+            // De echte vraag om meldingen is een systeemvenster buiten de app.
+            "-PullwatchSkipNotificationRequest", "YES",
         ]
         if let shots = ProcessInfo.processInfo.environment["PULLWATCH_SHOTS"] {
             app.launchArguments += ["-PullwatchSnapshotDirectory", URL(filePath: shots).appending(path: language).path(percentEncoded: false)]
@@ -59,7 +61,7 @@ final class OnboardingUITests: XCTestCase {
 
         element(app, "onboarding.skip").click()
         XCTAssertTrue(element(app, "onboarding.finish").waitForExistence(timeout: 5), "stap 3: meldingen en inloggen")
-        XCTAssertTrue(element(app, "onboarding.allowNotifications").exists)
+        XCTAssertTrue(element(app, "onboarding.notifications").exists, "de rij voor meldingen staat er")
 
         element(app, "onboarding.done").click()
         XCTAssertTrue(element(app, "onboarding.welcome").waitForNonExistence(timeout: 5) || !element(app, "onboarding.finish").exists, "Klaar sluit het venster")
