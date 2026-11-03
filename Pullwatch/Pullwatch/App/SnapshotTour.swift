@@ -16,6 +16,9 @@ enum SnapshotTour {
         // `-PullwatchSnapshotDark YES`: de schermen in donkere modus, los van de instelling van de Mac.
         if UserDefaults.standard.bool(forKey: "PullwatchSnapshotDark") {
             NSApp.appearance = NSAppearance(named: .darkAqua)
+        } else if UserDefaults.standard.bool(forKey: "PullwatchSnapshotLight") {
+            // `-PullwatchSnapshotLight YES`: lichte modus, ook als de Mac donker staat.
+            NSApp.appearance = NSAppearance(named: .aqua)
         }
         // Eerst de lege schermen tijdens de eerste sync, met de balk onderin (met
         // `-PullwatchFakeDelay` duurt die lang genoeg om te zien).
@@ -47,6 +50,12 @@ enum SnapshotTour {
         }
         model.show(.main)
         try? await Task.sleep(for: .seconds(2))
+        // `-PullwatchSnapshotSmallest YES`: het hoofdvenster op zijn kleinste maat, om afkappen te zien.
+        if UserDefaults.standard.bool(forKey: "PullwatchSnapshotSmallest"),
+           let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix(WindowID.main.rawValue) == true }) {
+            window.setContentSize(NSSize(width: max(window.contentMinSize.width, 900), height: max(window.contentMinSize.height, 520)))
+            try? await Task.sleep(for: .seconds(1))
+        }
         let repo = model.repoSummaries.first { $0.repo.hasSuffix("hello-world") } ?? model.repoSummaries.first
         let group = model.sidebar.pullRequestGroups.first
 

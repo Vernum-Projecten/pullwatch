@@ -63,7 +63,7 @@ struct PackagesView: View {
             TableColumn("Package") { node in
                 PackageNameCell(node: node)
             }
-            .width(min: 180, ideal: 260)
+            .width(min: 180, ideal: 230)
             TableColumn("Versie") { node in
                 PackageVersionCell(node: node)
             }
@@ -71,7 +71,7 @@ struct PackagesView: View {
             TableColumn("Status") { node in
                 PackageUpdateCell(node: node)
             }
-            .width(min: 150, ideal: 190)
+            .width(min: 170, ideal: 225)
             TableColumn("Stand") { node in
                 PackageStatusCell(node: node)
             }
