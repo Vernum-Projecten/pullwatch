@@ -118,7 +118,7 @@ struct PackagesView: View {
             if model.versionReport == nil && model.versionCheck != nil {
                 // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
                 ContentUnavailableView(
-                    "Versies checken…",
+                    "Afhankelijkheden checken…",
                     systemImage: "shippingbox",
                     description: Text("Pullwatch leest de runtimes en packages van de repo's die je volgt.")
                 )
@@ -142,7 +142,7 @@ struct PackagesView: View {
         }
         .searchable(text: $searchText, prompt: Text("Zoek op package of repo…"))
         .searchShortcut()
-        .navigationTitle(Text("Versies"))
+        .navigationTitle(Text("Afhankelijkheden"))
         .navigationSubtitle(CheckedSubtitle.text(model.versionReport?.checkedAt))
         .toolbar {
             CheckAllToolbarItem(model: model)
@@ -166,7 +166,7 @@ struct PackagesView: View {
     }
 }
 
-/// Welke groepen in Versies open staan; "Nieuwe versie beschikbaar" standaard wel, de rest niet.
+/// Welke groepen in Afhankelijkheden open staan; "Nieuwe versie beschikbaar" standaard wel, de rest niet.
 struct PackageSectionExpansion {
     private var expanded: Set<PackageSection.Kind> = [.updates]
 

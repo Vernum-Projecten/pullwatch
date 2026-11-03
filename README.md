@@ -44,13 +44,13 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories), **Versies** (versions) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### Keyboard shortcuts and jumps
 
-In the main window, the **Ga** (Go) menu has ⌘1–⌘5 for PR's, Tags, Repo's, Versies and Statistieken, ⌘F to search the current section, ⌘R to refresh (the open repository, otherwise poll or check everything), ⌘[ or Esc to go back from a repository page, and ⌘O to open the selection (or the open repository) in the browser.
+In the main window, the **Ga** (Go) menu has ⌘1–⌘5 for PR's, Tags, Repo's, Afhankelijkheden and Statistieken, ⌘F to search the current section, ⌘R to refresh (the open repository, otherwise poll or check everything), ⌘[ or Esc to go back from a repository page, and ⌘O to open the selection (or the open repository) in the browser.
 
-Jumps between sections: a repository page links to all its PRs and tags, to its statistics, and from a CVE to that package in Versies; in Statistieken a selected author links to their PRs and a repository to its page; in the menu, right-click a PR or tag for **Open repo**.
+Jumps between sections: a repository page links to all its PRs and tags, to its statistics, and from a CVE to that package in Afhankelijkheden; in Statistieken a selected author links to their PRs and a repository to its page; in the menu, right-click a PR or tag for **Open repo**.
 
 ### History
 
@@ -70,7 +70,7 @@ Every full check also stores a compact snapshot (versions, statuses, CVE counts,
 
 **Statistieken** shows PR activity from the history: opened and merged PRs per week, month or year (12 weeks, 12 months or 5 years), the PRs opened and merged in the current period, the median time from opening to merge and the number of active authors, plus rankings of authors and of the busiest repositories. Filter on a project or an author (click a name in the ranking); bots (`[bot]` in the name) are hidden by default. **Co-auteurs meetellen** in the author menu counts a PR for each of its co-authors too. A repository page shows the same chart per month for that repository. Activity only counts PRs, not commits, and goes back as far as the history does.
 
-### Versions
+### Dependencies
 
 The check behind **Repo's** shows which followed repositories are behind. Per repository Pullwatch reads, on the default branch:
 
@@ -99,9 +99,9 @@ If a repository has tags, the newest version tag is checked too (pre-releases li
 
 The check runs once a day (can be turned off under Settings → General) and on **Alles checken**; on a repository page, **Check** re-checks just that repository and the copy button puts its versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Repo** (or right-click a row) opens the page of that repository.
 
-### Versions per package
+### Dependencies per package
 
-**Versies** turns the same check around: per runtime and package, which version is the latest and which repositories are still on an older one. It updates with the version check (daily, **Alles checken**, **Nu checken**).
+**Afhankelijkheden** (dependencies) turns the same check around: per runtime and package, which version is the latest and which repositories are still on an older one. It updates with the version check (daily, **Alles checken**, **Nu checken**).
 
 - **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift, Docker images) are compared within their release cycle, patches included: a repository on Go 1.27.3 sees "Go 1.27.4 beschikbaar", one on Go 1.26.9 sees 1.26.10 once that is out. A newer cycle (Node 22 → 25) is not listed here; the repository check already shows that as behind. A version without a patch (`go 1.27`, `node:22`) is never behind on patches.
 - **Packages** are the direct dependencies only: `go.mod` without `// indirect`, the root and the workspaces in `package-lock.json` (v2/v3) and `pnpm-lock.yaml`, `Direct` in `packages.lock.json`, `DEPENDENCIES` in `Gemfile.lock`, and for `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock` and `yarn.lock` the names in `composer.json`, `Cargo.toml`, `pyproject.toml` or the `package.json` of the root and each workspace. Development-only packages come from `devDependencies`, `require-dev`, dev groups and the `group :development, :test` blocks of a `Gemfile`. .NET `PackageReference`s and `requirements*.txt` are direct already. A package without an exact version (a range without a lockfile) is not counted. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) appear once, as a package.
@@ -111,7 +111,7 @@ The check runs once a day (can be turned off under Settings → General) and on 
 ### PAT scopes
 
 - Azure DevOps: **Code (Read)** (also covers tags) and **Project and Team (Read)** (the project list comes from `/_apis/projects`).
-- GitHub (fine-grained): **Pull requests: Read** and **Metadata: Read** on the repositories you want, plus **Contents: Read** for Versions. Classic: `repo`.
+- GitHub (fine-grained): **Pull requests: Read** and **Metadata: Read** on the repositories you want, plus **Contents: Read** for the dependency check. Classic: `repo`.
 
 ## Known quirks
 

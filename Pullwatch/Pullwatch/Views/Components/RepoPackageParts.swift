@@ -5,7 +5,7 @@ import SwiftUI
 /// er meer dan één is), met Direct open en Transitief, Herkomst onbekend en Dev ingeklapt.
 struct RepoPackagesSections: View {
     let versions: RepoVersions
-    /// `PackageUse.key` van de packages die in Versies staan.
+    /// `PackageUse.key` van de packages die in Afhankelijkheden staan.
     var knownPackages: Set<String> = []
     var showPackage: ((String) -> Void)? = nil
 
@@ -122,7 +122,7 @@ private struct WorkspacePackageRow: View {
             if let showPackage {
                 Button(package.name) { showPackage(package.name) }
                     .buttonStyle(.link)
-                    .help("Toon dit package in Versies, met alle repo's die het gebruiken")
+                    .help("Toon dit package in Afhankelijkheden, met alle repo's die het gebruiken")
             } else {
                 Text(verbatim: package.name)
             }

@@ -112,7 +112,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             let lines = items.prefix(3).map { item in
                 "\(item.repo): \(line(item.vulnerability))" + (item.vulnerability.provenanceLine.map { " (\($0))" } ?? "")
             }
-            content.body = (lines + [String(localized: "Zie Versies… in het menu")]).joined(separator: "\n")
+            content.body = (lines + [String(localized: "Zie Afhankelijkheden in het hoofdvenster")]).joined(separator: "\n")
             content.sound = .default
             add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
         }

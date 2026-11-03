@@ -54,7 +54,7 @@ final class AppModel {
             recomputeRepoSummaries()
         }
     }
-    /// Voortgang van "Versies checken" (gescande repo's, totaal); `nil` als er niets loopt.
+    /// Voortgang van "Afhankelijkheden checken" (gescande repo's, totaal); `nil` als er niets loopt.
     private(set) var versionCheck: (done: Int, total: Int)?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
     private(set) var refreshingRepos: Set<String> = []
@@ -194,7 +194,7 @@ final class AppModel {
                 .pullRequests: history.unreadCount(.pullRequest),
                 .tags: history.unreadCount(.tag),
                 .repos: repoSummaries.filter { $0.health == .problem }.count,
-                .versions: PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count,
+                .dependencies: PackageVersions.unseen(packageSummaries, seen: seenPackageVersions).count,
             ]
         )
         // Alleen bij een echte wijziging, zodat de zijbalk niet bij elke poll opnieuw tekent.
@@ -261,7 +261,7 @@ final class AppModel {
 
     /// Versies, gezocht op een package.
     func showPackage(_ name: String) {
-        navigate(to: .versions)
+        navigate(to: .dependencies)
         packagesSearch = name
     }
 
@@ -282,7 +282,7 @@ final class AppModel {
             return
         }
         switch mainSection {
-        case .repos, .versions:
+        case .repos, .dependencies:
             Task { await checkVersions() }
         case .pullRequests, .tags, .stats:
             Task { await refreshNow() }
@@ -314,7 +314,7 @@ final class AppModel {
         }
     }
 
-    /// Alles wat nu in Versies staat telt als gezien.
+    /// Alles wat nu in Afhankelijkheden staat telt als gezien.
     func markPackagesSeen() {
         var seen = seenPackageVersions
         for summary in packageSummaries {

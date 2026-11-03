@@ -273,11 +273,11 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
-                Toggle("Elke dag versies en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
+                Toggle("Elke dag afhankelijkheden en kwetsbaarheden checken", isOn: $model.checksVersionsDaily)
                 Toggle("Melding bij een nieuwe versie", isOn: $model.notifiesPackageUpdates)
                     .disabled(!model.checksVersionsDaily)
             } header: {
-                Text("Versies en kwetsbaarheden")
+                Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {
                 Text("Eens per dag leest Pullwatch de taal-, framework- en packageversies van je gevolgde repo's, met een melding bij een nieuwe kwetsbaarheid of (als dat aan staat) een nieuwe versie.")
             }

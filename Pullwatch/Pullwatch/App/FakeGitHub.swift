@@ -150,7 +150,7 @@ nonisolated private enum FakeWorld {
                 + #""node_modules/left-pad":{"version":"1.3.0"},"#
                 + #""packages/web/node_modules/lodash":{"version":"4.17.21"}}}"#,
         ],
-        // lodash alleen via express: in Versies "alleen transitief".
+        // lodash alleen via express: in Afhankelijkheden "alleen transitief".
         "spoon-knife": [
             ".nvmrc": "22\n",
             "package.json": #"{"name":"spoon-knife","dependencies":{"express":"^4.18.0","left-pad":"1.3.0"}}"#,

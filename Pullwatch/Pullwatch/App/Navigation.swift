@@ -3,7 +3,10 @@ import SwiftUI
 
 /// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk en van ⌘1 tot ⌘5.
 enum MainSection: String, CaseIterable, Identifiable {
-    case pullRequests, tags, stats, repos, versions
+    // `dependencies` heette vroeger Versies; de rawValue blijft "versions", zodat een bewaard
+    // laatste onderdeel en meldingen (`userInfo["section"]`) blijven werken.
+    case pullRequests, tags, stats, repos
+    case dependencies = "versions"
 
     var id: Self { self }
 
@@ -13,7 +16,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .tags: "Tags"
         case .stats: "Statistieken"
         case .repos: "Repo's"
-        case .versions: "Versies"
+        case .dependencies: "Afhankelijkheden"
         }
     }
 
@@ -23,7 +26,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .tags: "tag"
         case .stats: "chart.bar"
         case .repos: "folder"
-        case .versions: "shippingbox"
+        case .dependencies: "shippingbox"
         }
     }
 }
@@ -76,7 +79,7 @@ struct SidebarContent: Equatable {
         case .pullRequests: pullRequestGroups
         case .tags: tagGroups
         case .repos: repoGroups
-        case .stats, .versions: []
+        case .stats, .dependencies: []
         }
     }
 
