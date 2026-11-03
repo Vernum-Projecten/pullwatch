@@ -538,4 +538,19 @@ private actor FileProvider: PRProvider {
         #expect(fresh.count == 2)
         #expect(Set(fresh.map(\.repo)) == ["acme/a", "acme/b"])
     }
+
+    @Test func missingReposGetInstallsToo() async throws {
+        let http = MockHTTPClient()
+        http.on("querybatch", body: #"{"results":[{},{},{}]}"#)
+        http.on("registry.npmjs.org", body: #"{"version":"1.0.0"}"#)
+        let provider = FileProvider(repos: ["acme/a", "acme/new"], files: ["acme/new": ["package-lock.json": Self.lock]])
+        let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/a": .prs, "acme/new": .prs])
+        let known = VersionReport(checkedAt: now, repos: [RepoVersions(accountId: account.id, repo: "acme/a", components: [])])
+
+        let (repos, _) = await VersionChecker(makeProvider: { _ in provider }, http: http, now: { now }).runMissing(accounts: [account], in: known)
+
+        #expect(repos.map(\.repo) == ["acme/new"])
+        let lodash = try #require(repos.first?.packages.first { $0.name == "lodash" })
+        #expect(Set(lodash.installs.map(\.workspace)) == ["", "packages/api", "packages/web"])
+    }
 }
