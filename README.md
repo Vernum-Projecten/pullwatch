@@ -1,6 +1,6 @@
 # Pullwatch
 
-A macOS menu bar app that notifies you about new pull requests in Azure DevOps and GitHub, plus new tags (optional, per repository). It keeps a searchable history and can check your repositories for outdated languages, frameworks and known vulnerabilities.
+A macOS menu bar app that notifies you about new pull requests in Azure DevOps and GitHub, plus new tags and GitHub releases (optional, per repository). It keeps a searchable history and can check your repositories for outdated languages, frameworks and known vulnerabilities.
 
 Available in English, Dutch, German and French: Pullwatch follows the macOS language, or pick one under Settings → General → Language.
 
@@ -36,7 +36,7 @@ The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state 
 2. Add an account (Azure DevOps or GitHub), choose PAT or CLI, and test the connection. With the GitHub CLI and several `gh` accounts, pick which one provides the token under **GitHub-account**.
 3. Per account, choose which repositories you follow: PR's, Tags and/or Completed (merged PRs).
 
-Tags are off by default. Next to each checkbox is a bell: turn it off to keep following the repository (menu and history) without getting notifications. The bell in the header toggles all visible repositories. Tags are polled every 15 minutes (separate from the PR interval; "Nu verversen" polls tags too). The first tag poll per repository is silent.
+Tags are off by default. Next to each checkbox is a bell: turn it off to keep following the repository (menu and history) without getting notifications. The bell in the header toggles all visible repositories. Tags are polled every 15 minutes (separate from the PR interval; "Nu verversen" polls tags too). The first tag poll per repository is silent. On GitHub the Tags checkbox follows releases too: a release published for a tag Pullwatch already saw gives one notification ("new release" with its title) and updates the same history row.
 
 Pullwatch checks GitHub once a day for a newer release (Settings → General, also **Check now**); when there is one, you get a notification and a download button in the menu.
 
@@ -44,7 +44,7 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags en releases**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### Keyboard shortcuts and jumps
 
@@ -54,7 +54,7 @@ Jumps between sections: a repository page links to all its PRs and tags, to its 
 
 ### History
 
-**PR's** and **Tags** are searchable lists of every detected PR and tag (double-click opens the page). Retention (2 months, 6 months, 1 year or forever) is set under Settings → General.
+**PR's** and **Tags en releases** are searchable lists of every detected PR and tag (double-click opens the page). A tag shows who made it (on GitHub the person behind its release, else the tagger, else the commit author) with their photo, and a Release or Pre-release label with the release title; the toolbar filters on all tags, releases only or tags without a release. A tag with a release opens the release, one without opens the files at that tag. Retention (2 months, 6 months, 1 year or forever) is set under Settings → General.
 
 Pullwatch also fetches existing PRs (open, merged and closed) for the history. The first time it goes back to the retention period, with at most 1000 PRs per account; after that the history is updated every 15 minutes (state, title and close date). Fetched PRs don't notify and are marked as read. Changing the repository filter or retention restarts the initial fetch for that account. The GitHub search API has its own limit of 30 requests per minute; when hit, Pullwatch waits it out while PR polling carries on.
 
