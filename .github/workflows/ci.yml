@@ -1,0 +1,109 @@
+name: CI
+
+# Every pull request and every push to main: the shell scripts and the
+# workflows are linted, PullwatchCore's tests run, the app is built and its
+# unit and UI tests run, and an unsigned universal release is packaged the
+# way scripts/release/release.sh packages a real one. No job needs a secret.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The xcode-27 image is Apple Silicon on macOS 27; the app needs Xcode 27.
+  DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
+
+jobs:
+  guards:
+    name: shell scripts and workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: shellcheck (style floor)
+        run: shellcheck --severity=style scripts/*/*.sh .claude/hooks/*.sh .githooks/*
+      - name: actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+        run: |
+          bash <(curl -fsSL "https://raw.githubusercontent.com/rhysd/actionlint/v$ACTIONLINT_VERSION/scripts/download-actionlint.bash") "$ACTIONLINT_VERSION" "$RUNNER_TEMP"
+          "$RUNNER_TEMP/actionlint" -color
+
+  kit:
+    name: PullwatchKit tests
+    runs-on: xcode-27
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: swift test
+        run: swift test --package-path PullwatchKit
+
+  app:
+    name: app build, unit and UI tests
+    runs-on: xcode-27
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Ad-hoc signed, as the project already is: the tests need a signed
+      # app, not a Developer ID.
+      - name: build and run the unit and UI tests
+        run: |
+          xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
+            -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData \
+            -resultBundlePath build/Tests.xcresult \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: test-results
+          path: build/Tests.xcresult/
+          if-no-files-found: warn
+
+  package:
+    name: unsigned release build and disk image
+    runs-on: xcode-27
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The same script as a real release, without the Developer ID: a
+      # universal Release build, the install window laid out by Finder, the
+      # zip. A release tag then only adds signing and notarisation.
+      - name: release.sh --unsigned
+        run: scripts/release/release.sh --unsigned
+      - name: the app is universal
+        run: |
+          binary=build/Build/Products/Release/Pullwatch.app/Contents/MacOS/Pullwatch
+          archs="$(lipo -archs "$binary")"
+          echo "architectures: $archs"
+          for arch in arm64 x86_64; do
+            [[ " $archs " == *" $arch "* ]] || { echo "Pullwatch.app has no $arch slice" >&2; exit 1; }
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7

@@ -13,12 +13,12 @@ repository.
 | Automation permission: the terminal may control Finder | the Mac that runs `scripts/release/release.sh` | System Settings, Privacy & Security, Automation; macOS asks on the first run of `scripts/release/package.sh` | laying out the install window of the disk image |
 | **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md) | **Sign in with GitHub** (device flow) |
 | `PW_GITHUB_CLIENT_ID`, `PW_GITHUB_APP_SLUG` | `Pullwatch/Release.xcconfig` (public values) | [github-app.md](github-app.md), step 2 | release builds find the GitHub App |
+| Actions secrets `DEVELOPER_ID_P12`, `DEVELOPER_ID_P12_PASSWORD` (secret) | the repository's Actions secrets | [releasing.md](releasing.md), "Secrets, once", step 1 | the release workflow signs with the Developer ID |
+| Actions secrets `NOTARY_KEY`, `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID` (secret) | the repository's Actions secrets; the key is an App Store Connect API key of Code24 BV | [releasing.md](releasing.md), "Secrets, once", step 2 | the release workflow notarises |
 | Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app" | Xcode's Run and the tests; replace with your own if you prefer |
 
 Coming with later work, documented when it lands:
 
-- Actions secrets for the release workflow (certificate, notarisation key):
-  the CI and release issue.
 - Sparkle's EdDSA key pair for in-app updates: the private half as an Actions
   secret and in the maintainer's Keychain, the public half in
   `Pullwatch/App.xcconfig`: the Sparkle issue.
