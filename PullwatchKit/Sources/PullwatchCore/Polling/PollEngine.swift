@@ -30,6 +30,12 @@ public struct PollResult: Equatable, Sendable {
     public var syncedTags: [Tag] = []
     /// Per account de repo's waarvan deze poll de tags ophaalde (alleen als tags aan de beurt waren).
     public var tagRepos: [UUID: [String]] = [:]
+    /// De checks die deze poll ophaalde, per dedupKey, om de geschiedenis bij te werken. Niet
+    /// bedoeld voor meldingen.
+    public var checks: [String: PRChecks] = [:]
+    /// Eigen open PR's waarvan de checks net mislukten (voor de melding "Checks mislukt"); alleen
+    /// met `checksForOwnPullRequests`. Een PR waarvan Pullwatch de checks nog nooit zag meldt niet.
+    public var failedChecks: [PullRequest] = []
 }
 
 /// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account
@@ -62,6 +68,15 @@ public actor PollEngine {
     /// open PR's eerst. Wat overblijft komt bij een volgende poll aan de beurt (open PR's) of
     /// zodra de PR verandert.
     public static let coAuthorLimit = 50
+    /// Maximaal aantal PR's per account per poll waarvan de checks opgehaald worden.
+    public static let checkLimit = 50
+    /// Zo lang na de merge haalt Pullwatch de checks van een gemergde PR nog op.
+    public static let recentlyMerged: TimeInterval = 3 * 86_400
+    /// Mislukte checks van een open PR die niet veranderde: zo vaak opnieuw, voor een check die
+    /// opnieuw gestart werd (dat verandert de PR zelf niet).
+    public static let failedCheckRefresh: TimeInterval = 900
+    /// Na "geen toestemming" zo lang wachten voor de volgende vraag.
+    public static let checkPermissionRetry: TimeInterval = 3600
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -96,6 +111,16 @@ public actor PollEngine {
         let syncError: ProviderError?
         /// Net opgehaalde co-auteurs per dedupKey, met de revisie waarbij ze horen.
         let coAuthors: [String: (revision: String?, people: [Person])]
+        /// Net opgehaalde checks per dedupKey, met de revisie waarbij ze horen.
+        let checks: [String: (revision: String?, checks: PRChecks)]
+    }
+
+    /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
+    /// melding), met de bekende checks en het moment van de poll.
+    private struct CheckRequest: Sendable {
+        let includeOwn: Bool
+        let known: [String: CheckMark]
+        let at: Date
     }
 
     /// Waar een poll de tags van ophaalt: het account (eigen instellingen, standaard) en de repo's
@@ -200,6 +225,7 @@ public actor PollEngine {
         accounts: [Account],
         interval: TimeInterval,
         retention: HistoryRetention,
+        checksForOwnPullRequests: Bool = false,
         progress: (@Sendable (PollProgress) async -> Void)? = nil
     ) async -> PollResult {
         let t = now()
@@ -224,6 +250,11 @@ public actor PollEngine {
                     provider: provider(for: account),
                     userId: userIds[account.id],
                     coAuthorRevisions: state.coAuthors.filter { $0.key.hasPrefix(prefix) }.mapValues(\.revision),
+                    checkRequest: CheckRequest(
+                        includeOwn: checksForOwnPullRequests,
+                        known: state.checks.filter { $0.key.hasPrefix(prefix) },
+                        at: t
+                    ),
                     tagRepos: TagRepos(
                         account: account,
                         seeded: Set(state.tagSeeded.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }),
@@ -253,6 +284,7 @@ public actor PollEngine {
                         job.provider,
                         knownUserId: job.userId,
                         coAuthorRevisions: job.coAuthorRevisions,
+                        checkRequest: job.checkRequest,
                         tagRepos: job.tagRepos,
                         fetchTags: job.fetchTags,
                         sync: job.sync
@@ -264,6 +296,9 @@ public actor PollEngine {
                 guard let job = jobsById[id] else { continue }
                 switch outcome {
                 case .success(let fetched):
+                    let checks = handleChecks(fetched, includeOwn: checksForOwnPullRequests, at: t)
+                    result.checks.merge(checks.all) { _, new in new }
+                    result.failedChecks += checks.failed
                     let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
                     result.newTags += fresh.tags
@@ -299,6 +334,7 @@ public actor PollEngine {
         result.updatedTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
         result.syncedTags.sort { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
+        result.failedChecks.sort { $0.createdAt < $1.createdAt }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
         return result
     }
@@ -307,6 +343,7 @@ public actor PollEngine {
         _ provider: any PRProvider,
         knownUserId: String?,
         coAuthorRevisions: [String: String?],
+        checkRequest: CheckRequest,
         tagRepos: TagRepos,
         fetchTags: Bool,
         sync: SyncRequest?
@@ -328,13 +365,14 @@ public actor PollEngine {
             if let sync {
                 (synced, syncError) = await Self.fetchSync(provider, since: sync.since)
             }
-            let coAuthors = await Self.fetchCoAuthors(
+            let details = await Self.fetchDetails(
                 provider,
                 open: pullRequests,
                 synced: synced ?? [],
                 settings: tagRepos.account.filterSettings,
                 userId: userId,
-                known: coAuthorRevisions
+                coAuthorRevisions: coAuthorRevisions,
+                checks: checkRequest
             )
             return .success(Fetched(
                 userId: userId,
@@ -351,7 +389,8 @@ public actor PollEngine {
                 tagError: tags.error,
                 synced: synced,
                 syncError: syncError,
-                coAuthors: coAuthors
+                coAuthors: details.coAuthors,
+                checks: details.checks
             ))
         } catch let error as ProviderError {
             return .failure(error)
@@ -424,34 +463,104 @@ public actor PollEngine {
         }
     }
 
-    /// Haalt de co-auteurs op van de zichtbare PR's die nieuw zijn of veranderden sinds de vorige
-    /// keer (`PullRequest.revision`), hooguit `coAuthorLimit`: open PR's eerst, dan de gesyncte,
+    /// Haalt in één keer (`PRProvider.details`, bij GitHub in dezelfde GraphQL-verzoeken) de
+    /// co-auteurs en de checks op. Co-auteurs: van de zichtbare PR's die nieuw zijn of veranderden
+    /// sinds de vorige keer (`PullRequest.revision`), hooguit `coAuthorLimit`. Checks: zie
+    /// `checksVisible` en `wantsChecks`, hooguit `checkLimit`. Open PR's eerst, dan de gesyncte,
     /// elk nieuwste eerst. Een PR die niet veranderde kost geen verzoek. Fouten laten het account
     /// niet falen; die PR's komen bij een volgende poll opnieuw aan de beurt.
-    private static func fetchCoAuthors(
+    private static func fetchDetails(
         _ provider: any PRProvider,
         open: [PullRequest],
         synced: [PullRequest],
         settings: FilterSettings,
         userId: String,
-        known: [String: String?]
-    ) async -> [String: (revision: String?, people: [Person])] {
+        coAuthorRevisions known: [String: String?],
+        checks request: CheckRequest
+    ) async -> (coAuthors: [String: (revision: String?, people: [Person])], checks: [String: (revision: String?, checks: PRChecks)]) {
+        let candidates = open.sorted { $0.createdAt > $1.createdAt } + synced.sorted { $0.createdAt > $1.createdAt }
         var seen: Set<String> = []
-        let wanted = (open.sorted { $0.createdAt > $1.createdAt } + synced.sorted { $0.createdAt > $1.createdAt })
+        let forCoAuthors = Array(candidates
             .filter { pr in
                 guard seen.insert(pr.dedupKey).inserted,
                       PRFilter.passes(pr, settings: settings, currentUserId: userId) else { return false }
                 guard let revision = known[pr.dedupKey] else { return true }
                 return revision != pr.revision
             }
-            .prefix(coAuthorLimit)
-        guard !wanted.isEmpty else { return [:] }
+            .prefix(coAuthorLimit))
+        seen = []
+        let forChecks = Array(candidates
+            .filter { pr in
+                guard seen.insert(pr.dedupKey).inserted,
+                      checksVisible(pr, settings: settings, userId: userId, includeOwn: request.includeOwn, at: request.at)
+                else { return false }
+                return wantsChecks(pr, mark: request.known[pr.dedupKey], at: request.at)
+            }
+            .prefix(checkLimit))
+        guard !forCoAuthors.isEmpty || !forChecks.isEmpty else { return ([:], [:]) }
+        var wanted: [PullRequest] = []
+        var keys: Set<String> = []
+        for pr in forCoAuthors + forChecks where keys.insert(pr.dedupKey).inserted { wanted.append(pr) }
         do {
-            let found = try await provider.coAuthors(of: Array(wanted))
-            return Dictionary(uniqueKeysWithValues: wanted.map { ($0.dedupKey, ($0.revision, found[$0.dedupKey] ?? [])) })
+            let found = try await provider.details(
+                of: wanted,
+                coAuthorsOf: Set(forCoAuthors.map(\.dedupKey)),
+                checksOf: Set(forChecks.map(\.dedupKey))
+            )
+            var coAuthors: [String: (revision: String?, people: [Person])] = [:]
+            for pr in forCoAuthors {
+                coAuthors[pr.dedupKey] = (pr.revision, found.coAuthors[pr.dedupKey] ?? [])
+            }
+            var checks: [String: (revision: String?, checks: PRChecks)] = [:]
+            for pr in forChecks {
+                if let value = found.checks[pr.dedupKey] { checks[pr.dedupKey] = (pr.revision, value) }
+            }
+            return (coAuthors, checks)
         } catch {
-            logger.notice("co-auteurs ophalen mislukt: \(error.localizedDescription)")
-            return [:]
+            logger.notice("co-auteurs en checks ophalen mislukt: \(error.localizedDescription)")
+            return ([:], [:])
+        }
+    }
+
+    /// Of de checks van deze PR in Pullwatch te zien zijn of gemeld worden: een open PR die de
+    /// lijst toont, of een eigen open PR in een gevolgde repo als de melding aan staat; een
+    /// gemergde PR alleen kort na de merge (`recentlyMerged`).
+    private static func checksVisible(
+        _ pr: PullRequest, settings: FilterSettings, userId: String, includeOwn: Bool, at t: Date
+    ) -> Bool {
+        switch pr.state {
+        case .open:
+            if PRFilter.passes(pr, settings: settings, currentUserId: userId) { return true }
+            return includeOwn && isOwn(pr, userId: userId) && settings.watch(for: pr.repo).prs
+        case .merged:
+            guard let closedAt = pr.closedAt, t.timeIntervalSince(closedAt) <= recentlyMerged else { return false }
+            return PRFilter.passes(pr, settings: settings, currentUserId: userId)
+        case .closed:
+            return false
+        }
+    }
+
+    private static func isOwn(_ pr: PullRequest, userId: String) -> Bool {
+        pr.authorId.caseInsensitiveCompare(userId) == .orderedSame
+    }
+
+    /// Moeten de checks van deze PR (opnieuw) opgehaald worden? Nog nooit opgehaald, de PR
+    /// veranderde (een push), of de checks lopen nog. Mislukte checks van een open PR af en toe
+    /// opnieuw (`failedCheckRefresh`), omdat iemand ze opnieuw kan starten zonder dat de PR
+    /// verandert; groene checks van een PR die niet veranderde nooit. Na "geen toestemming"
+    /// eens per `checkPermissionRetry`.
+    static func wantsChecks(_ pr: PullRequest, mark: CheckMark?, at t: Date) -> Bool {
+        guard let mark else { return true }
+        if mark.revision != pr.revision { return true }
+        switch mark.checks {
+        case .needsPermission:
+            return t.timeIntervalSince(mark.fetchedAt) >= checkPermissionRetry
+        case .counts(let counts):
+            switch counts.state {
+            case .pending: return true
+            case .failed: return pr.state == .open && t.timeIntervalSince(mark.fetchedAt) >= failedCheckRefresh
+            case .passed, nil: return false
+            }
         }
     }
 
@@ -502,6 +611,34 @@ public actor PollEngine {
         state.retain(onlyKeyPrefixes: keys.map { "\($0):" })
     }
 
+    /// Bewaart de opgehaalde checks en geeft ze terug voor de geschiedenis, met de eigen open
+    /// PR's waarvan de checks net rood werden: van lopend of groen naar mislukt, of mislukt op
+    /// een nieuwe commit. Een PR waarvan de checks nog nooit opgehaald waren meldt niet, zodat de
+    /// eerste poll na het aanzetten stil blijft.
+    private func handleChecks(
+        _ fetched: Fetched,
+        includeOwn: Bool,
+        at t: Date
+    ) -> (all: [String: PRChecks], failed: [PullRequest]) {
+        var all: [String: PRChecks] = [:]
+        var failed: [PullRequest] = []
+        let open = Dictionary(fetched.pullRequests.map { ($0.dedupKey, $0) }, uniquingKeysWith: { first, _ in first })
+        for (key, found) in fetched.checks {
+            let previous = state.checks[key]
+            state.checks[key] = CheckMark(revision: found.revision, checks: found.checks, fetchedAt: t, at: t)
+            all[key] = found.checks
+            guard includeOwn, found.checks.state == .failed, let previous,
+                  previous.checks.state != .failed || previous.revision != found.revision,
+                  var pr = open[key], Self.isOwn(pr, userId: fetched.userId) else { continue }
+            pr.checks = found.checks
+            failed.append(pr)
+        }
+        for pr in fetched.pullRequests + (fetched.synced ?? []) {
+            state.checks[pr.dedupKey]?.at = t
+        }
+        return (all, failed)
+    }
+
     private func handleSuccess(
         _ account: Account,
         _ fetched: Fetched,
@@ -520,7 +657,7 @@ public actor PollEngine {
         }
 
         var fresh: [PullRequest] = []
-        for pr in fetched.pullRequests.map(withCoAuthors)
+        for pr in fetched.pullRequests.map(withDetails)
         where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
             // Alleen melden als de PR onder de vorige settings ook zichtbaar was; anders is hij
             // pas zichtbaar door een instellingswijziging of eerste poll → stil seeden.
@@ -584,16 +721,21 @@ public actor PollEngine {
         resyncBackup[account.id.uuidString] = nil
         schedule.nextSyncDue = t + Self.tagInterval
         return (
-            synced.filter { PRFilter.passes($0, settings: settings, currentUserId: fetched.userId) }.map(withCoAuthors),
-            newlyCompleted.map(withCoAuthors)
+            synced.filter { PRFilter.passes($0, settings: settings, currentUserId: fetched.userId) }.map(withDetails),
+            newlyCompleted.map(withDetails)
         )
     }
 
-    /// De PR met de bewaarde co-auteurs erbij, als die er zijn.
-    private func withCoAuthors(_ pr: PullRequest) -> PullRequest {
-        guard let people = state.coAuthors[pr.dedupKey]?.people, !people.isEmpty else { return pr }
+    /// De PR met de bewaarde co-auteurs en checks erbij, als die er zijn. Checks van een oudere
+    /// revisie horen niet meer bij deze PR en blijven weg.
+    private func withDetails(_ pr: PullRequest) -> PullRequest {
         var pr = pr
-        pr.coAuthors = people
+        if let people = state.coAuthors[pr.dedupKey]?.people, !people.isEmpty {
+            pr.coAuthors = people
+        }
+        if let mark = state.checks[pr.dedupKey], mark.revision == pr.revision {
+            pr.checks = mark.checks
+        }
         return pr
     }
 

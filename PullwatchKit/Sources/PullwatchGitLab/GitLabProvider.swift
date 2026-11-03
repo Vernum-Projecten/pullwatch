@@ -498,7 +498,7 @@ public actor GitLabProvider: PRProvider {
         return components.url ?? url
     }
 
-    private func get<T: Decodable>(_ url: URL, anonymous: Bool = false, query: [URLQueryItem] = []) async throws -> T {
+    func get<T: Decodable>(_ url: URL, anonymous: Bool = false, query: [URLQueryItem] = []) async throws -> T {
         try JSONDecoding.decode(T.self, from: try await send(url, query: query, anonymous: anonymous).data, snakeCase: true)
     }
 

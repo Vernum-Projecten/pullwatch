@@ -86,6 +86,14 @@ public enum HistoryEntry: Codable, Hashable, Sendable {
         }
     }
 
+    /// De checks van een PR; `nil` voor tags en voor een PR zonder opgehaalde checks.
+    public var checks: PRChecks? {
+        switch self {
+        case .pullRequest(let pr): return pr.checks
+        case .tag: return nil
+        }
+    }
+
     /// Status van de PR; `nil` voor tags.
     public var prState: PRState? {
         switch self {
@@ -249,20 +257,38 @@ public struct History: Codable, Equatable, Sendable {
         return changed
     }
 
-    /// Werkt status, sluitdatum, titel en co-auteurs van een PR-item bij. Een lege lijst co-auteurs
-    /// laat de bewaarde staan: die betekent meestal "deze poll niet opgehaald". Geeft `true` als
-    /// er iets veranderde.
+    /// Werkt status, sluitdatum, titel, co-auteurs en checks van een PR-item bij. Een lege lijst
+    /// co-auteurs en ontbrekende checks laten de bewaarde staan: die betekenen meestal "deze poll
+    /// niet opgehaald". Geeft `true` als er iets veranderde.
     private static func update(_ item: inout HistoryItem, with pr: PullRequest) -> Bool {
         guard case .pullRequest(var existing) = item.entry else { return false }
         let coAuthors = pr.coAuthors.isEmpty ? existing.coAuthors : pr.coAuthors
+        let checks = pr.checks ?? existing.checks
         guard existing.state != pr.state || existing.closedAt != pr.closedAt || existing.title != pr.title
-                || existing.coAuthors != coAuthors else { return false }
+                || existing.coAuthors != coAuthors || existing.checks != checks else { return false }
         existing.state = pr.state
         existing.closedAt = pr.closedAt
         existing.title = pr.title
         existing.coAuthors = coAuthors
+        existing.checks = checks
         item.entry = .pullRequest(existing)
         return true
+    }
+
+    /// Zet de net opgehaalde checks (per dedupKey) bij de PR's in de geschiedenis, zonder volgorde
+    /// of gelezen-status te veranderen; voegt niets toe. Geeft `true` als er iets veranderde.
+    @discardableResult
+    public mutating func update(checks: [String: PRChecks]) -> Bool {
+        guard !checks.isEmpty else { return false }
+        var changed = false
+        for index in items.indices {
+            guard case .pullRequest(var pr) = items[index].entry, let found = checks[pr.dedupKey],
+                  pr.checks != found else { continue }
+            pr.checks = found
+            items[index].entry = .pullRequest(pr)
+            changed = true
+        }
+        return changed
     }
 
     public mutating func markRead(_ id: String) {

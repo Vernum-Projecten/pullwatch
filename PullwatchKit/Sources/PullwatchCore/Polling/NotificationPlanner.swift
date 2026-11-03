@@ -16,24 +16,26 @@ public struct RepositoryKey: Hashable, Sendable {
     }
 }
 
-/// Iets uit een poll dat een melding kan geven: een nieuwe PR, een gemergde PR, of een tag
-/// (met of zonder release).
+/// Iets uit een poll dat een melding kan geven: een nieuwe PR, een gemergde PR, een eigen PR
+/// waarvan de checks mislukten, of een tag (met of zonder release).
 public enum RepositoryItem: Equatable, Sendable {
     case pullRequest(PullRequest)
     case merged(PullRequest)
+    case checksFailed(PullRequest)
     case tag(Tag)
 
     public var kind: NotificationKind {
         switch self {
         case .pullRequest: .pullRequest
         case .merged: .merged
+        case .checksFailed: .checksFailed
         case .tag(let tag): tag.release == nil ? .tag : .release
         }
     }
 
     public var repository: RepositoryKey {
         switch self {
-        case .pullRequest(let pr), .merged(let pr): RepositoryKey(accountId: pr.accountId, repo: pr.repo)
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): RepositoryKey(accountId: pr.accountId, repo: pr.repo)
         case .tag(let tag): RepositoryKey(accountId: tag.accountId, repo: tag.repo)
         }
     }
@@ -41,25 +43,28 @@ public enum RepositoryItem: Equatable, Sendable {
     /// Het id van het item in de geschiedenis (`HistoryItem.id`): wat "Markeer als gelezen" leest.
     public var historyKey: String {
         switch self {
-        case .pullRequest(let pr), .merged(let pr): pr.dedupKey
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): pr.dedupKey
         case .tag(let tag): tag.dedupKey
         }
     }
 
     /// Het id van de melding: vast, zodat dezelfde melding nog eens de oude vervangt. Gemerged
-    /// heeft een eigen id, naast de melding van de nieuwe PR.
+    /// en mislukte checks hebben een eigen id, naast de melding van de nieuwe PR; een volgende
+    /// keer mislukte checks van dezelfde PR vervangt de vorige.
     public var notificationIdentifier: String {
         switch self {
         case .pullRequest(let pr): pr.dedupKey
         case .merged(let pr): pr.dedupKey + ":completed"
+        case .checksFailed(let pr): pr.dedupKey + ":checks"
         case .tag(let tag): tag.dedupKey
         }
     }
 
-    /// Wat er per repo gevolgd wordt en meldt (`WatchSet`); releases horen bij de tags.
+    /// Wat er per repo gevolgd wordt en meldt (`WatchSet`); releases horen bij de tags, mislukte
+    /// checks bij de PR's.
     public var watchKind: WatchKind {
         switch self {
-        case .pullRequest: .pullRequests
+        case .pullRequest, .checksFailed: .pullRequests
         case .merged: .merged
         case .tag: .tags
         }
@@ -78,14 +83,16 @@ public enum NotificationPlanner {
     public static let cap = 20
 
     /// Wat er van een poll gemeld wordt: per soort alleen als die aan staat (`settings`), per repo
-    /// alleen als die repo voor die soort meldt (#54), in de volgorde PR's, releases, tags en
-    /// gemergde PR's. Boven `cap` één samenvatting per repo.
+    /// alleen als die repo voor die soort meldt (#54), in de volgorde PR's, mislukte checks,
+    /// releases, tags en gemergde PR's. Mislukte checks gaan over je eigen PR's en melden ook in
+    /// een repo die nieuwe PR's stil volgt. Boven `cap` één samenvatting per repo.
     public static func plan(
-        pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest] = [],
+        pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest] = [], failedChecks: [PullRequest] = [],
         settings: NotificationSettings = NotificationSettings(), accounts: [Account] = []
     ) -> [PlannedNotification<RepositoryItem>] {
         let audible = audible(pullRequests: pullRequests, tags: tags, completed: completed, accounts: accounts)
         let items: [RepositoryItem] = audible.pullRequests.map(RepositoryItem.pullRequest)
+            + failedChecks.map(RepositoryItem.checksFailed)
             + audible.tags.filter { $0.release != nil }.map(RepositoryItem.tag)
             + audible.tags.filter { $0.release == nil }.map(RepositoryItem.tag)
             + audible.completed.map(RepositoryItem.merged)
@@ -143,13 +150,15 @@ public struct NotificationImportance: Equatable, Sendable {
         self.playsSound = playsSound
     }
 
-    /// Nieuwe PR's en releases die je volgt komen met een banner; tags zonder release, gemergde
+    /// Nieuwe PR's, mislukte checks van je eigen PR's en releases die je volgt komen met een
+    /// banner; tags zonder release, gemergde
     /// PR's en nieuwe versies alleen in het Berichtencentrum. Een kwetsbaarheid of
     /// beveiligingsmelding gaat voor, de ernstigste het hoogst. `severityRank` zoals
     /// `Vulnerability.severityRank` (critical 4 … low 1, onbekend 0).
     public static func of(_ kind: NotificationKind, severityRank: Int = 0, quiet: Bool = false) -> Self {
         let base: Self = switch kind {
         case .pullRequest: Self(level: .active, relevance: 0.6, playsSound: true)
+        case .checksFailed: Self(level: .active, relevance: 0.62, playsSound: true)
         case .release: Self(level: .active, relevance: 0.5, playsSound: true)
         case .merged: Self(level: .passive, relevance: 0.3, playsSound: false)
         case .tag: Self(level: .passive, relevance: 0.2, playsSound: false)
