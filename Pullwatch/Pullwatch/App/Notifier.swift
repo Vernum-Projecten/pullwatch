@@ -88,7 +88,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Tot drie losse meldingen (klik opent de OSV-pagina), daarboven één samenvatting.
+    /// Tot drie losse meldingen (klik opent de OSV-pagina), daarboven één samenvatting. Elke melding
+    /// zegt of het lek direct of via een ander package binnenkomt.
     func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)]) {
         func line(_ v: Vulnerability) -> String {
             let severity = v.severity.map { " [\(String(localized: Vulnerability.severityLabel($0)))]" } ?? ""
@@ -99,7 +100,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             for (repo, v) in items {
                 let content = UNMutableNotificationContent()
                 content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
-                content.body = [line(v), v.summary].compactMap { $0 }.joined(separator: "\n")
+                // Direct of via welk package, en waar: dan weet je meteen wat je moet bijwerken.
+                content.body = [line(v), v.provenanceLine, v.summary].compactMap { $0 }.joined(separator: "\n")
                 content.userInfo = ["url": v.url.absoluteString]
                 content.sound = .default
                 add(UNNotificationRequest(identifier: "cve-\(repo)-\(v.id)-\(v.package)", content: content, trigger: nil))
@@ -107,8 +109,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         } else {
             let content = UNMutableNotificationContent()
             content.title = String(localized: "\(items.count) nieuwe kwetsbaarheden", comment: "Meldingstitel; aantal")
-            content.body = (items.prefix(3).map { "\($0.repo): \(line($0.vulnerability))" } + [String(localized: "Zie Versies… in het menu")])
-                .joined(separator: "\n")
+            let lines = items.prefix(3).map { item in
+                "\(item.repo): \(line(item.vulnerability))" + (item.vulnerability.provenanceLine.map { " (\($0))" } ?? "")
+            }
+            content.body = (lines + [String(localized: "Zie Versies… in het menu")]).joined(separator: "\n")
             content.sound = .default
             add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
         }

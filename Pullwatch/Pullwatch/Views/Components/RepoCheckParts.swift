@@ -31,8 +31,8 @@ extension ComponentVersion {
     }
 }
 
-/// De kwetsbaarheden van een repo, inklapbaar; met per stuk de ernst, het package en of het al
-/// in de laatste release zat.
+/// De kwetsbaarheden van een repo, inklapbaar: één regel per advies (direct eerst), met daaronder
+/// elke install die het raakt, waar die zit en wat je moet bijwerken.
 struct VulnerabilityList: View {
     let repo: RepoVersions
     /// Klik op een package dat in Versies staat; nil laat het package als tekst staan.
@@ -41,26 +41,30 @@ struct VulnerabilityList: View {
 
     @State private var isExpanded = true
 
-    /// Hoeveel er ook in de laatste release zitten, met die tag; nil zonder gecheckte release.
-    private var inRelease: (count: Int, tag: String)? {
+    /// Hoeveel adviezen er ook in de laatste release zitten, met die tag; nil zonder gecheckte release.
+    private func inRelease(_ advisories: [Advisory]) -> (count: Int, tag: String)? {
         guard let release = repo.release, release.error == nil else { return nil }
-        return (repo.vulnerabilities.filter { repo.isInRelease($0) == true }.count, release.tag)
+        return (advisories.filter { repo.isInRelease($0.first) == true }.count, release.tag)
     }
 
     var body: some View {
+        let advisories = repo.advisories
+        // De workspace alleen noemen als de geraakte installs er meer dan één beslaan.
+        let showsWorkspace = Set(repo.vulnerabilities.map(\.workspace)).count > 1
         DisclosureGroup(isExpanded: $isExpanded) {
-            ForEach(repo.vulnerabilities, id: \.rowId) { vulnerability in
-                VulnerabilityRow(
-                    vulnerability: vulnerability,
-                    location: repo.location(of: vulnerability),
-                    showPackage: knownPackages.contains(vulnerability.package) ? showPackage : nil
+            ForEach(advisories) { advisory in
+                AdvisoryRow(
+                    advisory: advisory,
+                    location: repo.location(of: advisory.first),
+                    showsWorkspace: showsWorkspace,
+                    showPackage: knownPackages.contains(advisory.first.package) ? showPackage : nil
                 )
             }
         } label: {
             VStack(alignment: .leading, spacing: 1) {
-                Label("\(repo.vulnerabilities.count) kwetsbaarheden", systemImage: "exclamationmark.shield")
+                Label("\(advisories.count) kwetsbaarheden", systemImage: "exclamationmark.shield")
                     .foregroundStyle(VersionStatus.eol.color)
-                if let inRelease {
+                if let inRelease = inRelease(advisories) {
                     Text("\(inRelease.count) ook in \(inRelease.tag)", comment: "Aantal kwetsbaarheden, tagnaam")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -70,23 +74,40 @@ struct VulnerabilityList: View {
     }
 }
 
-private struct VulnerabilityRow: View {
-    let vulnerability: Vulnerability
+/// Eén advies: ernst, id, package, of het direct of via een ander package binnenkomt, per geraakte
+/// install de versie, plek en keten, en onderaan wat je moet bijwerken.
+private struct AdvisoryRow: View {
+    let advisory: Advisory
     let location: VulnerabilityLocation?
+    let showsWorkspace: Bool
     var showPackage: ((String) -> Void)? = nil
 
+    private var vulnerability: Vulnerability { advisory.first }
+
+    /// Elke oplossing één keer, op volgorde van de installs.
+    private var fixes: [VulnerabilityFix] {
+        advisory.installs.map(\.fix).reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
                 Pill(text: Vulnerability.severityLabel(vulnerability.severity), tint: Vulnerability.severityColor(vulnerability.severity))
                 Link(vulnerability.cve ?? vulnerability.id, destination: vulnerability.url)
                 if let showPackage {
-                    Button(packageText) { showPackage(vulnerability.package) }
+                    Button(vulnerability.package) { showPackage(vulnerability.package) }
                         .buttonStyle(.link)
-                        .monospacedDigit()
                         .help("Toon dit package in Versies, met alle repo's die het gebruiken")
                 } else {
-                    Text(verbatim: packageText).monospacedDigit().foregroundStyle(.secondary)
+                    Text(verbatim: vulnerability.package).foregroundStyle(.secondary)
+                }
+                if let scope = advisory.scopePill {
+                    Pill(text: scope.text, tint: scope.tint)
+                        .help(Text(scope.help))
+                }
+                if advisory.isDevOnly {
+                    Pill(text: "Alleen dev", tint: .secondary)
+                        .help(Text("Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert"))
                 }
                 if let location {
                     Pill(text: location.label, tint: location.color)
@@ -96,13 +117,144 @@ private struct VulnerabilityRow: View {
             if let summary = vulnerability.summary {
                 Text(verbatim: summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
+            ForEach(advisory.installs, id: \.installId) { install in
+                InstallLine(
+                    version: install.version,
+                    fixedIn: install.fixedIn,
+                    workspace: showsWorkspace ? install.workspace : nil,
+                    scope: install.scope,
+                    via: install.via,
+                    isDev: install.kind == .dev && !advisory.isDevOnly
+                )
+                .help(Text(verbatim: "\(install.id)\n\(install.source)"))
+            }
+            ForEach(fixes, id: \.self) { fix in
+                Label {
+                    Text(fix.text)
+                } icon: {
+                    Image(systemName: fix == .none ? "clock" : "wrench.and.screwdriver")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
         }
-        .help(Text(verbatim: "\(vulnerability.id)\n\(vulnerability.source)"))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 2)
+    }
+}
+
+/// Eén install onder een advies of package: versie, workspace en keten. VoiceOver leest de keten
+/// als "via express, dan body-parser".
+struct InstallLine: View {
+    /// nil zonder versie (een tabelcel met de versie in een eigen kolom).
+    var version: String? = nil
+    var fixedIn: String? = nil
+    /// nil als de workspace niet genoemd hoeft te worden.
+    var workspace: String? = nil
+    let scope: DependencyScope
+    let via: [String]
+    var isDev = false
+    var font: Font = .caption
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let version {
+                Text(verbatim: fixedIn.map { "\(version) → \($0)" } ?? version)
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+            }
+            if let workspace {
+                Label(Workspace.name(workspace), systemImage: "folder")
+                    .labelStyle(.titleAndIcon)
+            }
+            if let provenance = Provenance.text(scope: scope, via: via) {
+                Text(verbatim: provenance)
+                    .accessibilityLabel(Text(verbatim: Provenance.spoken(scope: scope, via: via) ?? provenance))
+            }
+            if isDev {
+                Pill(text: "Dev", tint: .secondary)
+            }
+        }
+        .font(font)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Hoe een install in een project komt, als tekst.
+enum Provenance {
+    /// "Direct", "via express → body-parser" of "Transitief"; nil als het niet te bepalen is.
+    static func text(scope: DependencyScope, via: [String]) -> String? {
+        switch scope {
+        case .direct: String(localized: "Direct")
+        case .transitive where !via.isEmpty: chain(via)
+        case .transitive: String(localized: "Transitief")
+        case .unknown: nil
+        }
     }
 
-    private var packageText: String {
-        let base = "\(vulnerability.package) \(vulnerability.version)"
-        return vulnerability.fixedIn.map { "\(base) → \($0)" } ?? base
+    /// "via express → body-parser".
+    static func chain(_ via: [String]) -> String {
+        String(localized: "via \(via.joined(separator: " → "))", comment: "Keten van packages, bv. express → body-parser")
+    }
+
+    /// Voor VoiceOver: "via express, dan body-parser".
+    static func spoken(scope: DependencyScope, via: [String]) -> String? {
+        guard scope == .transitive, let first = via.first else { return text(scope: scope, via: via) }
+        let chain = via.dropFirst().reduce(first) { chain, next in
+            String(localized: "\(chain), dan \(next)", comment: "Voorgelezen keten van packages: wat er al staat, het volgende package")
+        }
+        return String(localized: "via \(chain)", comment: "Keten van packages, bv. express → body-parser")
+    }
+
+    /// Eén regel voor een melding of het klembord: hoe en waar, en of het alleen dev is.
+    static func line(scope: DependencyScope, via: [String], workspace: String, kind: DependencyKind) -> String? {
+        let place: String?
+        switch scope {
+        case .direct:
+            place = workspace.isEmpty ? String(localized: "Direct") : String(localized: "Direct in \(workspace)", comment: "Workspace, bv. packages/web")
+        case .transitive where !via.isEmpty:
+            place = workspace.isEmpty
+                ? chain(via)
+                : String(localized: "via \(via.joined(separator: " → ")) in \(workspace)", comment: "Keten van packages, workspace")
+        case .transitive:
+            place = workspace.isEmpty ? String(localized: "Transitief") : String(localized: "Transitief in \(workspace)", comment: "Workspace, bv. packages/web")
+        case .unknown:
+            place = workspace.isEmpty ? nil : String(localized: "In \(workspace)", comment: "Workspace, bv. packages/web")
+        }
+        let dev = kind == .dev ? String(localized: "Alleen dev") : nil
+        let parts = [place, dev].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
+    }
+}
+
+/// De naam van een workspace: "Root" voor de hoofdmap.
+enum Workspace {
+    static func name(_ workspace: String) -> String {
+        workspace.isEmpty ? String(localized: "Root", comment: "De hoofdmap van een repo, als workspace") : workspace
+    }
+}
+
+extension VulnerabilityFix {
+    var text: LocalizedStringResource {
+        switch self {
+        case .update(let package, let version): "Werk \(package) bij naar \(version)"
+        case .updateParent(let parent, let package, let minimum): "Werk \(parent) bij, zodat het \(package) \(minimum) of nieuwer binnenhaalt"
+        case .none: "Nog geen versie met een oplossing"
+        }
+    }
+}
+
+extension Advisory {
+    /// "Direct", "Via express" of "Transitief"; nil als het niet te bepalen is.
+    var scopePill: (text: LocalizedStringResource, tint: Color, help: LocalizedStringResource)? {
+        if isDirect { return ("Direct", .blue, "Je project vraagt dit package zelf") }
+        guard let transitive = installs.first(where: { $0.scope == .transitive }) else { return nil }
+        if let parent = transitive.via.first {
+            return ("Via \(parent)", .purple, "Komt binnen via \(parent), een package dat je project zelf vraagt")
+        }
+        return ("Transitief", .purple, "Komt binnen via een ander package")
     }
 }
 
@@ -127,6 +279,18 @@ extension Vulnerability {
         case "MODERATE", "MEDIUM": .yellow
         default: .gray
         }
+    }
+
+    /// Hoe en waar deze install in de repo zit, voor een melding of het klembord.
+    var provenanceLine: String? {
+        Provenance.line(scope: scope, via: via, workspace: workspace, kind: kind)
+    }
+}
+
+extension VulnerabilityFix {
+    /// Als platte tekst; nil zonder bekende oplossing.
+    var plainText: String? {
+        self == .none ? nil : String(localized: text)
     }
 }
 
@@ -164,7 +328,8 @@ extension RepoVersions {
         return inRelease ? .alsoInRelease(tag: release.tag) : .mainOnly
     }
 
-    /// Platte tekst voor het klembord: repo, onderdelen en kwetsbaarheden.
+    /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace en kwetsbaarheden
+    /// per advies, met waar en hoe elke install erin komt.
     var clipboardText: String {
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
@@ -178,18 +343,41 @@ extension RepoVersions {
                 lines.append("  \(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
             }
         }
+        // Alleen wat de repo zelf vraagt (met al zijn installs); de transitieve rest zou honderden regels zijn.
+        let ownPackages = packages.flatMap { package in package.installs.map { (package.name, $0) } }
+        if !ownPackages.isEmpty {
+            lines.append(String(localized: "Packages:"))
+            for (workspace, installs) in Dictionary(grouping: ownPackages, by: \.1.workspace)
+                .sorted(by: { $0.key.isEmpty || (!$1.key.isEmpty && $0.key < $1.key) }) {
+                lines.append("  \(Workspace.name(workspace)):")
+                for (name, install) in installs {
+                    let how = Provenance.line(scope: install.scope, via: install.via, workspace: "", kind: install.kind)
+                    lines.append("    \(name) \(install.version)" + (how.map { " (\($0))" } ?? ""))
+                }
+            }
+        }
         if let vulnerabilityError { lines.append(vulnerabilityError) }
-        if !vulnerabilities.isEmpty {
+        let advisories = advisories
+        if !advisories.isEmpty {
             lines.append(String(localized: "Kwetsbaarheden:"))
-            for v in vulnerabilities {
+            for advisory in advisories {
+                let v = advisory.first
                 var line = "- \(v.cve ?? v.id)"
                 if let location = location(of: v) { line += " {\(String(localized: location.label))}" }
                 if let severity = v.severity { line += " [\(String(localized: Vulnerability.severityLabel(severity)))]" }
-                line += " \(v.package) \(v.version)"
-                if let fixedIn = v.fixedIn { line += " → \(fixedIn)" }
+                line += " \(v.package)"
                 if let summary = v.summary { line += ": \(summary)" }
                 line += " (\(v.url.absoluteString))"
                 lines.append(line)
+                for install in advisory.installs {
+                    var installLine = "    \(install.version)"
+                    if let fixedIn = install.fixedIn { installLine += " → \(fixedIn)" }
+                    if let how = install.provenanceLine { installLine += ", \(how)" }
+                    lines.append(installLine)
+                }
+                for fix in advisory.installs.compactMap(\.fix.plainText).reduce(into: [String](), { if !$0.contains($1) { $0.append($1) } }) {
+                    lines.append("    \(fix)")
+                }
             }
         }
         return lines.joined(separator: "\n")

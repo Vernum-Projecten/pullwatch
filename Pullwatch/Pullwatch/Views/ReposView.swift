@@ -247,7 +247,7 @@ enum RepoFinding: Hashable, Identifiable {
         guard let versions = summary.versions else { return [.unchecked] }
         if versions.error != nil { return [.failed] }
         var findings: [RepoFinding] = []
-        if !versions.vulnerabilities.isEmpty { findings.append(.vulnerabilities(versions.vulnerabilities.count)) }
+        if !versions.vulnerabilities.isEmpty { findings.append(.vulnerabilities(versions.advisoryCount)) }
         if let worst = versions.components.filter({ $0.status == .eol || $0.status == .behind }).max(by: { $0.status < $1.status }) {
             findings.append(worst.status == .eol
                             ? .endOfLife(label: worst.label, version: worst.version)
@@ -320,6 +320,13 @@ struct RepoDetailView: View {
                 showPackage: { model.showPackage($0) }
             )
             RepoPackageUpdatesSection(updates: summary.packageUpdates, repoId: summary.id, isChecked: summary.versions != nil)
+            if let versions = summary.versions, versions.error == nil {
+                RepoPackagesSections(
+                    versions: versions,
+                    knownPackages: Set(model.packageSummaries.map(\.id)),
+                    showPackage: { model.showPackage($0) }
+                )
+            }
             if let account {
                 RepoWatchSection(watch: $model[watch: summary.repo, account: account.id])
             }

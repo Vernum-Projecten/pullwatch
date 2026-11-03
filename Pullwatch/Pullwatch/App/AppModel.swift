@@ -521,7 +521,7 @@ final class AppModel {
     }
 
     private func runVersionCheck(automatic: Bool) async {
-        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) })
+        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
         let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
         }
@@ -578,7 +578,7 @@ final class AppModel {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
-        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }).run(account: account, repo: repo.repo)
+        let (fresh, latest) = await VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking).run(account: account, repo: repo.repo)
         refreshingRepos.remove(repo.id)
         guard let report = versionReport else { return }
         versionReport = report.replacing(fresh, latest: latest)
@@ -631,7 +631,7 @@ final class AppModel {
         isCheckingNewRepos = true
         defer { isCheckingNewRepos = false }
         let task = Task {
-            let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) })
+            let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
             let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { done, total in
                 await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
             }

@@ -60,6 +60,9 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Direct gebruikte packages op de default branch, voor het overzicht per package; elk met al
     /// zijn installs (versies, workspaces, ook transitief).
     public let packages: [PackageUse]
+    /// Packages die de repo nergens zelf vraagt (alleen transitief, of zonder manifest om het te
+    /// bepalen), met hun installs; voor de repo-pagina en "alleen transitief" in Versies.
+    public let otherPackages: [PackageUse]
 
     public var id: String { "\(accountId.uuidString)/\(repo)" }
 
@@ -75,6 +78,9 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         max(worstStatus?.severity ?? -1, vulnerabilities.isEmpty ? -1 : VersionStatus.eol.severity)
     }
 
+    /// Aantal adviezen (lek per package), hoeveel installs elk ook raakt.
+    public var advisoryCount: Int { Set(vulnerabilities.map(\.key)).count }
+
     /// Zit deze kwetsbaarheid van de default branch ook in de laatste release? nil zonder (bruikbare) release.
     public func isInRelease(_ vulnerability: Vulnerability) -> Bool? {
         guard let release, release.error == nil else { return nil }
@@ -89,7 +95,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         vulnerabilities: [Vulnerability] = [],
         vulnerabilityError: String? = nil,
         release: ReleaseVersions? = nil,
-        packages: [PackageUse] = []
+        packages: [PackageUse] = [],
+        otherPackages: [PackageUse] = []
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -99,10 +106,11 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         self.vulnerabilityError = vulnerabilityError
         self.release = release
         self.packages = packages
+        self.otherPackages = otherPackages
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages
+        case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages, otherPackages
     }
 
     /// versions.json van vóór de CVE-check heeft geen `vulnerabilities`.
@@ -116,6 +124,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         vulnerabilityError = try c.decodeIfPresent(String.self, forKey: .vulnerabilityError)
         release = try c.decodeIfPresent(ReleaseVersions.self, forKey: .release)
         packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
+        otherPackages = try c.decodeIfPresent([PackageUse].self, forKey: .otherPackages) ?? []
     }
 }
 
@@ -131,7 +140,7 @@ public struct VersionReport: Codable, Equatable, Sendable {
         self.latestPackages = latestPackages
         self.repos = repos.sorted {
             if $0.severity != $1.severity { return $0.severity > $1.severity }
-            if $0.vulnerabilities.count != $1.vulnerabilities.count { return $0.vulnerabilities.count > $1.vulnerabilities.count }
+            if $0.advisoryCount != $1.advisoryCount { return $0.advisoryCount > $1.advisoryCount }
             return $0.repo.localizedCaseInsensitiveCompare($1.repo) == .orderedAscending
         }
     }
@@ -187,10 +196,11 @@ extension VersionReport {
         var result: [(repo: String, vulnerability: Vulnerability)] = []
         for repo in repos {
             guard let old = before[repo.id], old.error == nil, old.vulnerabilityError == nil else { continue }
-            // Eén melding per lek en package, ook als het meerdere installs raakt.
-            var known = Set(old.vulnerabilities.map(\.key))
-            for vulnerability in repo.vulnerabilities where known.insert(vulnerability.key).inserted {
-                result.append((repo.repo, vulnerability))
+            // Eén melding per lek en package, ook als het meerdere installs raakt; de directe
+            // install (als die er is) staat in de melding.
+            let known = Set(old.vulnerabilities.map(\.key))
+            for advisory in repo.advisories where !known.contains(advisory.id) {
+                result.append((repo.repo, advisory.first))
             }
         }
         return result
@@ -402,7 +412,8 @@ public struct VersionChecker: Sendable {
                     vulnerabilities: vulnerabilities(repoScan.main),
                     vulnerabilityError: repoScan.main.dependencies.isEmpty ? nil : osvError,
                     release: release,
-                    packages: repoScan.main.directDependencies
+                    packages: repoScan.main.directDependencies,
+                    otherPackages: repoScan.main.otherPackages
                 ))
             }
         }
@@ -421,6 +432,23 @@ public struct VersionChecker: Sendable {
 
         var directDependencies: [PackageUse] {
             DependencyDetector.direct(dependencies, manifests: manifests)
+        }
+
+        /// Wat niet in `directDependencies` staat, per package met al zijn installs, op volgorde van vinden.
+        var otherPackages: [PackageUse] {
+            let direct = Set(directDependencies.map(\.key))
+            var order: [String] = []
+            var installs: [String: (ecosystem: String, name: String, installs: [PackageInstall])] = [:]
+            for dependency in dependencies {
+                let key = "\(dependency.ecosystem):\(dependency.name)"
+                guard !direct.contains(key) else { continue }
+                if installs[key] == nil {
+                    order.append(key)
+                    installs[key] = (dependency.ecosystem, dependency.name, [])
+                }
+                if installs[key]?.installs.contains(dependency.install) == false { installs[key]?.installs.append(dependency.install) }
+            }
+            return order.compactMap { key in installs[key].map { PackageUse(ecosystem: $0.ecosystem, name: $0.name, installs: $0.installs) } }
         }
     }
 
