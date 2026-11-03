@@ -75,7 +75,7 @@ extension GitHubProvider {
             return
         }
         // Zonder `data` mislukte het hele verzoek (bv. de GraphQL-limiet): later opnieuw.
-        guard let found = response.data else { throw ProviderError.decoding("graphql co-auteurs en checks") }
+        guard let found = response.data else { throw ProviderError.decoding(String(localized: "GraphQL-antwoord zonder co-auteurs en checks", bundle: .localizedGitHub)) }
         let forbidden = response.forbiddenAliases
         for (index, item) in wanted.enumerated() {
             let alias = "pr\(index)"

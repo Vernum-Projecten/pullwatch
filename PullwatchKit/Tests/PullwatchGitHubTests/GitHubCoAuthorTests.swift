@@ -80,6 +80,16 @@ import PullwatchTestSupport
         }
     }
 
+    @Test func `An answer without data says so in the chosen language`() async {
+        let http = MockHTTPClient()
+        http.on("api.github.com/graphql", body: "{}")
+        let expected = String(localized: "GraphQL-antwoord zonder co-auteurs en checks", bundle: .localizedGitHub)
+
+        await #expect(throws: ProviderError.decoding(expected)) {
+            try await makeProvider(http).coAuthors(of: [pr(1)])
+        }
+    }
+
     @Test func noPullRequestsNoRequest() async throws {
         let http = MockHTTPClient()
         #expect(try await makeProvider(http).coAuthors(of: []).isEmpty)

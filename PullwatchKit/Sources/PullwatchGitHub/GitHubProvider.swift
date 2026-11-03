@@ -311,7 +311,8 @@ public actor GitHubProvider: PRProvider {
         }
         guard let payload = response.data else {
             if GraphQLSchemaMismatch.matches(response.errors) { throw GraphQLSchemaMismatch() }
-            throw ProviderError.decoding("GraphQL: \(response.errors?.first?.message ?? "geen data")")
+            throw ProviderError.decoding(response.errors?.first?.message.map { "GraphQL: \($0)" }
+                ?? String(localized: "GraphQL-antwoord zonder gegevens", bundle: .localizedGitHub))
         }
         var result: [String: TagQuery.Repository] = [:]
         for (alias, repo) in valid {

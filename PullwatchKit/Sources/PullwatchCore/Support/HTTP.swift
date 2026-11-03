@@ -21,13 +21,24 @@ public struct URLSessionHTTPClient: HTTPClient {
         do {
             let (data, response) = try await Self.session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                throw ProviderError.network("geen HTTP-response")
+                throw ProviderError.network(String(localized: "geen HTTP-antwoord", bundle: .localizedCore))
             }
             return (data, http)
-        } catch let error as ProviderError {
-            throw error
         } catch {
-            throw ProviderError.network(error.localizedDescription)
+            throw Self.providerError(for: error, request: request)
+        }
+    }
+
+    /// Wat een fout van `URLSession` voor Pullwatch betekent. Een timeout krijgt een eigen,
+    /// vertaalde tekst met de host; de rest blijft een netwerkfout met de tekst van het systeem.
+    static func providerError(for error: any Error, request: URLRequest) -> ProviderError {
+        switch error {
+        case let error as ProviderError:
+            return error
+        case let error as URLError where error.code == .timedOut:
+            return .timeout(command: request.url?.host() ?? request.url?.absoluteString ?? "")
+        default:
+            return .network(error.localizedDescription)
         }
     }
 }
