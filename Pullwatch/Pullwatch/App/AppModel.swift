@@ -156,6 +156,12 @@ final class AppModel {
     var historyTokens: [HistoryToken] = []
     /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
     var packagesSearch: String?
+    /// Het laatst gekozen tabblad van de repo-pagina; geldt voor elke repo.
+    var repoTab: RepoTab = UserDefaults.standard.string(forKey: "repoTab").flatMap(RepoTab.init) ?? .overview {
+        didSet { UserDefaults.standard.set(repoTab.rawValue, forKey: "repoTab") }
+    }
+    /// Een rij die de repo-pagina bij openen kiest, met het inspectievenster open.
+    var repoSelectionRequest: RepoSelectionRequest?
     /// Tijdens een sprong naar een ander onderdeel blijven pad en filters van die sprong staan.
     @ObservationIgnored private var isNavigating = false
 

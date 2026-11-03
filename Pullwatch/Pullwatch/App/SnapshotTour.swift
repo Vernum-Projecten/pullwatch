@@ -73,17 +73,33 @@ enum SnapshotTour {
         if let repo {
             steps.append(("repo-detail", {
                 model.show(.repos)
+                model.repoTab = .overview
                 model.showRepo(id: repo.id)
             }))
-            // Wat onder de vouw staat: controle, kwetsbaarheden en packages.
-            for page in 1...4 {
-                steps.append(("repo-detail-\(page + 1)", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: Double(page)) }))
+            // De controle: runtimes en kwetsbaarheden, en een gekozen advies in het inspectievenster.
+            steps.append(("repo-check", { model.repoSelectionRequest = RepoSelectionRequest(tab: .check) }))
+            if let advisory = repo.versions?.vulnerabilityRows(gitHub: repo.advisories).max(by: { $0.severity < $1.severity }) {
+                steps.append(("repo-check-inspector", { model.repoSelectionRequest = RepoSelectionRequest(tab: .check, rowId: advisory.id) }))
+            }
+            // Packages, met een package dat iets tegenhoudt in het inspectievenster.
+            steps.append(("repo-packages", { model.repoSelectionRequest = RepoSelectionRequest(tab: .packages) }))
+            steps.append(("repo-packages-inspector", { model.repoSelectionRequest = RepoSelectionRequest(tab: .packages, rowId: "|npm:express") }))
+            // De beveiliging van GitHub zelf, met een melding van code scanning.
+            steps.append(("repo-security", { model.repoSelectionRequest = RepoSelectionRequest(tab: .security) }))
+            if let alert = repo.versions?.security?.findingRows.first {
+                steps.append(("repo-security-inspector", { model.repoSelectionRequest = RepoSelectionRequest(tab: .security, rowId: alert.id) }))
             }
             // Een repo met een eigen advies bij "Beveiliging op GitHub".
             if let linguist = model.repoSummaries.first(where: { $0.repo.hasSuffix("/linguist") && $0.id != repo.id }) {
-                steps.append(("repo-detail-linguist", { model.showRepo(id: linguist.id) }))
-                steps.append(("repo-detail-linguist-2", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: 1) }))
-                steps.append(("repo-detail-back", { model.showRepo(id: repo.id) }))
+                steps.append(("repo-detail-linguist", {
+                    model.showRepo(id: linguist.id)
+                    model.repoSelectionRequest = RepoSelectionRequest(tab: .security)
+                }))
+                steps.append(("repo-detail-linguist-2", { model.repoSelectionRequest = RepoSelectionRequest(tab: .check) }))
+                steps.append(("repo-detail-back", {
+                    model.showRepo(id: repo.id)
+                    model.repoSelectionRequest = RepoSelectionRequest(tab: .overview)
+                }))
             }
             steps.append(("repo-stats", { model.showStats(repoId: repo.id) }))
             steps.append(("repo-history-token", { model.showHistory(.pullRequest, repo: HistoryRepo(accountId: repo.accountId, repo: repo.repo)) }))

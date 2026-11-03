@@ -1,169 +1,291 @@
 import PullwatchCore
 import SwiftUI
 
-/// De packages van een repo op de repo-pagina: één sectie per workspace (alleen de naam erbij als
-/// er meer dan één is), met Direct open en Transitief, Herkomst onbekend en Dev ingeklapt.
-struct RepoPackagesSections: View {
-    let versions: RepoVersions
-    /// Wat een update tegenhoudt, en de nieuwste versie per `PackageUse.key`.
-    var context: UpdateContext = .empty
-    var latest: (String) -> String? = { _ in nil }
-    /// `PackageUse.key` van de packages die in Afhankelijkheden staan.
-    var knownPackages: Set<String> = []
+/// De packages van een repo als tabel, in dezelfde stijl als de kwetsbaarheden: package,
+/// geïnstalleerde versie, de nieuwste die nu kan, de nieuwste, en de status. Een sectie per
+/// workspace alleen als er meer zijn; meer installs van een package staan eronder.
+struct RepoPackageTable: View {
+    @Bindable var page: RepoPage
+    let width: TableWidth
+
+    private func isExpanded(_ id: String) -> Binding<Bool> {
+        Binding(
+            get: { page.expanded.contains(id) },
+            set: { open in
+                if open { page.expanded.insert(id) } else { page.expanded.remove(id) }
+            }
+        )
+    }
+
+    var body: some View {
+        Table(of: RepoPackageTableRow.self, selection: $page.packageSelection, sortOrder: $page.packageSort) {
+            TableColumn("Package", value: \.nameSortKey) { row in
+                PackageNameCell(row: row)
+            }
+            .width(min: 120, ideal: 170)
+            TableColumn("Geïnstalleerd", value: \.installedSortKey) { row in
+                Text(verbatim: row.install?.version ?? row.row.installedText)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .accessibilityHidden(true)
+            }
+            .width(min: 84, ideal: 90)
+            if width == .wide {
+                TableColumn("Nu mogelijk", value: \.usableSortKey) { row in
+                    Text(verbatim: row.install == nil ? row.row.newestUsable ?? "" : "")
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .help(Text("De nieuwste versie die nu kan, met wat een ouder, peer of runtime toelaat"))
+                        .accessibilityHidden(true)
+                }
+                .width(min: 64, ideal: 80)
+            }
+            if width != .narrow {
+                TableColumn("Nieuwste", value: \.latestSortKey) { row in
+                    Text(verbatim: row.install == nil ? row.row.latest ?? "" : "")
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .accessibilityHidden(true)
+                }
+                .width(min: 64, ideal: 80)
+            }
+            TableColumn("Status", value: \.statusSortKey) { row in
+                PackageStatusCell(row: row)
+            }
+            .width(min: 120, ideal: 170)
+        } rows: {
+            if page.packagesSpanWorkspaces {
+                ForEach(page.visiblePackageGroups) { group in
+                    Section {
+                        PackageRows(rows: group.rows, isExpanded: isExpanded)
+                    } header: {
+                        Label(Workspace.name(group.workspace), systemImage: "folder")
+                    }
+                }
+            } else {
+                ForEach(page.visiblePackageGroups) { group in
+                    PackageRows(rows: group.rows, isExpanded: isExpanded)
+                }
+            }
+        }
+        .contextMenu(forSelectionType: RepoPackageTableRow.ID.self) { ids in
+            if let id = ids.first {
+                Button("Toon details") {
+                    page.packageSelection = id
+                    page.showsInspector = true
+                }
+            }
+        } primaryAction: { ids in
+            if let id = ids.first {
+                page.packageSelection = id
+                page.showsInspector = true
+            }
+        }
+        .onKeyPress(.space) {
+            page.showsInspector.toggle()
+            return .handled
+        }
+    }
+}
+
+/// De rijen van één workspace: een package, en zijn installs eronder als het er meer zijn.
+private struct PackageRows: TableRowContent {
+    typealias TableRowValue = RepoPackageTableRow
+
+    let rows: [RepoPackageRow]
+    let isExpanded: (String) -> Binding<Bool>
+
+    var tableRowBody: some TableRowContent<RepoPackageTableRow> {
+        ForEach(rows) { package in
+            let row = RepoPackageTableRow(row: package)
+            let children = row.children
+            if children.isEmpty {
+                TableRow(row)
+            } else {
+                DisclosureTableRow(row, isExpanded: isExpanded(row.id)) {
+                    ForEach(children) { child in
+                        TableRow(child)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// De naam en daaronder hoe het binnenkomt; voor een install de keten. VoiceOver leest hier de
+/// hele rij als één zin.
+private struct PackageNameCell: View {
+    let row: RepoPackageTableRow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            if let install = row.install {
+                Text(verbatim: install.version)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                Text(verbatim: install.provenanceText)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            } else {
+                Text(verbatim: row.row.name)
+                    .lineLimit(1)
+                if let detail = row.row.detailText {
+                    Text(verbatim: detail)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: row.spoken))
+    }
+}
+
+private struct PackageStatusCell: View {
+    let row: RepoPackageTableRow
+
+    var body: some View {
+        // Zonder nieuwste versie (een transitief package vraagt Pullwatch niet bij het register op) leeg.
+        if let status = row.status {
+            UpdateStatusLabel(status: status)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+// MARK: - Inspectievenster
+
+/// Het inspectievenster van één package: de versies, wat je ermee kunt en waarom, en elke install
+/// met zijn keten en gevraagde bereik.
+struct PackageInspector: View {
+    let row: RepoPackageTableRow
+    let showsWorkspace: Bool
     var showPackage: ((String) -> Void)? = nil
 
     var body: some View {
-        let workspaces = versions.packageWorkspaces.filter { !$0.isEmpty }
-        let status: (WorkspacePackage, PackageInstall) -> UpdateStatus? = { package, install in
-            guard let latest = latest(package.id) else { return nil }
-            return UpdateStatus(
-                update: install.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context),
-                installed: install.version, requested: install.requested
-            )
-        }
-        if workspaces.isEmpty {
-            Section("Packages") {
-                Text("Geen packages met een vaste versie gevonden").foregroundStyle(.secondary)
-            }
-        } else {
-            ForEach(workspaces) { workspace in
-                Section {
-                    PackageGroup(title: "Direct", packages: workspace.direct, startsExpanded: true,
-                                 help: "Packages die je project zelf vraagt",
-                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
-                    PackageGroup(title: "Transitief", packages: workspace.transitive,
-                                 help: "Packages die alleen via een ander package binnenkomen",
-                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
-                    PackageGroup(title: "Herkomst onbekend", packages: workspace.unknown,
-                                 help: "Zonder manifest in dezelfde map is niet te zien of je project deze packages zelf vraagt",
-                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
-                    PackageGroup(title: "Dev", packages: workspace.dev,
-                                 help: "Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert",
-                                 knownPackages: knownPackages, status: status, showPackage: showPackage)
-                } header: {
-                    HStack {
-                        Text("Packages")
-                        Spacer()
-                        if workspaces.count > 1 {
-                            Label(Workspace.name(workspace.workspace), systemImage: "folder")
-                                .foregroundStyle(.secondary)
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(verbatim: row.row.name)
+                        .font(.headline)
+                        .textSelection(.enabled)
+                    Text(verbatim: row.row.package.ecosystem)
+                        .foregroundStyle(.secondary)
+                    if let status = row.status {
+                        UpdateStatusLabel(status: status)
+                        if let reason = status.reason {
+                            Text(reason)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
+                .padding(.vertical, 2)
             }
-        }
-    }
-}
-
-/// Een inklapbare groep packages ("Direct (12)"). Ingeklapt worden de rijen niet gebouwd: een
-/// transitieve groep kan honderden packages hebben.
-private struct PackageGroup: View {
-    let title: LocalizedStringResource
-    let packages: [WorkspacePackage]
-    var startsExpanded = false
-    let help: LocalizedStringResource
-    let knownPackages: Set<String>
-    let status: (WorkspacePackage, PackageInstall) -> UpdateStatus?
-    let showPackage: ((String) -> Void)?
-
-    @State private var isExpanded: Bool?
-
-    private var startsOpen: Bool {
-        #if DEBUG
-        if SnapshotCamera.expandsAll { return true }
-        #endif
-        return startsExpanded
-    }
-
-    var body: some View {
-        if !packages.isEmpty {
-            DisclosureGroup(isExpanded: Binding(get: { isExpanded ?? startsOpen }, set: { isExpanded = $0 })) {
-                if isExpanded ?? startsOpen {
-                    ForEach(packages) { package in
-                        WorkspacePackageRow(
-                            package: package,
-                            status: { status(package, $0) },
-                            showPackage: knownPackages.contains(package.id) ? showPackage : nil
-                        )
-                    }
+            Section("Versies") {
+                LabeledContent("Geïnstalleerd") {
+                    Text(verbatim: row.row.installedVersions.joined(separator: ", ")).monospacedDigit()
                 }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(title)
-                    Text(verbatim: "(\(packages.count))").foregroundStyle(.secondary)
+                if let usable = row.row.newestUsable {
+                    LabeledContent("Nu mogelijk") { Text(verbatim: usable).monospacedDigit() }
                 }
-                .help(Text(help))
-            }
-        }
-    }
-}
-
-/// Eén package in een workspace. Met één install: naam, versie en keten op één regel; met meer
-/// versies een regel per versie met de keten erbij, en "3 versies" bij de naam.
-private struct WorkspacePackageRow: View {
-    let package: WorkspacePackage
-    /// De update-status van een install; nil zonder bekende nieuwste versie.
-    let status: (PackageInstall) -> UpdateStatus?
-    let showPackage: ((String) -> Void)?
-
-    var body: some View {
-        if package.installs.count == 1, let install = package.installs.first {
-            LabeledContent {
-                HStack(spacing: 8) {
-                    Text(verbatim: install.version).monospacedDigit()
-                    StatusMark(status: status(install))
+                LabeledContent("Nieuwste") {
+                    Text(verbatim: row.row.latest ?? String(localized: "Onbekend")).monospacedDigit()
                 }
-            } label: {
-                name
-                if let provenance = Provenance.text(scope: install.scope, via: install.via), install.scope != .direct {
-                    Text(verbatim: provenance)
-                        .accessibilityLabel(Text(verbatim: Provenance.spoken(scope: install.scope, via: install.via) ?? provenance))
+                if showsWorkspace {
+                    LabeledContent("Workspace") { Text(verbatim: Workspace.name(row.row.workspace)) }
                 }
             }
-            .help(Text(verbatim: install.source))
-        } else {
-            VStack(alignment: .leading, spacing: 2) {
-                name
-                ForEach(package.installs, id: \.self) { install in
-                    HStack(spacing: 6) {
-                        InstallLine(version: install.version, scope: install.scope, via: install.via, isDev: install.kind == .dev)
-                            .help(Text(verbatim: install.source))
-                        StatusMark(status: status(install), font: .caption)
-                    }
-                    .padding(.leading, 12)
+            Section("Installs") {
+                ForEach(row.row.installs.isEmpty
+                        ? row.row.package.installs.map { InstallUpdate(install: $0, update: PackageUpdate(status: .unknown, step: nil, latest: nil)) }
+                        : row.row.installs, id: \.install) { install in
+                    PackageInstallLine(install: install, isSelected: install.install == row.install, hasLatest: row.row.latest != nil)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private var name: some View {
-        HStack(spacing: 6) {
             if let showPackage {
-                Button(package.name) { showPackage(package.name) }
-                    .buttonStyle(.link)
-                    .help("Toon dit package in Afhankelijkheden, met alle repo's die het gebruiken")
-            } else {
-                Text(verbatim: package.name)
+                Section {
+                    Button("Toon \(row.row.name) in Afhankelijkheden") { showPackage(row.row.name) }
+                        .buttonStyle(.link)
+                }
             }
-            if package.repoVersions.count > 1 {
-                Text("\(package.repoVersions.count) versies", comment: "Aantal verschillende versies van een package in deze repo")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                    .help(Text(verbatim: package.repoVersions.joined(separator: ", ")))
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// Eén install: versie, keten, gevraagd bereik en zijn eigen status.
+private struct PackageInstallLine: View {
+    let install: InstallUpdate
+    let isSelected: Bool
+    let hasLatest: Bool
+
+    var body: some View {
+        LabeledContent {
+            if hasLatest {
+                UpdateStatusLabel(status: UpdateStatus(install))
             }
+        } label: {
+            Text(verbatim: install.install.version)
+                .monospacedDigit()
+                .fontWeight(isSelected ? .semibold : .regular)
+            Text(verbatim: install.install.provenanceText)
+            if let requested = install.install.requested {
+                Text("Gevraagd: \(requested)", comment: "Het bereik uit het manifest, bv. ^4.17.20")
+            }
+        }
+        .help(Text(verbatim: install.install.source))
+    }
+}
+
+extension RepoPackageRow {
+    /// "4.17.20"; met meer versies het aantal (de versies staan in de rijen eronder).
+    var installedText: String {
+        let versions = installedVersions
+        return versions.count > 1
+            ? String(localized: "\(versions.count) versies", comment: "Aantal verschillende versies van een package in deze repo")
+            : versions.joined(separator: ", ")
+    }
+
+    /// De regel onder de naam: transitief (met de ouder), onbekend of dev; niets voor direct.
+    var detailText: String? {
+        switch origin {
+        case .direct: return nil
+        case .transitive:
+            let via = package.installs.first { $0.scope == .transitive }?.via ?? []
+            return via.isEmpty ? String(localized: "Transitief") : Provenance.chain(via)
+        case .unknown: return String(localized: "Herkomst onbekend")
+        case .dev: return String(localized: "Alleen dev")
         }
     }
 }
 
-/// De status van een install naast zijn versie, alleen als er iets te doen is.
-private struct StatusMark: View {
-    let status: UpdateStatus?
-    var font: Font = .body
-
-    var body: some View {
-        if let status, status.category != .upToDate {
-            UpdateStatusLabel(status: status, font: font)
+extension RepoPackageTableRow {
+    /// De status van deze rij; nil zonder nieuwste versie.
+    var status: UpdateStatus? {
+        guard row.latest != nil else { return nil }
+        if install != nil {
+            return update.map(UpdateStatus.init)
         }
+        return UpdateStatus(update: row.update, installed: row.leading?.install.version ?? row.installedVersions.first ?? "",
+                            requested: row.leading?.install.requested)
+    }
+
+    /// De rij als één zin voor VoiceOver: naam, versie, nieuwste en status.
+    var spoken: String {
+        let status = status?.spoken ?? String(localized: "Nieuwste versie onbekend")
+        if let install {
+            return String(localized: "Install \(install.version), \(install.provenanceText), \(status)",
+                          comment: "Voorgelezen install van een package: versie, herkomst, status")
+        }
+        return String(localized: "\(row.name) \(row.installedText), nieuwste \(row.latest ?? "?"), \(status)",
+                      comment: "Voorgelezen package: naam, versie, nieuwste versie, status")
+    }
+}
+
+extension PackageInstall {
+    /// "Direct", "via express → body-parser" of "Transitief", met "alleen dev" erbij.
+    var provenanceText: String {
+        let how = Provenance.text(scope: scope, via: via) ?? String(localized: "Herkomst onbekend")
+        return kind == .dev ? String(localized: "\(how), alleen dev", comment: "Herkomst, bv. Via jest") : how
     }
 }

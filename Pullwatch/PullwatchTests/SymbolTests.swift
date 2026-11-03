@@ -111,6 +111,27 @@ import Testing
         #expect(NSImage(systemSymbolName: category.symbol, accessibilityDescription: nil) != nil)
     }
 
+    /// De ernst in de tabel van kwetsbaarheden: elke ernst een eigen, bestaand symbool.
+    @Test func severitySymbolsExistAndDiffer() {
+        for level in SeverityLevel.allCases {
+            #expect(NSImage(systemSymbolName: level.symbol, accessibilityDescription: nil) != nil, "\(level)")
+        }
+        #expect(Set(SeverityLevel.allCases.map(\.symbol)).count == SeverityLevel.allCases.count)
+    }
+
+    /// De tellers, de kolom In release en de knoppen van de repo-pagina.
+    @Test(arguments: ["exclamationmark.shield.fill", "clock.badge.exclamationmark.fill", "shippingbox.fill", "sidebar.trailing",
+                      "line.3.horizontal.decrease.circle", "line.3.horizontal.decrease.circle.fill", "ellipsis.circle"])
+    func repoPageSymbolsExist(_ name: String) {
+        #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
+    }
+
+    /// De stand van een taal of framework in het raster op de repo-pagina.
+    @Test(arguments: [VersionStatus.current, .behind, .eol, .unknown])
+    func versionStatusSymbolsExist(_ status: VersionStatus) {
+        #expect(NSImage(systemSymbolName: status.symbol, accessibilityDescription: nil) != nil)
+    }
+
     @Test func updateStatusesDiffer() {
         #expect(Set(UpdateCategory.allCases.map(\.symbol)).count == UpdateCategory.allCases.count)
         let titles = UpdateCategory.allCases.map { String(localized: $0.title) }

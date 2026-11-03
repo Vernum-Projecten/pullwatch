@@ -31,6 +31,35 @@ enum MainSection: String, CaseIterable, Identifiable {
     }
 }
 
+/// De tabbladen van de repo-pagina, in de knoppenbalk: overzicht, de controle (runtimes en
+/// kwetsbaarheden), de packages en de beveiliging van de dienst zelf.
+enum RepoTab: String, CaseIterable, Identifiable {
+    case overview, check, packages, security
+
+    var id: Self { self }
+
+    var title: LocalizedStringResource {
+        switch self {
+        case .overview: "Overzicht"
+        case .check: "Controle"
+        case .packages: "Packages"
+        case .security: "Beveiliging"
+        }
+    }
+
+    /// Of het tabblad een tabel met een inspectievenster heeft.
+    var hasTable: Bool { self != .overview }
+}
+
+/// Een verzoek aan de repo-pagina om een rij te kiezen en het inspectievenster te openen
+/// (de fototour, of een sprong vanaf een andere plek).
+struct RepoSelectionRequest: Equatable {
+    let tab: RepoTab
+    /// De id van de rij (`VulnerabilityTableRow.id`, `RepoPackageTableRow.id`, `SecurityFindingRow.id`);
+    /// nil toont het tabblad met het inspectievenster dicht.
+    var rowId: String? = nil
+}
+
 /// Selectie in de zijbalk: een onderdeel, of één project onder PR's, Tags of Repo's.
 enum SidebarItem: Hashable {
     case section(MainSection)

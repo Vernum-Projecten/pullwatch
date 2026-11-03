@@ -33,11 +33,11 @@ struct UpdateStatus: Hashable {
     /// Korte tekst voor een tabelcel of pil.
     var label: LocalizedStringResource {
         guard let update else {
-            return category == .upToDate ? "Actueel" : "Update beschikbaar"
+            return category == .upToDate ? "Up-to-date" : "Update beschikbaar"
         }
-        if category == .upToDate { return "Actueel" }
+        if category == .upToDate { return "Up-to-date" }
         switch update.status {
-        case .upToDate: return "Actueel"
+        case .upToDate: return "Up-to-date"
         case .withinRange:
             switch update.step {
             case .patch: return "Patch-update binnen bereik"
@@ -120,7 +120,7 @@ extension UpdateCategory {
         case .needsManifestChange: "Manifest aanpassen nodig"
         case .blocked: "Geblokkeerd"
         case .unknown: "Nieuwere versie, status onbekend"
-        case .upToDate: "Actueel"
+        case .upToDate: "Up-to-date"
         }
     }
 }

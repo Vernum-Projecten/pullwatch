@@ -1,175 +1,259 @@
 import PullwatchCore
 import SwiftUI
 
-/// De beveiligingsgegevens van de dienst zelf op de repo-pagina: code scanning, open geheimen en
-/// eigen adviezen (GitHub), of Advanced Security (Azure DevOps). Wat uit staat of nog goedgekeurd
-/// moet worden staat er stil bij, met een link.
-struct RepoSecuritySection: View {
+/// Per bron van de dienst (code scanning, secret scanning, eigen adviezen, Advanced Security)
+/// wat er is, in hetzelfde compacte raster als de runtimes: de bron en de stand, met een link
+/// als er iets goed te keuren of te openen is.
+struct SecurityFeedGrid: View {
     let scan: SecurityScan
     let provider: ProviderKind
 
-    /// Meer meldingen staan bij de dienst zelf.
-    private static let maxAlerts = 10
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 220, maximum: 360), spacing: 24, alignment: .leading)],
+                  alignment: .leading, spacing: 6) {
+            ForEach(scan.feeds, id: \.kind) { feed in
+                SecurityFeedCell(feed: feed, scan: scan, provider: provider)
+            }
+        }
+    }
+}
+
+private struct SecurityFeedCell: View {
+    let feed: SecurityFeed
+    let scan: SecurityScan
+    let provider: ProviderKind
 
     var body: some View {
-        Section {
-            ForEach(scan.feeds, id: \.kind) { feed in
-                switch feed.availability {
-                case .available:
-                    available(feed)
-                case .needsPermission:
-                    LabeledContent {
-                        HStack(spacing: 8) {
-                            Text("Toestemming nodig").foregroundStyle(.secondary)
-                            if let link = feed.link {
-                                Link(provider == .gitHub ? "Goedkeuren" : "Tokens", destination: link)
-                            }
-                        }
-                    } label: {
-                        Text(feed.kind.title)
-                    }
+        HStack(spacing: 6) {
+            Text(feed.kind.title)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            SecurityFeedState(feed: feed, scan: scan, provider: provider)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// De stand van één bron: het aantal (een link naar de dienst), of waarom er niets is.
+private struct SecurityFeedState: View {
+    let feed: SecurityFeed
+    let scan: SecurityScan
+    let provider: ProviderKind
+
+    var body: some View {
+        switch feed.availability {
+        case .available:
+            if let count = count, count > 0, let link = feed.link {
+                Link(destination: link) {
+                    Text(count, format: .number).monospacedDigit()
+                }
+                .help(Text("Open bij de dienst"))
+            } else {
+                Text(count ?? 0, format: .number)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        case .needsPermission:
+            if let link = feed.link {
+                Link(provider == .gitHub ? "Goedkeuren" : "Tokens", destination: link)
                     .help(provider == .gitHub
                           ? Text("De eigenaar moet het nieuwe recht van de Pullwatch-app goedkeuren bij de installatie op GitHub")
                           : Text("Het token mag Advanced Security niet lezen; geef het de scope Advanced Security (lezen)"))
-                case .notEnabled:
-                    LabeledContent {
-                        Text("Staat uit").foregroundStyle(.secondary)
-                    } label: {
-                        Text(feed.kind.title)
-                    }
-                case .notAvailable:
-                    LabeledContent {
-                        Text("Niet beschikbaar op deze server").foregroundStyle(.secondary)
-                    } label: {
-                        Text(feed.kind.title)
-                    }
-                case .failed:
-                    LabeledContent {
-                        Text(verbatim: feed.message ?? "").foregroundStyle(.orange).lineLimit(2)
-                    } label: {
-                        Text(feed.kind.title)
-                    }
-                }
+            } else {
+                Text("Toestemming nodig").foregroundStyle(.secondary)
             }
-        } header: {
-            Text(provider == .gitHub ? "Beveiliging op GitHub" : "Advanced Security")
+        case .notEnabled:
+            Text("Staat uit").foregroundStyle(.secondary)
+        case .notAvailable:
+            Text("Niet beschikbaar").foregroundStyle(.secondary)
+                .help(Text("Niet beschikbaar op deze server"))
+        case .failed:
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+                .help(Text(verbatim: feed.message ?? ""))
+                .accessibilityLabel(Text(verbatim: feed.message ?? ""))
         }
     }
 
-    @ViewBuilder
-    private func available(_ feed: SecurityFeed) -> some View {
+    private var count: Int? {
         switch feed.kind {
-        case .codeScanning, .advancedSecurity:
-            let alerts = scan.alerts
-            LabeledContent {
-                if let link = feed.link, !alerts.isEmpty {
-                    Link("\(alerts.count) open meldingen", destination: link)
-                } else {
-                    Text(alerts.isEmpty ? "Geen open meldingen" : "\(alerts.count) open meldingen")
+        case .codeScanning: scan.alerts.filter { $0.source == .codeScanning }.count
+        case .advancedSecurity: scan.alerts.filter { $0.source == .advancedSecurity }.count + (scan.secretCount ?? 0)
+        case .secretScanning: scan.secretCount
+        case .repositoryAdvisories: scan.advisories.count
+        }
+    }
+}
+
+/// De vondsten van de dienst als tabel: ernst, titel, plek en bron.
+struct SecurityFindingTable: View {
+    @Bindable var page: RepoPage
+    let width: TableWidth
+
+    var body: some View {
+        Table(page.visibleSecurity, selection: $page.securitySelection, sortOrder: $page.securitySort) {
+            TableColumn("Ernst", value: \.severityRank) { row in
+                FindingSeverityLabel(row: row)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(verbatim: row.spoken))
+            }
+            .width(min: 84, ideal: 110, max: 140)
+            TableColumn("Titel", value: \.titleSortKey) { row in
+                Text(verbatim: row.title)
+                    .lineLimit(1)
+                    .help(Text(verbatim: row.title))
+                    .accessibilityHidden(true)
+            }
+            .width(min: 140, ideal: 260)
+            if width != .narrow {
+                TableColumn("Waar", value: \.placeSortKey) { row in
+                    Text(verbatim: row.placeSortKey)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .accessibilityHidden(true)
+                }
+                .width(min: 80, ideal: 150)
+            }
+            if width == .wide {
+                TableColumn("Bron") { row in
+                    Text(row.sourceTitle)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .accessibilityHidden(true)
+                }
+                .width(min: 80, ideal: 120)
+            }
+        }
+        .contextMenu(forSelectionType: SecurityFindingRow.ID.self) { ids in
+            if let id = ids.first, let row = page.visibleSecurity.first(where: { $0.id == id }) {
+                Button("Toon details") {
+                    page.securitySelection = id
+                    page.showsInspector = true
+                }
+                Link("Open bij de dienst", destination: row.url)
+            }
+        } primaryAction: { ids in
+            if let id = ids.first {
+                page.securitySelection = id
+                page.showsInspector = true
+            }
+        }
+        .onKeyPress(.space) {
+            page.showsInspector.toggle()
+            return .handled
+        }
+    }
+}
+
+/// De ernst van een vondst: de beveiligingsernst, anders die van de tool.
+private struct FindingSeverityLabel: View {
+    let row: SecurityFindingRow
+
+    var body: some View {
+        switch row {
+        case .alert(let alert) where alert.severity == nil:
+            Label {
+                Text(alert.severityLabel)
+            } icon: {
+                Image(systemName: alert.toolSeverity == "error" ? "xmark.circle.fill" : "info.circle")
+                    .foregroundStyle(alert.toolSeverity == "error" ? Color.yellow : Color.secondary)
+            }
+            .lineLimit(1)
+        case .alert(let alert):
+            SeverityLabel(level: SeverityLevel(alert.severity))
+        case .ownAdvisory(let advisory):
+            SeverityLabel(level: SeverityLevel(advisory.severity))
+        }
+    }
+}
+
+/// Het inspectievenster van één vondst van de dienst.
+struct SecurityFindingInspector: View {
+    let row: SecurityFindingRow
+
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    FindingSeverityLabel(row: row)
+                    Text(verbatim: row.title)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                    Text(row.sourceTitle)
                         .foregroundStyle(.secondary)
                 }
-            } label: {
-                Text(feed.kind.title)
+                .padding(.vertical, 2)
             }
-            ForEach(alerts.prefix(Self.maxAlerts)) { alert in
-                SecurityAlertRow(alert: alert)
-            }
-            if feed.kind == .advancedSecurity, let count = scan.secretCount, count > 0 {
-                LabeledContent {
-                    Text("\(count) open geheimen").foregroundStyle(.red)
-                } label: {
-                    Text("Geheimen")
+            switch row {
+            case .alert(let alert):
+                Section("Details") {
+                    if let location = alert.locationText {
+                        LabeledContent("Bestand") { Text(verbatim: location).textSelection(.enabled) }
+                    }
+                    if let package = alert.package {
+                        LabeledContent("Package") { Text(verbatim: package) }
+                    }
+                    if let rule = alert.ruleText {
+                        LabeledContent("Regel") { Text(verbatim: rule).textSelection(.enabled) }
+                    }
+                    if let created = alert.createdAt {
+                        LabeledContent("Gevonden") { Text(created, format: .dateTime.day().month().year()) }
+                    }
+                }
+            case .ownAdvisory(let advisory):
+                Section("Details") {
+                    LabeledContent("Id") { Text(verbatim: advisory.ghsaId).textSelection(.enabled) }
+                    if let cve = advisory.cveId {
+                        LabeledContent(String(localized: "CVE")) { Text(verbatim: cve).textSelection(.enabled) }
+                    }
+                    if let cvss = advisory.cvss {
+                        LabeledContent {
+                            Text(cvss.score, format: .number.precision(.fractionLength(1))).monospacedDigit()
+                        } label: {
+                            Text(verbatim: cvss.version.map { "CVSS \($0)" } ?? "CVSS")
+                            if let vector = cvss.vector { Text(verbatim: vector).textSelection(.enabled) }
+                        }
+                    }
+                    if let published = advisory.publishedAt {
+                        LabeledContent("Gepubliceerd") { Text(published, format: .dateTime.day().month().year()) }
+                    }
+                }
+                if !advisory.packages.isEmpty {
+                    Section("Getroffen packages") {
+                        ForEach(advisory.packages, id: \.self) { package in
+                            Text(verbatim: package.line).monospacedDigit()
+                        }
+                    }
                 }
             }
-        case .secretScanning:
-            LabeledContent {
-                let count = scan.secretCount ?? 0
-                if count > 0, let link = feed.link {
-                    Link("\(count) open geheimen", destination: link)
-                } else {
-                    Text("Geen open geheimen").foregroundStyle(.secondary)
+            Section {
+                Link(destination: row.url) {
+                    Label("Open bij de dienst", systemImage: "safari")
                 }
-            } label: {
-                Text(feed.kind.title)
-            }
-        case .repositoryAdvisories:
-            LabeledContent {
-                if scan.advisories.isEmpty {
-                    Text("Geen").foregroundStyle(.secondary)
-                } else if let link = feed.link {
-                    Link("\(scan.advisories.count) gepubliceerd", destination: link)
-                }
-            } label: {
-                Text(feed.kind.title)
-                Text("Wat dit project zelf over zijn lekken publiceert")
-            }
-            ForEach(scan.advisories) { advisory in
-                OwnAdvisoryRow(advisory: advisory)
             }
         }
+        .formStyle(.grouped)
     }
 }
 
-/// Eén melding van code scanning of Advanced Security: ernst, titel (link naar de melding), plek
-/// en regel.
-private struct SecurityAlertRow: View {
-    let alert: SecurityAlert
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Pill(text: alert.severityLabel, tint: alert.severityColor)
-                Link(destination: alert.url) {
-                    Text(verbatim: alert.title).lineLimit(1)
-                }
-                .help(Text(verbatim: alert.title))
-            }
-            HStack(spacing: 8) {
-                if let location = alert.locationText {
-                    Label(location, systemImage: "doc.text").labelStyle(.titleAndIcon)
-                }
-                if let package = alert.package {
-                    Label(package, systemImage: "shippingbox").labelStyle(.titleAndIcon)
-                }
-                if let rule = alert.ruleText {
-                    Text(verbatim: rule)
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
+extension SecurityFindingRow {
+    var sourceTitle: LocalizedStringResource {
+        switch self {
+        case .alert(let alert): alert.source == .codeScanning ? "Code scanning" : "Advanced Security"
+        case .ownAdvisory: "Eigen advies"
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 1)
     }
-}
 
-/// Een eigen gepubliceerd advies van de repository.
-private struct OwnAdvisoryRow: View {
-    let advisory: GitHubAdvisory
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Pill(text: Vulnerability.severityLabel(advisory.severity), tint: Vulnerability.severityColor(advisory.severity))
-                if let cvss = advisory.cvss {
-                    Pill(text: "CVSS \(cvss.score.formatted(.number.precision(.fractionLength(1))))", tint: Vulnerability.severityColor(advisory.severity))
-                        .help(Text(verbatim: cvss.vector ?? ""))
-                }
-                Link(advisory.ghsaId, destination: advisory.url)
-                if let cve = advisory.cveId {
-                    Text(verbatim: cve).foregroundStyle(.secondary)
-                }
-            }
-            if let summary = advisory.summary {
-                Text(verbatim: summary).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-            }
-            ForEach(advisory.packages, id: \.self) { package in
-                Text(verbatim: package.line).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-            }
+    /// De rij als één zin voor VoiceOver: ernst, titel, plek, bron.
+    var spoken: String {
+        let severity: String
+        switch self {
+        case .alert(let alert): severity = String(localized: alert.severityLabel)
+        case .ownAdvisory(let advisory): severity = String(localized: SeverityLevel(advisory.severity).label)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 1)
+        let place = placeSortKey.isEmpty ? String(localized: sourceTitle) : "\(placeSortKey), \(String(localized: sourceTitle))"
+        return String(localized: "\(severity): \(title), \(place)", comment: "Voorgelezen vondst: ernst, titel, plek en bron")
     }
 }
 
@@ -194,11 +278,6 @@ extension SecurityAlert {
         case "note": return "Opmerking"
         default: return "Onbekend"
         }
-    }
-
-    var severityColor: Color {
-        if severity != nil { return Vulnerability.severityColor(severity) }
-        return toolSeverity == "error" ? .yellow : .gray
     }
 
     /// "src/db.js:42".
