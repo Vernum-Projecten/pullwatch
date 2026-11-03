@@ -144,7 +144,9 @@ private struct AccountStep: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
             if let account = currentAccount {
-                Text("Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.")
+                Text(account.authMethod == .gitHubApp
+                     ? "Log in met GitHub, installeer Pullwatch waar je repositories staan, kies welke je volgt en klik op Opslaan."
+                     : "Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
                 AccountEditor(model: model, original: account).id(account.id)
@@ -182,7 +184,7 @@ private struct AccountStep: View {
             kind: kind,
             displayName: kind == .azureDevOps ? "Azure DevOps" : "GitHub",
             organization: "",
-            authMethod: .cli
+            authMethod: model.defaultAuthMethod(for: kind)
         )
         model.saveAccount(account, pat: nil)
         accountId = account.id

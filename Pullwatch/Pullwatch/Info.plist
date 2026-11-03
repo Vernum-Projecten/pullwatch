@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>PWGitHubAppSlug</key>
+	<string>$(PW_GITHUB_APP_SLUG)</string>
+	<key>PWGitHubClientID</key>
+	<string>$(PW_GITHUB_CLIENT_ID)</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>nl</string>

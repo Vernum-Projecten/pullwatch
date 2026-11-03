@@ -1,0 +1,11 @@
+// Debug-builds (Xcode ⌘R, tests): de gedeelde instellingen plus de test-omgeving.
+#include "App.xcconfig"
+
+// De test-GitHub App "TEST Pullwatch" van Vernum-Projecten (github.com/apps/test-pullwatch),
+// zodat debug-builds nooit de echte Pullwatch-app gebruiken. Openbaar, geen geheim.
+// Een eigen test-app: zet hem in Local.xcconfig (docs/github-app.md).
+PW_GITHUB_CLIENT_ID = Iv23likvKTZoOHgDa4N3
+PW_GITHUB_APP_SLUG = test-pullwatch
+
+// Eigen instellingen per Mac, niet in git (.gitignore); mag ontbreken.
+#include? "Local.xcconfig"

@@ -9,7 +9,12 @@ public enum ItemKind: String, Codable, Sendable {
 }
 
 public enum AuthMethod: String, Codable, Hashable, Sendable, CaseIterable {
-    case pat, cli
+    /// Personal access token in de Keychain.
+    case pat
+    /// Het token van `az` of `gh`.
+    case cli
+    /// Inloggen met GitHub via de Pullwatch GitHub App (alleen GitHub); tokens in de Keychain.
+    case gitHubApp
 }
 
 /// Alleen nog gebruikt om oude configuratie te migreren.

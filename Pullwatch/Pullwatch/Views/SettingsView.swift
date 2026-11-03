@@ -73,7 +73,7 @@ private struct AccountsSettingsView: View {
             kind: kind,
             displayName: kind == .azureDevOps ? "Azure DevOps" : "GitHub",
             organization: "",
-            authMethod: .cli
+            authMethod: model.defaultAuthMethod(for: kind)
         )
         model.saveAccount(account, pat: nil)
         selection = account.id

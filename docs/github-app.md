@@ -48,17 +48,32 @@ On the new app's **General** page:
 - The app's **public link** `https://github.com/apps/<slug>`: the `<slug>`
   is the name in lower case (`pullwatch` if that name was free).
 
-Put both in `Pullwatch/App.xcconfig`:
+Put both in `Pullwatch/Release.xcconfig` (release builds):
 
 ```text
 PW_GITHUB_CLIENT_ID = Iv23li...
 PW_GITHUB_APP_SLUG = pullwatch
 ```
 
-and land the change through a pull request. Both values are public: the
+and land the change through a pull request. While these are empty, a
+release offers a token instead of **Sign in with GitHub**. Both values are public: the
 client id only identifies the app and grants nothing by itself. Leave
 **Generate a new client secret** and **Generate a private key** alone;
 Pullwatch uses neither, and neither may ever enter this repository.
+
+### Development builds use a test app
+
+`Pullwatch/Debug.xcconfig` (Xcode's Run, the tests) points at a separate test
+app with the same settings: **TEST Pullwatch** of Vernum-Projecten
+(`github.com/apps/test-pullwatch`), so trying things out never touches the
+real app's users. To use your own test app on your Mac, create one with the
+settings above and put its values in `Pullwatch/Local.xcconfig`, which git
+ignores:
+
+```text
+PW_GITHUB_CLIENT_ID = Iv23li...
+PW_GITHUB_APP_SLUG = my-pullwatch-test
+```
 
 ## 3. What a person does
 
@@ -70,8 +85,9 @@ Pullwatch uses neither, and neither may ever enter this repository.
    they can install it right away. On an organisation, an organisation owner
    installs it, or approves the request a member sends from that page.
    They choose **All repositories** or **Only select repositories**.
-3. Pullwatch lists the repositories that both the person and the app can
-   see, and they pick which to follow.
+3. Pullwatch lists where the app is installed (their account first, then
+   the organisations); they pick one, and Pullwatch lists its repositories
+   to follow. Coming back from the installation page refreshes the list.
 
 A GitHub App token only reaches repositories the app is installed on. A
 repository that is missing in Pullwatch usually means the app is not

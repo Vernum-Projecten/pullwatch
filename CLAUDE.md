@@ -29,7 +29,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 - `Pullwatch/`: the app. `Pullwatch.xcodeproj` (committed; synchronized
   folders, so adding a file needs no project edit; shared scheme
-  `Pullwatch`), `App.xcconfig` (version, build number, bundle id).
+  `Pullwatch`). Settings: `App.xcconfig` (version, build number, bundle id),
+  included by `Debug.xcconfig` (the test GitHub App "TEST Pullwatch" of
+  Vernum-Projecten; then the optional, git-ignored `Local.xcconfig`) and
+  `Release.xcconfig` (the maintainer's GitHub App). Never put the test app in
+  `Release.xcconfig`.
   `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (the
   `MenuBarExtra`, the main `Window`, the Dock-icon switch), `AppModel.swift`
   (the one `@Observable` model: polling loop, config, history, update check),

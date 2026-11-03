@@ -1,0 +1,7 @@
+// Release-builds: de gedeelde instellingen plus de echte Pullwatch GitHub App.
+#include "App.xcconfig"
+
+// De Pullwatch GitHub App van de maintainer (docs/github-app.md). Leeg: de release biedt
+// "Inloggen met GitHub" niet aan, alleen een token. Openbaar, geen geheim.
+PW_GITHUB_CLIENT_ID =
+PW_GITHUB_APP_SLUG =

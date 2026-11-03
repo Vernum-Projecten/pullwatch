@@ -1003,6 +1003,28 @@
         }
       }
     },
+    "Afmelden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abmelden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Out"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se déconnecter"
+          }
+        }
+      }
+    },
     "Algemeen": {
       "localizations": {
         "de": {
@@ -1336,6 +1358,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alles gelezen"
+          }
+        }
+      }
+    },
+    "Annuleren": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }
@@ -2669,6 +2713,94 @@
         }
       }
     },
+    "Ingelogd als @%@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angemeldet als @%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as @%@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté en tant que @%@"
+          }
+        }
+      }
+    },
+    "Ingelogd bij GitHub": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei GitHub angemeldet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in to GitHub"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté à GitHub"
+          }
+        }
+      }
+    },
+    "Inloggen met GitHub": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit GitHub anmelden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In with GitHub"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecter avec GitHub"
+          }
+        }
+      }
+    },
+    "Installeer Pullwatch op een account of organisatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch für ein Konto oder eine Organisation installieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Pullwatch on an account or organization"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer Pullwatch sur un compte ou une organisation"
+          }
+        }
+      }
+    },
     "Instellingen": {
       "localizations": {
         "de": {
@@ -2803,6 +2935,72 @@
         }
       }
     },
+    "Je logt in op github.com; Pullwatch krijgt alleen leestoegang tot pull requests, tags en bestanden.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du meldest dich auf github.com an; Pullwatch erhält nur Lesezugriff auf Pull Requests, Tags und Dateien."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You sign in on github.com; Pullwatch only gets read access to pull requests, tags and files."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous vous connectez sur github.com ; Pullwatch obtient uniquement un accès en lecture aux pull requests, tags et fichiers."
+          }
+        }
+      }
+    },
+    "Kies…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir…"
+          }
+        }
+      }
+    },
+    "Kijken waar Pullwatch is geïnstalleerd…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfe, wo Pullwatch installiert ist …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking where Pullwatch is installed…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche des emplacements où Pullwatch est installé…"
+          }
+        }
+      }
+    },
     "Kijkt eens per dag op GitHub of er een nieuwere Pullwatch is": {
       "localizations": {
         "de": {
@@ -2899,6 +3097,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Désormais, cliquez sur l’icône dans la barre des menus pour vos PR et tags, ou rouvrez Pullwatch pour la fenêtre principale."
+          }
+        }
+      }
+    },
+    "Kopieer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier"
           }
         }
       }
@@ -3175,6 +3395,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licentie: Apache 2.0"
+          }
+        }
+      }
+    },
+    "Log eerst in bij GitHub": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich zuerst bei GitHub an"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to GitHub first"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous d’abord à GitHub"
+          }
+        }
+      }
+    },
+    "Log in met GitHub, installeer Pullwatch waar je repositories staan, kies welke je volgt en klik op Opslaan.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich mit GitHub an, installiere Pullwatch dort, wo deine Repositorys liegen, wähle aus, welchen du folgst, und klicke auf Sichern."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with GitHub, install Pullwatch where your repositories are, choose which to follow and click Save."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous avec GitHub, installez Pullwatch là où se trouvent vos dépôts, choisissez ceux à suivre et cliquez sur Enregistrer."
           }
         }
       }
@@ -3477,6 +3741,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Naam"
+          }
+        }
+      }
+    },
+    "Naam en organisatie zijn verplicht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name und Organisation sind erforderlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name and organization are required"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le nom et l’organisation sont obligatoires"
           }
         }
       }
@@ -4115,6 +4401,28 @@
         }
       }
     },
+    "Open github.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "github.com öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open github.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir github.com"
+          }
+        }
+      }
+    },
     "Open het versie-overzicht": {
       "extractionState": "stale",
       "localizations": {
@@ -4453,6 +4761,28 @@
         }
       }
     },
+    "PAT opslaan in Keychain mislukt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token konnte nicht im Schlüsselbund gesichert werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save the token in the Keychain"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’enregistrer le jeton dans le trousseau"
+          }
+        }
+      }
+    },
     "PR's": {
       "localizations": {
         "de": {
@@ -4645,6 +4975,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Personal Access Token"
+          }
+        }
+      }
+    },
+    "Plak deze code op github.com en keur Pullwatch goed:": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge diesen Code auf github.com ein und erlaube Pullwatch:"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste this code on github.com and approve Pullwatch:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collez ce code sur github.com et autorisez Pullwatch :"
           }
         }
       }
@@ -4862,6 +5214,28 @@
         }
       }
     },
+    "Pullwatch is nog nergens geïnstalleerd. Installeer het op je account of een organisatie; daarna verschijnt die hier.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ist noch nirgends installiert. Installiere es für dein Konto oder eine Organisation; danach erscheint sie hier."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch isn’t installed anywhere yet. Install it on your account or an organization; it then appears here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch n’est encore installé nulle part. Installez-le sur votre compte ou une organisation ; elle apparaîtra ensuite ici."
+          }
+        }
+      }
+    },
     "Pullwatch meldt een nieuwe PR of tag zodra die er is.": {
       "localizations": {
         "de": {
@@ -4924,6 +5298,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch signale les nouvelles pull requests et les nouveaux tags d’Azure DevOps et de GitHub, conserve un historique consultable et vérifie vos dépôts à la recherche de versions obsolètes et de vulnérabilités connues."
+          }
+        }
+      }
+    },
+    "Pullwatch ziet alleen repositories waar de app geïnstalleerd is. Bij een organisatie installeert een eigenaar hem, of keurt je verzoek goed.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch sieht nur Repositorys, in denen die App installiert ist. Bei einer Organisation installiert ein Eigentümer sie oder genehmigt deine Anfrage."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch only sees repositories where the app is installed. For an organization, an owner installs it or approves your request."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ne voit que les dépôts où l’app est installée. Pour une organisation, un propriétaire l’installe ou approuve votre demande."
           }
         }
       }
@@ -5115,6 +5511,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Repositories"
+          }
+        }
+      }
+    },
+    "Repositories van": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repositorys von"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repositories of"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôts de"
           }
         }
       }
@@ -6251,6 +6669,28 @@
         }
       }
     },
+    "Vul een token in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib ein Token ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez un jeton"
+          }
+        }
+      }
+    },
     "Waar staan de repositories die je wilt volgen? Je kunt later meer accounts toevoegen onder Instellingen.": {
       "localizations": {
         "de": {
@@ -6269,6 +6709,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Où se trouvent les dépôts que vous voulez suivre ? Vous pourrez ajouter d’autres comptes plus tard dans les Réglages."
+          }
+        }
+      }
+    },
+    "Wachten op goedkeuring…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte auf Freigabe …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for approval…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente d’autorisation…"
           }
         }
       }

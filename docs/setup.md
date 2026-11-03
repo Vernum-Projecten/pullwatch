@@ -11,7 +11,8 @@ repository.
 | Developer ID Application certificate (team Code24 BV) | the maintainer's login Keychain | Apple Developer, Certificates; already in place for `scripts/release/release.sh` | signed, notarised releases |
 | notarytool profile `pullwatch` | the maintainer's Keychain | `xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`; already in place | notarising releases |
 | **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md) | **Sign in with GitHub** (device flow) |
-| `PW_GITHUB_CLIENT_ID`, `PW_GITHUB_APP_SLUG` | `Pullwatch/App.xcconfig` (public values) | [github-app.md](github-app.md), step 2 | the app finds its GitHub App |
+| `PW_GITHUB_CLIENT_ID`, `PW_GITHUB_APP_SLUG` | `Pullwatch/Release.xcconfig` (public values) | [github-app.md](github-app.md), step 2 | release builds find the GitHub App |
+| Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app" | Xcode's Run and the tests; replace with your own if you prefer |
 
 Coming with later work, documented when it lands:
 

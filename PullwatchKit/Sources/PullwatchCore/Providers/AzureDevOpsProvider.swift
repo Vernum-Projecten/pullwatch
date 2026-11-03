@@ -267,7 +267,7 @@ public actor AzureDevOpsProvider: PRProvider {
         let token = try await tokenSource.token()
         switch authMethod {
         case .pat: return "Basic " + Data(":\(token)".utf8).base64EncodedString()
-        case .cli: return "Bearer \(token)"
+        case .cli, .gitHubApp: return "Bearer \(token)"
         }
     }
 

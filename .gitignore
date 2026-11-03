@@ -9,3 +9,4 @@ dist/
 .claude/settings.local.json
 .claude/skills/*
 .claude/worktrees/
+Pullwatch/Local.xcconfig
