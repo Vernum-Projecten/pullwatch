@@ -6,6 +6,8 @@
 #   - force-pushes touching main, and bare force-pushes
 #   - any push to the upstream repository (alessandro823/pullwatch): work
 #     goes to the fork; upstream gets one combined pull request at the end
+#   - gh pr create without --repo Vernum-Projecten/pullwatch (a fork's
+#     default target is upstream)
 #   - security commands that would export or delete signing identities
 
 set -euo pipefail
@@ -40,6 +42,14 @@ fi
 if printf '%s' "$cmd" | grep -qE 'git[[:space:]]+push[[:space:]]+([^;|&]*[[:space:]])?(upstream|[^[:space:]]*alessandro823/pullwatch)'; then
   echo "BLOCKED: never push to upstream (alessandro823/pullwatch). Push to origin (Vernum-Projecten/pullwatch) and open a pull request (CLAUDE.md, Workflow)." >&2
   exit 2
+fi
+
+# In a fork, a bare `gh pr create` targets the parent repository.
+if printf '%s' "$cmd" | grep -qE 'gh[[:space:]]+pr[[:space:]]+create'; then
+  if ! printf '%s' "$cmd" | grep -qE '(--repo|-R)[[:space:]=]+Vernum-Projecten/pullwatch([[:space:]]|$)'; then
+    echo "BLOCKED: open pull requests in the fork only: gh pr create --repo Vernum-Projecten/pullwatch --base main. Upstream gets one combined pull request when the owner says so (CLAUDE.md, Where the work happens)." >&2
+    exit 2
+  fi
 fi
 
 if printf '%s' "$cmd" | grep -qE 'security[[:space:]]+(export|delete-identity|delete-certificate|delete-keychain)'; then
