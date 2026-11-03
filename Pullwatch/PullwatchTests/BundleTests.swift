@@ -7,7 +7,8 @@ import Testing
 
 /// Wat de gebouwde app moet zijn, los van de code: dezelfde bundle id, een menubalk-app,
 /// alle vier de talen en een icoon. Vangt een fout in het Xcode-project of de xcconfig.
-@Suite struct BundleTests {
+/// Op de main actor, zoals de typen van de app (`AppModel.currentVersion`).
+@MainActor @Suite struct BundleTests {
     let info = Bundle.main.infoDictionary ?? [:]
 
     @Test func keepsTheBundleIdentifier() {
@@ -28,7 +29,7 @@ import Testing
         }
     }
 
-    @Test @MainActor func hasAVersionFromTheXcconfig() throws {
+    @Test func hasAVersionFromTheXcconfig() throws {
         let version = try #require(info["CFBundleShortVersionString"] as? String)
         #expect(version.split(separator: ".").count == 3)
         #expect(version.allSatisfy { $0.isNumber || $0 == "." })

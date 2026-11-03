@@ -8,8 +8,8 @@ paths:
 # Writing Swift here
 
 Pullwatch is a menu-bar app (`LSUIElement`) for **macOS 26.6 and later**,
-universal (Apple Silicon and Intel), built with the current Xcode and Swift 6
-language mode. Write for the current SDK; anything up to macOS 26.6 needs no
+universal (Apple Silicon and Intel), built with Xcode 27 and Swift 6.4
+(`swift-tools-version: 6.4`, Swift 6 language mode). Write for the current SDK; anything up to macOS 26.6 needs no
 availability check, anything newer does, with a fallback that works on 26.6. When unsure whether an API exists or how it is spelled, read
 the SDK's `.swiftinterface` or Apple's documentation first; never guess an
 API from memory.
@@ -60,8 +60,21 @@ Hard rules); keep these conventions while doing so.
 
 ## Language and concurrency
 
-- Swift 6 strict concurrency. No `@preconcurrency`, `nonisolated(unsafe)` or
-  `@unchecked Sendable` to silence the compiler (tests excepted).
+- Swift 6 strict concurrency with approachable concurrency
+  (`SWIFT_APPROACHABLE_CONCURRENCY`) and the upcoming features
+  `ExistentialAny`, `MemberImportVisibility`, `NonisolatedNonsendingByDefault`
+  and `InferIsolatedConformances`, in the app (project build settings) and in
+  every PullwatchKit target (`Package.swift`). CI treats warnings as errors.
+- **Where code runs.** The app target is `@MainActor` by default
+  (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` in `App.xcconfig`): views,
+  `AppModel` and app glue need no annotation. Mark what is not UI
+  `nonisolated`: a network client, a file-level `Log`, pure value extensions
+  used by `KeyPathComparator` or tests. PullwatchKit is nonisolated by
+  default; an `async` function there runs on its caller's actor
+  (`nonisolated(nonsending)`); use `@concurrent` only for work that must leave
+  the caller's actor. App tests that touch app types are `@MainActor` suites.
+- No `@preconcurrency`, `nonisolated(unsafe)` or `@unchecked Sendable` to
+  silence the compiler (tests excepted).
 - `async`/`await`, `Task`, task groups and actors for new code; shared
   mutable state in an `actor`. Do not add `DispatchQueue`, completion
   handlers or Combine; the few existing `DispatchQueue.main.async` calls in

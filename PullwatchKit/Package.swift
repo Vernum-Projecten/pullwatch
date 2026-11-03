@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.4
 import PackageDescription
 
 // Modules heten Pullwatch… zodat ze niet botsen met de typen erin (een module `GitHubProvider`
@@ -31,3 +31,17 @@ let package = Package(
         ),
     ]
 )
+
+// Swift 6-taalmodus met de upcoming features die de app ook aan heeft: `any` voor elk
+// existential, imports zichtbaar per bestand, async functies erven de actor van de aanroeper
+// (nonisolated(nonsending)), en conformances op een actor afgeleid. PullwatchKit blijft
+// standaard nonisolated; alleen het app-target is standaard @MainActor.
+let upcomingFeatures: [SwiftSetting] = [
+    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+    .enableUpcomingFeature("InferIsolatedConformances"),
+]
+for target in package.targets {
+    target.swiftSettings = (target.swiftSettings ?? []) + upcomingFeatures
+}

@@ -3,7 +3,8 @@ import os
 import PullwatchCore
 import UserNotifications
 
-private let logger = Log(category: "notifier")
+/// Log is Sendable; ook bruikbaar vanuit nonisolated callbacks.
+nonisolated private let logger = Log(category: "notifier")
 
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {

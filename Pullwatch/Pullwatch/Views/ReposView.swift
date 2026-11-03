@@ -2,7 +2,8 @@ import AppKit
 import PullwatchCore
 import SwiftUI
 
-extension RepoHealth {
+// Waarden voor sorteren en tonen, geen UI-state: buiten de main actor bruikbaar (KeyPathComparator).
+nonisolated extension RepoHealth {
     var color: Color {
         switch self {
         case .problem: .red
@@ -42,7 +43,8 @@ extension RepoHealth {
     }
 }
 
-extension RepoSummary {
+// Waarden voor sorteren en tonen, geen UI-state: buiten de main actor bruikbaar (KeyPathComparator).
+nonisolated extension RepoSummary {
     var healthRank: Int { health.sortRank }
     /// Zonder tag achteraan.
     var latestTagSortKey: String { latestTag ?? "\u{10FFFF}" }

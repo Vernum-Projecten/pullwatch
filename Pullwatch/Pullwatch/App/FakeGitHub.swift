@@ -11,7 +11,8 @@ import Synchronization
 /// Met ook `-PullwatchFakeData YES` heeft `octocat` er PR's, tags en bestanden bij, en spelen
 /// endoflife.date, OSV en de package-registers mee, zodat elk scherm van het hoofdvenster iets
 /// te tonen heeft (`FakeWorld`).
-final class FakeGitHub: HTTPClient {
+// Een HTTP-client voor de netwerklaag (nonisolated), geen UI: niet op de main actor.
+nonisolated final class FakeGitHub: HTTPClient {
     static let isEnabled = UserDefaults.standard.bool(forKey: "PullwatchFakeGitHub")
     static let hasData = UserDefaults.standard.bool(forKey: "PullwatchFakeData")
     /// Met `-PullwatchFakeDelay <seconden>` wacht elk antwoord zo lang, zodat de voortgang van
@@ -87,7 +88,7 @@ final class FakeGitHub: HTTPClient {
 /// De nagespeelde inhoud achter `-PullwatchFakeData`: drie repo's van octocat met PR's van
 /// een paar auteurs, tags, en bestanden waarin een oude Node, een package met een nieuwe versie
 /// en een bekende kwetsbaarheid zitten.
-private enum FakeWorld {
+nonisolated private enum FakeWorld {
     struct PR {
         let repo: String
         let number: Int

@@ -51,8 +51,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Warnings are errors here: the Swift 6.4 settings (ExistentialAny and the
+      # concurrency features) keep the code clean only if nothing slips back.
       - name: swift test
-        run: swift test --package-path PullwatchKit
+        run: swift test --package-path PullwatchKit -Xswiftc -warnings-as-errors
 
   app:
     name: app build, unit and UI tests
@@ -71,7 +73,8 @@ jobs:
           xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
             -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData \
             -resultBundlePath build/Tests.xcresult \
-            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

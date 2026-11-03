@@ -202,7 +202,8 @@ struct HistoryView: View {
     }
 }
 
-extension HistoryItem {
+// Waarden voor sorteren en tonen, geen UI-state: buiten de main actor bruikbaar (KeyPathComparator).
+nonisolated extension HistoryItem {
     /// Sorteersleutel voor de kolom Auteur; zonder auteur achteraan.
     var authorSortKey: String { entry.author ?? "\u{10FFFF}" }
 }

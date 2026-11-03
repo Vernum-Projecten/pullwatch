@@ -6,7 +6,8 @@ import PullwatchGitHub
 import PullwatchProviders
 import UserNotifications
 
-private let logger = Log(category: "app")
+/// Log is Sendable; ook bruikbaar vanuit nonisolated callbacks.
+nonisolated private let logger = Log(category: "app")
 
 /// De vensters van de app, met hun scene-id.
 enum WindowID: String {
