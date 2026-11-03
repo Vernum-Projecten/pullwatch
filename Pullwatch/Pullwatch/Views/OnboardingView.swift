@@ -64,7 +64,7 @@ struct OnboardingView: View {
         #endif
     }
 
-    /// Terug: van een half ingesteld account naar de keuze GitHub of Azure DevOps (het concept
+    /// Terug: van een half ingesteld account naar de keuze van de dienst (het concept
     /// vervalt), anders een stap terug.
     private func back() {
         switch step {
@@ -82,19 +82,22 @@ struct OnboardingView: View {
 
     #if DEBUG
     /// Alleen in debug-builds, met `-PullwatchOnboardingTour YES` (en `-PullwatchSnapshotDirectory`):
-    /// loopt zelf langs elke stap, ook de keuze GitHub of Azure DevOps en beide formulieren, zodat
+    /// loopt zelf langs elke stap, ook de keuze van de dienst en elk formulier, zodat
     /// de camera ze vastlegt zonder muis of toetsenbord. Inloggen met GitHub start hij niet: dat
     /// zet de code op het klembord.
     private func tour() async {
         guard UserDefaults.standard.bool(forKey: "PullwatchOnboardingTour") else { return }
         if UserDefaults.standard.bool(forKey: "PullwatchSnapshotDark") {
             NSApp.appearance = NSAppearance(named: .darkAqua)
+        } else if UserDefaults.standard.bool(forKey: "PullwatchSnapshotLight") {
+            // Licht ook als de Mac donker staat, zodat beide varianten (zoals het GitHub-logo) te zien zijn.
+            NSApp.appearance = NSAppearance(named: .aqua)
         }
         let pause = Duration.seconds(1.5)
         try? await Task.sleep(for: pause)
         step = .account
         try? await Task.sleep(for: pause)
-        for kind in [ProviderKind.gitHub, .azureDevOps] {
+        for kind in [ProviderKind.gitHub, .azureDevOps, .gitLab] {
             draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
             try? await Task.sleep(for: pause)
             SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)", windowId: "onboarding")
@@ -318,6 +321,8 @@ private struct AccountStep: View {
             if let account = draft {
                 Text(account.authMethod == .gitHubApp
                      ? "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen."
+                     : account.kind == .gitLab
+                     ? "Vul je server, een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
                      : "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -345,14 +350,18 @@ private struct AccountStep: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
                 HStack(spacing: 16) {
-                    ProviderChoice(title: "GitHub", detail: "Een gebruiker of organisatie op github.com", symbol: "chevron.left.forwardslash.chevron.right") {
+                    ProviderChoice(kind: .gitHub, detail: "Een gebruiker of organisatie op github.com") {
                         start(.gitHub)
                     }
                     .accessibilityIdentifier("onboarding.addGitHub")
-                    ProviderChoice(title: "Azure DevOps", detail: "Een organisatie op dev.azure.com", symbol: "cloud") {
+                    ProviderChoice(kind: .azureDevOps, detail: "Een organisatie op dev.azure.com") {
                         start(.azureDevOps)
                     }
                     .accessibilityIdentifier("onboarding.addAzureDevOps")
+                    ProviderChoice(kind: .gitLab, detail: "Een groep of gebruiker op gitlab.com of je eigen GitLab-server") {
+                        start(.gitLab)
+                    }
+                    .accessibilityIdentifier("onboarding.addGitLab")
                 }
                 .padding(20)
                 Spacer()
@@ -368,22 +377,21 @@ private struct AccountStep: View {
     }
 }
 
-/// Een grote kaart per dienst, bewust in dit eigen uiterlijk. Het symbool groeit mee met de
-/// tekstgrootte, en VoiceOver leest titel en uitleg als een knop.
+/// Een grote kaart per dienst, bewust in dit eigen uiterlijk. Het beeld (het GitHub-logo, of een
+/// SF Symbol waar de dienst geen logo toestaat) groeit mee met de tekstgrootte, en VoiceOver
+/// leest titel en uitleg als een knop.
 private struct ProviderChoice: View {
-    let title: String
+    let kind: ProviderKind
     let detail: LocalizedStringKey
-    let symbol: String
     let action: () -> Void
     @ScaledMetric(relativeTo: .largeTitle) private var symbolSize = 28.0
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: symbol)
-                    .font(.system(size: symbolSize))
-                    .accessibilityHidden(true)
-                Text(verbatim: title).font(.headline)
+                ProviderMark(kind: kind, size: symbolSize)
+                    .frame(height: symbolSize)
+                Text(verbatim: kind.name).font(.headline)
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)

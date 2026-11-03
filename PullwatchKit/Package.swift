@@ -17,17 +17,19 @@ let package = Package(
         .target(name: "PullwatchCore", resources: [.process("Localizable.xcstrings")]),
         .target(name: "PullwatchGitHub", dependencies: ["PullwatchCore"], resources: [.process("Localizable.xcstrings")]),
         .target(name: "PullwatchAzureDevOps", dependencies: ["PullwatchCore"]),
+        .target(name: "PullwatchGitLab", dependencies: ["PullwatchCore"]),
         // Kiest per account de provider; het enige dat alle providers kent.
-        .target(name: "PullwatchProviders", dependencies: ["PullwatchCore", "PullwatchGitHub", "PullwatchAzureDevOps"]),
+        .target(name: "PullwatchProviders", dependencies: ["PullwatchCore", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab"]),
 
         // Mocks en fixtures die de testtargets delen; geen product, dus nooit in de app.
         .target(name: "PullwatchTestSupport", dependencies: ["PullwatchCore"], path: "Tests/PullwatchTestSupport"),
         .testTarget(name: "PullwatchCoreTests", dependencies: ["PullwatchCore", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchGitHubTests", dependencies: ["PullwatchGitHub", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchAzureDevOpsTests", dependencies: ["PullwatchAzureDevOps", "PullwatchTestSupport"]),
+        .testTarget(name: "PullwatchGitLabTests", dependencies: ["PullwatchGitLab", "PullwatchTestSupport"]),
         .testTarget(
             name: "PullwatchProvidersTests",
-            dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchTestSupport"]
+            dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchTestSupport"]
         ),
     ]
 )

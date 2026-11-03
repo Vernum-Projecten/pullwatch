@@ -22,3 +22,12 @@ repository.
 
 Azure DevOps needs nothing here: people sign in with the Azure CLI
 (`az login`) or a personal access token of their own.
+
+GitLab needs nothing here either. Each person makes a personal access token
+with the `read_api` scope on gitlab.com or their own server (User settings,
+Access tokens; the account editor's **Token maken** link opens that page with
+the name and scope filled in), or signs in with the GitLab CLI
+(`glab auth login --hostname <server>`). Pullwatch only reads, so `read_api`
+is enough; `api` works too but gives more than it needs. A self-managed server
+must be reachable over https; Pullwatch refuses plain http so the token never
+travels unencrypted.

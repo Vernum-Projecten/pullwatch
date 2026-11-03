@@ -52,6 +52,12 @@ public enum HTTPStatus {
                let epoch = Double(reset) {
                 throw ProviderError.rateLimited(until: Date(timeIntervalSince1970: epoch))
             }
+            // GitLab noemt dezelfde headers zonder "X-".
+            if response.value(forHTTPHeaderField: "RateLimit-Remaining") == "0",
+               let reset = response.value(forHTTPHeaderField: "RateLimit-Reset"),
+               let epoch = Double(reset) {
+                throw ProviderError.rateLimited(until: Date(timeIntervalSince1970: epoch))
+            }
             if status == 429 { throw ProviderError.rateLimited(until: now + 60) }
             throw ProviderError.unauthorized
         default:

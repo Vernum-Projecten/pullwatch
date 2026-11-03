@@ -30,6 +30,22 @@ import Testing
         #expect(exists(kind.glyph))
     }
 
+    @Test(arguments: ProviderKind.allCases)
+    func providerMarksExist(_ kind: ProviderKind) {
+        #expect(exists(kind.glyph))
+        #expect(exists(.system(AccountAvatar.placeholderSymbol(for: kind))))
+    }
+
+    /// Het GitHub-logo blijft zoals GitHub het geeft: geen template, want dan zou het de tint
+    /// volgen (de lichte en donkere variant staan in de assetcatalogus).
+    @Test func gitHubMarkKeepsItsColours() throws {
+        let logo = try #require(NSImage(named: "GitHubMark"))
+        #expect(!logo.isTemplate)
+        #expect(ProviderKind.gitHub.glyphKeepsItsColours)
+        #expect(!ProviderKind.gitLab.glyphKeepsItsColours)
+        #expect(!ProviderKind.azureDevOps.glyphKeepsItsColours)
+    }
+
     @Test(arguments: MainSection.allCases)
     func sectionSymbolsExist(_ section: MainSection) {
         #expect(exists(section.glyph))

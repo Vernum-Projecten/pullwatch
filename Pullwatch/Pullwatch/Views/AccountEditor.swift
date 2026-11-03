@@ -38,6 +38,10 @@ struct AccountEditor: View {
     /// Inloggen met GitHub voor dit account (code, goedkeuring, installaties); nil bij een
     /// andere manier van inloggen.
     @State private var signIn: GitHubSignIn?
+    /// GitLab: het adres van de server zoals getypt; `draft.instanceURL` volgt zodra het geldig is.
+    @State private var instanceText: String
+    /// GitLab: de groepen en gebruikers zoals getypt, met komma's; `draft.owners` volgt.
+    @State private var ownersText: String
     /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
     private let originalAuthMethod: AuthMethod
 
@@ -54,6 +58,8 @@ struct AccountEditor: View {
         self.model = model
         self.saveAction = saveAction
         _draft = State(initialValue: original)
+        _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? "")
+        _ownersText = State(initialValue: original.owners.joined(separator: ", "))
         originalAuthMethod = original.authMethod
         isNew = !model.config.accounts.contains { $0.id == original.id }
         self.onSaved = onSaved
@@ -66,7 +72,27 @@ struct AccountEditor: View {
 
     /// `gh` alleen nog voor accounts die het al gebruiken, of zolang er geen GitHub App is.
     private var offersCLI: Bool {
-        draft.kind == .azureDevOps || originalAuthMethod == .cli || !model.gitHubApp.isConfigured
+        draft.kind != .gitHub || originalAuthMethod == .cli || !model.gitHubApp.isConfigured
+    }
+
+    private var cliName: LocalizedStringKey {
+        switch draft.kind {
+        case .azureDevOps: "Azure CLI (az login)"
+        case .gitHub: "GitHub CLI (gh auth login)"
+        case .gitLab: "GitLab CLI (glab auth login)"
+        }
+    }
+
+    /// GitLab: een getypt adres dat geen https-adres is (leeg is goed: dan gitlab.com).
+    private var instanceTextIsInvalid: Bool {
+        draft.kind.supportsInstanceURL && !instanceText.trimmingCharacters(in: .whitespaces).isEmpty
+            && InstanceURL.parse(instanceText) == nil
+    }
+
+    /// Waar je bij GitLab een token maakt, met de naam en de scope al ingevuld.
+    private var gitLabTokenPage: URL? {
+        guard draft.kind == .gitLab, let base = draft.effectiveInstanceURL else { return nil }
+        return URL(string: base.absoluteString + "/-/user_settings/personal_access_tokens?name=Pullwatch&scopes=read_api")
     }
 
     var body: some View {
@@ -79,7 +105,7 @@ struct AccountEditor: View {
                         }
                         Text("Personal Access Token").tag(AuthMethod.pat)
                         if offersCLI {
-                            Text(draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)").tag(AuthMethod.cli)
+                            Text(cliName).tag(AuthMethod.cli)
                         }
                     }
                 } else {
@@ -92,7 +118,34 @@ struct AccountEditor: View {
                 // Eerst hoe je inlogt, dan waar de repositories staan, dan het token. De naam volgt de
                 // organisatie (`Account.displayName`); met de GitHub App komt de eigenaar uit het
                 // inloggen, dan valt er niets te typen.
-                if draft.authMethod != .gitHubApp {
+                if draft.kind.supportsInstanceURL {
+                    // Leeg is gitlab.com; een eigen server alleen via https (het token gaat erheen).
+                    TextField(String(localized: "Server"), text: $instanceText, prompt: Text(verbatim: "https://gitlab.com"))
+                        .autocorrectionDisabled()
+                        .accessibilityIdentifier("account.instanceURL")
+                        .onChange(of: instanceText) { _, text in
+                            if text.trimmingCharacters(in: .whitespaces).isEmpty {
+                                draft.instanceURL = nil
+                            } else if let url = InstanceURL.parse(text) {
+                                draft.instanceURL = url == draft.kind.defaultInstanceURL ? nil : url
+                            }
+                        }
+                    if instanceTextIsInvalid {
+                        Text("Alleen een https-adres, bijvoorbeeld https://gitlab.example.com")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                if draft.kind == .gitLab {
+                    TextField(String(localized: "Groepen of gebruikers"), text: $ownersText, prompt: Text(verbatim: "acme, acme/platform"))
+                        .autocorrectionDisabled()
+                        .accessibilityIdentifier("account.organization")
+                        .help("Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.")
+                        .onChange(of: ownersText) { _, text in
+                            let owners = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                            if owners != draft.owners { draft.owners = owners }
+                        }
+                } else if draft.authMethod != .gitHubApp {
                     // Een voorbeeld in het veld, zodat je ziet waar je typt en wat er hoort.
                     TextField(
                         draft.kind == .azureDevOps ? String(localized: "Organisatie") : String(localized: "Owner (user of org)"),
@@ -117,6 +170,15 @@ struct AccountEditor: View {
                         storedPAT ? String(localized: "Opgeslagen, laat leeg om te behouden") : String(localized: "Token"),
                         text: $pat
                     )
+                    if let gitLabTokenPage {
+                        LabeledContent {
+                            Link("Token maken", destination: gitLabTokenPage)
+                        } label: {
+                            Text("Een personal access token met de scope read_api")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     if !isNew && !pat.isEmpty {
                         HStack {
                             Spacer()
@@ -146,10 +208,16 @@ struct AccountEditor: View {
             }
 
             Section {
-                Toggle("Draft-PR's meenemen", isOn: $draft.includeDrafts)
-                Toggle("Eigen PR's verbergen", isOn: $draft.hideOwn)
+                // GitLab noemt ze merge requests, dus hier ook.
+                if draft.kind == .gitLab {
+                    Toggle("Draft-merge requests meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Eigen merge requests verbergen", isOn: $draft.hideOwn)
+                } else {
+                    Toggle("Draft-PR's meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Eigen PR's verbergen", isOn: $draft.hideOwn)
+                }
             } header: {
-                Text("Welke PR's tellen mee")
+                Text(draft.kind == .gitLab ? "Welke merge requests tellen mee" : "Welke PR's tellen mee")
             } footer: {
                 Text("Geldt overal: in het menu, de geschiedenis en de meldingen.")
             }
@@ -254,7 +322,7 @@ struct AccountEditor: View {
             if !isNew { model.updateAccount(account) }
         }
         // De repositories laden vanzelf, opnieuw als de plekken of het inloggen veranderen.
-        .task(id: RepoLoad(owners: draft.owners, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
+        .task(id: RepoLoad(owners: draft.owners, instanceURL: draft.instanceURL, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
             await loadRepos()
         }
         .onDisappear {
@@ -301,7 +369,14 @@ struct AccountEditor: View {
     private var validationMessage: LocalizedStringKey? {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
         if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Volg minstens één plek" }
-        if !hasRequiredFields { return draft.kind == .azureDevOps ? "Vul de organisatie in" : "Vul de owner in" }
+        if instanceTextIsInvalid { return "Vul een https-adres in voor de server" }
+        if !hasRequiredFields {
+            switch draft.kind {
+            case .azureDevOps: return "Vul de organisatie in"
+            case .gitHub: return "Vul de owner in"
+            case .gitLab: return "Vul een groep of gebruiker in"
+            }
+        }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }
@@ -340,6 +415,7 @@ struct AccountEditor: View {
     /// Wanneer de repositories opnieuw moeten laden.
     private struct RepoLoad: Equatable {
         let owners: [String]
+        let instanceURL: URL?
         let method: AuthMethod
         let cliUser: String?
         let hasNewToken: Bool
@@ -351,7 +427,7 @@ struct AccountEditor: View {
         switch draft.authMethod {
         case .gitHubApp: "Inloggen met GitHub"
         case .pat: "Personal Access Token"
-        case .cli: draft.kind == .azureDevOps ? "Azure CLI (az login)" : "GitHub CLI (gh auth login)"
+        case .cli: cliName
         }
     }
 

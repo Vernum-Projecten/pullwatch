@@ -34,10 +34,28 @@ struct AccountAvatar: View {
         .accessibilityHidden(true)
     }
 
-    private var placeholder: some View {
-        Image(systemName: kind == .gitHub ? "person.crop.circle.fill" : "cloud.circle.fill")
-            .resizable()
-            .scaledToFit()
-            .foregroundStyle(.secondary)
+    @ViewBuilder private var placeholder: some View {
+        if kind.glyphKeepsItsColours {
+            // Het GitHub-logo zoals GitHub het geeft (zwart of wit), met wat ruimte in de cirkel.
+            ProviderMark(kind: kind, size: size * 0.62)
+                .frame(width: size, height: size)
+                .background(.quaternary)
+        } else {
+            Image(systemName: Self.placeholderSymbol(for: kind))
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Het symbool zonder foto voor diensten die geen logo in een app toestaan (zie
+    /// `ProviderKind.glyph`): Azure DevOps een wolk, GitLab een groep, want daar volgt een
+    /// GitLab-account meestal.
+    static func placeholderSymbol(for kind: ProviderKind) -> String {
+        switch kind {
+        case .gitHub: "person.crop.circle.fill"
+        case .azureDevOps: "cloud.circle.fill"
+        case .gitLab: "person.2.circle.fill"
+        }
     }
 }

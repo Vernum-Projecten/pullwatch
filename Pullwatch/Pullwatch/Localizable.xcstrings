@@ -424,7 +424,7 @@
       }
     },
     "%@, uitgezet": {
-      "comment": "Dienst (GitHub of Azure DevOps); het account wordt niet opgehaald",
+      "comment": "Dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server); het account wordt niet opgehaald",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -2723,6 +2723,28 @@
         }
       }
     },
+    "Alleen een https-adres, bijvoorbeeld https://gitlab.example.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur eine https-Adresse, zum Beispiel https://gitlab.example.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only an https address, for example https://gitlab.example.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement une adresse https, par exemple https://gitlab.example.com"
+          }
+        }
+      }
+    },
     "Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert": {
       "localizations": {
         "de": {
@@ -3126,34 +3148,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Azure CLI (az login)"
-          }
-        }
-      }
-    },
-    "Azure DevOps": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Azure DevOps"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Azure DevOps"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Azure DevOps"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Azure DevOps"
           }
         }
       }
@@ -3870,6 +3864,28 @@
         }
       }
     },
+    "Draft-merge requests meenemen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurfs-Merge-Requests einbeziehen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include draft merge requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inclure les merge requests en brouillon"
+          }
+        }
+      }
+    },
     "Drukste repo's": {
       "localizations": {
         "de": {
@@ -4020,6 +4036,28 @@
         }
       }
     },
+    "Een groep of gebruiker op gitlab.com of je eigen GitLab-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Gruppe oder ein Benutzer auf gitlab.com oder deinem eigenen GitLab-Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A group or user on gitlab.com or your own GitLab server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un groupe ou un utilisateur sur gitlab.com ou sur votre propre serveur GitLab"
+          }
+        }
+      }
+    },
     "Een melding en een regel in de geschiedenis als een gevolgde PR gemerged wordt (in Azure DevOps heet dat completed)": {
       "localizations": {
         "de": {
@@ -4060,6 +4098,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Une organisation sur dev.azure.com"
+          }
+        }
+      }
+    },
+    "Een personal access token met de scope read_api": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Personal Access Token mit dem Scope read_api"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A personal access token with the read_api scope"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un jeton d’accès personnel avec la portée read_api"
           }
         }
       }
@@ -4132,6 +4192,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avis propres"
+          }
+        }
+      }
+    },
+    "Eigen merge requests verbergen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Merge-Requests ausblenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide my own merge requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer mes propres merge requests"
           }
         }
       }
@@ -5027,6 +5109,28 @@
         }
       }
     },
+    "GitLab CLI (glab auth login)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitLab CLI (glab auth login)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitLab CLI (glab auth login)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitLab CLI (glab auth login)"
+          }
+        }
+      }
+    },
     "Goedkeuren": {
       "localizations": {
         "de": {
@@ -5067,6 +5171,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gratuit et open source sous licence Apache 2.0."
+          }
+        }
+      }
+    },
+    "Groepen of gebruikers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppen oder Benutzer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groups or users"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Groupes ou utilisateurs"
           }
         }
       }
@@ -9378,6 +9504,28 @@
         }
       }
     },
+    "Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehrere mit einem Komma trennen. Eine Gruppe folgt auch ihren Untergruppen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate several with a comma. A group also follows its subgroups."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séparez-en plusieurs par une virgule. Un groupe suit aussi ses sous-groupes."
+          }
+        }
+      }
+    },
     "Secret scanning": {
       "localizations": {
         "de": {
@@ -9424,6 +9572,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Selecteer een PR of tag van één repo"
+          }
+        }
+      }
+    },
+    "Server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serveur"
           }
         }
       }
@@ -10092,6 +10262,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Enregistrer le jeton"
+          }
+        }
+      }
+    },
+    "Token maken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token erstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer un jeton"
           }
         }
       }
@@ -10886,6 +11078,50 @@
         }
       }
     },
+    "Vul een groep of gebruiker in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib eine Gruppe oder einen Benutzer ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a group or user"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez un groupe ou un utilisateur"
+          }
+        }
+      }
+    },
+    "Vul een https-adres in voor de server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib eine https-Adresse für den Server ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an https address for the server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez une adresse https pour le serveur"
+          }
+        }
+      }
+    },
     "Vul een token in": {
       "localizations": {
         "de": {
@@ -10904,6 +11140,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez un jeton"
+          }
+        }
+      }
+    },
+    "Vul je server, een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deinen Server, ein Token mit dem Scope read_api und deine Gruppen ein und klicke auf Hinzufügen. Mit der GitLab CLI (glab auth login) brauchst du kein Token."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your server, a token with the read_api scope and your groups, then click Add. With the GitLab CLI (glab auth login) you need no token."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez votre serveur, un jeton avec la portée read_api et vos groupes, puis cliquez sur Ajouter. Avec la GitLab CLI (glab auth login), aucun jeton n’est nécessaire."
           }
         }
       }
@@ -11142,6 +11400,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quelles pull requests comptent"
+          }
+        }
+      }
+    },
+    "Welke merge requests tellen mee": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welche Merge-Requests zählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which merge requests count"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelles merge requests comptent"
           }
         }
       }

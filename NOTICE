@@ -33,3 +33,25 @@ License:
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
+
+Trademarks
+
+GitHub and the Invertocat are trademarks of GitHub, Inc. Pullwatch shows the
+unmodified Invertocat (GitHub_Invertocat_Black.svg and
+GitHub_Invertocat_White.svg from https://brand.github.com/GitHub_Logos.zip,
+in Pullwatch/Pullwatch/Assets.xcassets/GitHubMark.imageset) only to say that
+an account connects to GitHub, as GitHub's logo guidelines allow
+(https://brand.github.com/foundations/logo, "Show integration"). Pullwatch is
+not affiliated with, endorsed or sponsored by GitHub, Inc.
+
+GITLAB is a trademark of GitLab Inc. in the United States and other countries
+and regions. Pullwatch uses only the GitLab name, to say that it works with
+GitLab; it shows no GitLab logo, as GitLab's Trademark Guidelines ask
+(https://handbook.gitlab.com/handbook/marketing/brand-and-product-marketing/brand/brand-activation/trademark-guidelines/).
+Pullwatch is not affiliated with, endorsed, sponsored, or approved by GitLab Inc.
+
+Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
+uses only the name; Microsoft permits its Azure icons only in architecture
+diagrams, training materials and documentation
+(https://learn.microsoft.com/azure/architecture/icons/), so the app shows an
+SF Symbol instead.

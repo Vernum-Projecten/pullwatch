@@ -826,9 +826,14 @@ final class AppModel {
     }
 
     /// Hoe een nieuw account standaard inlogt: GitHub via de GitHub App (als die er is),
-    /// Azure DevOps via `az login`.
+    /// Azure DevOps via `az login`, GitLab met een personal access token (`glab` staat op minder
+    /// Macs dan een token in de Keychain).
     func defaultAuthMethod(for kind: ProviderKind) -> AuthMethod {
-        kind == .gitHub && gitHubApp.isConfigured ? .gitHubApp : .cli
+        switch kind {
+        case .gitHub: gitHubApp.isConfigured ? .gitHubApp : .cli
+        case .azureDevOps: .cli
+        case .gitLab: .pat
+        }
     }
 
     func hasGitHubAppTokens(_ id: UUID) -> Bool {
