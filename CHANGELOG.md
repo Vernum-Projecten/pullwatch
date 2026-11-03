@@ -40,6 +40,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
 - Adding an account no longer leaves an empty row behind: nothing is saved
   until the account has an organisation, and empty accounts from older
   versions are removed at launch.
+- A GitHub organisation where Pullwatch was just installed, and a PR that
+  was just opened, show up at once instead of up to a minute later.
+- Reloading the repositories of an account keeps the list in place, and
+  Reload works again after a failed load.
 
 ## [0.5.0] - 2026-11-01
 
