@@ -194,6 +194,34 @@
         }
       }
     },
+    "Aanvullende details bij een gevonden kwetsbaarheid: ernst, CVSS, CWE en publicatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusätzliche Details zu einer gefundenen Schwachstelle: Schweregrad, CVSS, CWE und Veröffentlichung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional details for a vulnerability that was found: severity, CVSS, CWE and publication"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détails supplémentaires sur une vulnérabilité trouvée : gravité, CVSS, CWE et publication"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvullende details bij een gevonden kwetsbaarheid: ernst, CVSS, CWE en publicatie"
+          }
+        }
+      }
+    },
     "Altijd": {
       "localizations": {
         "de": {
@@ -218,6 +246,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Altijd"
+          }
+        }
+      }
+    },
+    "Bekende kwetsbaarheden (CVE's en GHSA's) in de packages die je repo's gebruiken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekannte Schwachstellen (CVEs und GHSAs) in den Paketen, die deine Repos verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Known vulnerabilities (CVEs and GHSAs) in the packages your repos use"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilités connues (CVE et GHSA) dans les paquets que tes dépôts utilisent"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekende kwetsbaarheden (CVE's en GHSA's) in de packages die je repo's gebruiken"
+          }
+        }
+      }
+    },
+    "Beveiligingsmeldingen van Advanced Security per repo, ook over kwetsbare packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced-Security-Meldungen pro Repo, auch zu anfälligen Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced Security alerts per repo, including vulnerable packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertes Advanced Security par dépôt, y compris sur les paquets vulnérables"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beveiligingsmeldingen van Advanced Security per repo, ook over kwetsbare packages"
           }
         }
       }
@@ -304,6 +388,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "CVE-check onvolledig, details ontbreken: %1$lld van %2$lld"
+          }
+        }
+      }
+    },
+    "Code scanning, secret scanning en de eigen adviezen van een repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code Scanning, Secret Scanning und die eigenen Advisories eines Repos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning and a repo's own advisories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning et les avis propres à un dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning en de eigen adviezen van een repo"
           }
         }
       }
@@ -478,6 +590,202 @@
         }
       }
     },
+    "Nieuwste versie en gegevens van .NET-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von .NET-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of .NET packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets .NET"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van .NET-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Go-modules": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Go-Modulen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Go modules"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des modules Go"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Go-modules"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van PHP-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von PHP-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of PHP packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets PHP"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van PHP-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Python-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Python-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Python packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Python"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Python-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Ruby-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Ruby-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Ruby packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Ruby"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Ruby-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Rust-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Rust-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Rust packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Rust"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Rust-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van npm-packages (JavaScript)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von npm-Paketen (JavaScript)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of npm packages (JavaScript)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets npm (JavaScript)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van npm-packages (JavaScript)"
+          }
+        }
+      }
+    },
     "Onverwacht antwoord: %@": {
       "localizations": {
         "de": {
@@ -534,6 +842,34 @@
         }
       }
     },
+    "Releasecycli en einddatum van ondersteuning van runtimes zoals Go, .NET en Node": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releasezyklen und Support-Ende von Laufzeiten wie Go, .NET und Node"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release cycles and end of support dates of runtimes such as Go, .NET and Node"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycles de publication et fin de support des environnements d'exécution comme Go, .NET et Node"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releasecycli en einddatum van ondersteuning van runtimes zoals Go, .NET en Node"
+          }
+        }
+      }
+    },
     "Serverfout (%lld)": {
       "localizations": {
         "de": {
@@ -558,6 +894,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Serverfout (%lld)"
+          }
+        }
+      }
+    },
+    "Swift-releases; Swift heeft geen einddatum van ondersteuning": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift-Releases; Swift hat kein Support-Ende"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift releases; Swift has no end of support date"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions de Swift ; Swift n'a pas de date de fin de support"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift-releases; Swift heeft geen einddatum van ondersteuning"
           }
         }
       }

@@ -20,6 +20,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// Het welkomstvenster is afgerond of overgeslagen. Staat in de config (niet in de defaults),
     /// zodat een eigen datamap (`-PullwatchDataDirectory`, de UI-tests) er los van staat.
     public var onboardingCompleted: Bool
+    /// Bronnen die de gebruiker heeft uitgezet. Standaard staat elke bron aan.
+    public var disabledSources: Set<DataSourceID>
 
     public init(
         accounts: [Account] = [],
@@ -30,7 +32,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         includeTestVersions: Bool = false,
         notifyPackageUpdates: Bool = true,
         notifySecurityAlerts: Bool = false,
-        onboardingCompleted: Bool = false
+        onboardingCompleted: Bool = false,
+        disabledSources: Set<DataSourceID> = []
     ) {
         self.accounts = accounts
         self.pollInterval = pollInterval
@@ -41,6 +44,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.notifyPackageUpdates = notifyPackageUpdates
         self.notifySecurityAlerts = notifySecurityAlerts
         self.onboardingCompleted = onboardingCompleted
+        self.disabledSources = disabledSources
     }
 
     public init(from decoder: any Decoder) throws {
@@ -54,6 +58,12 @@ public struct AppConfig: Codable, Equatable, Sendable {
         notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
         notifySecurityAlerts = try c.decodeIfPresent(Bool.self, forKey: .notifySecurityAlerts) ?? false
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
+        // Onbekende id's (van een nieuwere of oudere versie) worden genegeerd.
+        disabledSources = Set(try c.decodeIfPresent([String].self, forKey: .disabledSources)?.compactMap(DataSourceID.init(rawValue:)) ?? [])
+    }
+
+    public func isEnabled(_ id: DataSourceID) -> Bool {
+        !disabledSources.contains(id)
     }
 
     public var clampedInterval: Int {
