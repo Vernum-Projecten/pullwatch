@@ -10,6 +10,10 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
 
 ### Added
 
+- **Mark as read or unread in the main window.** Right-click a PR or tag
+  (or press ⇧⌘U, as in Mail), mark everything in the list as read with the
+  toolbar button or ⌘K, and see unread items by their blue dot. The menu's
+  rows have Mark as Read and Mark as Unread too.
 - **Welcome window on first launch.** It walks through adding an account
   and asks for permission to send notifications by itself.
 - **Sign in with GitHub** through the Pullwatch GitHub App (device flow):

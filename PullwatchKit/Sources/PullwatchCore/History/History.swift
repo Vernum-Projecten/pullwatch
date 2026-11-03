@@ -212,6 +212,17 @@ public struct History: Codable, Equatable, Sendable {
         }
     }
 
+    /// Zet deze items op gelezen of ongelezen. `true` als er iets veranderde.
+    @discardableResult
+    public mutating func setRead(_ ids: Set<String>, _ isRead: Bool) -> Bool {
+        var changed = false
+        for index in items.indices where ids.contains(items[index].id) && items[index].isRead != isRead {
+            items[index].isRead = isRead
+            changed = true
+        }
+        return changed
+    }
+
     public mutating func removeAccount(_ id: UUID) {
         items.removeAll { $0.entry.accountId == id }
     }

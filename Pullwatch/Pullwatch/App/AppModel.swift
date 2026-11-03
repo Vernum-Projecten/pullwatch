@@ -685,6 +685,11 @@ final class AppModel {
         saveHistory()
     }
 
+    /// Gelezen of ongelezen voor deze PR's en tags (de selectie, of alles wat een lijst toont).
+    func setRead(_ ids: Set<String>, _ isRead: Bool) {
+        if history.setRead(ids, isRead) { saveHistory() }
+    }
+
     /// Bewaart een account. Een nieuw account moet af zijn (minstens één eigenaar); een bestaand
     /// mag niets volgen (gepauzeerd). False (en er verandert niets) als dat niet klopt of de PAT
     /// niet in de Keychain kon.
