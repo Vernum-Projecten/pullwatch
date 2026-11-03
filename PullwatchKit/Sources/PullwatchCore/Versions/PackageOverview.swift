@@ -26,16 +26,30 @@ public struct PackageUser: Hashable, Sendable, Identifiable {
     public let sources: [String]
     /// Elke install van het package in deze repo (versie, workspace, scope, soort, via); leeg voor runtimes.
     public let installs: [PackageInstall]
+    /// De update-status van elke install tegen de nieuwste versie, op volgorde van `installs`;
+    /// leeg voor runtimes, `unknown` zolang de nieuwste versie onbekend is.
+    public let updates: [InstallUpdate]
 
-    public init(repoId: String, repo: String, version: String, sources: [String], installs: [PackageInstall] = []) {
+    public init(
+        repoId: String, repo: String, version: String, sources: [String], installs: [PackageInstall] = [],
+        updates: [InstallUpdate] = []
+    ) {
         self.repoId = repoId
         self.repo = repo
         self.version = version
         self.sources = sources
         self.installs = installs
+        self.updates = updates
     }
 
     public var id: String { repoId }
+
+    /// Eén status voor wat deze repo zelf kan bijwerken (de directe installs, anders alle); nil
+    /// zonder installs.
+    public var update: PackageUpdate? {
+        let direct = updates.filter { $0.install.scope == .direct }
+        return PackageUpdate.combined((direct.isEmpty ? updates : direct).map(\.update))
+    }
 
     /// Alle versies van het package in deze repo, oudste eerst; voor runtimes alleen `version`.
     public var versions: [String] {
@@ -125,7 +139,8 @@ extension VersionReport {
                     repoId: existing.repoId, repo: existing.repo,
                     version: VersionChecker.isOlder(user.version, than: existing.version) ? user.version : existing.version,
                     sources: existing.sources + user.sources.filter { !existing.sources.contains($0) },
-                    installs: existing.installs + user.installs.filter { !existing.installs.contains($0) }
+                    installs: existing.installs + user.installs.filter { !existing.installs.contains($0) },
+                    updates: existing.updates + user.updates.filter { !existing.updates.contains($0) }
                 )
             } else {
                 groups[id]?.users.append(user)
@@ -143,14 +158,16 @@ extension VersionReport {
                 add(package.key,
                     Group(label: package.name, kind: PackageVersions.kind(ofEcosystem: package.ecosystem),
                           latest: latest?.version, since: latest?.version == nil ? nil : latest?.seenAt),
-                    PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs))
+                    PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
+                                updates: package.updates(latest: latest?.version)))
             }
         }
         // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben; een
         // package dat nergens direct gebruikt wordt krijgt geen eigen regel.
         for repo in repos where repo.error == nil {
             for package in repo.otherPackages where groups[package.key] != nil {
-                let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs)
+                let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
+                                       updates: package.updates(latest: latestPackages[package.key]?.version))
                 if user.isTransitiveOnly, groups[package.key]?.users.contains(where: { $0.repoId == repo.id }) == false {
                     groups[package.key]?.users.append(user)
                 }

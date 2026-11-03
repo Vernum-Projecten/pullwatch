@@ -41,10 +41,14 @@ public struct Dependency: Hashable, Sendable {
     public let kind: DependencyKind
     /// Kortste keten van packagenamen vanaf een direct package, zonder dit package zelf; leeg als direct.
     public let via: [String]
+    /// Het gevraagde bereik zoals geschreven: uit het manifest voor een directe install, uit de
+    /// ouder in `via` voor een transitieve (als de lockfile dat bewaart); nil als onbekend.
+    public let requested: String?
 
     public init(
         ecosystem: String, name: String, version: String, source: String,
-        workspace: String?, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = []
+        workspace: String?, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = [],
+        requested: String? = nil
     ) {
         self.ecosystem = ecosystem
         self.name = name
@@ -54,11 +58,13 @@ public struct Dependency: Hashable, Sendable {
         self.scope = scope
         self.kind = kind
         self.via = via
+        self.requested = requested
     }
 
     /// Oude vorm: `isDirect` true, false of nil (onbekend); workspace volgt uit `source`.
-    public init(ecosystem: String, name: String, version: String, source: String, isDirect: Bool? = nil) {
-        self.init(ecosystem: ecosystem, name: name, version: version, source: source, workspace: nil, scope: DependencyScope(isDirect: isDirect))
+    public init(ecosystem: String, name: String, version: String, source: String, isDirect: Bool? = nil, requested: String? = nil) {
+        self.init(ecosystem: ecosystem, name: name, version: version, source: source, workspace: nil, scope: DependencyScope(isDirect: isDirect),
+                  requested: requested)
     }
 
     /// Rechtstreeks gevraagd (true), alleen via een ander package (false) of onbekend (nil).
@@ -78,15 +84,15 @@ public struct Dependency: Hashable, Sendable {
     /// Eén install per package, versie en workspace; een tweede bestand in dezelfde map telt niet apart.
     var installKey: String { "\(ecosystem)|\(name)|\(version)|\(workspace)" }
 
-    func with(scope: DependencyScope? = nil, kind: DependencyKind? = nil, via: [String]? = nil) -> Dependency {
+    func with(scope: DependencyScope? = nil, kind: DependencyKind? = nil, via: [String]? = nil, requested: String?? = nil) -> Dependency {
         Dependency(
             ecosystem: ecosystem, name: name, version: version, source: source, workspace: workspace,
-            scope: scope ?? self.scope, kind: kind ?? self.kind, via: via ?? self.via
+            scope: scope ?? self.scope, kind: kind ?? self.kind, via: via ?? self.via, requested: requested ?? self.requested
         )
     }
 
     var install: PackageInstall {
-        PackageInstall(version: version, workspace: workspace, scope: scope, kind: kind, via: via, source: source)
+        PackageInstall(version: version, workspace: workspace, scope: scope, kind: kind, via: via, source: source, requested: requested)
     }
 }
 
@@ -102,7 +108,7 @@ extension DependencyScope {
 
 extension Dependency: Codable {
     private enum CodingKeys: String, CodingKey {
-        case ecosystem, name, version, source, workspace, scope, kind, via
+        case ecosystem, name, version, source, workspace, scope, kind, via, requested
         /// Alleen lezen: oude bestanden hadden `isDirect` in plaats van `scope`.
         case isDirect
     }
@@ -120,7 +126,8 @@ extension Dependency: Codable {
             workspace: try c.decodeIfPresent(String.self, forKey: .workspace),
             scope: scope,
             kind: try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime,
-            via: try c.decodeIfPresent([String].self, forKey: .via) ?? []
+            via: try c.decodeIfPresent([String].self, forKey: .via) ?? [],
+            requested: try c.decodeIfPresent(String.self, forKey: .requested)
         )
     }
 
@@ -134,6 +141,7 @@ extension Dependency: Codable {
         try c.encode(scope, forKey: .scope)
         try c.encode(kind, forKey: .kind)
         try c.encode(via, forKey: .via)
+        try c.encodeIfPresent(requested, forKey: .requested)
     }
 }
 
@@ -147,18 +155,25 @@ public struct PackageInstall: Codable, Hashable, Sendable {
     /// Kortste keten vanaf een direct package; leeg als direct.
     public let via: [String]
     public let source: String
+    /// Het gevraagde bereik (`Dependency.requested`); nil als onbekend en in versions.json van
+    /// vóór de bereiken.
+    public let requested: String?
 
-    public init(version: String, workspace: String, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = [], source: String) {
+    public init(
+        version: String, workspace: String, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = [], source: String,
+        requested: String? = nil
+    ) {
         self.version = version
         self.workspace = workspace
         self.scope = scope
         self.kind = kind
         self.via = via
         self.source = source
+        self.requested = requested
     }
 
     private enum CodingKeys: String, CodingKey {
-        case version, workspace, scope, kind, via, source
+        case version, workspace, scope, kind, via, source, requested
     }
 
     public init(from decoder: any Decoder) throws {
@@ -169,6 +184,7 @@ public struct PackageInstall: Codable, Hashable, Sendable {
         scope = try c.decodeIfPresent(DependencyScope.self, forKey: .scope) ?? .unknown
         kind = try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime
         via = try c.decodeIfPresent([String].self, forKey: .via) ?? []
+        requested = try c.decodeIfPresent(String.self, forKey: .requested)
     }
 }
 

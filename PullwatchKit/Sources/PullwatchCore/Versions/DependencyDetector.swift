@@ -15,6 +15,11 @@ struct LockfileRead: Sendable {
     /// Wat de lockfile zelf direct noemt (Gemfile.lock `DEPENDENCIES`); het manifest in dezelfde
     /// map geeft dan alleen nog de soort.
     var directNames: [String: DependencyKind]? = nil
+    /// Bereiken die de lockfile zelf bewaart: genormaliseerde naam van de ouder → genormaliseerde
+    /// naam → bereik (composer `require`, poetry `[package.dependencies]`, Gemfile.lock-specs).
+    var requirements: [String: [String: String]] = [:]
+    /// Bereiken van wat de lockfile direct noemt (Gemfile.lock `DEPENDENCIES`).
+    var directRanges: [String: String] = [:]
 }
 
 /// Een manifest (package.json, composer.json, pyproject.toml, Cargo.toml): welke namen het
@@ -23,11 +28,13 @@ struct Manifest: Sendable {
     var ecosystem: String
     /// Genormaliseerde naam → soort; bij dubbel telt wat het zwaarst weegt.
     var names: [String: DependencyKind]
+    /// Genormaliseerde naam → gevraagd bereik zoals geschreven; bij dubbel het eerste.
+    var ranges: [String: String] = [:]
 }
 
 /// Leest packages met exacte versies voor de CVE-check en het package-overzicht. Versiebereiken
-/// (^1.2, >=3) tellen niet: OSV heeft een exacte versie nodig. Elk package wordt een install met
-/// workspace, scope, soort en via.
+/// (^1.2, >=3) tellen niet als versie: OSV heeft een exacte versie nodig. Elk package wordt een
+/// install met workspace, scope, soort, via en het gevraagde bereik (`Dependency.requested`).
 public enum DependencyDetector {
     public static func isRelevant(_ path: String) -> Bool {
         guard let name = path.split(separator: "/").last.map(String.init) else { return false }
@@ -109,6 +116,8 @@ public enum DependencyDetector {
     struct Reach: Equatable {
         var via: [String]
         var kind: DependencyKind
+        /// De knoop waarvandaan dit package (breedte eerst) het eerst bereikt werd; nil voor een root.
+        var parent: String? = nil
     }
 
     /// Kortste keten (breedte eerst) vanaf de directe packages en de zwaarste soort waarmee een
@@ -123,6 +132,7 @@ public enum DependencyDetector {
             $0.kind.weight != $1.kind.weight ? $0.kind.weight > $1.kind.weight : name($0.node) < name($1.node)
         }
         var via: [String: [String]] = [:]
+        var parents: [String: String] = [:]
         var queue: [String] = []
         for root in ordered where via[root.node] == nil {
             via[root.node] = []
@@ -135,6 +145,7 @@ public enum DependencyDetector {
             let chain = (via[node] ?? []) + [name(node)]
             for child in children(node) where via[child] == nil {
                 via[child] = chain
+                parents[child] = node
                 queue.append(child)
             }
         }
@@ -148,7 +159,7 @@ public enum DependencyDetector {
             }
         }
         return via.reduce(into: [:]) { result, item in
-            result[item.key] = Reach(via: item.value, kind: kinds[item.key] ?? .runtime)
+            result[item.key] = Reach(via: item.value, kind: kinds[item.key] ?? .runtime, parent: parents[item.key])
         }
     }
 
@@ -174,7 +185,10 @@ public enum DependencyDetector {
             let scope = rank(dependency.scope) > rank(current.scope) ? dependency.scope : current.scope
             let kind = dependency.kind.weight > current.kind.weight ? dependency.kind : current.kind
             let via = scope == .direct ? [] : [current.via, dependency.via].filter { !$0.isEmpty }.min { $0.count < $1.count } ?? []
-            byKey[key] = current.with(scope: scope, kind: kind, via: via)
+            // Het bereik hoort bij wat wint: de directe install, anders de eerste die er een heeft.
+            let requested = rank(dependency.scope) > rank(current.scope)
+                ? dependency.requested ?? current.requested : current.requested ?? dependency.requested
+            byKey[key] = current.with(scope: scope, kind: kind, via: via, requested: requested)
         }
         return order.compactMap { byKey[$0] }
     }
@@ -195,7 +209,8 @@ public enum DependencyDetector {
             if line.hasPrefix("require ") { line = String(line.dropFirst("require ".count)) } else if !inBlock { continue }
             let parts = line.split(separator: " ")
             guard parts.count == 2, parts[1].hasPrefix("v") else { continue }
-            result.append(Dependency(ecosystem: "Go", name: String(parts[0]), version: String(parts[1].dropFirst()), source: path, isDirect: !indirect))
+            result.append(Dependency(ecosystem: "Go", name: String(parts[0]), version: String(parts[1].dropFirst()), source: path, isDirect: !indirect,
+                                     requested: String(parts[1])))
         }
         return result
     }
@@ -266,6 +281,13 @@ public enum DependencyDetector {
                 }
             }
         }
+        /// Het bereik waarmee `parent` het package op `key` vraagt (naam zoals in de lockfile, ook bij een alias).
+        func requested(by parent: String, _ key: String) -> String? {
+            guard let entry = packages[parent], let range = key.range(of: "node_modules/", options: .backwards) else { return nil }
+            let dependency = String(key[range.upperBound...])
+            return entry.dependencies?[dependency] ?? entry.optionalDependencies?[dependency] ?? entry.peerDependencies?[dependency]
+                ?? entry.devDependencies?[dependency]
+        }
         var childCache: [String: [String]] = [:]
         func children(_ key: String) -> [String] {
             if let cached = childCache[key] { return cached }
@@ -293,7 +315,8 @@ public enum DependencyDetector {
                 reached.insert(key)
                 result.append(Dependency(
                     ecosystem: "npm", name: name(key), version: version, source: path, workspace: workspace,
-                    scope: reach.via.isEmpty ? .direct : .transitive, kind: entry.flaggedKind ?? reach.kind, via: reach.via
+                    scope: reach.via.isEmpty ? .direct : .transitive, kind: entry.flaggedKind ?? reach.kind, via: reach.via,
+                    requested: requested(by: reach.parent ?? importer, key)
                 ))
             }
         }
@@ -364,6 +387,7 @@ public enum DependencyDetector {
         let all = (lock.packages ?? []).map { ($0, DependencyKind.runtime) } + (lock.packagesDev ?? []).map { ($0, DependencyKind.dev) }
         read.dependencies = all.compactMap { package, kind in
             graph[package.name.lowercased()] = package.require.keys.filter { $0.contains("/") }.map { $0.lowercased() }.sorted()
+            read.requirements[package.name.lowercased()] = package.require.reduce(into: [:]) { $0[$1.key.lowercased()] = $1.value }
             guard !package.version.hasPrefix("dev-") else { return nil }
             let version = package.version.hasPrefix("v") ? String(package.version.dropFirst()) : package.version
             guard StackDetector.version(from: version) != nil else { return nil }
@@ -578,6 +602,12 @@ public enum DependencyDetector {
             guard let name = package.name, let version = package.version else { continue }
             let key = normalizedPyPIName(name)
             graph[key, default: []] += (package.tables["dependencies"] ?? []).map { normalizedPyPIName($0.key) }
+            for (child, value) in package.tables["dependencies"] ?? [] {
+                // `"^2.0"`, `{version = ">=1.0", markers = …}` of een lijst daarvan: het eerste bereik.
+                if let range = TomlPackage.string(value) ?? value.firstMatch(of: /\bversion\s*=\s*"([^"]+)"/).map({ String($0.output.1) }) {
+                    read.requirements[key, default: [:]][normalizedPyPIName(child)] = range
+                }
+            }
             let category = package.fields["category"].flatMap(TomlPackage.string)
             let groups = package.fields["groups"].map(TomlPackage.strings)
             if category != nil || groups != nil { read.kindsKnown = true }
@@ -663,7 +693,8 @@ public enum DependencyDetector {
             guard let m = spec.trimmingCharacters(in: .whitespaces).wholeMatch(of: /([A-Za-z0-9._-]+)(\[[^\]]*\])?\s*==\s*([^\s,]+)/) else {
                 return nil
             }
-            return Dependency(ecosystem: "PyPI", name: String(m.output.1), version: String(m.output.3), source: path, isDirect: true)
+            return Dependency(ecosystem: "PyPI", name: String(m.output.1), version: String(m.output.3), source: path, isDirect: true,
+                              requested: "==\(m.output.3)")
         }
     }
 
@@ -673,7 +704,9 @@ public enum DependencyDetector {
             let attributes = String(match.output.1)
             guard let include = attributes.firstMatch(of: /Include="([^"]+)"/)?.output.1,
                   let version = attributes.firstMatch(of: /Version="([^"$\[\]()*]+)"/)?.output.1 else { return nil }
-            return Dependency(ecosystem: "NuGet", name: String(include), version: String(version), source: path, isDirect: true)
+            // Een kale versie is in NuGet een minimum.
+            return Dependency(ecosystem: "NuGet", name: String(include), version: String(version), source: path, isDirect: true,
+                              requested: String(version))
         }
     }
 
@@ -688,7 +721,9 @@ public enum DependencyDetector {
     static func manifest(path: String, content: String) -> Manifest? {
         let name = path.split(separator: "/").last.map(String.init) ?? path
         var names: [String: DependencyKind] = [:]
-        func add(_ name: String, _ kind: DependencyKind) {
+        var ranges: [String: String] = [:]
+        func add(_ name: String, _ kind: DependencyKind, _ range: String? = nil) {
+            if let range, ranges[name] == nil { ranges[name] = range }
             if let current = names[name], current.weight >= kind.weight { return }
             names[name] = kind
         }
@@ -701,9 +736,9 @@ public enum DependencyDetector {
             }
             guard let manifest = try? JSONDecoder().decode(PackageJSON.self, from: Data(content.utf8)) else { return nil }
             for (field, kind) in [(manifest.dependencies, DependencyKind.runtime), (manifest.devDependencies, .dev), (manifest.optionalDependencies, .optional)] {
-                for key in (field ?? [:]).keys { add(key, kind) }
+                for (key, range) in field ?? [:] { add(key, kind, range) }
             }
-            return Manifest(ecosystem: "npm", names: names)
+            return Manifest(ecosystem: "npm", names: names, ranges: ranges)
         case "composer.json":
             struct ComposerJSON: Decodable {
                 let require: [String: String]?
@@ -712,20 +747,23 @@ public enum DependencyDetector {
             }
             guard let manifest = try? JSONDecoder().decode(ComposerJSON.self, from: Data(content.utf8)) else { return nil }
             for (field, kind) in [(manifest.require, DependencyKind.runtime), (manifest.requireDev, .dev)] {
-                for key in (field ?? [:]).keys where key != "php" && !key.hasPrefix("ext-") && key.contains("/") {
-                    add(key.lowercased(), kind)
+                for (key, range) in field ?? [:] where key != "php" && !key.hasPrefix("ext-") && key.contains("/") {
+                    add(key.lowercased(), kind, range)
                 }
             }
-            return Manifest(ecosystem: "Packagist", names: names)
+            return Manifest(ecosystem: "Packagist", names: names, ranges: ranges)
         case "pyproject.toml":
-            for (key, kind) in pyprojectNames(content) { add(key, kind) }
-            return Manifest(ecosystem: "PyPI", names: names)
+            for (key, kind, range) in pyprojectNames(content) { add(key, kind, range) }
+            return Manifest(ecosystem: "PyPI", names: names, ranges: ranges)
         case "Cargo.toml":
-            for (key, kind) in cargoDependencies(content) { add(key, kind) }
-            return Manifest(ecosystem: "crates.io", names: names)
+            for (key, kind, range) in cargoDependencies(content) { add(key, kind, range) }
+            return Manifest(ecosystem: "crates.io", names: names, ranges: ranges)
         case "Gemfile", "gems.rb":
-            for (key, kind) in gemfileNames(content) { add(key, kind) }
-            return Manifest(ecosystem: "RubyGems", names: names)
+            for (key, kind, range) in gemfileNames(content) { add(key, kind, range) }
+            return Manifest(ecosystem: "RubyGems", names: names, ranges: ranges)
+        case "Package.swift":
+            // Alleen bereiken: of een pin direct is, blijft onbekend (zie `direct`).
+            return Manifest(ecosystem: "SwiftURL", names: [:], ranges: swiftRequirements(content))
         default:
             return nil
         }
@@ -735,8 +773,8 @@ public enum DependencyDetector {
     /// (optioneel), `[dependency-groups]` en `[tool.uv] dev-dependencies` (dev), en de sleutels van
     /// `[tool.poetry.dependencies]` (zonder python) en `[tool.poetry.group.<g>.dependencies]` (dev,
     /// behalve main).
-    private static func pyprojectNames(_ content: String) -> [(String, DependencyKind)] {
-        var names: [(String, DependencyKind)] = []
+    private static func pyprojectNames(_ content: String) -> [(String, DependencyKind, String?)] {
+        var names: [(String, DependencyKind, String?)] = []
         var section = ""
         var arrayKind: DependencyKind?
         for raw in content.split(whereSeparator: \.isNewline) {
@@ -756,8 +794,10 @@ public enum DependencyDetector {
                 }
             }
             if let kind = arrayKind {
-                for match in line.matches(of: /"([A-Za-z0-9][A-Za-z0-9._-]*)/) where !line.contains("include-group") {
-                    names.append((normalizedPyPIName(String(match.output.1)), kind))
+                for match in line.matches(of: /"([^"]*)"/) where !line.contains("include-group") {
+                    if let requirement = pep508(String(match.output.1)) {
+                        names.append((normalizedPyPIName(requirement.name), kind, requirement.specifier))
+                    }
                 }
                 // Extras (`requests[socks]`) staan binnen de quotes; alleen een "]" daarbuiten sluit de lijst.
                 if line.replacing(/"[^"]*"/, with: "").contains("]") { arrayKind = nil }
@@ -770,36 +810,100 @@ public enum DependencyDetector {
             } else {
                 nil
             }
-            if let poetryKind, let m = line.firstMatch(of: /^([A-Za-z0-9][A-Za-z0-9._-]*)\s*=/) {
+            if let poetryKind, let m = line.firstMatch(of: /^([A-Za-z0-9][A-Za-z0-9._-]*)\s*=\s*(.*)/) {
                 let name = String(m.output.1)
-                if name != "python" { names.append((normalizedPyPIName(name), poetryKind)) }
+                // `requests = "^2.28"` of `requests = { version = "^2.28", optional = true }`.
+                let value = String(m.output.2).trimmingCharacters(in: .whitespaces)
+                let range = TomlPackage.string(value) ?? value.firstMatch(of: /\bversion\s*=\s*"([^"]+)"/).map { String($0.output.1) }
+                if name != "python" { names.append((normalizedPyPIName(name), poetryKind, range)) }
             }
         }
         return names
     }
 
+    /// PEP 508: "requests[socks] >= 2.28, < 3 ; python_version < '3.8'" → ("requests", ">= 2.28, < 3").
+    /// Zonder specifier (of met een URL na `@`) nil als bereik; geen naam vooraan: nil.
+    static func pep508(_ requirement: String) -> (name: String, specifier: String?)? {
+        let withoutMarker = requirement.split(separator: ";", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
+        guard let m = withoutMarker.wholeMatch(of: /\s*([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*(.*)/) else { return nil }
+        var specifier = String(m.output.2).trimmingCharacters(in: .whitespaces)
+        if specifier.hasPrefix("("), specifier.hasSuffix(")") { specifier = String(specifier.dropFirst().dropLast()) }
+        if specifier.hasPrefix("@") || specifier.isEmpty { return (String(m.output.1), nil) }
+        return (String(m.output.1), specifier)
+    }
+
     /// Crate-namen uit `[dependencies]`, `[build-dependencies]` en `[workspace.dependencies]`
     /// (runtime), `[dev-dependencies]` (dev) en `[target.'…'.dependencies]` (sleutels), plus tabellen
-    /// als `[dependencies.serde]` (naam in de kop).
-    private static func cargoDependencies(_ content: String) -> [(String, DependencyKind)] {
+    /// als `[dependencies.serde]` (naam in de kop), met hun versie-eis: `serde = "1.0"`,
+    /// `serde = { version = "1.0" }`, `version = "1"` in een eigen tabel, of `{ workspace = true }`
+    /// (de eis uit `[workspace.dependencies]`). Een pad of git zonder versie heeft geen eis.
+    private static func cargoDependencies(_ content: String) -> [(String, DependencyKind, String?)] {
         let kinds: [(String, DependencyKind)] = [("dependencies", .runtime), ("dev-dependencies", .dev), ("build-dependencies", .runtime)]
-        var names: [(String, DependencyKind)] = []
+        var found: [(name: String, kind: DependencyKind, range: String?, inherits: Bool)] = []
+        var workspace: [String: String] = [:]
         var current: DependencyKind?
+        var inWorkspace = false
+        /// Index in `found` van een tabel als `[dependencies.serde]`.
+        var table: Int?
+        func requirement(_ value: String) -> String? {
+            TomlPackage.string(value) ?? value.firstMatch(of: /\bversion\s*=\s*"([^"]+)"/).map { String($0.output.1) }
+        }
         for raw in content.split(whereSeparator: \.isNewline) {
             let line = raw.trimmingCharacters(in: .whitespaces)
             if line.hasPrefix("[") {
                 let section = line.trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
                 current = kinds.first { section == $0.0 || section.hasSuffix(".\($0.0)") }?.1
+                inWorkspace = section == "workspace.dependencies"
+                table = nil
                 if current == nil, let kind = kinds.first(where: { section.hasPrefix("\($0.0).") }) {
-                    names.append((String(section.dropFirst(kind.0.count + 1)), kind.1))
+                    found.append((String(section.dropFirst(kind.0.count + 1)), kind.1, nil, false))
+                    table = found.count - 1
                 }
                 continue
             }
-            if let current, let m = line.firstMatch(of: /^([A-Za-z0-9_-]+)\s*=/) {
-                names.append((String(m.output.1), current))
+            if let index = table, let m = line.firstMatch(of: /^(version|workspace)\s*=\s*(.*)/) {
+                if m.output.1 == "version" { found[index].range = TomlPackage.string(String(m.output.2)) }
+                if m.output.1 == "workspace", m.output.2.hasPrefix("true") { found[index].inherits = true }
+                continue
+            }
+            if let current, let m = line.firstMatch(of: /^([A-Za-z0-9_-]+)\s*=\s*(.*)/) {
+                let value = String(m.output.2)
+                found.append((String(m.output.1), current, requirement(value), value.firstMatch(of: /\bworkspace\s*=\s*true/) != nil))
+                if inWorkspace { workspace[String(m.output.1)] = requirement(value) }
             }
         }
-        return names
+        return found.map { item in (item.name, item.kind, item.inherits ? workspace[item.name] : item.range) }
+    }
+
+    /// `.package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0")` in Package.swift →
+    /// "github.com/apple/swift-nio": `from: "2.0.0"`. Ook `.upToNextMajor(from:)`,
+    /// `.upToNextMinor(from:)`, `exact:`, `.exact(_:)` en `"a"..<"b"`; `branch:`, `revision:` en
+    /// `path:` geven niets.
+    static func swiftRequirements(_ content: String) -> [String: String] {
+        var result: [String: String] = [:]
+        var rest = Substring(content)
+        while let start = rest.range(of: ".package(") {
+            // Tot het haakje dat dit `.package(` sluit.
+            var depth = 1
+            var index = start.upperBound
+            while index < rest.endIndex, depth > 0 {
+                if rest[index] == "(" { depth += 1 }
+                if rest[index] == ")" { depth -= 1 }
+                index = rest.index(after: index)
+            }
+            let inner = rest[start.upperBound..<index]
+            rest = rest[index...]
+            guard let url = inner.firstMatch(of: /url:\s*"([^"]+)"/)?.output.1 else { continue }
+            let patterns: [Regex<Substring>] = [
+                /\.(?:upToNextMajor|upToNextMinor|exact)\s*\(\s*(?:from\s*:\s*)?"[^"]+"\s*\)/,
+                /"[^"]+"\s*\.\.[.<]\s*"[^"]+"/,
+                /\b(?:from|exact)\s*:\s*"[^"]+"/,
+            ]
+            if let requirement = patterns.lazy.compactMap({ inner.firstMatch(of: $0) }).first {
+                result[swiftPackageName(String(url))] = String(requirement.output)
+            }
+        }
+        return result
     }
 
     // MARK: - Samenvoegen
@@ -821,8 +925,10 @@ public enum DependencyDetector {
         for (path, content) in files {
             if let manifest = manifest(path: path, content: content) {
                 repoWide[manifest.ecosystem, default: []].formUnion(manifest.names.keys)
-                manifests["\(manifest.ecosystem)|\(folder(of: path))", default: Manifest(ecosystem: manifest.ecosystem, names: [:])].names
+                let key = "\(manifest.ecosystem)|\(folder(of: path))"
+                manifests[key, default: Manifest(ecosystem: manifest.ecosystem, names: [:])].names
                     .merge(manifest.names) { $0.weight >= $1.weight ? $0 : $1 }
+                manifests[key]?.ranges.merge(manifest.ranges) { first, _ in first }
             }
             guard isRelevant(path) else { continue }
             if path.split(separator: "/").last == "yarn.lock" {
@@ -860,17 +966,36 @@ public enum DependencyDetector {
                         let head = reach[normalize(parent)]
                         return dependency.with(scope: .transitive, kind: read.kindsKnown ? nil : head?.kind, via: (head?.via ?? []) + dependency.via)
                     }
-                    guard let found = reach[normalize(dependency.name)] else { return dependency.with(scope: .transitive, via: []) }
-                    return dependency.with(scope: found.via.isEmpty ? .direct : .transitive, kind: read.kindsKnown ? nil : found.kind, via: found.via)
+                    let key = normalize(dependency.name)
+                    guard let found = reach[key] else { return dependency.with(scope: .transitive, via: []) }
+                    let requested: String? = dependency.requested ?? found.parent.flatMap { read.requirements[$0]?[key] }
+                    return dependency.with(scope: found.via.isEmpty ? .direct : .transitive, kind: read.kindsKnown ? nil : found.kind, via: found.via,
+                                           requested: .some(requested))
                 }
             }
             result += dependencies.map { dependency in
                 guard dependency.scope == .unknown, let names = repoWide[dependency.ecosystem],
                       names.contains(normalized(dependency.name, ecosystem: dependency.ecosystem)) else { return dependency }
                 return dependency.with(scope: .direct, via: [])
+            }.map { dependency in
+                guard dependency.requested == nil, dependency.scope != .transitive else { return dependency }
+                return dependency.with(requested: manifestRange(of: dependency, lockfile: read, manifests: manifests))
             }
         }
         return merged(result)
+    }
+
+    /// Het bereik dat een manifest voor een directe install vraagt: eerst dat in de workspace van
+    /// de install, dan dat naast de lockfile, dan wat de lockfile zelf noemt (Gemfile.lock), en
+    /// anders, als alle manifesten van de repo hetzelfde vragen, dat.
+    static func manifestRange(of dependency: Dependency, lockfile read: LockfileRead, manifests: [String: Manifest]) -> String? {
+        let key = normalized(dependency.name, ecosystem: dependency.ecosystem)
+        for folder in [dependency.workspace, folder(of: read.source)] {
+            if let range = manifests["\(dependency.ecosystem)|\(folder)"]?.ranges[key] { return range }
+        }
+        if let range = read.directRanges[key] { return range }
+        let all = Set(manifests.values.filter { $0.ecosystem == dependency.ecosystem }.compactMap { $0.ranges[key] })
+        return all.count == 1 ? all.first : nil
     }
 
     /// Packages die een repo ergens direct gebruikt, één per (ecosysteem, naam) met al hun installs
