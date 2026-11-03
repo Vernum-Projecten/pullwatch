@@ -45,13 +45,14 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     @MainActor static func relaunch() {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
-            // Mislukt het starten, dan blijft deze instantie draaien: afsluiten laat niets over.
-            if let error {
+        Task {
+            do {
+                _ = try await NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration)
+                NSApp.terminate(nil)
+            } catch {
+                // Mislukt het starten, dan blijft deze instantie draaien: afsluiten laat niets over.
                 logger.error("Opnieuw starten mislukt: \(error.localizedDescription)")
-                return
             }
-            DispatchQueue.main.async { NSApp.terminate(nil) }
         }
     }
 }

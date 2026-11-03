@@ -163,7 +163,9 @@ private struct MenuBarLabel: View {
             }
             NSApp.activate()
             panel?.orderOut(nil)
-            DispatchQueue.main.async {
+            // Een beurt later: dan heeft SwiftUI het venster gemaakt.
+            Task {
+                await Task.yield()
                 MenuPanel.window(id: windowId)?.makeKeyAndOrderFront(nil)
             }
             model.windowRequest = nil

@@ -18,10 +18,10 @@ struct MenuView: View {
 
             if let update = model.availableUpdate {
                 UpdateBanner(update: update) {
-                let panel = MenuPanel.current()
-                model.installUpdate()
-                panel?.orderOut(nil)
-            }
+                    let panel = MenuPanel.current()
+                    model.installUpdate()
+                    panel?.orderOut(nil)
+                }
             }
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
@@ -62,8 +62,8 @@ struct MenuView: View {
     }
 }
 
-/// Sluit het menupaneel. Voor vensters die het model opent doet `MenuBarLabel` dat zelf, na het
-/// openen; hier alleen voor Sparkle's venster.
+/// Vindt het menupaneel en de vensters van de app, zodat `MenuBarLabel` een geopend venster naar
+/// voren kan halen en het paneel kan wegzetten (en `MenuView` dat bij Sparkle's venster doet).
 @MainActor
 enum MenuPanel {
     /// Het menupaneel: de key window als dat een `NSPanel` is (gewone SwiftUI-vensters en
