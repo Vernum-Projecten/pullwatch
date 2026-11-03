@@ -118,6 +118,8 @@ public actor PollEngine {
     /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
     /// melding), met de bekende checks en het moment van de poll.
     private struct CheckRequest: Sendable {
+        /// De bron CI-checks staat aan (`DataSourceID.ciChecks`); uit vraagt de poll geen checks.
+        let isEnabled: Bool
         let includeOwn: Bool
         let known: [String: CheckMark]
         let at: Date
@@ -226,6 +228,7 @@ public actor PollEngine {
         interval: TimeInterval,
         retention: HistoryRetention,
         checksForOwnPullRequests: Bool = false,
+        fetchChecks: Bool = true,
         progress: (@Sendable (PollProgress) async -> Void)? = nil
     ) async -> PollResult {
         let t = now()
@@ -251,6 +254,7 @@ public actor PollEngine {
                     userId: userIds[account.id],
                     coAuthorRevisions: state.coAuthors.filter { $0.key.hasPrefix(prefix) }.mapValues(\.revision),
                     checkRequest: CheckRequest(
+                        isEnabled: fetchChecks,
                         includeOwn: checksForOwnPullRequests,
                         known: state.checks.filter { $0.key.hasPrefix(prefix) },
                         at: t
@@ -489,7 +493,7 @@ public actor PollEngine {
             }
             .prefix(coAuthorLimit))
         seen = []
-        let forChecks = Array(candidates
+        let forChecks = !request.isEnabled ? [] : Array(candidates
             .filter { pr in
                 guard seen.insert(pr.dedupKey).inserted,
                       checksVisible(pr, settings: settings, userId: userId, includeOwn: request.includeOwn, at: request.at)

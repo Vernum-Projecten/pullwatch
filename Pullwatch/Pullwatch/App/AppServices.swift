@@ -28,11 +28,12 @@ final class AppServices {
         ProviderFactory.make(account, pat: pat, secrets: secrets, http: http, gitHubApp: gitHubApp)
     }
 
-    /// Een versiecheck via het netwerk van de app, met de metadata uit het vorige rapport.
-    func versionChecker(metadataCache: [String: PackageMetadata]) -> VersionChecker {
+    /// Een versiecheck via het netwerk van de app, met de metadata uit het vorige rapport. Bronnen
+    /// in `disabledSources` (Instellingen, Bronnen) vraagt hij niets.
+    func versionChecker(metadataCache: [String: PackageMetadata], disabledSources: Set<DataSourceID>) -> VersionChecker {
         VersionChecker(
             makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
-            metadataCache: metadataCache
+            metadataCache: metadataCache, disabledSources: disabledSources
         )
     }
 }

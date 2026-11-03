@@ -70,6 +70,19 @@ final class AccountsModel {
         save()
     }
 
+    /// Een bron aan of uit (Instellingen, Bronnen), als binding voor de schakelaar. Er start geen
+    /// check: de volgende check vraagt de bron niet meer (of weer); wat eerder van de bron kwam,
+    /// staat meteen niet meer als actueel (`VersionsModel.configChanged()`).
+    subscript(sourceEnabled id: DataSourceID) -> Bool {
+        get { config.isEnabled(id) }
+        set {
+            guard config.isEnabled(id) != newValue else { return }
+            edit { config in
+                if newValue { config.disabledSources.remove(id) } else { config.disabledSources.insert(id) }
+            }
+        }
+    }
+
     private func save() {
         do {
             try services.configStore.save(config)

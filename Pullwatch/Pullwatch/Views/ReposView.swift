@@ -234,6 +234,8 @@ enum RepoFinding: Hashable, Identifiable {
     case endOfLife(label: String, version: String)
     case runtimeBehind(label: String, version: String)
     case packageUpdates(Int)
+    /// Een bron stond uit: over een deel van de repo zegt de check niets.
+    case notChecked
     case current
 
     var id: Self { self }
@@ -247,13 +249,14 @@ enum RepoFinding: Hashable, Identifiable {
         case .endOfLife(let label, let version): "\(label) \(version) EOL"
         case .runtimeBehind(let label, let version): "\(label) \(version) achter"
         case .packageUpdates(let count): "\(count) nieuwe versies"
+        case .notChecked: "niet alles gecontroleerd"
         case .current: "actueel"
         }
     }
 
     var tint: Color {
         switch self {
-        case .unchecked, .failed: .secondary
+        case .unchecked, .failed, .notChecked: .secondary
         case .vulnerabilities, .securityAlerts, .endOfLife: .red
         case .runtimeBehind, .packageUpdates: .orange
         case .current: .green
@@ -272,6 +275,7 @@ enum RepoFinding: Hashable, Identifiable {
                             : .runtimeBehind(label: worst.label, version: worst.version))
         }
         if !summary.packageUpdates.isEmpty { findings.append(.packageUpdates(summary.packageUpdates.count)) }
+        if !versions.skippedSources.isEmpty { findings.append(.notChecked) }
         return findings.isEmpty ? [.current] : findings
     }
 }

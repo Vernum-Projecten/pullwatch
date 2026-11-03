@@ -3,12 +3,15 @@ import SwiftUI
 
 /// De checks van een PR zoals in de PR-lijst van GitHub: de Octicon van de stand in zijn kleur
 /// (een vinkje, een kruis of een stip) en de telling "4/8", zonder woorden. De woorden staan in
-/// de tooltip en in VoiceOver. Zonder checks, of zonder toestemming om ze te lezen, niets.
+/// de tooltip en in VoiceOver. Zonder checks, of zonder toestemming om ze te lezen, niets; ook
+/// niets als de bron CI-checks uit staat (Instellingen, Bronnen), want eerder opgehaalde checks
+/// zijn dan niet meer actueel.
 struct ChecksBadge: View {
+    @Environment(AccountsModel.self) private var accounts
     let checks: PRChecks?
 
     var body: some View {
-        if let counts = checks?.counts, let state = counts.state {
+        if accounts.config.isEnabled(.ciChecks), let counts = checks?.counts, let state = counts.state {
             HStack(spacing: 3) {
                 state.glyph.image
                     .foregroundStyle(state.color)

@@ -9,13 +9,14 @@ nonisolated private let logger = Log(category: "app")
 /// hebt en de meldingen na de dagelijkse check.
 @Observable
 final class VersionsModel {
-    private(set) var versionReport: VersionReport? {
-        didSet {
-            packageSummaries = versionReport?.packageSummaries() ?? []
-            resetUpdateContexts()
-            didChangeReport()
-        }
+    /// Het bewaarde rapport (versions.json), zoals de checks het opleverden. Dit gaat als
+    /// `previous` en `metadataCache` naar de volgende check; de schermen lezen `versionReport`.
+    @ObservationIgnored private var storedReport: VersionReport? {
+        didSet { recomputeVisibleReport() }
     }
+    /// `storedReport` zonder wat van bronnen kwam die nu uit staan
+    /// (`VersionReport.visible(disabled:accountKinds:)`): wat de schermen en meldingen tonen.
+    private(set) var versionReport: VersionReport?
     private(set) var packageSummaries: [PackageSummary] = []
     /// Voortgang van "Afhankelijkheden checken"; `nil` als er niets loopt.
     private(set) var versionCheck: CheckProgress?
@@ -51,6 +52,9 @@ final class VersionsModel {
     /// context voor de blokkades; opnieuw bij een nieuw rapport.
     @ObservationIgnored private var registryIndex = RegistryIndex.empty
     @ObservationIgnored private var updateContexts: [String: UpdateContext] = [:]
+    /// Waarmee `versionReport` laatst berekend is, zodat een andere instelling het niet opnieuw doet.
+    @ObservationIgnored private var shownDisabledSources: Set<DataSourceID> = []
+    @ObservationIgnored private var shownAccountIds: [UUID] = []
 
     @ObservationIgnored private let services: AppServices
     @ObservationIgnored private let accounts: AccountsModel
@@ -61,22 +65,52 @@ final class VersionsModel {
         self.accounts = accounts
         self.notifications = notifications
         do {
-            versionReport = try services.versionStore.load()
+            storedReport = try services.versionStore.load()
         } catch {
             logger.error("versions.json onleesbaar, start leeg: \(error.localizedDescription)")
         }
         // didSet loopt niet in init.
-        packageSummaries = versionReport?.packageSummaries() ?? []
-        resetUpdateContexts()
+        recomputeVisibleReport(notify: false)
     }
 
     private var config: AppConfig { accounts.config }
 
     // MARK: - Rapport lezen
 
-    private func resetUpdateContexts() {
-        registryIndex = RegistryIndex(versionReport?.packageMetadata ?? [:])
+    /// Na een wijziging van de instellingen: andere bronnen uit, of een account erbij of eraf,
+    /// verandert het getoonde rapport. Geeft terug of het opnieuw berekend is (dan heeft
+    /// `didChangeReport` het overzicht al bijgewerkt).
+    func configChanged() -> Bool {
+        let config = config
+        guard config.disabledSources != shownDisabledSources || config.accounts.map(\.id) != shownAccountIds else { return false }
+        recomputeVisibleReport()
+        return true
+    }
+
+    private func recomputeVisibleReport(notify: Bool = true) {
+        let config = config
+        shownDisabledSources = config.disabledSources
+        shownAccountIds = config.accounts.map(\.id)
+        let visible = storedReport.map { report in
+            report.visible(disabled: config.disabledSources, accountKinds: Self.accountKinds(of: report, accounts: config.accounts))
+        }
+        versionReport = visible
+        packageSummaries = visible?.packageSummaries() ?? []
+        registryIndex = RegistryIndex(visible?.packageMetadata ?? [:])
         updateContexts = [:]
+        if notify { didChangeReport() }
+    }
+
+    /// De dienst van elk account in `report`. Een account dat niet meer in de config staat, krijgt
+    /// de dienst van de beveiligingsgegevens die zijn repo's nog hebben; anders zou een uitgezette
+    /// beveiligingsbron daar oude meldingen laten staan.
+    nonisolated static func accountKinds(of report: VersionReport, accounts: [Account]) -> [UUID: ProviderKind] {
+        var kinds = Dictionary(accounts.map { ($0.id, $0.kind) }, uniquingKeysWith: { first, _ in first })
+        for repo in report.repos where kinds[repo.accountId] == nil {
+            guard let feeds = repo.security?.feeds, !feeds.isEmpty else { continue }
+            kinds[repo.accountId] = feeds.contains { $0.kind == .advancedSecurity } ? .azureDevOps : .gitHub
+        }
+        return kinds
     }
 
     /// Wat de update van een package of de oplossing van een kwetsbaarheid in `repo` tegenhoudt
@@ -114,7 +148,7 @@ final class VersionsModel {
         guard config.autoVersionCheck, versionCheck == nil, !config.pollableAccounts.isEmpty else { return }
         let now = Date()
         if let nextAutoVersionAttempt, now < nextAutoVersionAttempt { return }
-        if let last = versionReport?.checkedAt, now.timeIntervalSince(last) < VersionReport.autoInterval { return }
+        if let last = storedReport?.checkedAt, now.timeIntervalSince(last) < VersionReport.autoInterval { return }
         nextAutoVersionAttempt = now + VersionReport.autoRetryInterval
         startCheck(automatic: true)
     }
@@ -136,7 +170,7 @@ final class VersionsModel {
     }
 
     private func runVersionCheck(automatic: Bool) async {
-        let checker = services.versionChecker(metadataCache: versionReport?.packageMetadata ?? [:])
+        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
         let fresh = await checker.run(accounts: config.pollableAccounts) { @MainActor [weak self] done, total in
             self?.versionCheck = CheckProgress(done: done, total: total)
         }
@@ -146,9 +180,9 @@ final class VersionsModel {
             logger.notice("versiecheck gestopt na \(done.count) repo's")
             nextAutoVersionAttempt = Date() + VersionReport.autoRetryInterval
             guard !done.isEmpty else { return }
-            let report = versionReport?.replacing(done, latest: fresh.latestPackages, metadata: fresh.packageMetadata)
+            let report = storedReport?.replacing(done, latest: fresh.latestPackages, metadata: fresh.packageMetadata)
                 ?? VersionReport(checkedAt: fresh.checkedAt, repos: done, latestPackages: fresh.latestPackages, packageMetadata: fresh.packageMetadata)
-            versionReport = report
+            storedReport = report
             save(report)
             return
         }
@@ -156,7 +190,7 @@ final class VersionsModel {
             logger.notice("automatische versiecheck mislukt, opnieuw over een uur")
             return
         }
-        let previous = versionReport
+        let previous = storedReport
         // GitHubs adviezen: wat de vorige check al had blijft, alleen nieuwe GHSA-ids gaan de deur uit.
         let report = await checker.completingAdvisories(
             of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous),
@@ -164,8 +198,9 @@ final class VersionsModel {
         )
         // Een volledige check dekt alles wat nu gevolgd wordt.
         lastFollowScope = NewRepoVersionCheck.scope(of: config.pollableAccounts)
-        versionReport = report
-        if automatic { notifyFindings(of: report, since: previous) }
+        storedReport = report
+        // De meldingen tonen wat de schermen tonen: geen details van een bron die uit staat.
+        if automatic { notifyFindings(of: report, shown: versionReport ?? report, since: previous) }
         save(report)
         appendSnapshot(report)
     }
@@ -199,15 +234,15 @@ final class VersionsModel {
     }
 
     private func runRefresh(of repo: RepoSummary, account: Account) async {
-        let checker = services.versionChecker(metadataCache: versionReport?.packageMetadata ?? [:])
+        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
         let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
-        guard let report = versionReport else { return }
+        guard let report = storedReport else { return }
         let updated = await checker.completingAdvisories(
             of: report.replacing(fresh, latest: latest, metadata: metadata), accounts: config.pollableAccounts
         )
         // Tijdens het opzoeken kan een andere check het rapport vervangen hebben; dan alleen de repo.
-        versionReport = versionReport == report ? updated : versionReport?.replacing(fresh, latest: latest, metadata: metadata)
-        save(versionReport!)
+        storedReport = storedReport == report ? updated : storedReport?.replacing(fresh, latest: latest, metadata: metadata)
+        save(storedReport!)
     }
 
     private func save(_ report: VersionReport) {
@@ -223,7 +258,7 @@ final class VersionsModel {
     /// Alleen met de dagelijkse check aan en als er al een rapport is (anders doet die alles).
     func startNewRepoVersionCheckIfNeeded(after result: PollResult) {
         guard config.autoVersionCheck, checkTask == nil, versionCheck == nil, refreshingRepos.isEmpty,
-              let report = versionReport else { return }
+              let report = storedReport else { return }
         let accounts = config.pollableAccounts
         guard NewRepoVersionCheck.isNeeded(
             after: result, accounts: accounts, report: report, attempted: attemptedNewRepos, lastScope: lastFollowScope
@@ -240,34 +275,35 @@ final class VersionsModel {
     }
 
     private func runNewRepoCheck(from start: VersionReport) async {
-        let checker = services.versionChecker(metadataCache: start.packageMetadata)
+        let checker = services.versionChecker(metadataCache: start.packageMetadata, disabledSources: config.disabledSources)
         let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
             self.versionCheck = CheckProgress(done: done, total: total)
         }
         attemptedNewRepos.formUnion(fresh.repos.map { Account.repoKey(accountId: $0.accountId, repo: $0.repo) })
         let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos
-        guard !repos.isEmpty, let report = versionReport else { return }
+        guard !repos.isEmpty, let report = storedReport else { return }
         logger.notice("\(repos.count) net gevolgde repo's gecheckt")
         let updated = await checker.completingAdvisories(
             of: report.replacing(repos, latest: fresh.latest, metadata: fresh.metadata), accounts: config.pollableAccounts
         )
-        versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest, metadata: fresh.metadata)
-        save(versionReport!)
+        storedReport = storedReport == report ? updated : storedReport?.replacing(repos, latest: fresh.latest, metadata: fresh.metadata)
+        save(storedReport!)
     }
 
     // MARK: - Meldingen
 
     /// Na de dagelijkse check: nieuwe kwetsbaarheden, beveiligingsmeldingen en versies, elk als de
     /// soort aan staat; boven de grens één melding per repository.
-    private func notifyFindings(of report: VersionReport, since previous: VersionReport?) {
+    /// `report` is het bewaarde rapport (wat nieuw is), `shown` wat de schermen ervan tonen.
+    private func notifyFindings(of report: VersionReport, shown: VersionReport, since previous: VersionReport?) {
         let builder = notifications.builder
         let notifier = services.notifier
         let settings = config.notifications
-        func repo(_ name: String) -> RepoVersions? { report.repos.first { $0.repo == name } }
+        func repo(_ name: String) -> RepoVersions? { shown.repos.first { $0.repo == name } }
         if settings.vulnerabilities {
             let notices = report.newVulnerabilities(since: previous).map { item in
                 let v = item.vulnerability
-                let advisory = report.advisory(for: v)
+                let advisory = shown.advisory(for: v)
                 let context = repo(item.repo).map(updateContext(for:)) ?? .empty
                 let assessment = v.severityAssessment(advisory)
                 return VulnerabilityNotice(

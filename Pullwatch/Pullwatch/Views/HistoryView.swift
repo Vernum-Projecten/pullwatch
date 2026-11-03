@@ -94,8 +94,8 @@ struct HistoryView: View {
             }
             .width(24)
             // De checks (CI) naast de status, ook als GitHub: een icoon in de kleur van de stand
-            // en "4/8". Alleen bij PR's; zonder checks een lege cel.
-            if kind == .pullRequest {
+            // en "4/8". Alleen bij PR's, en niet als de bron CI-checks uit staat; zonder checks een lege cel.
+            if kind == .pullRequest, accounts.config.isEnabled(.ciChecks) {
                 TableColumn(Text(verbatim: ""), value: \.checksSortKey) { item in
                     ChecksBadge(checks: item.entry.checks)
                         .frame(maxWidth: .infinity, alignment: .leading)

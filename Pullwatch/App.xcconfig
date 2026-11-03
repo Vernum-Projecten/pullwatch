@@ -3,8 +3,8 @@
 // MARKETING_VERSION is de versie van de app (CFBundleShortVersionString), de
 // release-tag is v$(MARKETING_VERSION). CURRENT_PROJECT_VERSION is het
 // buildnummer (CFBundleVersion) en gaat bij elke release omhoog.
-MARKETING_VERSION = 0.5.0
-CURRENT_PROJECT_VERSION = 9
+MARKETING_VERSION = 0.6.0
+CURRENT_PROJECT_VERSION = 10
 
 // Nooit wijzigen: instellingen, meldingstoestemming en Keychain-tokens van
 // bestaande gebruikers hangen aan deze bundle id.

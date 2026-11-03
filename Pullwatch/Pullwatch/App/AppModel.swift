@@ -51,7 +51,9 @@ final class AppModel {
         updates = UpdatesModel(services: services, accounts: accounts, notifications: notifications)
         router = AppRouter()
         // Het overzicht volgt instellingen, geschiedenis en rapport, meteen bij elke wijziging.
-        accounts.didChangeConfig = { overview.recomputeRepoSummaries() }
+        // Andere bronnen uit of een account erbij of eraf: eerst het getoonde rapport, dat dan zelf
+        // het overzicht bijwerkt.
+        accounts.didChangeConfig = { if !versions.configChanged() { overview.recomputeRepoSummaries() } }
         history.didChangeHistory = { overview.recomputeRepoSummaries() }
         versions.didChangeReport = { overview.recomputeRepoSummaries() }
         versions.didChangeSeenPackages = { overview.recomputeSidebar() }

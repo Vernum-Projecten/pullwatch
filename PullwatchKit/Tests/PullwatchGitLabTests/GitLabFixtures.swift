@@ -80,12 +80,13 @@ enum GitLabFixtures {
         """#
     }
 
-    static func release(_ tag: String, name: String, author: String, project: String = "acme/platform/api") -> String {
+    static func release(_ tag: String, name: String, author: String, project: String = "acme/platform/api",
+                        avatar: String = "https://gitlab.com/uploads/-/system/user/avatar/9/avatar.png") -> String {
         #"""
         {"name":"\#(name)","tag_name":"\#(tag)","description":"Notes","created_at":"2025-09-01T12:00:00.000Z",
          "released_at":"2025-09-01T12:30:00.000Z","upcoming_release":false,
          "author":{"id":9,"username":"\#(author)","name":"\#(author)","state":"active",
-                   "avatar_url":"https://gitlab.com/uploads/-/system/user/avatar/9/avatar.png",
+                   "avatar_url":"\#(avatar)",
                    "web_url":"https://gitlab.com/\#(author)"},
          "commit":{"id":"f00dcafe"},
          "_links":{"self":"https://gitlab.com/\#(project)/-/releases/\#(tag)",

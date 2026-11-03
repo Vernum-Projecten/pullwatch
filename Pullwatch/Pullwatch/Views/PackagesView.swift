@@ -4,6 +4,7 @@ import SwiftUI
 /// Versies per package over alle gevolgde repo's, in een tabel: per package de repo's die het
 /// gebruiken als uitklapbare rijen; dubbelklik op een repo opent de pagina ervan.
 struct PackagesView: View {
+    @Environment(AccountsModel.self) private var accounts
     @Environment(VersionsModel.self) private var versions
     @Environment(AppRouter.self) private var router
 
@@ -32,6 +33,7 @@ struct PackagesView: View {
         let text: String
         let summaries: [PackageSummary]
         let seen: [String: String]
+        let disabled: Set<DataSourceID>
     }
 
     private func recompute() {
@@ -47,7 +49,9 @@ struct PackagesView: View {
             return PackageSection(kind: kind, packages: summaries.map { summary in
                 PackageRow(
                     summary: summary,
-                    isNew: summary.state == .updateAvailable && seenAtOpen[summary.id] != summary.latest
+                    isNew: summary.state == .updateAvailable && seenAtOpen[summary.id] != summary.latest,
+                    skippedSource: summary.state == .unchecked
+                        ? SourceOff.registry(ofPackage: summary.id, in: accounts.config.disabledSources) : nil
                 )
             })
         }
@@ -174,7 +178,10 @@ struct PackagesView: View {
             // Nieuwe check terwijl je kijkt: wat nu nieuw is houdt zijn stip tot je terugkomt.
             versions.markPackagesSeen()
         }
-        .onChange(of: Query(text: searchText, summaries: versions.packageSummaries, seen: seenAtOpen), initial: true) {
+        .onChange(
+            of: Query(text: searchText, summaries: versions.packageSummaries, seen: seenAtOpen, disabled: accounts.config.disabledSources),
+            initial: true
+        ) {
             recompute()
         }
     }
@@ -234,13 +241,17 @@ struct PackageSection: Identifiable {
 struct PackageRow: Hashable, Identifiable {
     let summary: PackageSummary
     let isNew: Bool
+    /// Het register van dit package staat uit; daarom is er geen nieuwste versie.
+    var skippedSource: DataSourceID? = nil
 
     var id: String { summary.id }
 
     /// Wie achterloopt eerst, daarna wie al actueel is, dan wie het alleen transitief heeft.
     var users: [PackageUserRow] {
-        summary.behind.map { PackageUserRow(packageId: summary.id, user: $0, standing: .behind, latest: summary.latest) }
-            + summary.current.map { PackageUserRow(packageId: summary.id, user: $0, standing: .current, latest: summary.latest) }
+        // Zonder nieuwste versie is niemand "actueel".
+        let current: PackageUserRow.Standing = summary.latest == nil ? .unchecked : .current
+        return summary.behind.map { PackageUserRow(packageId: summary.id, user: $0, standing: .behind, latest: summary.latest) }
+            + summary.current.map { PackageUserRow(packageId: summary.id, user: $0, standing: current, latest: summary.latest) }
             + summary.transitiveOnly.map { PackageUserRow(packageId: summary.id, user: $0, standing: .transitiveOnly, latest: summary.latest) }
     }
 }
@@ -253,6 +264,8 @@ struct PackageUserRow: Hashable, Identifiable {
         case current
         /// Alleen via andere packages: de repo kan het niet zelf bijwerken.
         case transitiveOnly
+        /// Geen nieuwste versie bekend: niet achter, maar ook niet actueel.
+        case unchecked
     }
 
     let packageId: String
@@ -366,7 +379,8 @@ private struct PackageVersionCell: View {
         case .install(let row):
             VersionLabel(
                 version: row.install.version,
-                standing: row.install.scope == .transitive ? .transitiveOnly : row.isBehind ? .behind : .current
+                standing: row.install.scope == .transitive ? .transitiveOnly
+                    : row.isBehind ? .behind : row.latest == nil ? .unchecked : .current
             )
         }
     }
@@ -385,6 +399,7 @@ private struct VersionLabel: View {
             case .behind: Image(systemName: "arrow.down.circle").foregroundStyle(.orange)
             case .current: Image(systemName: "checkmark.circle").foregroundStyle(.green)
             case .transitiveOnly: Image(systemName: "arrow.triangle.branch").foregroundStyle(.secondary)
+            case .unchecked: Image(systemName: "questionmark.circle").foregroundStyle(.secondary)
             }
         }
         .accessibilityLabel(accessibilityText)
@@ -395,6 +410,7 @@ private struct VersionLabel: View {
         case .behind: Text("\(version), loopt achter")
         case .current: Text("\(version), actueel")
         case .transitiveOnly: Text("\(version), alleen transitief")
+        case .unchecked: Text("\(version), niet gecontroleerd")
         }
     }
 }
@@ -411,7 +427,12 @@ private struct PackageStatusCell: View {
             case .current:
                 Text("gebruikt in \(row.summary.current.count) repo's").foregroundStyle(.secondary)
             case .unchecked:
-                Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)
+                if let source = row.skippedSource {
+                    Text(verbatim: SourceOff.versionNotChecked(source)).foregroundStyle(.secondary).lineLimit(1)
+                        .help(Text(verbatim: SourceOff.versionNotChecked(source)))
+                } else {
+                    Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)
+                }
             }
         case .user(let row) where row.standing == .transitiveOnly:
             Text("Alleen transitief")

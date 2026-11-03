@@ -5,6 +5,8 @@ import UserNotifications
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // De taal van deze run vastleggen voordat Instellingen iets kan wijzigen.
+        _ = AppLanguage.atLaunch
         // Als host van de unit-tests niet pollen, melden of naar updates kijken: dat zou met
         // de echte accounts en tokens van de ontwikkelaar gebeuren.
         if AppModel.isTestHost { return }
@@ -180,12 +182,25 @@ private struct MenuBarLabel: View {
         }
         .onChange(of: router.windowRequest) { _, request in
             guard let request else { return }
+            // Het venster moet opengaan zolang het menupaneel nog de actieve app vertegenwoordigt;
+            // sluit je het paneel eerst, dan opent het "vanuit een niet-actieve app" en komt het
+            // onder andere vensters te staan. Dus: openen, activeren, paneel weg, dan naar voren.
+            let panel = MenuPanel.current()
+            let windowId: String
             if request.window == .settings {
                 openSettings()
+                windowId = "com_apple_SwiftUI_Settings_window"
             } else {
                 openWindow(id: request.window.rawValue)
+                windowId = request.window.rawValue
             }
             NSApp.activate()
+            panel?.orderOut(nil)
+            // Een beurt later: dan heeft SwiftUI het venster gemaakt.
+            Task {
+                await Task.yield()
+                MenuPanel.window(id: windowId)?.makeKeyAndOrderFront(nil)
+            }
             router.windowRequest = nil
         }
     }

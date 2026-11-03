@@ -1,1 +1,0 @@
-- A new app icon in Icon Composer format.

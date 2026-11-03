@@ -54,6 +54,56 @@ import PullwatchTestSupport
         #expect(GitHubEndpoints(instanceURL: URL(string: "https://git.acme.ghe.com")).flavor == .server)
     }
 
+    /// Het overzicht van bronnen (PullwatchCore kent `GitHubEndpoints` niet) noemt dezelfde API.
+    @Test func sourcesOverviewNamesTheSameAPI() {
+        let instances = [nil, "https://github.com", "https://acme.ghe.com", "https://git.acme.ghe.com",
+                         "https://github.example.com", "https://git.example.com:8443"]
+        for instance in instances.map({ $0.flatMap(URL.init(string:)) }) {
+            let account = Account(kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: instance)
+            #expect(SourcesOverview.server(of: account) == GitHubEndpoints(instanceURL: instance).api, "\(String(describing: instance))")
+        }
+    }
+
+    /// Inloggen met de GitHub App, de API van elk soort account en de profielfoto's tegen een mock:
+    /// elke host die daarbij de deur uit gaat moet in het overzicht van bronnen staan.
+    @Test func everyGitHubHostIsInTheOverview() async throws {
+        let http = MockHTTPClient()
+        http.on("login/device/code", body: #"{"device_code":"dc1","user_code":"ABCD-1234","verification_uri":"https://github.com/login/device","expires_in":900,"interval":1}"#)
+        http.on("login/oauth/access_token", body: #"{"access_token":"ghu_access","expires_in":28800,"refresh_token":"ghr_refresh","refresh_token_expires_in":15897600}"#)
+        http.on("/user", body: #"{"login":"jane"}"#)
+        http.on(".png", body: "")
+        let accounts = [
+            Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp, login: "jane"),
+            Account(kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: Self.server),
+            Account(kind: .gitHub, organization: "acme", authMethod: .pat, instanceURL: URL(string: "https://acme.ghe.com")),
+        ]
+
+        // Inloggen zoals de app het doet: de GitHub App van `GitHubAppConfig.main`, met zijn standaardadres.
+        let flow = GitHubDeviceFlow(config: GitHubAppConfig(clientID: "Iv23test", slug: "pullwatch-dev"), http: http,
+                                    second: .milliseconds(1))
+        let tokens = try await flow.waitForTokens(try await flow.start())
+        _ = try await flow.refresh(tokens)
+        for account in accounts {
+            _ = try await makeProvider(http, instance: account.effectiveInstanceURL).currentUserId()
+            let avatar = try #require(account.avatarURL)
+            _ = try await http.send(URLRequest(url: avatar))
+            let author = try #require(Account.gitHubAvatarURL("someone", kind: .gitHub, size: 40, web: account.effectiveInstanceURL))
+            _ = try await http.send(URLRequest(url: author))
+        }
+
+        // github.com stuurt een profielfoto door naar avatars.githubusercontent.com, en daar staan
+        // ook de foto's die de API zelf noemt; die host ziet de mock niet, dus hier met de hand.
+        let called = Set(http.requests.compactMap { $0.url?.host() } + ["avatars.githubusercontent.com"])
+        for host in ["github.com", "api.github.com", "github.example.com", "api.acme.ghe.com", "acme.ghe.com"] {
+            #expect(called.contains(host), "\(host) werd niet aangeroepen")
+        }
+        let listed = Set(DataSource.all.flatMap(\.endpoints).compactMap { $0.host() })
+            .union(SourcesOverview.otherConnections(config: AppConfig(accounts: accounts, checkForUpdates: false)).flatMap(\.urls).compactMap { $0.host() })
+        for host in called.sorted() {
+            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
+        }
+    }
+
     @Test func gitHubDotComRequestsAreUnchanged() async throws {
         let http = MockHTTPClient()
         http.on("graphql", body: #"{"data":{"r0":null}}"#)
