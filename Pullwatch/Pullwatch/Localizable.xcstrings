@@ -233,6 +233,57 @@
         }
       }
     },
+    "%@, alleen transitief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, only transitive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, nur transitiv"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, uniquement transitif"
+          }
+        }
+      }
+    },
+    "%@, dan %@": {
+      "comment": "Voorgelezen keten van packages: wat er al staat, het volgende package",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, dan %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, then %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, dann %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, puis %@"
+          }
+        }
+      }
+    },
     "%@, loopt achter": {
       "localizations": {
         "de": {
@@ -1223,6 +1274,83 @@
         }
       }
     },
+    "%lld versies": {
+      "comment": "Aantal verschillende versies van een package in deze repo",
+      "localizations": {
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld versie"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld versies"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld version"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld versions"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Version"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Versionen"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld version"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld versions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "+ %lld meer": {
       "comment": "Laatste regel van een melding; aantal regels dat niet getoond wordt",
       "localizations": {
@@ -1872,6 +2000,72 @@
         }
       }
     },
+    "Alleen dev": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dev only"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Dev"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dev uniquement"
+          }
+        }
+      }
+    },
+    "Alleen nodig om te ontwikkelen en te testen, niet in wat je uitlevert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only needed to develop and test, not in what you ship"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur zum Entwickeln und Testen nötig, nicht in dem, was du auslieferst"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nécessaire uniquement pour développer et tester, absent de ce que vous livrez"
+          }
+        }
+      }
+    },
+    "Alleen transitief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only transitive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur transitiv"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement transitif"
+          }
+        }
+      }
+    },
     "Alleen van %@": {
       "comment": "Auteur",
       "localizations": {
@@ -1925,16 +2119,16 @@
     },
     "Alles als gelezen markeren": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark All as Read"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle als gelesen markieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark All as Read"
           }
         },
         "fr": {
@@ -2548,6 +2742,50 @@
         }
       }
     },
+    "Dev": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dev"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dev"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dev"
+          }
+        }
+      }
+    },
+    "Deze repo vraagt het package niet zelf; het komt binnen via andere packages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This repository does not ask for the package itself; other packages bring it in"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Repository fordert das Paket nicht selbst an; andere Pakete bringen es mit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce dépôt ne demande pas le paquet lui-même ; d'autres paquets l'apportent"
+          }
+        }
+      }
+    },
     "Deze repo wordt niet meer gevolgd of is nog niet gecheckt.": {
       "localizations": {
         "de": {
@@ -2566,6 +2804,51 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ce dépôt n’est plus suivi ou n’a pas encore été vérifié."
+          }
+        }
+      }
+    },
+    "Direct": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direkt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct"
+          }
+        }
+      }
+    },
+    "Direct in %@": {
+      "comment": "Workspace, bv. packages/web",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct in %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direkt in %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct dans %@"
           }
         }
       }
@@ -3095,6 +3378,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen packages gevonden"
+          }
+        }
+      }
+    },
+    "Geen packages met een vaste versie gevonden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No packages with a pinned version found"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Pakete mit fester Version gefunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun paquet avec une version fixe trouvé"
           }
         }
       }
@@ -3629,6 +3934,28 @@
         }
       }
     },
+    "Herkomst onbekend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Origin unknown"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herkunft unbekannt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Origine inconnue"
+          }
+        }
+      }
+    },
     "Hoe vaak Pullwatch naar nieuwe pull requests en tags kijkt, en hoe lang de geschiedenis blijft staan.": {
       "localizations": {
         "de": {
@@ -3669,6 +3996,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Élevée"
+          }
+        }
+      }
+    },
+    "In %@": {
+      "comment": "Workspace, bv. packages/web",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans %@"
           }
         }
       }
@@ -3950,6 +4300,28 @@
         }
       }
     },
+    "Je project vraagt dit package zelf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your project asks for this package itself"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Projekt fordert dieses Paket selbst an"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre projet demande ce paquet lui-même"
+          }
+        }
+      }
+    },
     "Keur Pullwatch goed onder Systeeminstellingen → Algemeen → Inlogonderdelen.": {
       "localizations": {
         "de": {
@@ -4106,6 +4478,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Désormais, cliquez sur l’icône dans la barre des menus pour vos PR et tags, ou rouvrez Pullwatch pour la fenêtre principale."
+          }
+        }
+      }
+    },
+    "Komt binnen via %@, een package dat je project zelf vraagt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comes in through %@, a package your project asks for itself"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommt über %@, ein Paket, das dein Projekt selbst anfordert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrive par %@, un paquet que votre projet demande lui-même"
+          }
+        }
+      }
+    },
+    "Komt binnen via een ander package": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comes in through another package"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommt über ein anderes Paket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrive par un autre paquet"
           }
         }
       }
@@ -4517,16 +4933,16 @@
     },
     "Markeer als gelezen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark as Read"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Als gelesen markieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as Read"
           }
         },
         "fr": {
@@ -4539,16 +4955,16 @@
     },
     "Markeer als ongelezen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark as Unread"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Als ungelesen markieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as Unread"
           }
         },
         "fr": {
@@ -4561,16 +4977,16 @@
     },
     "Markeert alles in deze lijst als gelezen (⌘K)": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Marks everything in this list as read (⌘K)"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Markiert alles in dieser Liste als gelesen (⌘K)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marks everything in this list as read (⌘K)"
           }
         },
         "fr": {
@@ -5235,6 +5651,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pas encore de tags"
+          }
+        }
+      }
+    },
+    "Nog geen versie met een oplossing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No fixed version yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Version mit Korrektur"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore de version corrigée"
           }
         }
       }
@@ -6329,6 +6767,72 @@
         }
       }
     },
+    "Packages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquets"
+          }
+        }
+      }
+    },
+    "Packages die alleen via een ander package binnenkomen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages that only come in through another package"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete, die nur über ein anderes Paket kommen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquets qui n'arrivent que par un autre paquet"
+          }
+        }
+      }
+    },
+    "Packages die je project zelf vraagt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages your project asks for itself"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete, die dein Projekt selbst anfordert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquets que votre projet demande lui-même"
+          }
+        }
+      }
+    },
     "Packages met nieuwe versie": {
       "localizations": {
         "de": {
@@ -6353,6 +6857,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Packages met nieuwe versie"
+          }
+        }
+      }
+    },
+    "Packages:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packages:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquets :"
           }
         }
       }
@@ -7220,6 +7746,29 @@
         }
       }
     },
+    "Root": {
+      "comment": "De hoofdmap van een repo, als workspace",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Root"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Root"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Racine"
+          }
+        }
+      }
+    },
     "Selecteer een PR of tag van één repo": {
       "localizations": {
         "de": {
@@ -7884,6 +8433,51 @@
         }
       }
     },
+    "Transitief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitiv"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitif"
+          }
+        }
+      }
+    },
+    "Transitief in %@": {
+      "comment": "Workspace, bv. packages/web",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitive in %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitiv in %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transitif dans %@"
+          }
+        }
+      }
+    },
     "Updates": {
       "localizations": {
         "de": {
@@ -8176,6 +8770,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Supprimer"
+          }
+        }
+      }
+    },
+    "Via %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Via %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Via %@"
           }
         }
       }
@@ -8666,6 +9282,62 @@
         }
       }
     },
+    "Werk %@ bij naar %@": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij naar %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %@ to %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere %@ auf %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour %@ vers %@"
+          }
+        }
+      }
+    },
+    "Werk %@ bij, zodat het %@ %@ of nieuwer binnenhaalt": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Werk %1$@ bij, zodat het %2$@ %3$@ of nieuwer binnenhaalt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update %@ so it brings in %@ %@ or later"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere %@, damit es %@ %@ oder neuer mitbringt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour %@ pour qu’il apporte %@ %@ ou plus récent"
+          }
+        }
+      }
+    },
     "Zie Versies… in het menu": {
       "localizations": {
         "de": {
@@ -8932,6 +9604,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zoeken"
+          }
+        }
+      }
+    },
+    "Zonder manifest in dezelfde map is niet te zien of je project deze packages zelf vraagt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a manifest in the same folder, there is no telling whether your project asks for these packages itself"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Manifest im selben Ordner lässt sich nicht sagen, ob dein Projekt diese Pakete selbst anfordert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans manifeste dans le même dossier, impossible de savoir si votre projet demande ces paquets lui-même"
           }
         }
       }
@@ -9306,6 +10000,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "ook in %@"
+          }
+        }
+      }
+    },
+    "via %@": {
+      "comment": "Keten van packages, bv. express → body-parser",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "via %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "über %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "via %@"
+          }
+        }
+      }
+    },
+    "via %@ in %@": {
+      "comment": "Keten van packages, workspace",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "via %1$@ in %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "via %@ in %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "über %@ in %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "via %@ dans %@"
           }
         }
       }

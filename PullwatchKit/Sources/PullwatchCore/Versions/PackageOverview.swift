@@ -60,6 +60,8 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
     public let since: Date?
     public let behind: [PackageUser]
     public let current: [PackageUser]
+    /// Repo's die het package alleen transitief hebben: niet zelf bij te werken, dus nooit "achter".
+    public let transitiveOnly: [PackageUser]
 
     public var state: State {
         guard latest != nil else { return .unchecked }
@@ -144,12 +146,24 @@ extension VersionReport {
                     PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs))
             }
         }
+        // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben; een
+        // package dat nergens direct gebruikt wordt krijgt geen eigen regel.
+        for repo in repos where repo.error == nil {
+            for package in repo.otherPackages where groups[package.key] != nil {
+                let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs)
+                if user.isTransitiveOnly, groups[package.key]?.users.contains(where: { $0.repoId == repo.id }) == false {
+                    groups[package.key]?.users.append(user)
+                }
+            }
+        }
         let summaries = order.compactMap { id -> PackageSummary? in
             guard let group = groups[id] else { return nil }
-            let behind = group.latest.map { latest in group.users.filter { PackageVersions.isBehind($0.version, latest: latest) } } ?? []
+            let transitiveOnly = group.users.filter(\.isTransitiveOnly)
+            let own = group.users.filter { !$0.isTransitiveOnly }
+            let behind = group.latest.map { latest in own.filter { PackageVersions.isBehind($0.version, latest: latest) } } ?? []
             return PackageSummary(
                 id: id, label: group.label, kind: group.kind, latest: group.latest, since: group.since,
-                behind: behind, current: group.users.filter { !behind.contains($0) }
+                behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly
             )
         }
         func rank(_ state: PackageSummary.State) -> Int {

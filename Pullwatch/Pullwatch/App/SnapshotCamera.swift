@@ -35,6 +35,27 @@ enum SnapshotCamera {
         }
     }
 
+    /// Met `-PullwatchSnapshotExpand YES`: inklapbare groepen (packages, rijen in Versies) staan
+    /// open, zodat de foto's laten zien wat erin zit.
+    static var expandsAll: Bool { UserDefaults.standard.bool(forKey: "PullwatchSnapshotExpand") }
+
+    /// Schuift de grootste scrollview van het venster `pages` vensterhoogtes naar beneden, voor
+    /// foto's van wat onder de vouw staat.
+    static func scroll(windowId: String, pages: Double) {
+        guard let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix(windowId) == true }),
+              let content = window.contentView,
+              let scrollView = scrollViews(in: content).max(by: { $0.documentView?.frame.height ?? 0 < $1.documentView?.frame.height ?? 0 })
+        else { return }
+        let height = scrollView.contentView.bounds.height
+        let maxY = max(0, (scrollView.documentView?.frame.height ?? 0) - height)
+        scrollView.contentView.scroll(to: NSPoint(x: 0, y: min(maxY, height * 0.9 * pages)))
+        scrollView.reflectScrolledClipView(scrollView.contentView)
+    }
+
+    private static func scrollViews(in view: NSView) -> [NSScrollView] {
+        ((view as? NSScrollView).map { [$0] } ?? []) + view.subviews.flatMap(scrollViews)
+    }
+
     private static func outlineViews(in view: NSView) -> [NSOutlineView] {
         (view as? NSOutlineView).map { [$0] } ?? view.subviews.flatMap(outlineViews)
     }

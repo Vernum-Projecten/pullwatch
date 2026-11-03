@@ -66,6 +66,10 @@ enum SnapshotTour {
                 model.show(.repos)
                 model.showRepo(id: repo.id)
             }))
+            // Wat onder de vouw staat: controle, kwetsbaarheden en packages.
+            for page in 1...4 {
+                steps.append(("repo-detail-\(page + 1)", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: Double(page)) }))
+            }
             steps.append(("repo-stats", { model.showStats(repoId: repo.id) }))
             steps.append(("repo-history-token", { model.showHistory(.pullRequest, repo: HistoryRepo(accountId: repo.accountId, repo: repo.repo)) }))
         }

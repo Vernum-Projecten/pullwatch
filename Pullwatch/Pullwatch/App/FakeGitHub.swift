@@ -122,15 +122,31 @@ nonisolated private enum FakeWorld {
     ]
 
     static let files: [String: [String: String]] = [
+        // Een monorepo: de root en packages/web, lodash direct (4.17.20), via express en body-parser
+        // (4.17.15) en in packages/web (4.17.21), een kwetsbare qs alleen transitief en een dev-only lek.
         "hello-world": [
             ".nvmrc": "16\n",
-            "package.json": #"{"name":"hello-world","dependencies":{"lodash":"^4.17.20"}}"#,
-            "package-lock.json": #"{"lockfileVersion":3,"packages":{"":{"dependencies":{"lodash":"^4.17.20"}},"node_modules/lodash":{"version":"4.17.20"}}}"#,
+            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0"}}"#,
+            "packages/web/package.json": #"{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0"}}"#,
+            "package-lock.json": #"{"lockfileVersion":3,"packages":{"#
+                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0"}},"#
+                + #""packages/web":{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0"}},"#
+                + #""node_modules/web":{"resolved":"packages/web","link":true},"#
+                + #""node_modules/lodash":{"version":"4.17.20"},"#
+                + #""node_modules/express":{"version":"4.18.0","dependencies":{"body-parser":"1.20.1"}},"#
+                + #""node_modules/body-parser":{"version":"1.20.1","dependencies":{"qs":"6.10.1","lodash":"4.17.15"}},"#
+                + #""node_modules/body-parser/node_modules/lodash":{"version":"4.17.15"},"#
+                + #""node_modules/qs":{"version":"6.10.1"},"#
+                + #""node_modules/jest":{"version":"29.7.0","dev":true,"dependencies":{"semver":"6.3.0"}},"#
+                + #""node_modules/semver":{"version":"6.3.0","dev":true},"#
+                + #""node_modules/left-pad":{"version":"1.3.0"},"#
+                + #""packages/web/node_modules/lodash":{"version":"4.17.21"}}}"#,
         ],
+        // lodash alleen via express: in Versies "alleen transitief".
         "spoon-knife": [
             ".nvmrc": "22\n",
             "package.json": #"{"name":"spoon-knife","dependencies":{"express":"^4.18.0","left-pad":"1.3.0"}}"#,
-            "package-lock.json": #"{"lockfileVersion":3,"packages":{"":{"dependencies":{"express":"^4.18.0","left-pad":"1.3.0"}},"node_modules/express":{"version":"4.18.0"},"node_modules/left-pad":{"version":"1.3.0"}}}"#,
+            "package-lock.json": #"{"lockfileVersion":3,"packages":{"":{"dependencies":{"express":"^4.18.0","left-pad":"1.3.0"}},"node_modules/express":{"version":"4.18.0","dependencies":{"lodash":"4.17.21"}},"node_modules/lodash":{"version":"4.17.21"},"node_modules/left-pad":{"version":"1.3.0"}}}"#,
         ],
         "linguist": [
             "go.mod": "module github.com/octocat/linguist\n\ngo 1.22\n\nrequire github.com/spf13/cobra v1.8.0\n",
@@ -151,7 +167,7 @@ nonisolated private enum FakeWorld {
         case "api.osv.dev":
             return osv(path: path, body: request.httpBody)
         case "registry.npmjs.org":
-            let latest = ["lodash": "4.17.21", "express": "4.21.2", "left-pad": "1.3.0"]
+            let latest = ["lodash": "4.17.21", "express": "4.21.2", "left-pad": "1.3.0", "jest": "29.7.0"]
             let name = url.pathComponents.dropFirst().first ?? ""
             return latest[name].map { #"{"version":"\#($0)"}"# }
         case "proxy.golang.org":
@@ -239,9 +255,16 @@ nonisolated private enum FakeWorld {
             }
             let queries = body.flatMap { try? JSONDecoder().decode(Batch.self, from: $0) }?.queries ?? []
             let results = queries.map { query in
-                query.package.name == "lodash" && query.version == "4.17.20"
-                    ? #"{"vulns":[{"id":"GHSA-35jh-r3h4-6jhm"},{"id":"GHSA-29mw-wpgm-hmr9"}]}"#
-                    : "{}"
+                switch (query.package.name, query.version) {
+                case ("lodash", "4.17.20"), ("lodash", "4.17.15"):
+                    #"{"vulns":[{"id":"GHSA-35jh-r3h4-6jhm"},{"id":"GHSA-29mw-wpgm-hmr9"}]}"#
+                case ("qs", "6.10.1"):
+                    #"{"vulns":[{"id":"GHSA-hrpp-h998-j3pp"}]}"#
+                case ("semver", "6.3.0"):
+                    #"{"vulns":[{"id":"GHSA-c2qf-rxjj-qqgw"}]}"#
+                default:
+                    "{}"
+                }
             }
             return #"{"results":["# + results.joined(separator: ",") + "]}"
         }
@@ -250,6 +273,12 @@ nonisolated private enum FakeWorld {
         }
         if path.hasSuffix("GHSA-29mw-wpgm-hmr9") {
             return #"{"id":"GHSA-29mw-wpgm-hmr9","aliases":["CVE-2020-28500"],"summary":"Regular Expression Denial of Service (ReDoS) in lodash","database_specific":{"severity":"MODERATE"},"affected":[{"package":{"name":"lodash","ecosystem":"npm"},"ranges":[{"type":"SEMVER","events":[{"introduced":"4.0.0"},{"fixed":"4.17.21"}]}]}]}"#
+        }
+        if path.hasSuffix("GHSA-hrpp-h998-j3pp") {
+            return #"{"id":"GHSA-hrpp-h998-j3pp","aliases":["CVE-2022-24999"],"summary":"qs vulnerable to Prototype Pollution","database_specific":{"severity":"HIGH"},"affected":[{"package":{"name":"qs","ecosystem":"npm"},"ranges":[{"type":"SEMVER","events":[{"introduced":"6.10.0"},{"fixed":"6.10.3"}]}]}]}"#
+        }
+        if path.hasSuffix("GHSA-c2qf-rxjj-qqgw") {
+            return #"{"id":"GHSA-c2qf-rxjj-qqgw","aliases":["CVE-2022-25883"],"summary":"semver vulnerable to Regular Expression Denial of Service","database_specific":{"severity":"MODERATE"},"affected":[{"package":{"name":"semver","ecosystem":"npm"},"ranges":[{"type":"SEMVER","events":[{"introduced":"6.0.0"},{"fixed":"6.3.1"}]}]}]}"#
         }
         return nil
     }
