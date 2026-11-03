@@ -144,14 +144,15 @@ final class GitHubSignIn {
             let owners = try await model.gitHubInstallationOwners(accountId)
             installations = owners.isEmpty ? .none : .found(owners)
             log.info("installaties: \(owners.isEmpty ? "geen" : owners.map(\.login).joined(separator: ", "))")
-            if !owners.isEmpty {
-                error = nil
-                waitingForInstall = false
-                watch?.cancel()
-            }
+            if !owners.isEmpty { error = nil }
         } catch {
             fail(error, "installaties ophalen mislukt")
         }
+    }
+
+    /// De plekken waar de app nu geïnstalleerd is.
+    private var installedLogins: [String] {
+        if case .found(let owners) = installations { owners.map(\.login) } else { [] }
     }
 
     private func resume() async {
@@ -162,16 +163,21 @@ final class GitHubSignIn {
     }
 
     /// Om de paar seconden kijken, tot tien minuten lang: terugkomen in de app is niet altijd
-    /// te zien (een ander venster, een tweede scherm).
+    /// te zien (een ander venster, een tweede scherm). Klaar zodra er een plek bij is gekomen die
+    /// er bij de start nog niet was, ook als de app al ergens anders geïnstalleerd was.
     private func startWatching() {
         waitingForInstall = true
+        let known = Set(installedLogins)
         watch?.cancel()
         watch = Task {
             for _ in 0..<200 {
                 try? await Task.sleep(for: .seconds(FakeGitHubTiming.installPoll))
                 guard !Task.isCancelled else { return }
                 await refreshInstallations()
-                if case .found = installations { return }
+                if !Set(installedLogins).isSubset(of: known) {
+                    waitingForInstall = false
+                    return
+                }
             }
             waitingForInstall = false
             log.notice("gestopt met wachten op de installatie")

@@ -174,7 +174,8 @@ private struct AccountCard: View {
     }
 }
 
-/// + (met de keuze GitHub of Azure DevOps) en − onder de lijst, zoals in de Mac-instellingen.
+/// + met een pijltje (het opent een keuze: GitHub of Azure DevOps) en − onder de lijst, zoals
+/// in de Mac-instellingen.
 private struct AccountListButtons: View {
     let canRemove: Bool
     let add: (ProviderKind) -> Void
@@ -188,10 +189,11 @@ private struct AccountListButtons: View {
             } label: {
                 Label("Account toevoegen", systemImage: "plus")
                     .labelStyle(.iconOnly)
-                    .frame(width: 28, height: 22)
+                    .frame(height: 22)
+                    .padding(.horizontal, 6)
             }
             .menuStyle(.button)
-            .menuIndicator(.hidden)
+            .menuIndicator(.visible)
             .buttonStyle(.borderless)
             .fixedSize()
             .help("Account toevoegen")
