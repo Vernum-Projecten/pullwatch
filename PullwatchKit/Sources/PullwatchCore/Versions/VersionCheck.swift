@@ -36,12 +36,35 @@ public struct ReleaseVersions: Codable, Hashable, Sendable {
     public let vulnerabilities: [Vulnerability]
     /// Gezet als de tag niet te scannen was; de check van de default branch staat dan nog wel.
     public let error: String?
+    /// Bronnen die voor deze tag uit stonden en dus niets gecontroleerd hebben (zie `RepoVersions.skippedSources`).
+    public let skippedSources: Set<DataSourceID>
 
-    public init(tag: String, components: [ComponentVersion], vulnerabilities: [Vulnerability] = [], error: String? = nil) {
+    public init(
+        tag: String, components: [ComponentVersion], vulnerabilities: [Vulnerability] = [], error: String? = nil,
+        skippedSources: Set<DataSourceID> = []
+    ) {
         self.tag = tag
         self.components = components
         self.vulnerabilities = vulnerabilities
         self.error = error
+        self.skippedSources = skippedSources
+    }
+
+    /// Stond `id` uit, zodat er voor deze tag niets over te zeggen is?
+    public func isUnchecked(_ id: DataSourceID) -> Bool { skippedSources.contains(id) }
+
+    private enum CodingKeys: String, CodingKey {
+        case tag, components, vulnerabilities, error, skippedSources
+    }
+
+    /// versions.json van vóór de bronnen heeft geen `skippedSources`.
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        tag = try c.decode(String.self, forKey: .tag)
+        components = try c.decode([ComponentVersion].self, forKey: .components)
+        vulnerabilities = try c.decode([Vulnerability].self, forKey: .vulnerabilities)
+        error = try c.decodeIfPresent(String.self, forKey: .error)
+        skippedSources = try c.decodeIfPresent(Set<DataSourceID>.self, forKey: .skippedSources) ?? []
     }
 }
 
@@ -66,6 +89,10 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     /// Beveiligingsgegevens van de dienst zelf (code scanning, geheimen, eigen adviezen, Advanced
     /// Security); nil als de dienst die niet kent of het ophalen mislukte.
     public let security: SecurityScan?
+    /// Bronnen die uit stonden en voor deze repo iets hadden moeten controleren: daarover zegt de
+    /// check niets, ook niet "in orde". OSV alleen als de repo packages heeft, de beveiliging van
+    /// de dienst alleen bij een account van die dienst.
+    public let skippedSources: Set<DataSourceID>
 
     public var id: String { "\(accountId.uuidString)/\(repo)" }
 
@@ -85,6 +112,9 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
     public var advisoryCount: Int { Set(vulnerabilities.map(\.key)).count }
 
     /// Zit deze kwetsbaarheid van de default branch ook in de laatste release? nil zonder (bruikbare) release.
+    /// Stond `id` uit, zodat de check er voor deze repo niets over zegt?
+    public func isUnchecked(_ id: DataSourceID) -> Bool { skippedSources.contains(id) }
+
     public func isInRelease(_ vulnerability: Vulnerability) -> Bool? {
         guard let release, release.error == nil else { return nil }
         return release.vulnerabilities.contains { $0.key == vulnerability.key }
@@ -100,7 +130,8 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         release: ReleaseVersions? = nil,
         packages: [PackageUse] = [],
         otherPackages: [PackageUse] = [],
-        security: SecurityScan? = nil
+        security: SecurityScan? = nil,
+        skippedSources: Set<DataSourceID> = []
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -112,10 +143,12 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         self.packages = packages
         self.otherPackages = otherPackages
         self.security = security
+        self.skippedSources = skippedSources
     }
 
     private enum CodingKeys: String, CodingKey {
         case accountId, repo, components, error, vulnerabilities, vulnerabilityError, release, packages, otherPackages, security
+        case skippedSources
     }
 
     /// versions.json van vóór de CVE-check heeft geen `vulnerabilities`.
@@ -131,6 +164,7 @@ public struct RepoVersions: Codable, Hashable, Sendable, Identifiable {
         packages = try c.decodeIfPresent([PackageUse].self, forKey: .packages) ?? []
         otherPackages = try c.decodeIfPresent([PackageUse].self, forKey: .otherPackages) ?? []
         security = try c.decodeIfPresent(SecurityScan.self, forKey: .security)
+        skippedSources = try c.decodeIfPresent(Set<DataSourceID>.self, forKey: .skippedSources) ?? []
     }
 }
 
@@ -221,14 +255,15 @@ extension VersionReport {
     }
 
     /// Kwetsbaarheden die in `previous` nog niet voor die repo bestonden. Zonder vorige check,
-    /// voor een repo die er toen niet bij zat of waarvan de CVE-check toen mislukte, telt
-    /// alles als bekend: anders komt er een stortvloed aan meldingen.
+    /// voor een repo die er toen niet bij zat of waarvan de CVE-check toen mislukte of uit stond,
+    /// telt alles als bekend: anders komt er een stortvloed aan meldingen.
     public func newVulnerabilities(since previous: VersionReport?) -> [(repo: String, vulnerability: Vulnerability)] {
         guard let previous else { return [] }
         let before = Dictionary(previous.repos.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         var result: [(repo: String, vulnerability: Vulnerability)] = []
         for repo in repos {
-            guard let old = before[repo.id], old.error == nil, old.vulnerabilityError == nil else { continue }
+            guard let old = before[repo.id], old.error == nil, old.vulnerabilityError == nil,
+                  !old.isUnchecked(.osv), !repo.isUnchecked(.osv) else { continue }
             // Eén melding per lek en package, ook als het meerdere installs raakt; de directe
             // install (als die er is) staat in de melding.
             let known = Set(old.vulnerabilities.map(\.key))
@@ -249,17 +284,33 @@ public struct VersionChecker: Sendable {
     /// `VersionReport.packageMetadata` van de vorige check: wat daarin per versie al opgehaald
     /// is (dependencies, een go.mod), gaat niet opnieuw de deur uit.
     let metadataCache: [String: PackageMetadata]
+    /// Bronnen die uit staan (`AppConfig.disabledSources`): daar gaat geen verzoek heen.
+    let disabledSources: Set<DataSourceID>
 
     public init(
         makeProvider: @escaping @Sendable (Account) -> any PRProvider,
         http: any HTTPClient = URLSessionHTTPClient(),
         now: @escaping @Sendable () -> Date = { Date() },
-        metadataCache: [String: PackageMetadata] = [:]
+        metadataCache: [String: PackageMetadata] = [:],
+        disabledSources: Set<DataSourceID> = []
     ) {
         self.makeProvider = makeProvider
         self.http = http
         self.now = now
         self.metadataCache = metadataCache
+        self.disabledSources = disabledSources
+    }
+
+    func isEnabled(_ id: DataSourceID) -> Bool { !disabledSources.contains(id) }
+
+    /// De bron achter `PRProvider.securityAlerts(in:)` voor een dienst; nil als de dienst die niet
+    /// kent. GitHub Enterprise valt onder GitHub-beveiliging.
+    static func securitySource(for kind: ProviderKind) -> DataSourceID? {
+        switch kind {
+        case .gitHub: .gitHubSecurity
+        case .azureDevOps: .azureDevOpsAdvancedSecurity
+        case .gitLab: nil
+        }
     }
 
     /// `progress(done, total)` na het bepalen van de repo's en na elke gescande repo.
@@ -331,6 +382,9 @@ public struct VersionChecker: Sendable {
             for target in targets {
                 group.addTask {
                     var out: [ScannedRepo] = []
+                    // Staat de beveiliging van deze dienst uit, dan vraagt de check er niet naar.
+                    let securitySource = Self.securitySource(for: target.account.kind)
+                    let securityOff = securitySource.map { !isEnabled($0) } ?? false
                     for repo in target.repos {
                         let found: Result<RepoScan, any Error>
                         do {
@@ -339,8 +393,11 @@ public struct VersionChecker: Sendable {
                             found = .failure(error)
                         }
                         // Code scanning, geheimen, eigen adviezen: los van de bestanden, ook als die mislukten.
-                        let security = try? await target.provider.securityAlerts(in: repo)
-                        out.append(ScannedRepo(accountId: target.account.id, repo: repo, found: found, security: security))
+                        let security = securityOff ? nil : try? await target.provider.securityAlerts(in: repo)
+                        out.append(ScannedRepo(
+                            accountId: target.account.id, repo: repo, found: found, security: security,
+                            skipped: securityOff ? Set(securitySource.map { [$0] } ?? []) : []
+                        ))
                         await progress(await counter.increment(), total)
                     }
                     return out
@@ -369,7 +426,8 @@ public struct VersionChecker: Sendable {
         var vulnerabilityIds: [Dependency: [String]] = [:]
         var osvError: String?
         var records: [String: OSVRecord] = [:]
-        if !dependencies.isEmpty {
+        // Met OSV uit gaat er niets de deur uit; repo's met packages krijgen `.osv` in `skippedSources`.
+        if !dependencies.isEmpty, isEnabled(.osv) {
             do {
                 let ids = try await OSV.query(dependencies, http: http, now: now())
                 vulnerabilityIds = Dictionary(uniqueKeysWithValues: zip(dependencies, ids))
@@ -417,6 +475,12 @@ public struct VersionChecker: Sendable {
                 )
             }
         }
+        /// Bronnen die voor deze scan iets hadden moeten controleren maar uit stonden.
+        func skippedSources(_ scan: Scan) -> Set<DataSourceID> {
+            var skipped: Set<DataSourceID> = []
+            if !scan.dependencies.isEmpty, !isEnabled(.osv) { skipped.insert(.osv) }
+            return skipped
+        }
         func vulnerabilities(_ scan: Scan) -> [Vulnerability] {
             OSV.vulnerabilities(
                 dependencies: scan.dependencies,
@@ -428,13 +492,17 @@ public struct VersionChecker: Sendable {
             switch item.found {
             case .failure(let error):
                 results.append(RepoVersions(
-                    accountId: item.accountId, repo: item.repo, components: [], error: Self.message(error), security: item.security
+                    accountId: item.accountId, repo: item.repo, components: [], error: Self.message(error), security: item.security,
+                    skippedSources: item.skipped
                 ))
             case .success(let repoScan):
                 let release = repoScan.release.map { tag, found in
                     switch found {
                     case .success(let scan):
-                        ReleaseVersions(tag: tag, components: components(scan), vulnerabilities: vulnerabilities(scan))
+                        ReleaseVersions(
+                            tag: tag, components: components(scan), vulnerabilities: vulnerabilities(scan),
+                            skippedSources: skippedSources(scan)
+                        )
                     case .failure(let error):
                         ReleaseVersions(tag: tag, components: [], error: Self.message(error))
                     }
@@ -448,7 +516,8 @@ public struct VersionChecker: Sendable {
                     release: release,
                     packages: repoScan.main.directDependencies,
                     otherPackages: repoScan.main.otherPackages,
-                    security: item.security
+                    security: item.security,
+                    skippedSources: item.skipped.union(skippedSources(repoScan.main))
                 ))
             }
         }
@@ -574,6 +643,8 @@ public struct VersionChecker: Sendable {
         let repo: String
         let found: Result<RepoScan, any Error>
         let security: SecurityScan?
+        /// Bronnen die al bij het scannen overgeslagen zijn (de beveiliging van de dienst).
+        let skipped: Set<DataSourceID>
     }
 
     struct Scan: Sendable {

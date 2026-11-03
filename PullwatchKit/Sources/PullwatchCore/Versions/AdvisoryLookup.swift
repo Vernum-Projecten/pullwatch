@@ -69,8 +69,10 @@ extension VersionReport {
 
 extension VersionChecker {
     /// Haalt de GitHub-adviezen op die `report` nog mist, elk GHSA-id één keer voor alle repo's.
-    /// Met het token van het eerste GitHub-account (hogere rate limit), anders zonder.
+    /// Met het token van het eerste GitHub-account (hogere rate limit), anders zonder. Staat de
+    /// GitHub Advisory Database uit, dan blijft `report` zoals het is.
     public func completingAdvisories(of report: VersionReport, accounts: [Account]) async -> VersionReport {
+        guard isEnabled(.gitHubAdvisoryDatabase) else { return report }
         let date = now()
         let missing = report.missingAdvisoryLookups(now: date)
         guard !missing.ghsaIds.isEmpty || !missing.cves.isEmpty else { return report }
