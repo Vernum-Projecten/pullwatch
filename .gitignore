@@ -7,3 +7,7 @@ xcuserdata/
 App/Info.plist
 .superpowers/
 dist/
+.idea/
+.claude/settings.local.json
+.claude/skills/*
+.claude/worktrees/
