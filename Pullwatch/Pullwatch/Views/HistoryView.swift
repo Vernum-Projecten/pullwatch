@@ -55,6 +55,11 @@ struct HistoryView: View {
         return HistoryRepo(accountId: first.accountId, repo: first.repo)
     }
 
+    /// De dienst van het account van dit item, voor de foto's bij de auteur.
+    private func kind(of item: HistoryItem) -> ProviderKind {
+        model.config.accounts.first { $0.id == item.entry.accountId }?.kind ?? .azureDevOps
+    }
+
     private func open(_ ids: Set<HistoryItem.ID>) {
         model.open(.history(Array(ids)))
     }
@@ -86,19 +91,19 @@ struct HistoryView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
             }
-            .width(min: 180, ideal: 340)
+            .width(min: 180, ideal: 300)
             TableColumn("Repo", value: \.entry.repo) { item in
                 Text(verbatim: item.entry.repo).lineLimit(1)
             }
             .width(min: 100, ideal: 180)
             TableColumn("Auteur", value: \.authorSortKey) { item in
                 if let author = item.entry.author {
-                    Text(verbatim: author).lineLimit(1)
+                    ContributorsLabel(author: author, coAuthors: item.entry.coAuthors, kind: kind(of: item))
                 } else {
                     Text("onbekend").foregroundStyle(.secondary)
                 }
             }
-            .width(min: 80, ideal: 120)
+            .width(min: 100, ideal: 190)
             TableColumn("Wanneer", value: \.detectedAt) { item in
                 Text(item.detectedAt, format: .relative(presentation: .named))
                     .help(item.detectedAt.formatted(date: .complete, time: .standard))

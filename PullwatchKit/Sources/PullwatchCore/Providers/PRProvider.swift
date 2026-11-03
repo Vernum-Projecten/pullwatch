@@ -20,6 +20,10 @@ public protocol PRProvider: Sendable {
     /// `limit`. Alleen voor de eerste tag-poll van een repo, die ze stil in de geschiedenis zet.
     /// Een provider zonder datums geeft een lege lijst.
     func datedTags(in repo: String, limit: Int) async throws -> [Tag]
+    /// Wie er naast de auteur aan deze PR's meewerkte, per `PullRequest.dedupKey`, zonder de
+    /// auteur en bots (`CoAuthorTrailer.coAuthors`). Alleen voor nieuwe of veranderde PR's
+    /// (`PollEngine`); een PR die de provider niet (meer) vindt ontbreekt of is leeg.
+    func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]]
     /// Alle bestandspaden (zonder leidende "/") op `ref` (tagnaam) of zonder ref op de default branch;
     /// een lege repo geeft een lege lijst.
     func filePaths(in repo: String, ref: String?) async throws -> [String]
@@ -31,6 +35,8 @@ public protocol PRProvider: Sendable {
 
 extension PRProvider {
     public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
+
+    public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] { [:] }
 
     public func filePaths(in repo: String) async throws -> [String] {
         try await filePaths(in: repo, ref: nil)

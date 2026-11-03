@@ -47,6 +47,14 @@ public enum HistoryEntry: Codable, Hashable, Sendable {
         }
     }
 
+    /// Co-auteurs van een PR; leeg voor tags.
+    public var coAuthors: [Person] {
+        switch self {
+        case .pullRequest(let pr): return pr.coAuthors
+        case .tag: return []
+        }
+    }
+
     public var webURL: URL {
         switch self {
         case .pullRequest(let pr): return pr.webURL
@@ -190,13 +198,18 @@ public struct History: Codable, Equatable, Sendable {
         return true
     }
 
-    /// Werkt status, sluitdatum en titel van een PR-item bij. Geeft `true` als er iets veranderde.
+    /// Werkt status, sluitdatum, titel en co-auteurs van een PR-item bij. Een lege lijst co-auteurs
+    /// laat de bewaarde staan: die betekent meestal "deze poll niet opgehaald". Geeft `true` als
+    /// er iets veranderde.
     private static func update(_ item: inout HistoryItem, with pr: PullRequest) -> Bool {
         guard case .pullRequest(var existing) = item.entry else { return false }
-        guard existing.state != pr.state || existing.closedAt != pr.closedAt || existing.title != pr.title else { return false }
+        let coAuthors = pr.coAuthors.isEmpty ? existing.coAuthors : pr.coAuthors
+        guard existing.state != pr.state || existing.closedAt != pr.closedAt || existing.title != pr.title
+                || existing.coAuthors != coAuthors else { return false }
         existing.state = pr.state
         existing.closedAt = pr.closedAt
         existing.title = pr.title
+        existing.coAuthors = coAuthors
         item.entry = .pullRequest(existing)
         return true
     }
@@ -251,7 +264,8 @@ public struct History: Codable, Equatable, Sendable {
         return HistoryGroup.named(unread, accountNames: accountNames)
     }
 
-    /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur en repo.
+    /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur,
+    /// co-auteurs en repo.
     /// Met `group` alleen items van dat project, met `author` alleen PR's van die auteur, met `repo`
     /// alleen items van die repo (hoofdletterongevoelig).
     public func search(
@@ -267,6 +281,7 @@ public struct History: Codable, Equatable, Sendable {
             if query.isEmpty { return true }
             return item.entry.title.localizedCaseInsensitiveContains(query)
                 || (item.entry.author?.localizedCaseInsensitiveContains(query) ?? false)
+                || item.entry.coAuthors.contains { $0.handle.localizedCaseInsensitiveContains(query) || $0.name.localizedCaseInsensitiveContains(query) }
                 || item.entry.repo.localizedCaseInsensitiveContains(query)
         }
     }

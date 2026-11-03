@@ -241,6 +241,38 @@ public actor GitHubProvider: PRProvider {
         }
     }
 
+    /// PR's per GraphQL-verzoek bij `coAuthors(of:)`.
+    static let coAuthorBatch = 20
+
+    /// Via GraphQL, twintig PR's per verzoek (aliassen `pr0`, `pr1`, …): de auteurs van de laatste
+    /// vijftig commits. GitHub zet de `Co-authored-by:`-trailers daar zelf bij en koppelt ze aan
+    /// gebruikers met hun foto. Een PR die niet (meer) bestaat geeft een lege lijst.
+    public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] {
+        var result: [String: [Person]] = [:]
+        let known = pullRequests.filter { $0.repo.split(separator: "/").count == 2 }
+        for start in stride(from: 0, to: known.count, by: Self.coAuthorBatch) {
+            let batch = Array(known[start..<min(start + Self.coAuthorBatch, known.count)])
+            let request = CoAuthorQueryDTO(batch)
+            let data = try await data(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
+            let response = try JSONDecoding.decode(CoAuthorQueryDTO.Response.self, from: data)
+            // Zonder `data` mislukte het hele verzoek (bv. de GraphQL-limiet): later opnieuw.
+            guard let found = response.data else { throw ProviderError.decoding("graphql co-auteurs") }
+            for (index, pr) in batch.enumerated() {
+                let commits = found["pr\(index)"]??.pullRequest?.commits.nodes ?? []
+                let candidates = commits.flatMap { $0.commit.authors.nodes }.map { author in
+                    Person(
+                        name: author.name ?? author.user?.login ?? author.email ?? "",
+                        login: author.user?.login,
+                        email: author.email,
+                        avatarURL: author.user?.avatarUrl.flatMap(URL.init(string:))
+                    )
+                }.filter { !$0.name.isEmpty }
+                result[pr.dedupKey] = CoAuthorTrailer.coAuthors(from: candidates, author: [pr.authorId, pr.authorName])
+            }
+        }
+        return result
+    }
+
     /// De tagnaam wordt als één padsegment gecodeerd, dus "/" wordt %2F en "+" wordt %2B.
     private func tagURL(repo: String, tag: String) -> URL? {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
@@ -303,7 +335,8 @@ public actor GitHubProvider: PRProvider {
             createdAt: createdAt,
             webURL: webURL,
             state: state,
-            closedAt: item.closedAt.flatMap(DateParsing.parse)
+            closedAt: item.closedAt.flatMap(DateParsing.parse),
+            revision: item.updatedAt
         )
     }
 
@@ -356,6 +389,7 @@ private struct SearchDTO: Decodable {
         let number: Int
         let title: String
         let createdAt: String
+        let updatedAt: String?
         let draft: Bool?
         let state: String?
         let closedAt: String?
@@ -426,5 +460,66 @@ private struct TagQueryDTO: Encodable {
         }
 
         let data: Payload?
+    }
+}
+
+/// GraphQL: de commit-auteurs (met co-auteurs) van een reeks PR's, elk onder een eigen alias.
+private struct CoAuthorQueryDTO: Encodable {
+    let query: String
+    let variables: [String: Variable]
+
+    enum Variable: Encodable {
+        case text(String)
+        case number(Int)
+
+        func encode(to encoder: any Encoder) throws {
+            var c = encoder.singleValueContainer()
+            switch self {
+            case .text(let value): try c.encode(value)
+            case .number(let value): try c.encode(value)
+            }
+        }
+    }
+
+    init(_ pullRequests: [PullRequest]) {
+        var declarations: [String] = []
+        var fields: [String] = []
+        var variables: [String: Variable] = [:]
+        for (index, pr) in pullRequests.enumerated() {
+            let parts = pr.repo.split(separator: "/", maxSplits: 1).map(String.init)
+            declarations.append("$o\(index): String!, $n\(index): String!, $p\(index): Int!")
+            fields.append("""
+                  pr\(index): repository(owner: $o\(index), name: $n\(index)) {
+                    pullRequest(number: $p\(index)) {
+                      commits(last: 50) { nodes { commit { authors(first: 5) { nodes { name email user { login avatarUrl } } } } } }
+                    }
+                  }
+                """)
+            variables["o\(index)"] = .text(parts[0])
+            variables["n\(index)"] = .text(parts[1])
+            variables["p\(index)"] = .number(pr.number)
+        }
+        query = "query(" + declarations.joined(separator: ", ") + ") {\n" + fields.joined(separator: "\n") + "\n}"
+        self.variables = variables
+    }
+
+    struct Response: Decodable {
+        struct Repository: Decodable { let pullRequest: PullRequestNode? }
+        struct PullRequestNode: Decodable { let commits: Commits }
+        struct Commits: Decodable { let nodes: [CommitNode] }
+        struct CommitNode: Decodable { let commit: Commit }
+        struct Commit: Decodable { let authors: Authors }
+        struct Authors: Decodable { let nodes: [Author] }
+        struct Author: Decodable {
+            struct User: Decodable {
+                let login: String
+                let avatarUrl: String?
+            }
+            let name: String?
+            let email: String?
+            let user: User?
+        }
+
+        let data: [String: Repository?]?
     }
 }

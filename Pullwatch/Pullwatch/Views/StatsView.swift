@@ -44,16 +44,17 @@ struct StatsView: View {
 
     @AppStorage("statsPeriod") private var period: StatsPeriod = .month
     @AppStorage("statsHideBots") private var hideBots = true
+    @AppStorage("statsCountCoAuthors") private var countCoAuthors = false
     @State private var group: HistoryGroup.ID?
     @State private var author: String?
 
     private var repoSummary: RepoSummary? { repoId.flatMap { model.repoSummariesById[$0] } }
 
     var body: some View {
-        let filter = ActivityFilter(group: group, author: author, repoId: repoId, hideBots: hideBots)
+        let filter = ActivityFilter(group: group, author: author, repoId: repoId, hideBots: hideBots, countCoAuthors: countCoAuthors)
         let stats = model.activityStats(period: period, filter: filter)
         // Auteurskeuze zonder auteursfilter, anders blijft alleen de gekozen auteur over.
-        let withoutAuthor = ActivityFilter(group: group, repoId: repoId, hideBots: hideBots)
+        let withoutAuthor = ActivityFilter(group: group, repoId: repoId, hideBots: hideBots, countCoAuthors: countCoAuthors)
         let authors = author == nil ? stats.authors : model.activityStats(period: period, filter: withoutAuthor).authors
 
         ScrollView {
@@ -78,7 +79,7 @@ struct StatsView: View {
                         .frame(height: 220)
                 }
                 HStack(alignment: .top, spacing: 24) {
-                    RankingChart(title: "Auteurs", items: Array(stats.authors.prefix(10)), selected: author) { name in
+                    RankingChart(title: countCoAuthors ? "Auteurs en co-auteurs" : "Auteurs", items: Array(stats.authors.prefix(10)), selected: author) { name in
                         author = author == name ? nil : name
                     }
                     if repoId == nil {
@@ -101,6 +102,7 @@ struct StatsView: View {
                 group: $group,
                 author: $author,
                 hideBots: $hideBots,
+                countCoAuthors: $countCoAuthors,
                 groups: repoId == nil ? model.sidebar.pullRequestGroups : [],
                 authors: authors
             )
@@ -114,6 +116,7 @@ private struct StatsToolbar: ToolbarContent {
     @Binding var group: HistoryGroup.ID?
     @Binding var author: String?
     @Binding var hideBots: Bool
+    @Binding var countCoAuthors: Bool
     let groups: [HistoryGroup]
     let authors: [RankedName]
 
@@ -134,7 +137,7 @@ private struct StatsToolbar: ToolbarContent {
                 }
                 .help("Alleen de PR's van dit project")
             }
-            // Eén filtermenu voor wie meetelt: een auteur kiezen, en bots wel of niet.
+            // Eén filtermenu voor wie meetelt: een auteur kiezen, bots wel of niet, co-auteurs wel of niet.
             Menu {
                 Picker("Auteur", selection: $author) {
                     Text("Alle auteurs").tag(String?.none)
@@ -144,6 +147,8 @@ private struct StatsToolbar: ToolbarContent {
                 Divider()
                 Toggle("Bots verbergen", isOn: $hideBots)
                     .help("PR's van bots (naam[bot]) niet meetellen")
+                Toggle("Co-auteurs meetellen", isOn: $countCoAuthors)
+                    .help("Een PR telt ook voor iedereen die eraan meewerkte, naast wie hem opende")
             } label: {
                 Label {
                     if let author {
