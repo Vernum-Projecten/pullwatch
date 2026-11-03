@@ -6,6 +6,8 @@ import SwiftUI
 /// zodat een poll niet het hele paneel opnieuw laat tekenen. Acties gaan via het model.
 struct MenuView: View {
     let model: AppModel
+    /// Welke rij of knop de aanwijzer raakt; één waarde voor het hele paneel.
+    @State private var hover = MenuHover()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -15,15 +17,19 @@ struct MenuView: View {
                 openSettings: { MenuPanel.close(); model.show(.settings) },
                 openAbout: { MenuPanel.close(); model.show(.about) }
             )
+            .padding(.horizontal, MenuMetrics.rowInset)
 
             if let update = model.availableUpdate {
                 UpdateBanner(update: update) { MenuPanel.close(); model.installUpdate() }
+                    .padding(.horizontal, MenuMetrics.rowInset)
             }
             if !model.notificationsAllowed && !model.needsOnboarding {
                 NotificationsOffNotice()
+                    .padding(.horizontal, MenuMetrics.rowInset)
             }
             if let mute = model.recentMute {
                 MuteBanner(mute: mute, undo: model.undoMute, dismiss: model.dismissMute)
+                    .padding(.horizontal, MenuMetrics.rowInset)
             }
 
             Divider()
@@ -48,6 +54,7 @@ struct MenuView: View {
             if !model.config.accounts.isEmpty {
                 Divider()
                 AccountStatusList(accounts: model.config.accounts, statuses: model.statuses)
+                    .padding(.horizontal, MenuMetrics.rowInset)
             }
 
             Divider()
@@ -57,9 +64,14 @@ struct MenuView: View {
                 markAllRead: model.markAllRead,
                 openMain: { MenuPanel.close(); model.show(.main) }
             )
+            .padding(.horizontal, MenuMetrics.rowInset)
         }
-        .padding(12)
+        // Zijkant: 12 pt tot de tekst, waarvan 8 binnen elke regel (daar tekent een rij haar
+        // markering), zodat markeringen bijna tot de rand lopen zoals in de menubalkpanelen.
+        .padding(.horizontal, 12 - MenuMetrics.rowInset)
+        .padding(.vertical, 12)
         .frame(width: 480)
+        .resetsMenuHover(hover)
     }
 }
 
@@ -72,8 +84,8 @@ enum MenuPanel {
 }
 
 /// Kop van het paneel: naam en versie, en rechtsboven drie symboolknoppen (over, verversen,
-/// instellingen). Gewone randloze knoppen: het paneel zelf is al van Liquid Glass, en Apple
-/// raadt glas op glas en glas in de inhoudslaag af.
+/// instellingen) met een ronde markering bij aanwijzen. Geen glas: het paneel zelf is al van
+/// Liquid Glass, en Apple raadt glas op glas en glas in de inhoudslaag af.
 private struct MenuHeader: View {
     /// Er loopt een poll: een kleine spinner naast Verversen, en Verversen staat uit.
     let isPolling: Bool
@@ -89,29 +101,29 @@ private struct MenuHeader: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
             Spacer()
-            HStack(spacing: 12) {
+            // Vaste plek links van de knoppen, alleen zichtbaar tijdens een poll: er verschuift
+            // niets, en de drie knoppen staan als groep bij elkaar.
+            ProgressView()
+                .controlSize(.small)
+                .opacity(isPolling ? 1 : 0)
+                .accessibilityHidden(!isPolling)
+                .accessibilityLabel(Text("Bezig met verversen"))
+                .help("Bezig met verversen")
+            HStack(spacing: 4) {
                 Button("Over Pullwatch", systemImage: "info.circle", action: openAbout)
+                    .buttonStyle(MenuIconButtonStyle(id: "about"))
                     .help("Over Pullwatch")
-                // Vaste plek naast Verversen, alleen zichtbaar tijdens een poll: er verschuift niets.
-                ProgressView()
-                    .controlSize(.small)
-                    .opacity(isPolling ? 1 : 0)
-                    .accessibilityHidden(!isPolling)
-                    .accessibilityLabel(Text("Bezig met verversen"))
-                    .help("Bezig met verversen")
                 Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
+                    .buttonStyle(MenuIconButtonStyle(id: "refresh"))
                     .keyboardShortcut("r")
                     .disabled(isPolling)
                     .help("Nu verversen")
                 Button("Instellingen", systemImage: "gearshape", action: openSettings)
+                    .buttonStyle(MenuIconButtonStyle(id: "settings"))
                     .keyboardShortcut(",")
                     .help("Instellingen")
                     .accessibilityIdentifier("menu.settings")
             }
-            .labelStyle(.iconOnly)
-            .buttonStyle(.borderless)
-            .imageScale(.large)
-            .foregroundStyle(.secondary)
         }
     }
 }
@@ -203,12 +215,15 @@ private struct RecentSection: View {
     let openRepo: (HistoryItem) -> Void
 
     var body: some View {
+        // Zelfde inspringing als de rijen (die hun markering binnen hun eigen ruimte tekenen).
         Text(title)
             .font(.caption.bold())
             .foregroundStyle(.secondary)
             .accessibilityAddTraits(.isHeader)
+            .padding(.horizontal, MenuMetrics.rowInset)
         if items.isEmpty, let empty {
             Text(empty).foregroundStyle(.secondary)
+                .padding(.horizontal, MenuMetrics.rowInset)
         } else {
             ForEach(items) { item in
                 RecentRow(item: item) { open(item) }
@@ -257,9 +272,8 @@ private struct RecentRow: View {
                         .lineLimit(1)
                 }
             }
-            .contentShape(.rect)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(MenuRowButtonStyle(id: item.id))
         .accessibilityElement(children: .combine)
         .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
     }
