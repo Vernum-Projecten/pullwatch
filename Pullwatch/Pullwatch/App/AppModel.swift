@@ -29,7 +29,6 @@ struct WindowRequest: Equatable {
     let id = UUID()
 }
 
-@MainActor
 @Observable
 final class AppModel {
     static let shared = AppModel()
@@ -579,8 +578,8 @@ final class AppModel {
             makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
             metadataCache: versionReport?.packageMetadata ?? [:]
         )
-        let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
-            await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
+        let fresh = await checker.run(accounts: config.pollableAccounts) { @MainActor [weak self] done, total in
+            self?.versionCheck = (done, total)
         }
         if Task.isCancelled {
             // Gestopt: alleen wat helemaal gecheckt is komt in het rapport, zonder meldingen.
@@ -701,8 +700,8 @@ final class AppModel {
                 makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
                 metadataCache: start.packageMetadata
             )
-            let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { done, total in
-                await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
+            let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
+                self.versionCheck = (done, total)
             }
             attemptedNewRepos.formUnion(fresh.repos.map { "\($0.accountId.uuidString)/\($0.repo.lowercased())" })
             let repos = Task.isCancelled ? fresh.repos.filter { $0.error == nil && $0.vulnerabilityError == nil } : fresh.repos

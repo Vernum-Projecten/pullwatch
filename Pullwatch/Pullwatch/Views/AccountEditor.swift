@@ -5,7 +5,6 @@ import SwiftUI
 /// Laat een venster de Toevoegen-knop van een account-editor in zijn eigen voetbalk zetten (het
 /// welkomstvenster, het toevoeg-venster), in plaats van onderaan in het scrollende formulier.
 /// De editor houdt bij of het account af is en waarom niet; de voetbalk roept `save()` aan.
-@MainActor
 @Observable
 final class AccountSaveAction {
     /// Waarom het nog niet kan ("Log eerst in bij GitHub"); nil als Toevoegen kan.

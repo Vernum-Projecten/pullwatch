@@ -10,7 +10,6 @@ nonisolated private let logger = Log(category: "notifier")
 /// Levert meldingen af die de `NotificationContentBuilder` maakte, met knoppen per categorie, een
 /// profielfoto of het teken van de soort, en haalt ze weg als ze in Pullwatch gelezen zijn. Wat
 /// er in een melding staat beslist deze klasse niet.
-@MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()
 
@@ -198,9 +197,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let identifier = response.actionIdentifier
         guard identifier != UNNotificationDismissActionIdentifier else { return }
         let action = NotificationAction(identifier: identifier)
-        await MainActor.run {
-            self.onResponse?(action, payload)
-        }
+        await respond(action, payload)
+    }
+
+    /// Op de main actor, waar `onResponse` het model aanroept.
+    private func respond(_ action: NotificationAction?, _ payload: NotificationPayload) {
+        onResponse?(action, payload)
     }
 
     nonisolated func userNotificationCenter(

@@ -76,7 +76,6 @@ struct MenuView: View {
 }
 
 /// Sluit het menupaneel, zodat een venster dat daarna opent er niet onder valt.
-@MainActor
 enum MenuPanel {
     static func close() {
         NSApp.keyWindow?.orderOut(nil)

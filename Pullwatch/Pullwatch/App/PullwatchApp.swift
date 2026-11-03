@@ -3,7 +3,6 @@ import PullwatchCore
 import SwiftUI
 import UserNotifications
 
-@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Als host van de unit-tests niet pollen, melden of naar updates kijken: dat zou met
@@ -31,7 +30,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// Toont Pullwatch in het Dock zolang er een eigen venster open is (hoofdvenster, welkomstvenster,
 /// instellingen); zonder venster draait de app alleen in de menubalk. Elk venster meldt zich met
 /// `.countsAsOpenWindow(_:)`; een geminimaliseerd venster blijft meetellen.
-@MainActor
 @Observable
 final class WindowPresence {
     static let shared = WindowPresence()

@@ -4,7 +4,6 @@ import AppKit
 /// Alleen in debug-builds: met `-PullwatchSnapshotDirectory <map>` tekent de app een venster
 /// zelf naar een PNG, zodat schermen te bekijken zijn zonder schermopname-toestemming. De UI-tests
 /// gebruiken het; Liquid Glass en materialen tekent het niet zoals het scherm.
-@MainActor
 enum SnapshotCamera {
     static var directory: URL? {
         UserDefaults.standard.string(forKey: "PullwatchSnapshotDirectory").map { URL(filePath: $0, directoryHint: .isDirectory) }
@@ -14,7 +13,7 @@ enum SnapshotCamera {
     /// korte pauze zodat de layout klaar is. Met `sheet` het blad dat op dat venster openstaat.
     static func shoot(_ name: String, windowId: String? = nil, sheet: Bool = false) {
         guard let directory else { return }
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(for: .milliseconds(400))
             var window = windowId.flatMap { id in NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(id) == true } }
                 ?? NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible && $0.contentView != nil }
@@ -53,7 +52,7 @@ enum SnapshotCamera {
     static func shootScrolling(_ name: String, windowId: String, pages: Int) {
         guard directory != nil else { return }
         shoot(name, windowId: windowId)
-        Task { @MainActor in
+        Task {
             for page in 1..<max(pages, 1) {
                 try? await Task.sleep(for: .seconds(1))
                 scroll(windowId: windowId, pages: Double(page))
