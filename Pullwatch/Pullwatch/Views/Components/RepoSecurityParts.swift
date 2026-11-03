@@ -7,6 +7,8 @@ import SwiftUI
 struct RepoSecuritySection: View {
     let scan: SecurityScan
     let provider: ProviderKind
+    /// Kopieert de meldingen als opdracht voor een AI-agent (`AgentBrief.security`).
+    let brief: () -> String
 
     /// Meer meldingen staan bij de dienst zelf.
     private static let maxAlerts = 10
@@ -52,7 +54,11 @@ struct RepoSecuritySection: View {
                 }
             }
         } header: {
-            Text(provider == .gitHub ? "Beveiliging op GitHub" : "Advanced Security")
+            HStack {
+                Text(provider == .gitHub ? "Beveiliging op GitHub" : "Advanced Security")
+                Spacer()
+                AgentBriefButton(brief: brief)
+            }
         }
     }
 

@@ -308,6 +308,14 @@ struct RepoDetailView: View {
         return Array((items.filter { $0.entry.prState == .open } + items.filter { $0.entry.prState != .open }).prefix(10))
     }
 
+    /// De kop van een opdracht voor een AI-agent; `checkedAt` nil neemt de laatste versiecheck.
+    private func briefRepository(page: URL?, checkedAt: Date? = nil) -> AgentBrief.Repository {
+        AgentBrief.Repository(
+            name: summary.repo, url: page,
+            checkedAt: checkedAt ?? (summary.versions == nil ? nil : model.versionReport?.checkedAt)
+        )
+    }
+
     var body: some View {
         let page = account?.repoWebURL(summary.repo)
         Form {
@@ -321,39 +329,89 @@ struct RepoDetailView: View {
                 items: pullRequests,
                 openCount: summary.openPullRequests,
                 open: { model.open($0) },
-                showAll: { model.showHistory($0, repo: historyRepo) }
+                showAll: { model.showHistory($0, repo: historyRepo) },
+                brief: {
+                    AgentBrief.pullRequests(briefRepository(page: page, checkedAt: Date()), items: pullRequests, openCount: summary.openPullRequests)
+                }
             )
-            Section("PR's per maand") {
+            Section {
                 ActivityChart(
                     stats: model.activityStats(period: .month, filter: ActivityFilter(repoId: summary.id)),
                     period: .month
                 )
                 .frame(height: 140)
                 .padding(.vertical, 4)
+            } header: {
+                HStack {
+                    Text("PR's per maand")
+                    Spacer()
+                    AgentBriefButton {
+                        AgentBrief.pullRequestsPerMonth(
+                            briefRepository(page: page, checkedAt: Date()),
+                            stats: model.activityStats(period: .month, filter: ActivityFilter(repoId: summary.id))
+                        )
+                    }
+                }
             }
             RepoControlSection(
                 versions: summary.versions,
                 gitHubAdvisories: summary.advisories,
                 advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase),
                 knownPackages: Set(model.packageSummaries.map(\.label)),
-                showPackage: { model.showPackage($0) }
+                showPackage: { model.showPackage($0) },
+                brief: summary.versions.map { versions in
+                    {
+                        AgentBrief.vulnerabilities(
+                            briefRepository(page: page), versions: versions, advisories: summary.advisories,
+                            advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase),
+                            context: model.visibleVersionReport?.updateContext(for: versions) ?? .empty
+                        )
+                    }
+                }
             )
+            let provider = account?.kind ?? .gitHub
+            let securityBrief = {
+                AgentBrief.security(
+                    briefRepository(page: page), provider: provider, scan: summary.versions?.security,
+                    skipped: summary.versions?.skippedSecuritySource
+                )
+            }
             if let security = summary.versions?.security {
-                RepoSecuritySection(scan: security, provider: account?.kind ?? .gitHub)
+                RepoSecuritySection(scan: security, provider: provider, brief: securityBrief)
             } else if let source = summary.versions?.skippedSecuritySource {
-                Section(source == .gitHubSecurity ? "Beveiliging op GitHub" : "Advanced Security") {
+                Section {
                     SourceOffText(text: SourceOff.notChecked(source), isWarning: true)
+                } header: {
+                    HStack {
+                        Text(source == .gitHubSecurity ? "Beveiliging op GitHub" : "Advanced Security")
+                        Spacer()
+                        AgentBriefButton(brief: securityBrief)
+                    }
                 }
             }
             RepoPackageUpdatesSection(
                 updates: summary.packageUpdates, repoId: summary.id, isChecked: summary.versions != nil,
-                skipped: summary.versions?.skippedVersionSources ?? []
+                skipped: summary.versions?.skippedVersionSources ?? [],
+                brief: {
+                    AgentBrief.packageUpdates(
+                        briefRepository(page: page), repoId: summary.id, updates: summary.packageUpdates,
+                        skipped: summary.versions?.skippedVersionSources ?? []
+                    )
+                }
             )
             if let versions = summary.versions, versions.error == nil {
                 RepoPackagesSections(
                     versions: versions,
                     knownPackages: Set(model.packageSummaries.map(\.id)),
-                    showPackage: { model.showPackage($0) }
+                    showPackage: { model.showPackage($0) },
+                    brief: { workspace, showsWorkspace in
+                        AgentBrief.packages(
+                            briefRepository(page: page), workspace: workspace, showsWorkspace: showsWorkspace,
+                            latest: model.visibleVersionReport?.latestPackages ?? [:],
+                            context: model.visibleVersionReport?.updateContext(for: versions) ?? .empty,
+                            skipped: versions.skippedSources
+                        )
+                    }
                 )
             }
             if let account {
@@ -416,6 +474,7 @@ private struct RepoPullRequestsSection: View {
     let openCount: Int
     let open: (HistoryItem) -> Void
     let showAll: (ItemKind) -> Void
+    let brief: () -> String
 
     var body: some View {
         Section {
@@ -438,6 +497,7 @@ private struct RepoPullRequestsSection: View {
                 if openCount > 0 {
                     Text("\(openCount) open").foregroundStyle(.secondary)
                 }
+                AgentBriefButton(brief: brief)
             }
         } footer: {
             HStack(spacing: 12) {
@@ -480,6 +540,8 @@ private struct RepoControlSection: View {
     let advisoryDetailsOff: Bool
     let knownPackages: Set<String>
     let showPackage: (String) -> Void
+    /// nil zolang de repo niet gecheckt is: dan valt er niets te kopiëren.
+    let brief: (() -> String)?
 
     var body: some View {
         Section {
@@ -524,6 +586,9 @@ private struct RepoControlSection: View {
                 if let tag = versions?.release?.tag {
                     Text("vs. \(tag)", comment: "Tagnaam").foregroundStyle(.secondary)
                 }
+                if let brief {
+                    AgentBriefButton(brief: brief)
+                }
             }
         }
     }
@@ -535,9 +600,10 @@ private struct RepoPackageUpdatesSection: View {
     let isChecked: Bool
     /// Registers en releasebronnen die uit stonden: dan nooit "Alles actueel".
     let skipped: [DataSourceID]
+    let brief: () -> String
 
     var body: some View {
-        Section("Packages met nieuwe versie") {
+        Section {
             if updates.isEmpty && skipped.isEmpty {
                 Text(isChecked ? "Alles actueel" : "Nog niet gecheckt").foregroundStyle(.secondary)
             }
@@ -551,6 +617,14 @@ private struct RepoPackageUpdatesSection: View {
                 } label: {
                     Text(verbatim: update.label)
                     Text(verbatim: update.kind)
+                }
+            }
+        } header: {
+            HStack {
+                Text("Packages met nieuwe versie")
+                Spacer()
+                if isChecked {
+                    AgentBriefButton(brief: brief)
                 }
             }
         }
@@ -627,30 +701,24 @@ private struct RepoDetailToolbar: ToolbarContent {
             }
             .help("Open de statistieken van deze repo")
             if let versions = summary.versions {
-                CopyVersionsButton(text: versions.clipboardText(
-                    advisories: summary.advisories, advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase)
-                ))
+                CopyVersionsButton {
+                    versions.clipboardText(
+                        advisories: summary.advisories, advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase)
+                    )
+                }
             }
         }
     }
 }
 
 private struct CopyVersionsButton: View {
-    let text: String
-    @State private var copied = false
+    let text: () -> String
 
     var body: some View {
-        Button {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
-            copied = true
-            Task {
-                try? await Task.sleep(for: .seconds(1.5))
-                copied = false
-            }
-        } label: {
-            Label("Kopieer", systemImage: copied ? "checkmark" : "doc.on.doc")
-        }
-        .help("Kopieer de afhankelijkheden en kwetsbaarheden van deze repo naar het klembord")
+        CopyButton(
+            title: "Kopieer",
+            help: "Kopieer de afhankelijkheden en kwetsbaarheden van deze repo naar het klembord",
+            text: text
+        )
     }
 }

@@ -8,6 +8,8 @@ struct RepoPackagesSections: View {
     /// `PackageUse.key` van de packages die in Afhankelijkheden staan.
     var knownPackages: Set<String> = []
     var showPackage: ((String) -> Void)? = nil
+    /// Kopieert één workspace als opdracht voor een AI-agent; de Bool zegt of de repo er meer heeft.
+    var brief: ((PackageWorkspace, Bool) -> String)? = nil
 
     var body: some View {
         let workspaces = versions.packageWorkspaces.filter { !$0.isEmpty }
@@ -37,6 +39,9 @@ struct RepoPackagesSections: View {
                         if workspaces.count > 1 {
                             Label(Workspace.name(workspace.workspace), systemImage: "folder")
                                 .foregroundStyle(.secondary)
+                        }
+                        if let brief {
+                            AgentBriefButton { brief(workspace, workspaces.count > 1) }
                         }
                     }
                 }

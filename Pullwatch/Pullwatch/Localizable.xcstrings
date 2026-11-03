@@ -6572,6 +6572,28 @@
         }
       }
     },
+    "Kopieer dit kopje als opdracht in Markdown voor een AI-agent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Abschnitt als Auftrag in Markdown für einen KI-Agenten kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy this section as a Markdown task for an AI agent"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier cette section comme tâche en Markdown pour un agent IA"
+          }
+        }
+      }
+    },
     "Kopieer overzicht": {
       "localizations": {
         "de": {
@@ -6596,6 +6618,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopieer overzicht"
+          }
+        }
+      }
+    },
+    "Kopieer voor een AI-agent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für einen KI-Agenten kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy for an AI Agent"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier pour un agent IA"
           }
         }
       }
