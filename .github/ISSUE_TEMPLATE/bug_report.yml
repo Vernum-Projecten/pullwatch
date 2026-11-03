@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+name: Bug report
+description: Report a defect in Pullwatch.
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. The type is already Bug, and a maintainer
+        sets the priority during triage, so you do not need to choose one.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What goes wrong, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact steps or command that show the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead. Include the error output.
+    validations:
+      required: true
