@@ -90,6 +90,9 @@ struct WatchRepositorySheet: View {
     @ViewBuilder private var footer: some View {
         if account?.kind == .azureDevOps {
             Text("Typ project/repo, of plak de link van dev.azure.com. De repository moet in de organisatie \(account?.organization ?? "") staan.", comment: "Azure DevOps-organisatie")
+        } else if let account, account.isGitHubEnterprise {
+            // GitHub Enterprise: alleen met het token van de server, nooit zonder inloggen.
+            Text("Typ eigenaar/repo, of plak de link van \(account.serviceName). De repository moet op die server staan.", comment: "Host van de GitHub Enterprise-server")
         } else {
             Text("Typ eigenaar/repo, of plak de link van github.com. Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen.")
         }

@@ -63,4 +63,7 @@ show **Staat uit**), and a server whose GraphQL API misses a field Pullwatch
 asks for tags and releases falls back to the REST API (tags then have no date
 unless they have a release) and shows no co-authors. The GitHub Advisory
 Database lookups keep going to `api.github.com`, without the server's token:
-an enterprise token never leaves its own server.
+an enterprise token never leaves its own server. Other repositories you add to
+an enterprise account are read with its token on that server only; the
+fallback without a token that github.com accounts have is off there, because
+GitHub Enterprise Server and GHE.com rarely allow reading without signing in.

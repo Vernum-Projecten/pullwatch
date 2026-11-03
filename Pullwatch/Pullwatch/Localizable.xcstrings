@@ -10852,6 +10852,29 @@
         }
       }
     },
+    "Typ eigenaar/repo, of plak de link van %@. De repository moet op die server staan.": {
+      "comment": "Host van de GitHub Enterprise-server",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Eigentümer/Repo ein oder füge den Link von %@ ein. Das Repository muss auf diesem Server liegen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type owner/repo, or paste the link from %@. The repository must be on that server."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez propriétaire/dépôt, ou collez le lien de %@. Le dépôt doit se trouver sur ce serveur."
+          }
+        }
+      }
+    },
     "Typ eigenaar/repo, of plak de link van github.com. Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen.": {
       "localizations": {
         "de": {
