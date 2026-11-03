@@ -109,6 +109,21 @@ repository that is missing in Pullwatch usually means the app is not
 installed on it (or the person has no access); adding it on the
 installation page fixes that without signing in again.
 
+A **public** repository needs no installation. Under **Other repositories**
+in the account's repository list (or **Volg een repository…** in the main
+window) a person adds any `owner/repo` or github.com link. GitHub gives a
+GitHub App "implicit permissions to read public resources when acting on
+behalf of a user" (Choosing permissions for a GitHub App), so Pullwatch
+reads it with the person's token first. If GitHub still answers 403 or 404
+for that repository, Pullwatch tries it once without a token; when that
+works, the repository is read without signing in from then on (shown as
+**Gelezen zonder inloggen**). Those requests count against GitHub's limit
+for requests without a token (60 per hour, search 10 per minute); when it
+runs out, Pullwatch skips those repositories until it resets, and the
+account keeps polling. Without a token GraphQL is not available, so tags
+and releases come from the REST API, co-authors are not fetched and the
+repository's security alerts are not shown.
+
 ## 4. What the token can do
 
 The token is a user-to-server token: it acts as the person who signed in,
