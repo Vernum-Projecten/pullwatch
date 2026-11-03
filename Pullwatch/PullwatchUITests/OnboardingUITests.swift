@@ -83,8 +83,8 @@ final class OnboardingUITests: XCTestCase {
         let add = element(app, "account.save")
         let enabled = NSPredicate(format: "isEnabled == true")
         XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: enabled, evaluatedWith: add)], timeout: 10), .completed, "Toevoegen kan")
-        // Toevoegen is de standaardknop; onder in het formulier, dus met Return, zoals met het toetsenbord.
-        app.typeKey(.return, modifierFlags: [])
+        // Toevoegen staat in de voetbalk, grijs tot het account af is.
+        tap(app, "account.save")
         XCTAssertTrue(element(app, "onboarding.finish").waitForExistence(timeout: 10), "na Toevoegen de laatste stap")
     }
 

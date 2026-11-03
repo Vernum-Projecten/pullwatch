@@ -80,7 +80,7 @@ struct PullwatchApp: App {
             OnboardingView(model: model)
                 .countsAsOpenWindow(WindowID.onboarding.rawValue)
         }
-        .windowResizability(.contentMinSize)
+        .windowResizability(.contentSize)
         .defaultPosition(.center)
         // Eerste start: meteen het welkomstvenster, anders lijkt de app niet te starten.
         .defaultLaunchBehavior(model.opensOnboardingAtLaunch ? .presented : .suppressed)

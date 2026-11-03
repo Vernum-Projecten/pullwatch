@@ -2,6 +2,22 @@ import PullwatchCore
 import PullwatchGitHub
 import SwiftUI
 
+/// Laat een venster de Toevoegen-knop van een account-editor in zijn eigen voetbalk zetten (het
+/// welkomstvenster, het toevoeg-venster), in plaats van onderaan in het scrollende formulier.
+/// De editor houdt bij of het account af is en waarom niet; de voetbalk roept `save()` aan.
+@MainActor
+@Observable
+final class AccountSaveAction {
+    /// Waarom het nog niet kan ("Log eerst in bij GitHub"); nil als Toevoegen kan.
+    fileprivate(set) var blockedReason: LocalizedStringKey?
+    fileprivate(set) var error: String?
+    @ObservationIgnored fileprivate var perform: () -> Void = {}
+
+    var canSave: Bool { blockedReason == nil }
+
+    func save() { perform() }
+}
+
 struct AccountEditor: View {
     let model: AppModel
 
@@ -30,8 +46,12 @@ struct AccountEditor: View {
     /// Na een geslaagd bewaren, bijvoorbeeld om het venster te sluiten.
     private let onSaved: () -> Void
 
-    init(model: AppModel, original: Account, onSaved: @escaping () -> Void = {}) {
+    /// Zet de Toevoegen-knop buiten de editor (in een voetbalk); nil: de editor toont hem zelf.
+    private let saveAction: AccountSaveAction?
+
+    init(model: AppModel, original: Account, saveAction: AccountSaveAction? = nil, onSaved: @escaping () -> Void = {}) {
         self.model = model
+        self.saveAction = saveAction
         _draft = State(initialValue: original)
         originalAuthMethod = original.authMethod
         isNew = !model.config.accounts.contains { $0.id == original.id }
@@ -177,6 +197,7 @@ struct AccountEditor: View {
                 .frame(minHeight: 140)
             }
 
+            if saveAction == nil {
             VStack(alignment: .trailing, spacing: 4) {
                 if let validationMessage {
                     Text(validationMessage).font(.caption).foregroundStyle(.secondary)
@@ -192,11 +213,16 @@ struct AccountEditor: View {
                         .disabled(validationMessage != nil)
                 }
             }
+            }
         }
         .formStyle(.grouped)
         .onAppear {
             storedPAT = model.hasStoredPAT(draft.id)
+            saveAction?.perform = { save() }
+            saveAction?.blockedReason = validationMessage
         }
+        .onChange(of: validationMessage) { _, message in saveAction?.blockedReason = message }
+        .onChange(of: saveError) { _, error in saveAction?.error = error }
         .task(id: draft.authMethod) {
             guard draft.authMethod == .gitHubApp else {
                 signIn = nil

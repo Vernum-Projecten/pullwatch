@@ -292,9 +292,12 @@ final class AppModel {
         }
     }
 
+    /// Het symbool van Pullwatch in de menubalk (ook in de uitleg in het welkomstvenster).
+    static let menuBarSymbolName = "arrow.triangle.pull"
+
     var menuBarSymbol: String {
         let hasError = statuses.values.contains { if case .failed = $0 { true } else { false } }
-        return hasError ? "exclamationmark.triangle" : "arrow.triangle.pull"
+        return hasError ? "exclamationmark.triangle" : Self.menuBarSymbolName
     }
 
     func start() {
