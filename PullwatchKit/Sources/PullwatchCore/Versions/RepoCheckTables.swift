@@ -22,21 +22,40 @@ public enum SeverityLevel: Int, CaseIterable, Comparable, Hashable, Sendable {
 }
 
 /// Een versienummer om op te sorteren: op getallen, zodat 4.17.9 vóór 4.17.15 komt. Zonder
-/// versie achteraan.
+/// versie achteraan. De getallen worden één keer gelezen, zodat sorteren snel blijft.
 public struct VersionSortKey: Comparable, Hashable, Sendable {
     public let text: String?
+    private let parts: [Int]
 
     public init(_ text: String?) {
         self.text = text
+        self.parts = text.map { $0.split(separator: ".").map { Int($0) ?? 0 } } ?? []
     }
 
     public static func < (lhs: VersionSortKey, rhs: VersionSortKey) -> Bool {
         switch (lhs.text, rhs.text) {
-        case let (left?, right?): VersionChecker.isOlder(left, than: right)
-        case (.some, nil): true
-        case (nil, _): false
+        case (.some, .some):
+            for index in 0..<max(lhs.parts.count, rhs.parts.count) {
+                let (left, right) = (index < lhs.parts.count ? lhs.parts[index] : 0, index < rhs.parts.count ? rhs.parts[index] : 0)
+                if left != right { return left < right }
+            }
+            return false
+        case (.some, nil): return true
+        case (nil, _): return false
         }
     }
+}
+
+/// Een tekst om op te sorteren, zonder hoofdletters en met een gewone vergelijking: een
+/// `String` in een `KeyPathComparator` vergelijkt per taal, en dat is bij duizenden rijen traag.
+public struct TextSortKey: Comparable, Hashable, Sendable {
+    public let text: String
+
+    public init(_ text: String) {
+        self.text = text.lowercased()
+    }
+
+    public static func < (lhs: TextSortKey, rhs: TextSortKey) -> Bool { lhs.text < rhs.text }
 }
 
 /// Hoe een advies of package in de repo komt, voor het filter en de kolom Waar.
@@ -56,7 +75,8 @@ public enum DependencyOrigin: Int, CaseIterable, Comparable, Hashable, Sendable 
 // MARK: - Kwetsbaarheden
 
 /// Eén advies (lek in één package) als rij in de tabel, met alles wat de kolommen en het
-/// inspectievenster tonen.
+/// inspectievenster tonen. Alles wordt één keer berekend bij het opbouwen, zodat sorteren,
+/// zoeken en tekenen alleen lezen.
 public struct VulnerabilityRow: Hashable, Sendable, Identifiable {
     public let advisory: Advisory
     /// GitHubs eigen gegevens; nil zonder advies in de Advisory Database.
@@ -65,77 +85,80 @@ public struct VulnerabilityRow: Hashable, Sendable, Identifiable {
     public let inRelease: Bool?
     /// Wat het oplost, per install, elke oplossing één keer.
     public let fixes: [VulnerabilityFix]
+    /// De ernst uit de beste bron (#96): de CVSS-vector in OSV, de ernst van de database, of
+    /// GitHubs advies; met waar die vandaan komt.
+    public let assessment: SeverityAssessment
+    public let severity: SeverityLevel
+    /// Elk id van dit lek, het hoofd-id eerst: de aliassen van het record en wat alleen GitHubs
+    /// advies kent, elk één keer.
+    public let identifiers: [String]
+    /// Geïnstalleerde versies, oudste eerst, elk één keer.
+    public let installedVersions: [String]
+    /// De versie die het lek in elke install oplost: de hoogste `fixedIn`; nil als een install er
+    /// nog geen heeft.
+    public let fixedIn: String?
+    /// De workspaces met een geraakte install, de root eerst.
+    public let workspaces: [String]
+    /// Dev als elke install alleen voor ontwikkelen is, anders direct, transitief of onbekend.
+    public let origin: DependencyOrigin
+    /// Het eerste package van de keten van een transitieve install ("express"); nil als direct.
+    public let parent: String?
+    /// Alles waarop gezocht wordt, in één tekst.
+    let searchable: String
+
+    // Sorteersleutels voor de kolommen.
+    public let installedSortKey: VersionSortKey
+    public let fixSortKey: VersionSortKey
+    public let advisorySortKey: TextSortKey
+    public let whereSortKey: TextSortKey
 
     public init(advisory: Advisory, gitHub: GitHubAdvisory?, inRelease: Bool?, context: UpdateContext = .empty) {
         self.advisory = advisory
         self.gitHub = gitHub
         self.inRelease = inRelease
-        self.fixes = advisory.installs.map { $0.fix(in: context) }.reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
+        let installs = advisory.installs
+        let first = advisory.first
+        fixes = installs.map { $0.fix(in: context) }.reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
+        assessment = first.severityAssessment(gitHub)
+        severity = SeverityLevel(assessment.level)
+        identifiers = (first.allIds + [gitHub?.ghsaId, gitHub?.cveId].compactMap { $0 })
+            .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+        installedVersions = installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+            .sorted { VersionChecker.isOlder($0, than: $1) }
+        let fixed = installs.map(\.fixedIn)
+        fixedIn = fixed.contains(nil) ? nil : fixed.compactMap { $0 }.max { VersionChecker.isOlder($0, than: $1) }
+        workspaces = installs.map(\.workspace).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+            .sorted { $0.isEmpty || (!$1.isEmpty && $0 < $1) }
+        if advisory.isDevOnly {
+            origin = .dev
+        } else if advisory.isDirect {
+            origin = .direct
+        } else if installs.contains(where: { $0.scope == .transitive }) {
+            origin = .transitive
+        } else {
+            origin = .unknown
+        }
+        parent = advisory.isDirect ? nil : installs.first { $0.scope == .transitive }?.via.first
+        searchable = (identifiers + [first.package, first.summary ?? gitHub?.summary ?? ""] + installedVersions + workspaces
+                      + installs.flatMap(\.via)).joined(separator: "\n")
+        installedSortKey = VersionSortKey(installedVersions.first)
+        fixSortKey = VersionSortKey(fixedIn)
+        whereSortKey = TextSortKey("\(origin.rawValue)|\(workspaces.joined(separator: ","))|\(parent ?? "")")
+        advisorySortKey = TextSortKey(first.id)
     }
 
     public var id: String { advisory.id }
     public var first: Vulnerability { advisory.first }
     public var package: String { first.package }
 
-    /// De ernst uit de beste bron (#96): de CVSS-vector in OSV, de ernst van de database, of
-    /// GitHubs advies; met waar die vandaan komt.
-    public var assessment: SeverityAssessment { first.severityAssessment(gitHub) }
-    public var severity: SeverityLevel { SeverityLevel(assessment.level) }
-
     /// Het id van het record in zijn eigen database ("GHSA-…", "RUSTSEC-…", "GO-…").
     public var primaryId: String { first.id }
 
-    /// Elk id van dit lek, het hoofd-id eerst: de aliassen van het record en wat alleen GitHubs
-    /// advies kent, elk één keer.
-    public var identifiers: [String] {
-        (first.allIds + [gitHub?.ghsaId, gitHub?.cveId].compactMap { $0 })
-            .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
-    }
-
     public var summary: String? { first.summary ?? gitHub?.summary }
-
-    /// Geïnstalleerde versies, oudste eerst, elk één keer.
-    public var installedVersions: [String] {
-        advisory.installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
-            .sorted { VersionChecker.isOlder($0, than: $1) }
-    }
-
-    /// De versie die het lek in elke install oplost: de hoogste `fixedIn`; nil als een install er
-    /// nog geen heeft.
-    public var fixedIn: String? {
-        let fixes = advisory.installs.map(\.fixedIn)
-        guard !fixes.contains(nil) else { return nil }
-        return fixes.compactMap { $0 }.max { VersionChecker.isOlder($0, than: $1) }
-    }
 
     public var hasFix: Bool { advisory.installs.contains { $0.fixedIn != nil } }
 
-    /// De workspaces met een geraakte install, de root eerst.
-    public var workspaces: [String] {
-        advisory.installs.map(\.workspace).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
-            .sorted { $0.isEmpty || (!$1.isEmpty && $0 < $1) }
-    }
-
-    /// Dev als elke install alleen voor ontwikkelen is, anders direct, transitief of onbekend.
-    public var origin: DependencyOrigin {
-        if advisory.isDevOnly { return .dev }
-        if advisory.isDirect { return .direct }
-        if advisory.installs.contains(where: { $0.scope == .transitive }) { return .transitive }
-        return .unknown
-    }
-
-    /// Het eerste package van de keten van een transitieve install ("express"); nil als direct.
-    public var parent: String? {
-        guard !advisory.isDirect else { return nil }
-        return advisory.installs.first { $0.scope == .transitive }?.via.first
-    }
-
-    // Sorteersleutels voor de kolommen.
     public var severitySortKey: Int { severity.rawValue }
-    public var advisorySortKey: String { primaryId }
-    public var installedSortKey: VersionSortKey { VersionSortKey(installedVersions.first) }
-    public var fixSortKey: VersionSortKey { VersionSortKey(fixedIn) }
-    public var whereSortKey: String { "\(origin.rawValue)|\(workspaces.joined(separator: ","))|\(parent ?? "")" }
     /// Ook in de release eerst, dan alleen main, dan onbekend.
     public var releaseSortKey: Int {
         switch inRelease {
@@ -166,10 +189,10 @@ public struct VulnerabilityTableRow: Hashable, Sendable, Identifiable {
     }
 
     public var severitySortKey: Int { row.severitySortKey }
-    public var advisorySortKey: String { row.advisorySortKey }
+    public var advisorySortKey: TextSortKey { row.advisorySortKey }
     public var installedSortKey: VersionSortKey { install.map { VersionSortKey($0.version) } ?? row.installedSortKey }
     public var fixSortKey: VersionSortKey { install.map { VersionSortKey($0.fixedIn) } ?? row.fixSortKey }
-    public var whereSortKey: String { row.whereSortKey }
+    public var whereSortKey: TextSortKey { row.whereSortKey }
     public var releaseSortKey: Int { row.releaseSortKey }
 }
 
@@ -199,10 +222,7 @@ public struct VulnerabilityFilter: Hashable, Sendable {
         if onlyWithFix && !row.hasFix { return false }
         if onlyInRelease && row.inRelease != true { return false }
         let query = text.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return true }
-        let haystack = row.identifiers + [row.package, row.summary ?? ""] + row.installedVersions
-            + row.workspaces + row.advisory.installs.flatMap(\.via)
-        return haystack.contains { $0.localizedCaseInsensitiveContains(query) }
+        return query.isEmpty || row.searchable.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
     }
 }
 
@@ -223,7 +243,7 @@ extension RepoVersions {
 // MARK: - Packages
 
 /// Eén package in één workspace als rij in de tabel: de versies, de nieuwste die nu kan, de
-/// nieuwste, en wat je ermee kunt.
+/// nieuwste, en wat je ermee kunt. Alles wordt één keer berekend bij het opbouwen.
 public struct RepoPackageRow: Hashable, Sendable, Identifiable {
     public let package: WorkspacePackage
     public let workspace: String
@@ -234,23 +254,48 @@ public struct RepoPackageRow: Hashable, Sendable, Identifiable {
     public let installs: [InstallUpdate]
     /// Eén status voor wat de repo zelf kan bijwerken (de directe installs, anders alle); nil zonder `latest`.
     public let update: PackageUpdate?
+    /// Geïnstalleerde versies, oudste eerst, elk één keer.
+    public let installedVersions: [String]
+    /// De nieuwste versie die nu kan, als die anders is dan de nieuwste en nieuwer dan wat er staat.
+    public let newestUsable: String?
+    /// Alles waarop gezocht wordt, in één tekst.
+    let searchable: String
+
+    // Sorteersleutels voor de kolommen.
+    public let nameSortKey: TextSortKey
+    public let installedSortKey: VersionSortKey
+    public let usableSortKey: VersionSortKey
+    public let latestSortKey: VersionSortKey
 
     public init(package: WorkspacePackage, workspace: String, origin: DependencyOrigin, latest: String?, context: UpdateContext = .empty) {
         self.package = package
         self.workspace = workspace
         self.origin = origin
         self.latest = latest
-        guard latest != nil else {
+        if latest != nil {
+            let installs = package.installs.map {
+                InstallUpdate(install: $0, update: $0.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context))
+            }
+            self.installs = installs
+            let direct = installs.filter { $0.install.scope == .direct }
+            self.update = PackageUpdate.combined((direct.isEmpty ? installs : direct).map(\.update))
+        } else {
             self.installs = []
             self.update = nil
-            return
         }
-        let installs = package.installs.map {
-            InstallUpdate(install: $0, update: $0.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context))
+        let versions = package.installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+            .sorted { VersionChecker.isOlder($0, than: $1) }
+        installedVersions = versions
+        if let usable = update?.usable, usable != latest, !versions.contains(usable) {
+            newestUsable = usable
+        } else {
+            newestUsable = nil
         }
-        self.installs = installs
-        let direct = installs.filter { $0.install.scope == .direct }
-        self.update = PackageUpdate.combined((direct.isEmpty ? installs : direct).map(\.update))
+        searchable = ([package.name, workspace] + versions + package.installs.flatMap(\.via)).joined(separator: "\n")
+        nameSortKey = TextSortKey(package.name)
+        installedSortKey = VersionSortKey(versions.first)
+        usableSortKey = VersionSortKey(newestUsable)
+        latestSortKey = VersionSortKey(latest)
     }
 
     public var id: String { "\(workspace)|\(package.id)" }
@@ -266,26 +311,9 @@ public struct RepoPackageRow: Hashable, Sendable, Identifiable {
             ?? installs.first { $0.update.status == update.status }
     }
 
-    /// Geïnstalleerde versies, oudste eerst, elk één keer.
-    public var installedVersions: [String] {
-        package.installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
-            .sorted { VersionChecker.isOlder($0, than: $1) }
-    }
-
-    /// De nieuwste versie die nu kan, als die anders is dan de nieuwste en nieuwer dan wat er staat.
-    public var newestUsable: String? {
-        guard let usable = update?.usable, usable != latest, !installedVersions.contains(usable) else { return nil }
-        return usable
-    }
-
     /// Of er iets bij te werken is.
     public var hasUpdate: Bool { category.map { $0 != .upToDate } ?? false }
 
-    // Sorteersleutels voor de kolommen.
-    public var nameSortKey: String { package.name.lowercased() }
-    public var installedSortKey: VersionSortKey { VersionSortKey(installedVersions.first) }
-    public var usableSortKey: VersionSortKey { VersionSortKey(newestUsable) }
-    public var latestSortKey: VersionSortKey { VersionSortKey(latest) }
     /// Wat je nu kunt eerst, onbekend achteraan.
     public var statusSortKey: Int { category?.rawValue ?? UpdateCategory.allCases.count }
 }
@@ -318,7 +346,7 @@ public struct RepoPackageTableRow: Hashable, Sendable, Identifiable {
         return row.package.installs.map { RepoPackageTableRow(row: row, install: $0) }
     }
 
-    public var nameSortKey: String { row.nameSortKey }
+    public var nameSortKey: TextSortKey { row.nameSortKey }
     public var installedSortKey: VersionSortKey { install.map { VersionSortKey($0.version) } ?? row.installedSortKey }
     public var usableSortKey: VersionSortKey { row.usableSortKey }
     public var latestSortKey: VersionSortKey { row.latestSortKey }
@@ -354,9 +382,7 @@ public struct PackageFilter: Hashable, Sendable {
         case nil: break
         }
         let query = text.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return true }
-        return ([row.name, row.workspace] + row.installedVersions + row.package.installs.flatMap(\.via))
-            .contains { $0.localizedCaseInsensitiveContains(query) }
+        return query.isEmpty || row.searchable.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
     }
 }
 
@@ -454,9 +480,11 @@ public enum SecurityFindingRow: Hashable, Sendable, Identifiable {
         }
     }
 
-    public var titleSortKey: String { title.lowercased() }
+    public var titleSortKey: TextSortKey { TextSortKey(title) }
     /// "src/db.js:42", het package, of de geraakte packages van een eigen advies.
-    public var placeSortKey: String {
+    public var placeSortKey: TextSortKey { TextSortKey(place) }
+
+    public var place: String {
         switch self {
         case .alert(let alert): alert.path.map { "\($0):\(alert.line ?? 0)" } ?? alert.package ?? ""
         case .ownAdvisory(let advisory): advisory.packages.map(\.name).joined(separator: ", ")
@@ -468,5 +496,37 @@ extension SecurityScan {
     /// Meldingen (ernstigste eerst) en daarna eigen adviezen (nieuwste eerst).
     public var findingRows: [SecurityFindingRow] {
         alerts.map(SecurityFindingRow.alert) + advisories.map(SecurityFindingRow.ownAdvisory)
+    }
+}
+
+// MARK: - Alles samen
+
+/// De rijen en tellingen van één repo-pagina, in één keer opgebouwd. Bij een repo met duizenden
+/// packages kost dat merkbaar tijd; het is `Sendable`, zodat de app het buiten de main actor bouwt.
+public struct RepoCheckTables: Sendable {
+    public let vulnerabilities: [VulnerabilityRow]
+    public let packages: [RepoPackageGroup]
+    public let security: [SecurityFindingRow]
+    public let outdatedComponents: [ComponentVersion]
+    public let summary: RepoCheckSummary
+    /// Of de kwetsbaarheden en de packages meer dan één workspace beslaan.
+    public let vulnerabilitiesSpanWorkspaces: Bool
+    public let packagesSpanWorkspaces: Bool
+
+    /// `latest` is de nieuwste versie per `PackageUse.key`.
+    public init(versions: RepoVersions, gitHub: [String: GitHubAdvisory], context: UpdateContext, latest: [String: String]) {
+        vulnerabilities = versions.vulnerabilityRows(gitHub: gitHub, context: context)
+        packages = versions.packageGroups(latest: { latest[$0] }, context: context)
+        security = versions.security?.findingRows ?? []
+        outdatedComponents = versions.outdatedComponents
+        summary = RepoCheckSummary(versions: versions, packages: packages)
+        vulnerabilitiesSpanWorkspaces = Set(versions.vulnerabilities.map(\.workspace)).count > 1
+        packagesSpanWorkspaces = packages.count > 1
+    }
+
+    /// Bouwt de tabellen buiten de actor van de aanroeper.
+    @concurrent
+    public static func build(versions: RepoVersions, gitHub: [String: GitHubAdvisory], context: UpdateContext, latest: [String: String]) async -> RepoCheckTables {
+        RepoCheckTables(versions: versions, gitHub: gitHub, context: context, latest: latest)
     }
 }

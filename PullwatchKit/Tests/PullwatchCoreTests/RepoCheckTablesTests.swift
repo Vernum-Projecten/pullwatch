@@ -140,6 +140,19 @@ import Testing
         #expect(summary.blocked == 0)
     }
 
+    @Test func textSortsWithoutCase() {
+        #expect(TextSortKey("lodash") < TextSortKey("React"))
+        #expect(TextSortKey("Express") == TextSortKey("express"))
+    }
+
+    @Test func tablesBuildEverythingAtOnce() async {
+        let tables = await RepoCheckTables.build(versions: repo, gitHub: [:], context: .empty, latest: [:])
+        #expect(tables.vulnerabilities.map(\.id) == repo.vulnerabilityRows().map(\.id))
+        #expect(tables.vulnerabilitiesSpanWorkspaces)
+        #expect(tables.summary.vulnerabilities == 3)
+        #expect(tables.outdatedComponents.map(\.label) == ["Node"])
+    }
+
     @Test func summaryCountsWhatThePageShows() {
         let summary = RepoCheckSummary(versions: repo, packages: [])
         #expect(summary.vulnerabilities == 3)

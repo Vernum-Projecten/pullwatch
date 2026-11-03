@@ -55,24 +55,29 @@ final class RepoPage {
     /// Opengeklapte rijen met meer installs.
     var expanded: Set<String> = []
 
-    /// Bouwt de rijen opnieuw op uit het rapport.
-    func update(_ input: Input, context: UpdateContext, latest: (String) -> String?) {
+    /// Of de rijen voor deze invoer er al zijn; tot dan toont de pagina een lege tabel.
+    private(set) var isBuilt = false
+
+    /// Bouwt de rijen opnieuw op uit het rapport, buiten de main actor (bij een grote monorepo
+    /// kost dat merkbaar tijd), en zet ze daarna in één keer neer.
+    func update(_ input: Input, context: UpdateContext, latest: [String: String]) async {
         guard let versions = input.versions, versions.error == nil else {
-            summary = nil
-            outdatedComponents = []
-            vulnerabilityRows = []
-            packageGroups = []
-            securityRows = []
-            recomputeVisible()
+            apply(nil)
             return
         }
-        vulnerabilityRows = versions.vulnerabilityRows(gitHub: input.gitHub, context: context)
-        packageGroups = versions.packageGroups(latest: latest, context: context)
-        securityRows = versions.security?.findingRows ?? []
-        outdatedComponents = versions.outdatedComponents
-        summary = RepoCheckSummary(versions: versions, packages: packageGroups)
-        vulnerabilitiesSpanWorkspaces = Set(versions.vulnerabilities.map(\.workspace)).count > 1
-        packagesSpanWorkspaces = packageGroups.count > 1
+        let tables = await RepoCheckTables.build(versions: versions, gitHub: input.gitHub, context: context, latest: latest)
+        guard !Task.isCancelled else { return }
+        apply(tables)
+    }
+
+    private func apply(_ tables: RepoCheckTables?) {
+        summary = tables?.summary
+        outdatedComponents = tables?.outdatedComponents ?? []
+        vulnerabilityRows = tables?.vulnerabilities ?? []
+        packageGroups = tables?.packages ?? []
+        securityRows = tables?.security ?? []
+        vulnerabilitiesSpanWorkspaces = tables?.vulnerabilitiesSpanWorkspaces ?? false
+        packagesSpanWorkspaces = tables?.packagesSpanWorkspaces ?? false
         #if DEBUG
         // Voor de foto's: elke rij met installs eronder staat open.
         if SnapshotCamera.expandsAll {
@@ -80,7 +85,13 @@ final class RepoPage {
                            + packageGroups.flatMap(\.rows).filter { $0.package.installs.count > 1 }.map(\.id))
         }
         #endif
+        isBuilt = true
         recomputeVisible()
+    }
+
+    /// Het tabblad dat de pagina toont: zoeken en sorteren rekent alleen dat tabblad door.
+    var activeTab: RepoTab = .overview {
+        didSet { if activeTab != oldValue { recomputeVisible() } }
     }
 
     // MARK: Selectie
@@ -159,10 +170,14 @@ final class RepoPage {
 
     // MARK: Herberekenen
 
+    /// Alleen het zichtbare tabblad; een ander tabblad rekent zichzelf door als het zichtbaar wordt.
     private func recomputeVisible() {
-        recomputeVulnerabilities()
-        recomputePackages()
-        recomputeSecurity()
+        switch activeTab {
+        case .overview: break
+        case .check: recomputeVulnerabilities()
+        case .packages: recomputePackages()
+        case .security: recomputeSecurity()
+        }
     }
 
     private func recomputeVulnerabilities() {
@@ -184,7 +199,7 @@ final class RepoPage {
     private func recomputeSecurity() {
         let query = searchText.trimmingCharacters(in: .whitespaces)
         visibleSecurity = securityRows.filter { row in
-            query.isEmpty || row.title.localizedCaseInsensitiveContains(query) || row.placeSortKey.localizedCaseInsensitiveContains(query)
+            query.isEmpty || row.title.localizedCaseInsensitiveContains(query) || row.place.localizedCaseInsensitiveContains(query)
         }
         .sorted(using: securitySort)
     }

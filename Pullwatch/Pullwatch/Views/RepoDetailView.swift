@@ -10,7 +10,9 @@ struct RepoDetailView: View {
     let summary: RepoSummary
 
     @State private var page = RepoPage()
-    @State private var contentWidth: CGFloat = 800
+    /// Alleen de breedteklasse, niet de breedte: zo tekent de pagina niet bij elke pixel opnieuw
+    /// tijdens het vergroten van het venster of het openen van het inspectievenster.
+    @State private var tableWidth = TableWidth.wide
 
     private var account: Account? { model.config.accounts.first { $0.id == summary.accountId } }
 
@@ -32,9 +34,9 @@ struct RepoDetailView: View {
                 )
                 Divider()
             }
-            RepoTabContent(model: model, summary: summary, account: account, page: page, tab: tab, width: TableWidth(contentWidth))
+            RepoTabContent(model: model, summary: summary, account: account, page: page, tab: tab, width: tableWidth)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+                .onGeometryChange(for: TableWidth.self) { TableWidth($0.size.width) } action: { tableWidth = $0 }
         }
         .inspector(isPresented: Binding(get: { page.showsInspector && tab.hasTable }, set: { page.showsInspector = $0 })) {
             RepoInspector(model: model, summary: summary, page: page, tab: tab)
@@ -46,9 +48,17 @@ struct RepoDetailView: View {
         .toolbar {
             RepoDetailToolbar(model: model, summary: summary, page: page, webPage: webPage)
         }
-        .onChange(of: input, initial: true) { _, input in
-            let context = input.versions.map(model.updateContext(for:)) ?? .empty
-            page.update(input, context: context, latest: { model.latestVersion(of: $0) })
+        .task(id: input) {
+            let versions = input.versions
+            let context = versions.map(model.updateContext(for:)) ?? .empty
+            // Alleen de nieuwste versies van de packages van deze repo, als waarde voor buiten de main actor.
+            let keys = (versions?.packages ?? []) + (versions?.otherPackages ?? [])
+            let latest = Dictionary(keys.compactMap { use in model.latestVersion(of: use.key).map { (use.key, $0) } },
+                                    uniquingKeysWith: { first, _ in first })
+            await page.update(input, context: context, latest: latest)
+        }
+        .onChange(of: tab, initial: true) { _, tab in
+            page.activeTab = tab
         }
         .onChange(of: page.searchText) { _, text in
             // Zoeken op het overzicht zoekt in de controle.
@@ -236,7 +246,10 @@ private struct RepoVulnerabilitiesArea: View {
     let openAdvisory: (VulnerabilityRow) -> Void
 
     var body: some View {
-        if page.vulnerabilityCount == 0 {
+        if !page.isBuilt {
+            // De rijen worden nog opgebouwd (een fractie van een seconde); geen lege staat tonen.
+            Color.clear
+        } else if page.vulnerabilityCount == 0 {
             ContentUnavailableView(
                 "Geen bekende kwetsbaarheden",
                 systemImage: "checkmark.shield",
@@ -300,6 +313,8 @@ private struct RepoPackagesTab: View {
     var body: some View {
         if versions == nil {
             NotCheckedView(isChecking: isChecking)
+        } else if !page.isBuilt {
+            Color.clear
         } else if page.packageCount == 0 {
             ContentUnavailableView(
                 "Geen packages",
@@ -343,7 +358,9 @@ private struct RepoSecurityTab: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                 Divider()
-                if page.securityCount == 0 {
+                if !page.isBuilt {
+                    Color.clear
+                } else if page.securityCount == 0 {
                     ContentUnavailableView(
                         "Geen open meldingen",
                         systemImage: "checkmark.shield",

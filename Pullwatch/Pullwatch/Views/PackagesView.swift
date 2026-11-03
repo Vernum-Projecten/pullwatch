@@ -15,7 +15,8 @@ struct PackagesView: View {
     @State private var sections: [PackageSection] = []
     /// Opengeklapte package- en repo-rijen.
     @State private var expandedRows: Set<PackageNode.ID> = []
-    @State private var tableWidth: CGFloat = 900
+    /// Of Sinds past; alleen dat, zodat de tabel niet bij elke pixel opnieuw tekent.
+    @State private var showsSince = true
 
     private func isExpanded(_ node: PackageNode) -> Binding<Bool> {
         Binding(
@@ -62,7 +63,6 @@ struct PackagesView: View {
     var body: some View {
         // Smal (het kleinste venster): Sinds valt weg en staat dan in de tooltip van de versie,
         // zodat de tabel zonder zijwaarts scrollen past.
-        let showsSince = tableWidth >= 760
         Table(of: PackageNode.self, selection: $selection) {
             TableColumn("Package") { node in
                 PackageNameCell(node: node)
@@ -152,7 +152,7 @@ struct PackagesView: View {
         }
         // Met of zonder Sinds een nieuwe tabel, zodat de kolommen opnieuw op hun ideale breedte beginnen.
         .id(showsSince)
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { tableWidth = $0 }
+        .onGeometryChange(for: Bool.self) { $0.size.width >= 760 } action: { showsSince = $0 }
         .searchable(text: $searchText, prompt: Text("Zoek op package of repo…"))
         .searchShortcut()
         .navigationTitle(Text("Afhankelijkheden"))

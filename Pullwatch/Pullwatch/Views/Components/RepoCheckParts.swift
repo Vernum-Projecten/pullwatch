@@ -151,7 +151,7 @@ private struct ComponentCell: View {
 
 /// Welke kolommen passen: in een smal venster (of met het inspectievenster open) gaan Waar en In
 /// release weg, en daarna Geïnstalleerd; die staan ook in het inspectievenster.
-enum TableWidth {
+nonisolated enum TableWidth: Hashable, Sendable {
     case wide, medium, narrow
 
     init(_ width: CGFloat) {
@@ -206,7 +206,7 @@ struct VulnerabilityTable: View {
                     TableColumn(Text("In \(releaseTag)", comment: "Kolomkop: zit het ook in deze tag"), value: \.releaseSortKey) { row in
                         ReleaseMark(inRelease: row.install == nil ? row.row.inRelease : nil, tag: releaseTag)
                     }
-                    .width(min: 44, ideal: 64, max: 90)
+                    .width(min: 60, ideal: 80, max: 100)
                 }
             }
         } rows: {

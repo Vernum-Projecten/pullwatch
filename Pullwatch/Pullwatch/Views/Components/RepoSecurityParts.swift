@@ -97,7 +97,7 @@ struct SecurityFindingTable: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: row.spoken))
             }
-            .width(min: 84, ideal: 110, max: 140)
+            .width(min: 110, ideal: 120, max: 150)
             TableColumn("Titel", value: \.titleSortKey) { row in
                 Text(verbatim: row.title)
                     .lineLimit(1)
@@ -107,7 +107,7 @@ struct SecurityFindingTable: View {
             .width(min: 140, ideal: 260)
             if width != .narrow {
                 TableColumn("Waar", value: \.placeSortKey) { row in
-                    Text(verbatim: row.placeSortKey)
+                    Text(verbatim: row.place)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .accessibilityHidden(true)
@@ -252,7 +252,7 @@ extension SecurityFindingRow {
         case .alert(let alert): severity = String(localized: alert.severityLabel)
         case .ownAdvisory(let advisory): severity = String(localized: SeverityLevel(advisory.severity).label)
         }
-        let place = placeSortKey.isEmpty ? String(localized: sourceTitle) : "\(placeSortKey), \(String(localized: sourceTitle))"
+        let place = self.place.isEmpty ? String(localized: sourceTitle) : "\(self.place), \(String(localized: sourceTitle))"
         return String(localized: "\(severity): \(title), \(place)", comment: "Voorgelezen vondst: ernst, titel, plek en bron")
     }
 }
