@@ -66,7 +66,11 @@ struct GitHubSignInRow: View {
                             Text("Ingelogd bij GitHub")
                         }
                     } icon: {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        if let login {
+                            AccountAvatar(gitHubLogin: login, size: 20)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        }
                     }
                     Spacer()
                     Button("Afmelden") {

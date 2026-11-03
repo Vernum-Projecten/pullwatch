@@ -43,7 +43,7 @@ final class AppModel {
     /// Opent het welkomstvenster; gezet door het menubalk-label, zoals `openMainWindow`.
     @ObservationIgnored var openOnboarding: (() -> Void)?
     /// Het welkomstvenster is afgerond (of overgeslagen); daarna komt het niet vanzelf terug.
-    private(set) var onboardingCompleted = UserDefaults.standard.bool(forKey: "onboardingCompleted")
+    var onboardingCompleted: Bool { config.onboardingCompleted }
     /// Eerste start: nog geen bruikbaar account en het welkomstvenster nooit afgerond.
     var needsOnboarding: Bool { !onboardingCompleted && config.pollableAccounts.isEmpty }
     /// Gekozen onderdeel van het hoofdvenster; onthouden tussen starts.
@@ -288,6 +288,10 @@ final class AppModel {
             }
         }
 
+        // Lege accounts (zonder organisatie) die een oudere versie bij "+" meteen bewaarde.
+        let incomplete = config.accounts.filter { !$0.isComplete }
+        for account in incomplete { removeAccount(account.id) }
+        if !incomplete.isEmpty { logger.notice("\(incomplete.count) lege accounts verwijderd") }
         // Wie al een account heeft (ook van voor het welkomstvenster) krijgt het niet te zien.
         if !onboardingCompleted && !config.pollableAccounts.isEmpty { completeOnboarding() }
         // Bij een eerste start vraagt het welkomstvenster om meldingen, met uitleg erbij;
@@ -415,9 +419,11 @@ final class AppModel {
         saveHistory()
     }
 
-    /// Returns false (and changes nothing) when the PAT could not be written to the Keychain.
+    /// Bewaart een volledig ingesteld account. False (en er verandert niets) als het account nog
+    /// geen organisatie heeft of de PAT niet in de Keychain kon.
     @discardableResult
     func saveAccount(_ account: Account, pat: String?) -> Bool {
+        guard account.isComplete else { return false }
         // Alleen de inloggegevens van de gekozen manier blijven bewaard.
         if account.authMethod != .gitHubApp {
             GitHubAppTokenStore(accountId: account.id, secrets: secrets).delete()
@@ -453,8 +459,17 @@ final class AppModel {
     }
 
     func completeOnboarding() {
-        onboardingCompleted = true
-        UserDefaults.standard.set(true, forKey: "onboardingCompleted")
+        guard !config.onboardingCompleted else { return }
+        config.onboardingCompleted = true
+        saveConfig()
+    }
+
+    /// Een account dat in een venster werd ingesteld maar niet bewaard: de inloggegevens die
+    /// er al voor in de Keychain kwamen gaan weg, er komt niets in de config.
+    func discardDraft(_ id: UUID) {
+        guard !config.accounts.contains(where: { $0.id == id }) else { return }
+        try? secrets.delete(account: id.uuidString)
+        GitHubAppTokenStore(accountId: id, secrets: secrets).delete()
     }
 
     /// Vraagt macOS om meldingen; toont de vraag alleen de eerste keer.

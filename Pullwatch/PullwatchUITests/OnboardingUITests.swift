@@ -22,7 +22,6 @@ final class OnboardingUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = [
             "-PullwatchDataDirectory", dataDirectory.path(percentEncoded: false),
-            "-onboardingCompleted", "NO",
             "-ApplePersistenceIgnoreState", "YES",
             "-AppleLanguages", "(\(language))",
             // De echte vraag om meldingen is een systeemvenster buiten de app.
@@ -70,7 +69,12 @@ final class OnboardingUITests: XCTestCase {
         XCTAssertTrue(element(app, "onboarding.account").waitForExistence(timeout: 10), "stap 2: het eerste account")
 
         tap(app, "onboarding.addGitHub")
-        XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), "de accountgegevens verschijnen")
+        XCTAssertTrue(element(app, "account.save").waitForExistence(timeout: 10), "de accountgegevens verschijnen")
+
+        // Terug vanuit een half ingesteld account: weer de keuze, niet het welkomstscherm.
+        tap(app, "onboarding.back")
+        XCTAssertTrue(element(app, "onboarding.addGitHub").waitForExistence(timeout: 10), "terug naar de keuze GitHub of Azure DevOps")
+        XCTAssertFalse(element(app, "onboarding.welcome").exists, "niet terug naar het welkomstscherm")
 
         tap(app, "onboarding.skip")
         XCTAssertTrue(element(app, "onboarding.finish").waitForExistence(timeout: 10), "stap 3: meldingen en inloggen")

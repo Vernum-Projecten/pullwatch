@@ -47,6 +47,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         return status == .authorized || status == .provisional
     }
 
+    /// De tekst van een melding: de PR of tag, met daaronder wie hem maakte.
+    private static func body(_ title: String, author: String?) -> String {
+        guard let author, !author.isEmpty else { return title }
+        return title + "\n" + String(localized: "door \(author)", comment: "Wie de PR of tag maakte")
+    }
+
     func deliver(_ plans: [PlannedNotification]) {
         for plan in plans {
             let content = UNMutableNotificationContent()
@@ -54,17 +60,17 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             switch plan {
             case .pullRequest(let pr):
                 content.title = String(localized: "\(pr.repo): nieuwe PR")
-                content.body = "\(pr.title) — \(pr.authorName)"
+                content.body = Self.body(pr.title, author: pr.authorName)
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey
             case .tag(let tag):
                 content.title = String(localized: "\(tag.repo): nieuwe tag")
-                content.body = tag.authorName.map { "\(tag.name) — \($0)" } ?? tag.name
+                content.body = Self.body(tag.name, author: tag.authorName)
                 content.userInfo = ["url": tag.webURL.absoluteString, "key": tag.dedupKey]
                 identifier = tag.dedupKey
             case .completed(let pr):
                 content.title = String(localized: "\(pr.repo): PR completed")
-                content.body = "\(pr.title) — \(pr.authorName)"
+                content.body = Self.body(pr.title, author: pr.authorName)
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey + ":completed"
             case .summary(let kind, let count, let lines):

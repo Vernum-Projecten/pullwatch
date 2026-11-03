@@ -12,6 +12,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var checkForUpdates: Bool
     /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
     public var notifyPackageUpdates: Bool
+    /// Het welkomstvenster is afgerond of overgeslagen. Staat in de config (niet in de defaults),
+    /// zodat een eigen datamap (`-PullwatchDataDirectory`, de UI-tests) er los van staat.
+    public var onboardingCompleted: Bool
 
     public init(
         accounts: [Account] = [],
@@ -19,7 +22,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         historyRetention: HistoryRetention = .oneYear,
         autoVersionCheck: Bool = true,
         checkForUpdates: Bool = true,
-        notifyPackageUpdates: Bool = true
+        notifyPackageUpdates: Bool = true,
+        onboardingCompleted: Bool = false
     ) {
         self.accounts = accounts
         self.pollInterval = pollInterval
@@ -27,6 +31,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.autoVersionCheck = autoVersionCheck
         self.checkForUpdates = checkForUpdates
         self.notifyPackageUpdates = notifyPackageUpdates
+        self.onboardingCompleted = onboardingCompleted
     }
 
     public init(from decoder: any Decoder) throws {
@@ -37,6 +42,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         autoVersionCheck = try c.decodeIfPresent(Bool.self, forKey: .autoVersionCheck) ?? true
         checkForUpdates = try c.decodeIfPresent(Bool.self, forKey: .checkForUpdates) ?? true
         notifyPackageUpdates = try c.decodeIfPresent(Bool.self, forKey: .notifyPackageUpdates) ?? true
+        onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
     }
 
     public var clampedInterval: Int {
@@ -45,6 +51,6 @@ public struct AppConfig: Codable, Equatable, Sendable {
 
     /// Accounts die net zijn toegevoegd en nog geen organisatie hebben, worden niet gepold.
     public var pollableAccounts: [Account] {
-        accounts.filter { !$0.organization.trimmingCharacters(in: .whitespaces).isEmpty }
+        accounts.filter(\.isComplete)
     }
 }

@@ -12,6 +12,8 @@ struct OnboardingView: View {
     enum Step { case welcome, account, finish }
 
     @State private var step = Step.welcome
+    /// Het account dat nu wordt ingesteld; staat pas in de config na Toevoegen.
+    @State private var draft: Account?
     @Environment(\.dismissWindow) private var dismissWindow
 
     var body: some View {
@@ -19,7 +21,11 @@ struct OnboardingView: View {
             Group {
                 switch step {
                 case .welcome: WelcomeStep()
-                case .account: AccountStep(model: model)
+                case .account:
+                    AccountStep(model: model, draft: $draft) {
+                        draft = nil
+                        step = .finish
+                    }
                 case .finish: FinishStep(model: model)
                 }
             }
@@ -39,7 +45,7 @@ struct OnboardingView: View {
     private var footer: some View {
         HStack {
             if step != .welcome {
-                Button("Terug") { step = step == .finish ? .account : .welcome }
+                Button("Terug") { back() }
                     .accessibilityIdentifier("onboarding.back")
             }
             Spacer()
@@ -49,7 +55,10 @@ struct OnboardingView: View {
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("onboarding.start")
             case .account:
-                if model.config.pollableAccounts.isEmpty {
+                if draft != nil {
+                    // Het concept heeft zijn eigen Toevoegen-knop.
+                    EmptyView()
+                } else if model.config.pollableAccounts.isEmpty {
                     Button("Later instellen") { step = .finish }
                         .accessibilityIdentifier("onboarding.skip")
                 } else {
@@ -65,11 +74,24 @@ struct OnboardingView: View {
         }
     }
 
-    private func finish() {
-        // Een half ingevuld account (zonder organisatie) blijft niet hangen.
-        for account in model.config.accounts where !model.config.pollableAccounts.contains(where: { $0.id == account.id }) {
-            model.removeAccount(account.id)
+    /// Terug: van een half ingesteld account naar de keuze GitHub of Azure DevOps (het concept
+    /// vervalt), anders een stap terug.
+    private func back() {
+        switch step {
+        case .welcome: break
+        case .account:
+            if let draft {
+                model.discardDraft(draft.id)
+                self.draft = nil
+            } else {
+                step = .welcome
+            }
+        case .finish: step = .account
         }
+    }
+
+    private func finish() {
+        if let draft { model.discardDraft(draft.id) }
         model.completeOnboarding()
         dismissWindow(id: "onboarding")
         if !model.config.pollableAccounts.isEmpty { model.openMainWindow?() }
@@ -135,7 +157,8 @@ struct MenuBarHint: View {
 
 private struct AccountStep: View {
     let model: AppModel
-    @State private var accountId: UUID?
+    @Binding var draft: Account?
+    let onAdded: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -143,24 +166,40 @@ private struct AccountStep: View {
                 .font(.title2.weight(.semibold))
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
-            if let account = currentAccount {
+            if let account = draft {
                 Text(account.authMethod == .gitHubApp
-                     ? "Log in met GitHub, installeer Pullwatch waar je repositories staan, kies welke je volgt en klik op Opslaan."
-                     : "Vul de gegevens in en klik op Opslaan. Met de GitHub CLI (gh auth login) of de Azure CLI (az login) heb je geen token nodig.")
+                     ? "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen."
+                     : "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
-                AccountEditor(model: model, original: account).id(account.id)
+                AccountEditor(model: model, original: account, onSaved: onAdded).id(account.id)
             } else {
-                Text("Waar staan de repositories die je wilt volgen? Je kunt later meer accounts toevoegen onder Instellingen.")
+                let added = model.config.pollableAccounts
+                if !added.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(added) { account in
+                            Label {
+                                Text(verbatim: account.displayName)
+                            } icon: {
+                                AccountAvatar(account: account, size: 22)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .accessibilityIdentifier("onboarding.addedAccounts")
+                }
+                Text(added.isEmpty
+                     ? "Waar staan de repositories die je wilt volgen? Je kunt later meer accounts toevoegen onder Instellingen."
+                     : "Nog een account toevoegen? Dat kan ook later onder Instellingen.")
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
                 HStack(spacing: 16) {
                     ProviderChoice(title: "GitHub", detail: "Een gebruiker of organisatie op github.com", symbol: "chevron.left.forwardslash.chevron.right") {
-                        add(.gitHub)
+                        start(.gitHub)
                     }
                     .accessibilityIdentifier("onboarding.addGitHub")
                     ProviderChoice(title: "Azure DevOps", detail: "Een organisatie op dev.azure.com", symbol: "cloud") {
-                        add(.azureDevOps)
+                        start(.azureDevOps)
                     }
                     .accessibilityIdentifier("onboarding.addAzureDevOps")
                 }
@@ -173,20 +212,8 @@ private struct AccountStep: View {
         .accessibilityIdentifier("onboarding.account")
     }
 
-    /// Het account dat hier wordt ingesteld, of een al bestaand account.
-    private var currentAccount: Account? {
-        let accounts = model.config.accounts
-        return accounts.first { $0.id == accountId } ?? accounts.first
-    }
-
-    private func add(_ kind: ProviderKind) {
-        let account = Account(
-            kind: kind,
-            organization: "",
-            authMethod: model.defaultAuthMethod(for: kind)
-        )
-        model.saveAccount(account, pat: nil)
-        accountId = account.id
+    private func start(_ kind: ProviderKind) {
+        draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
     }
 }
 
