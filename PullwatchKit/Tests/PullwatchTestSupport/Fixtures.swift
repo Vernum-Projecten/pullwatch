@@ -40,14 +40,18 @@ extension Tag {
     package static func fixture(
         accountId: UUID = fixedAccountId,
         repo: String = "proj/api",
-        name: String = "v1"
+        name: String = "v1",
+        createdAt: Date? = nil,
+        release: ReleaseInfo? = nil
     ) -> Tag {
         Tag(
             accountId: accountId,
             repo: repo,
             name: name,
             authorName: "Someone",
-            webURL: URL(string: "https://example.com/\(repo)/tag/\(name)")!
+            webURL: release?.url ?? URL(string: "https://example.com/\(repo)/tag/\(name)")!,
+            createdAt: createdAt,
+            release: release
         )
     }
 }

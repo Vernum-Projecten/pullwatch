@@ -11,8 +11,11 @@ public enum AccountState: Equatable, Sendable {
 
 public struct PollResult: Equatable, Sendable {
     public var newPullRequests: [PullRequest] = []
-    /// Nieuwe tags, gesorteerd op repo en dan naam.
+    /// Nieuwe tags, en bekende tags die net een release kregen, gesorteerd op repo en dan naam.
     public var newTags: [Tag] = []
+    /// Bekende tags zoals ze nu zijn (auteur, release), om de geschiedenis bij te werken. Alleen van
+    /// repo's waarvan de tags deze poll echt opgehaald zijn. Niet bedoeld voor meldingen.
+    public var updatedTags: [Tag] = []
     public var statuses: [UUID: AccountState] = [:]
     /// Accounts die in deze cyclus net naar `.unauthorized` gingen (één melding per overgang).
     public var authFailures: [UUID] = []
@@ -81,6 +84,10 @@ public actor PollEngine {
         let backfillTags: [Tag]
         /// Tag-repo's die de provider oversloeg (404/geen toegang), lowercased.
         let unavailableTagRepos: Set<String>
+        /// Tag-repo's die niet veranderden sinds hun vingerafdruk, lowercased; zonder tags.
+        let unchangedTagRepos: Set<String>
+        /// Nieuwe vingerafdrukken per tag-repo, lowercased.
+        let tagFingerprints: [String: String]
         /// Fout bij het ophalen van tags die het account niet laat falen (zie `fetchTags`).
         let tagError: ProviderError?
         /// `nil` als de sync deze cyclus niet aan de beurt was of mislukte.
@@ -92,10 +99,11 @@ public actor PollEngine {
     }
 
     /// Waar een poll de tags van ophaalt: het account (eigen instellingen, standaard) en de repo's
-    /// (lowercased) waarvan de eerste tag-poll al gedaan is.
+    /// (lowercased) waarvan de eerste tag-poll al gedaan is, met hun vingerafdruk als die er is.
     private struct TagRepos: Sendable {
         let account: Account
         let seeded: Set<String>
+        let fingerprints: [String: String]
     }
 
     /// Een geschiedenis-sync die deze cyclus moet draaien; `since == nil` haalt alles op.
@@ -218,7 +226,10 @@ public actor PollEngine {
                     coAuthorRevisions: state.coAuthors.filter { $0.key.hasPrefix(prefix) }.mapValues(\.revision),
                     tagRepos: TagRepos(
                         account: account,
-                        seeded: Set(state.tagSeeded.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) })
+                        seeded: Set(state.tagSeeded.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }),
+                        fingerprints: Dictionary(uniqueKeysWithValues: state.tagFingerprints
+                            .filter { $0.key.hasPrefix(prefix) }
+                            .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
                     ),
                     fetchTags: tagsDue && (account.followsTagsByDefault || !account.tagRepos.isEmpty),
                     sync: sync
@@ -256,6 +267,7 @@ public actor PollEngine {
                     let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
                     result.newTags += fresh.tags
+                    result.updatedTags += fresh.updated
                     result.syncedTags += fresh.backfill
                     if fetched.tags != nil { result.tagRepos[id] = fetched.tagRepos }
                     let sync = handleSync(job.account, fetched, request: job.sync, retention: retention, at: t)
@@ -284,6 +296,7 @@ public actor PollEngine {
 
         result.newPullRequests.sort { $0.createdAt < $1.createdAt }
         result.newTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
+        result.updatedTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
         result.syncedTags.sort { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
@@ -330,6 +343,11 @@ public actor PollEngine {
                 tagRepos: tags.repos,
                 backfillTags: tags.backfill,
                 unavailableTagRepos: Set((tags.fetch?.unavailableRepos ?? []).map { $0.lowercased() }),
+                unchangedTagRepos: Set((tags.fetch?.unchangedRepos ?? []).map { $0.lowercased() }),
+                tagFingerprints: Dictionary(
+                    (tags.fetch?.fingerprints ?? [:]).map { ($0.key.lowercased(), $0.value) },
+                    uniquingKeysWith: { first, _ in first }
+                ),
                 tagError: tags.error,
                 synced: synced,
                 syncError: syncError,
@@ -351,8 +369,10 @@ public actor PollEngine {
     }
 
     /// Haalt de tags op van de eigen tag-repo's, en bij tags als standaard van alle repo's in de
-    /// lijst van de dienst. Repo's die nog niet geseed zijn krijgen hun gedateerde tags erbij
-    /// (`datedTags`); lukt dat niet, dan seedt die repo stil zoals vroeger.
+    /// lijst van de dienst. Een geseede repo met een vingerafdruk wordt alleen helemaal opgehaald
+    /// als die veranderde (`tags(in:unchanged:)`). Repo's die nog niet geseed zijn krijgen hun
+    /// gedateerde tags erbij: uit de opgehaalde tags als die al een datum hebben, anders via
+    /// `datedTags`; lukt dat niet, dan seedt die repo stil zoals vroeger.
     /// Alleen `.rateLimited` laat het account falen; andere tag-fouten (ook `.unauthorized`,
     /// bv. een 403 op één repo) worden teruggegeven zodat de PR's van deze poll gewoon verwerkt worden.
     private static func fetchTags(
@@ -365,12 +385,25 @@ public actor PollEngine {
             if account.followsTagsByDefault {
                 outcome.repos = account.tagRepos(available: try await provider.listRepos())
             }
-            let fetch = try await provider.tags(in: outcome.repos)
+            var unchanged: [String: String] = [:]
+            for repo in outcome.repos {
+                let key = repo.lowercased()
+                if tagRepos.seeded.contains(key), let fingerprint = tagRepos.fingerprints[key] {
+                    unchanged[repo] = fingerprint
+                }
+            }
+            let fetch = try await provider.tags(in: outcome.repos, unchanged: unchanged)
             outcome.fetch = fetch
             let unavailable = Set(fetch.unavailableRepos.map { $0.lowercased() })
+            let fetchedByRepo = Dictionary(grouping: fetch.tags) { $0.repo.lowercased() }
             for repo in outcome.repos {
                 let key = repo.lowercased()
                 guard !tagRepos.seeded.contains(key), !unavailable.contains(key) else { continue }
+                let dated = (fetchedByRepo[key] ?? []).filter { $0.createdAt != nil }
+                if !dated.isEmpty {
+                    outcome.backfill += dated.sorted { $0.createdAt! > $1.createdAt! }.prefix(tagBackfillLimit)
+                    continue
+                }
                 do {
                     outcome.backfill += try await provider.datedTags(in: repo, limit: tagBackfillLimit)
                 } catch {
@@ -475,7 +508,7 @@ public actor PollEngine {
         retention: HistoryRetention,
         at t: Date,
         interval: TimeInterval
-    ) -> (pullRequests: [PullRequest], tags: [Tag], backfill: [Tag]) {
+    ) -> (pullRequests: [PullRequest], tags: [Tag], updated: [Tag], backfill: [Tag]) {
         let settings = account.filterSettings
         let key = account.id.uuidString
         let previous = state.lastSettings[key].flatMap { $0.sameSource(as: settings) ? $0 : nil }
@@ -515,7 +548,7 @@ public actor PollEngine {
         schedules[account.id] = schedule
         statuses[account.id] = .ok(lastPoll: t)
         let tags = handleTags(account, fetched, notBefore: retention.maxAge.map { t - $0 }, at: t)
-        return (fresh, tags.fresh, tags.backfill)
+        return (fresh, tags.fresh, tags.updated, tags.backfill)
     }
 
     /// Verwerkt de geschiedenis-sync: plant de volgende sync en geeft de gefilterde PR's terug,
@@ -591,49 +624,70 @@ public actor PollEngine {
 
     /// Eerste tag-poll per repo meldt niets: de bestaande tags met een datum vanaf `notBefore`
     /// (de bewaartermijn) gaan als `backfill` stil de geschiedenis in. Daarna wordt elke
-    /// onbekende tag gemeld.
+    /// onbekende tag gemeld, en een bekende tag die een release krijgt ook (één keer). Releases
+    /// die er al waren toen een repo voor het eerst met vingerafdruk opgehaald werd (de eerste
+    /// poll na een update) gaan stil. Bekende tags komen in `updated`, voor auteur en release in
+    /// de geschiedenis.
     private func handleTags(
         _ account: Account,
         _ fetched: Fetched,
         notBefore: Date?,
         at t: Date
-    ) -> (fresh: [Tag], backfill: [Tag]) {
+    ) -> (fresh: [Tag], updated: [Tag], backfill: [Tag]) {
         // Mislukte tag-fetch: tag-state ongemoeid laten tot de volgende tag-poll.
-        guard fetched.tagError == nil else { return ([], []) }
+        guard fetched.tagError == nil else { return ([], [], []) }
         let prefix = "\(account.id.uuidString):"
         // Repo's waarvan tags uit staan vergeten, zodat weer aanzetten opnieuw stil seedt.
         let wantedKeys = Set(fetched.tagRepos.map { prefix + $0.lowercased() })
         state.tagSeeded = state.tagSeeded.filter { !$0.key.hasPrefix(prefix) || wantedKeys.contains($0.key) }
+        state.dropOrphanFingerprints()
 
-        guard let tags = fetched.tags else { return ([], []) }
+        guard let tags = fetched.tags else { return ([], [], []) }
         let tagsByRepo = Dictionary(grouping: tags) { $0.repo.lowercased() }
         let datedByRepo = Dictionary(grouping: fetched.backfillTags) { $0.repo.lowercased() }
         if !fetched.unavailableTagRepos.isEmpty {
             logger.warning("tags overgeslagen voor \(account.displayName): \(fetched.unavailableTagRepos.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }
         var fresh: [Tag] = []
+        var updated: [Tag] = []
         var backfill: [Tag] = []
         // Onbereikbare repo's niet als geseed markeren of verversen: anders worden hun bestaande
         // tags als nieuw gemeld zodra de toegang terugkomt.
         for repo in Set(fetched.tagRepos.map { $0.lowercased() }).subtracting(fetched.unavailableTagRepos) {
             let seededKey = prefix + repo
             let isSeeded = state.tagSeeded[seededKey] != nil
+            if isSeeded, fetched.unchangedTagRepos.contains(repo) {
+                state.refreshTags(ofRepo: seededKey, at: t)
+                state.tagSeeded[seededKey] = t
+                continue
+            }
+            let knowsReleases = state.tagFingerprints[seededKey] != nil
             for tag in tagsByRepo[repo] ?? [] {
+                let releaseKey = tag.dedupKey + ":release"
                 if isSeeded, !state.contains(tag.dedupKey) {
                     fresh.append(tag)
+                } else if isSeeded, knowsReleases, tag.release != nil, !state.contains(releaseKey) {
+                    fresh.append(tag) // de tag was er al, de release is nieuw
+                } else if isSeeded {
+                    updated.append(tag)
                 }
                 state.mark(tag.dedupKey, at: t)
+                if tag.release != nil { state.mark(releaseKey, at: t) }
             }
+            // Ook tags buiten wat de provider teruggaf (bv. voorbij de nieuwste honderd) blijven gezien.
+            state.refreshTags(ofRepo: seededKey, at: t)
+            state.tagFingerprints[seededKey] = fetched.tagFingerprints[repo]
             if !isSeeded {
                 for tag in datedByRepo[repo] ?? [] {
                     guard let date = tag.createdAt, notBefore.map({ date >= $0 }) ?? true else { continue }
                     backfill.append(tag)
                     state.mark(tag.dedupKey, at: t)
+                    if tag.release != nil { state.mark(tag.dedupKey + ":release", at: t) }
                 }
             }
             state.tagSeeded[seededKey] = t
         }
-        return (fresh, backfill)
+        return (fresh, updated, backfill)
     }
 
     /// Geeft `true` als het account net naar `.unauthorized` is overgegaan.

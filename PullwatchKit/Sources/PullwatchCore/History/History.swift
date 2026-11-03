@@ -55,6 +55,14 @@ public enum HistoryEntry: Codable, Hashable, Sendable {
         }
     }
 
+    /// De titel van de release bij een tag, als die iets anders zegt dan de tagnaam.
+    public var releaseTitle: String? {
+        switch self {
+        case .pullRequest: return nil
+        case .tag(let tag): return tag.releaseTitle
+        }
+    }
+
     public var webURL: URL {
         switch self {
         case .pullRequest(let pr): return pr.webURL
@@ -198,6 +206,33 @@ public struct History: Codable, Equatable, Sendable {
         return true
     }
 
+    /// Werkt bestaande tag-items bij met wat de provider nu van die tags weet (auteur, foto,
+    /// release, link), zonder volgorde of gelezen-status te veranderen; voegt niets toe. Een
+    /// bekende datum blijft staan als de nieuwe tag er geen heeft. Geeft `true` als er iets veranderde.
+    @discardableResult
+    public mutating func update(tags: [Tag]) -> Bool {
+        guard !tags.isEmpty else { return false }
+        let byKey = Dictionary(tags.map { ($0.dedupKey, $0) }, uniquingKeysWith: { _, last in last })
+        var changed = false
+        for index in items.indices {
+            guard case .tag(let existing) = items[index].entry, let tag = byKey[existing.dedupKey] else { continue }
+            let merged = Tag(
+                accountId: tag.accountId,
+                repo: existing.repo,
+                name: tag.name,
+                authorName: tag.authorName ?? existing.authorName,
+                authorAvatarURL: tag.authorAvatarURL ?? existing.authorAvatarURL,
+                webURL: tag.webURL,
+                createdAt: tag.createdAt ?? existing.createdAt,
+                release: tag.release
+            )
+            guard merged != existing else { continue }
+            items[index].entry = .tag(merged)
+            changed = true
+        }
+        return changed
+    }
+
     /// Werkt status, sluitdatum, titel en co-auteurs van een PR-item bij. Een lege lijst co-auteurs
     /// laat de bewaarde staan: die betekent meestal "deze poll niet opgehaald". Geeft `true` als
     /// er iets veranderde.
@@ -264,8 +299,8 @@ public struct History: Codable, Equatable, Sendable {
         return HistoryGroup.named(unread, accountNames: accountNames)
     }
 
-    /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel, auteur,
-    /// co-auteurs en repo.
+    /// Lege tekst (na trimmen) geeft alles; anders hoofdletterongevoelig zoeken in titel (ook die
+    /// van een release), auteur, co-auteurs en repo.
     /// Met `group` alleen items van dat project, met `author` alleen PR's van die auteur, met `repo`
     /// alleen items van die repo (hoofdletterongevoelig).
     public func search(
@@ -280,6 +315,7 @@ public struct History: Codable, Equatable, Sendable {
                 || item.entry.repo.caseInsensitiveCompare(repo.repo) != .orderedSame { return false }
             if query.isEmpty { return true }
             return item.entry.title.localizedCaseInsensitiveContains(query)
+                || (item.entry.releaseTitle?.localizedCaseInsensitiveContains(query) ?? false)
                 || (item.entry.author?.localizedCaseInsensitiveContains(query) ?? false)
                 || item.entry.coAuthors.contains { $0.handle.localizedCaseInsensitiveContains(query) || $0.name.localizedCaseInsensitiveContains(query) }
                 || item.entry.repo.localizedCaseInsensitiveContains(query)

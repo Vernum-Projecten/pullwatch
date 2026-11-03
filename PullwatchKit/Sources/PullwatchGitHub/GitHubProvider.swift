@@ -190,55 +190,162 @@ public actor GitHubProvider: PRProvider {
     }
 
     public func tags(in repos: [String]) async throws -> TagFetch {
-        var result: [Tag] = []
-        var unavailable: [String] = []
-        for repo in repos {
-            do {
-                for page in 1...maxPages {
-                    let dtos: [TagDTO] = try await get(
-                        apiBase.appending(path: "repos").appending(path: repo).appending(path: "tags"),
-                        query: [
-                            URLQueryItem(name: "per_page", value: String(pageSize)),
-                            URLQueryItem(name: "page", value: String(page)),
-                        ]
-                    )
-                    for dto in dtos {
-                        guard let url = tagURL(repo: repo, tag: dto.name) else { continue }
-                        result.append(Tag(accountId: accountId, repo: repo, name: dto.name, authorName: nil, webURL: url))
-                    }
-                    if dtos.count < pageSize { break }
-                }
-            } catch ProviderError.server(status: 404) {
-                unavailable.append(repo) // repo bestaat niet (meer)
-                continue
-            } catch ProviderError.unauthorized {
-                unavailable.append(repo) // geen toegang (403: SSO, rechten, IP-allowlist); andere repo's gaan door
-                continue
-            }
-        }
-        return TagFetch(tags: result, unavailableRepos: unavailable)
+        try await tags(in: repos, unchanged: [:])
     }
 
-    /// Via GraphQL, in één verzoek: de REST-lijst van tags heeft geen datums. Een geannoteerde
-    /// tag krijgt de datum van de tagger, een lichte tag die van de commit. Een repo die niet
-    /// (meer) bestaat geeft een lege lijst.
-    public func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
-        let parts = repo.split(separator: "/", maxSplits: 1).map(String.init)
-        guard parts.count == 2, limit > 0 else { return [] }
-        let request = TagQueryDTO(
-            query: TagQueryDTO.text,
-            variables: .init(owner: parts[0], name: parts[1], first: min(limit, pageSize))
-        )
-        let response = try JSONDecoding.decode(
-            TagQueryDTO.Response.self,
-            from: try await data(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
-        )
-        return (response.data?.repository?.refs.nodes ?? []).compactMap { node in
-            guard let url = tagURL(repo: repo, tag: node.name),
-                  let date = (node.target.tagger?.date ?? node.target.committedDate ?? node.target.target?.committedDate)
-                .flatMap(DateParsing.parse) else { return nil }
-            return Tag(accountId: accountId, repo: repo, name: node.name, authorName: nil, webURL: url, createdAt: date)
+    /// Via GraphQL, met aliassen voor meerdere repo's per verzoek: per repo de nieuwste tags (met
+    /// tagger, commit-auteur en datum) en releases. Repo's met een bekende vingerafdruk krijgen
+    /// eerst een kleine vraag (één tag en één release per repo); alleen wat veranderde wordt
+    /// daarna helemaal opgehaald. Een repo die niet (meer) bestaat of geen toegang geeft
+    /// (GraphQL geeft dan `null`, de hele batch 401/403) komt in `unavailableRepos`.
+    public func tags(in repos: [String], unchanged known: [String: String]) async throws -> TagFetch {
+        var fetch = TagFetch(tags: [])
+        var changed = repos.filter { known[$0] == nil }
+        let checked = repos.filter { known[$0] != nil }
+        for batch in checked.chunked(Self.fingerprintBatchSize) {
+            let nodes = try await repositoryTags(batch, tags: 1, releases: 1, fetch: &fetch)
+            for repo in batch {
+                guard let node = nodes[repo] else { continue }
+                if node.fingerprint == known[repo] {
+                    fetch.unchangedRepos.append(repo)
+                    fetch.fingerprints[repo] = node.fingerprint
+                } else {
+                    changed.append(repo)
+                }
+            }
         }
+        for batch in changed.chunked(Self.tagBatchSize) {
+            let nodes = try await repositoryTags(batch, tags: Self.tagLimit, releases: Self.releaseLimit, fetch: &fetch)
+            for repo in batch {
+                guard let node = nodes[repo] else { continue }
+                fetch.fingerprints[repo] = node.fingerprint
+                fetch.tags += makeTags(repo: repo, node)
+            }
+        }
+        return fetch
+    }
+
+    /// Repo's per GraphQL-verzoek voor de volledige vraag (tot honderd tags elk) en voor de
+    /// vingerafdrukken (één tag en één release elk).
+    static let tagBatchSize = 10
+    static let fingerprintBatchSize = 50
+    /// Zoveel nieuwste tags en releases per repo.
+    static let tagLimit = 100
+    static let releaseLimit = 20
+
+    /// Eén GraphQL-verzoek voor `repos`; geeft per gevonden repo zijn tags en releases. Wat
+    /// niet gevonden wordt of geen toegang geeft komt in `fetch.unavailableRepos`.
+    private func repositoryTags(
+        _ repos: [String],
+        tags: Int,
+        releases: Int,
+        fetch: inout TagFetch
+    ) async throws -> [String: TagQuery.Repository] {
+        var variables: [String: String] = [:]
+        var valid: [(alias: String, repo: String)] = []
+        for repo in repos {
+            let parts = repo.split(separator: "/", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else {
+                fetch.unavailableRepos.append(repo)
+                continue
+            }
+            let index = valid.count
+            variables["o\(index)"] = parts[0]
+            variables["n\(index)"] = parts[1]
+            valid.append(("r\(index)", repo))
+        }
+        guard !valid.isEmpty else { return [:] }
+        let request = TagQuery(query: TagQuery.text(count: valid.count, tags: tags, releases: releases), variables: variables)
+        let response: TagQuery.Response
+        let headers: HTTPURLResponse
+        do {
+            let (body, http) = try await send(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
+            response = try JSONDecoding.decode(TagQuery.Response.self, from: body)
+            headers = http
+        } catch ProviderError.unauthorized {
+            fetch.unavailableRepos += valid.map(\.repo) // geen toegang (403: SSO, rechten, IP-allowlist)
+            return [:]
+        }
+        // GraphQL meldt een opgebruikte limiet met status 200 en een fout van het type RATE_LIMITED.
+        if response.errors?.contains(where: { $0.type == "RATE_LIMITED" }) == true {
+            let reset = headers.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(Double.init)
+            throw ProviderError.rateLimited(until: reset.map(Date.init(timeIntervalSince1970:)) ?? now() + 60)
+        }
+        guard let payload = response.data else {
+            throw ProviderError.decoding("GraphQL: \(response.errors?.first?.message ?? "geen data")")
+        }
+        var result: [String: TagQuery.Repository] = [:]
+        for (alias, repo) in valid {
+            if let node = payload[alias] ?? nil {
+                result[repo] = node
+            } else {
+                fetch.unavailableRepos.append(repo) // bestaat niet (meer) of geen toegang
+            }
+        }
+        return result
+    }
+
+    /// De tags van één repo, met hun release (geen concepten). De auteur is wie de release
+    /// publiceerde, maar een bot (zoals `github-actions[bot]`) maakt plaats voor de tagger of
+    /// de auteur van de commit: die persoon zette de release echt in gang.
+    private func makeTags(repo: String, _ node: TagQuery.Repository) -> [Tag] {
+        var releases: [String: TagQuery.Release] = [:]
+        for release in node.releases.nodes where !release.isDraft && releases[release.tagName] == nil {
+            releases[release.tagName] = release
+        }
+        return node.refs.nodes.compactMap { ref in
+            guard let treeURL = tagTreeURL(repo: repo, tag: ref.name) else { return nil }
+            let target = ref.target
+            let tagger = target?.tagger
+            let commit = target?.target ?? target.map { TagQuery.Commit(committedDate: $0.committedDate, author: $0.author) }
+            let release = releases[ref.name]
+            let releaseInfo = release.flatMap { release in
+                URL(string: release.url).map { url in
+                    ReleaseInfo(
+                        title: release.name,
+                        authorLogin: release.author?.login,
+                        authorAvatarURL: release.author.flatMap { URL(string: $0.avatarUrl) },
+                        isPrerelease: release.isPrerelease,
+                        publishedAt: release.publishedAt.flatMap(DateParsing.parse),
+                        url: url
+                    )
+                }
+            }
+            let releaseAuthor = release?.author.map { (name: $0.login, avatar: URL(string: $0.avatarUrl)) }
+            let people = [
+                releaseAuthor.flatMap { $0.name.hasSuffix("[bot]") ? nil : $0 },
+                tagger?.person,
+                commit?.author?.person,
+                releaseAuthor,
+            ]
+            let author = people.compactMap { $0 }.first
+            return Tag(
+                accountId: accountId,
+                repo: repo,
+                name: ref.name,
+                authorName: author?.name,
+                authorAvatarURL: author?.avatar,
+                webURL: releaseInfo?.url ?? treeURL,
+                createdAt: (tagger?.date ?? commit?.committedDate).flatMap(DateParsing.parse),
+                release: releaseInfo
+            )
+        }
+    }
+
+    /// De nieuwste tags van één repo met datum, uit dezelfde GraphQL-vraag als `tags(in:)`. Een
+    /// repo die niet (meer) bestaat geeft een lege lijst.
+    public func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
+        guard limit > 0 else { return [] }
+        let tags = try await tags(in: [repo]).tags.filter { $0.createdAt != nil }
+        return Array(tags.sorted { $0.createdAt! > $1.createdAt! }.prefix(limit))
+    }
+
+    /// Een tag zonder release opent de bestanden op die tag; een release-pagina bestaat dan
+    /// niet. De tagnaam wordt als één padsegment gecodeerd, dus "/" wordt %2F en "+" wordt %2B.
+    private func tagTreeURL(repo: String, tag: String) -> URL? {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        guard let encoded = tag.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
+        return URL(string: "https://github.com/\(repo)/tree/\(encoded)")
     }
 
     /// PR's per GraphQL-verzoek bij `coAuthors(of:)`.
@@ -271,13 +378,6 @@ public actor GitHubProvider: PRProvider {
             }
         }
         return result
-    }
-
-    /// De tagnaam wordt als één padsegment gecodeerd, dus "/" wordt %2F en "+" wordt %2B.
-    private func tagURL(repo: String, tag: String) -> URL? {
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
-        guard let encoded = tag.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
-        return URL(string: "https://github.com/\(repo)/releases/tag/\(encoded)")
     }
 
     public func filePaths(in repo: String, ref: String?) async throws -> [String] {
@@ -350,6 +450,15 @@ public actor GitHubProvider: PRProvider {
         accept: String = "application/vnd.github+json",
         body: Data? = nil
     ) async throws -> Data {
+        try await send(url, query: query, accept: accept, body: body).data
+    }
+
+    private func send(
+        _ url: URL,
+        query: [URLQueryItem] = [],
+        accept: String = "application/vnd.github+json",
+        body: Data? = nil
+    ) async throws -> (data: Data, response: HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         var request = URLRequest(url: components.url!)
@@ -364,7 +473,14 @@ public actor GitHubProvider: PRProvider {
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (data, response) = try await http.send(request)
         try HTTPStatus.check(response, now: now())
-        return data
+        return (data, response)
+    }
+}
+
+extension Array {
+    /// Opeenvolgende stukken van hooguit `size` elementen.
+    fileprivate func chunked(_ size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) }
     }
 }
 
@@ -412,54 +528,129 @@ private struct TreeDTO: Decodable {
     let tree: [Entry]
 }
 
-private struct TagDTO: Decodable {
-    let name: String
-}
+/// GraphQL: per repo (alias `r0`, `r1`, …; variabelen `o0`/`n0` voor eigenaar en naam) de
+/// nieuwste tags op datum, met tagger en commit-auteur, en de nieuwste releases.
+private struct TagQuery: Encodable {
+    let query: String
+    let variables: [String: String]
 
-/// GraphQL: de nieuwste tags van één repo, op datum, met de datum van tagger of commit.
-private struct TagQueryDTO: Encodable {
-    static let text = """
-        query($owner: String!, $name: String!, $first: Int!) {
-          repository(owner: $owner, name: $name) {
-            refs(refPrefix: "refs/tags/", first: $first, orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) {
-              nodes {
-                name
-                target {
-                  ... on Commit { committedDate }
-                  ... on Tag { tagger { date } target { ... on Commit { committedDate } } }
+    static func text(count: Int, tags: Int, releases: Int) -> String {
+        let declarations = (0..<count).map { "$o\($0): String!, $n\($0): String!" }.joined(separator: ", ")
+        let fields = (0..<count).map { "  r\($0): repository(owner: $o\($0), name: $n\($0)) { ...TagsAndReleases }" }
+            .joined(separator: "\n")
+        return """
+            query(\(declarations)) {
+            \(fields)
+            }
+            fragment TagsAndReleases on Repository {
+              refs(refPrefix: "refs/tags/", first: \(tags), orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) {
+                totalCount
+                nodes {
+                  name
+                  target {
+                    ...CommitInfo
+                    ... on Tag { tagger { ...Actor date } target { ...CommitInfo } }
+                  }
                 }
               }
+              releases(first: \(releases), orderBy: {field: CREATED_AT, direction: DESC}) {
+                totalCount
+                nodes { id tagName name isDraft isPrerelease publishedAt updatedAt url author { login avatarUrl } }
+              }
             }
-          }
-        }
-        """
-
-    struct Variables: Encodable {
-        let owner: String
-        let name: String
-        let first: Int
+            fragment CommitInfo on Commit { committedDate author { ...Actor } }
+            fragment Actor on GitActor { name avatarUrl user { login avatarUrl } }
+            """
     }
 
-    let query: String
-    let variables: Variables
-
     struct Response: Decodable {
-        struct Payload: Decodable { let repository: Repository? }
-        struct Repository: Decodable { let refs: Refs }
-        struct Refs: Decodable { let nodes: [Node] }
-        struct Node: Decodable {
-            let name: String
-            let target: Target
-        }
-        struct Target: Decodable {
-            struct Tagger: Decodable { let date: String? }
-            struct Inner: Decodable { let committedDate: String? }
-            let committedDate: String?
-            let tagger: Tagger?
-            let target: Inner?
+        struct GraphQLError: Decodable {
+            let type: String?
+            let message: String?
         }
 
-        let data: Payload?
+        let data: [String: Repository?]?
+        let errors: [GraphQLError]?
+    }
+
+    struct Repository: Decodable {
+        struct Refs: Decodable {
+            let totalCount: Int
+            let nodes: [Ref]
+        }
+
+        struct Releases: Decodable {
+            let totalCount: Int
+            let nodes: [Release]
+        }
+
+        let refs: Refs
+        let releases: Releases
+
+        /// Verandert zodra er een tag of release bij komt, verdwijnt of een release verandert
+        /// (bv. van concept naar gepubliceerd, of van pre-release naar release).
+        var fingerprint: String {
+            let release = releases.nodes.first
+            return [
+                "\(refs.totalCount)", refs.nodes.first?.name ?? "",
+                "\(releases.totalCount)", release?.id ?? "", release?.updatedAt ?? "",
+                release.map { "\($0.isDraft)/\($0.isPrerelease)" } ?? "",
+            ].joined(separator: "|")
+        }
+    }
+
+    struct Ref: Decodable {
+        let name: String
+        let target: Target?
+    }
+
+    /// Een `Commit` (lichte tag) of een `Tag` (geannoteerde tag) met de commit erachter.
+    struct Target: Decodable {
+        let committedDate: String?
+        let author: Actor?
+        let tagger: Actor?
+        let target: Commit?
+    }
+
+    struct Commit: Decodable {
+        let committedDate: String?
+        let author: Actor?
+    }
+
+    struct Actor: Decodable {
+        struct User: Decodable {
+            let login: String
+            let avatarUrl: String?
+        }
+
+        let name: String?
+        let avatarUrl: String?
+        let date: String?
+        let user: User?
+
+        /// De GitHub-login als die bekend is, anders de naam uit git; met foto.
+        var person: (name: String, avatar: URL?)? {
+            if let user { return (user.login, (user.avatarUrl ?? avatarUrl).flatMap(URL.init(string:))) }
+            guard let name, !name.isEmpty else { return nil }
+            return (name, avatarUrl.flatMap(URL.init(string:)))
+        }
+    }
+
+    struct Release: Decodable {
+        struct Author: Decodable {
+            let login: String
+            let avatarUrl: String
+        }
+
+        let id: String
+        let tagName: String
+        let name: String?
+        let isDraft: Bool
+        let isPrerelease: Bool
+        let publishedAt: String?
+        let updatedAt: String?
+        let url: String
+        let author: Author?
     }
 }
 

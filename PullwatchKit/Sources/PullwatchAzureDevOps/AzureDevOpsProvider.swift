@@ -145,12 +145,12 @@ public actor AzureDevOpsProvider: PRProvider {
             guard let slash = repo.firstIndex(of: "/") else { continue }
             let project = String(repo[..<slash])
             let name = String(repo[repo.index(after: slash)...])
+            let repoURL = baseURL.appending(path: project).appending(path: "_apis/git/repositories").appending(path: name)
             let list: ValueList<RefDTO>
             do {
                 list = try await get(
-                    baseURL.appending(path: project).appending(path: "_apis/git/repositories")
-                        .appending(path: name).appending(path: "refs"),
-                    query: [URLQueryItem(name: "filter", value: "tags/")]
+                    repoURL.appending(path: "refs"),
+                    query: [URLQueryItem(name: "filter", value: "tags/"), URLQueryItem(name: "peelTags", value: "true")]
                 )
             } catch ProviderError.server(status: 404) {
                 unavailable.append(repo) // repo bestaat niet (meer)
@@ -159,13 +159,14 @@ public actor AzureDevOpsProvider: PRProvider {
                 unavailable.append(repo) // geen toegang (403: SSO, rechten, IP-allowlist); andere repo's gaan door
                 continue
             }
+            let fallback = await missingAuthors(list.value, repoURL: repoURL)
             for ref in list.value {
                 let tagName = ref.name.hasPrefix("refs/tags/") ? String(ref.name.dropFirst("refs/tags/".count)) : ref.name
                 result.append(Tag(
                     accountId: accountId,
                     repo: repo,
                     name: tagName,
-                    authorName: ref.creator?.displayName,
+                    authorName: ref.creator?.displayName ?? fallback[ref.name],
                     webURL: tagURL(project: project, repo: name, tag: tagName)
                 ))
             }
@@ -190,6 +191,7 @@ public actor AzureDevOpsProvider: PRProvider {
             commitByTag[ref.name] = commit
         }
         var dates: [String: Date] = [:]
+        var commitAuthors: [String: String] = [:]
         let ids = Array(Set(commitByTag.values)).sorted()
         // Hooguit tien batches: een repo met duizenden tags hoeft niet helemaal terug.
         for start in stride(from: 0, to: min(ids.count, 1000), by: 100) {
@@ -200,6 +202,7 @@ public actor AzureDevOpsProvider: PRProvider {
                 if let date = (commit.committer?.date ?? commit.author?.date).flatMap(DateParsing.parse) {
                     dates[commit.commitId] = date
                 }
+                if let author = commit.author?.name, !author.isEmpty { commitAuthors[commit.commitId] = author }
             }
         }
         let creators = Dictionary(list.value.map { ($0.name, $0.creator?.displayName) }, uniquingKeysWith: { first, _ in first })
@@ -210,7 +213,7 @@ public actor AzureDevOpsProvider: PRProvider {
                 accountId: accountId,
                 repo: repo,
                 name: tagName,
-                authorName: creators[refName] ?? nil,
+                authorName: (creators[refName] ?? nil) ?? commitAuthors[commit],
                 webURL: tagURL(project: project, repo: name, tag: tagName),
                 createdAt: date
             )
@@ -255,6 +258,33 @@ public actor AzureDevOpsProvider: PRProvider {
             result[pr.dedupKey] = CoAuthorTrailer.coAuthors(from: candidates, author: author)
         }
         return result
+    }
+
+    /// Auteurs voor tags waarbij Azure DevOps geen `creator` noemt: bij een geannoteerde tag
+    /// (met `peeledObjectId`) de tagger uit `annotatedtags`, bij een lichte tag de auteur van
+    /// de commit uit één `commitsbatch`. Hooguit twintig tags en honderd commits, zodat een
+    /// oude repo zonder creators de poll niet ophoudt; wat mislukt blijft zonder auteur.
+    private func missingAuthors(_ refs: [RefDTO], repoURL: URL) async -> [String: String] {
+        let missing = refs.filter { $0.creator == nil && $0.objectId != nil }
+        guard !missing.isEmpty else { return [:] }
+        var authors: [String: String] = [:]
+        for ref in missing.filter({ $0.peeledObjectId != nil }).prefix(20) {
+            guard let objectId = ref.objectId,
+                  let tag: AnnotatedTagDTO = try? await get(repoURL.appending(path: "annotatedtags").appending(path: objectId)),
+                  let name = tag.taggedBy?.name, !name.isEmpty else { continue }
+            authors[ref.name] = name
+        }
+        let lightweight = Array(missing.filter { $0.peeledObjectId == nil }.prefix(100))
+        let ids = Array(Set(lightweight.compactMap(\.objectId))).sorted()
+        if !ids.isEmpty, let body = try? JSONEncoder().encode(CommitsBatchDTO(ids: ids, top: ids.count)),
+           let commits: ValueList<CommitDTO> = try? await get(repoURL.appending(path: "commitsbatch"), body: body) {
+            let byId = Dictionary(commits.value.compactMap { commit in commit.author?.name.map { (commit.commitId, $0) } },
+                                  uniquingKeysWith: { first, _ in first })
+            for ref in lightweight {
+                if let id = ref.objectId, let name = byId[id], !name.isEmpty { authors[ref.name] = name }
+            }
+        }
+        return authors
     }
 
     private func tagURL(project: String, repo: String, tag: String) -> URL {
@@ -474,8 +504,16 @@ private struct CommitsBatchDTO: Encodable {
     }
 }
 
+private struct AnnotatedTagDTO: Decodable {
+    struct UserDate: Decodable { let name: String? }
+    let taggedBy: UserDate?
+}
+
 private struct CommitDTO: Decodable {
-    struct Person: Decodable { let date: String? }
+    struct Person: Decodable {
+        let name: String?
+        let date: String?
+    }
     let commitId: String
     let author: Person?
     let committer: Person?

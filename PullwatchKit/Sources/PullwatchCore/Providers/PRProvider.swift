@@ -16,6 +16,10 @@ public protocol PRProvider: Sendable {
     /// Tags van de opgegeven repos; `Tag.repo` is exact de doorgegeven repo-string.
     /// Een repo die 404 of geen toegang geeft wordt overgeslagen en in `unavailableRepos` gemeld.
     func tags(in repos: [String]) async throws -> TagFetch
+    /// Als `tags(in:)`, maar een repo waarvan de vingerafdruk (`TagFetch.fingerprints`) nog gelijk
+    /// is aan die in `unchanged` komt zonder tags terug, in `TagFetch.unchangedRepos`. Zo kost een
+    /// poll waarin niets veranderde weinig. Een provider zonder vingerafdrukken haalt alles op.
+    func tags(in repos: [String], unchanged: [String: String]) async throws -> TagFetch
     /// De nieuwste tags van één repo mét datum (`Tag.createdAt`), nieuwste eerst, hooguit
     /// `limit`. Alleen voor de eerste tag-poll van een repo, die ze stil in de geschiedenis zet.
     /// Een provider zonder datums geeft een lege lijst.
@@ -34,6 +38,10 @@ public protocol PRProvider: Sendable {
 }
 
 extension PRProvider {
+    public func tags(in repos: [String], unchanged: [String: String]) async throws -> TagFetch {
+        try await tags(in: repos)
+    }
+
     public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
 
     public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] { [:] }
