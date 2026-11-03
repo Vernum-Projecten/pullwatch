@@ -46,6 +46,8 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   Reload works again after a failed load.
 - Notifications say "1 new PR" instead of "1 new PRs", in every language,
   and show the severity of a vulnerability in your language.
+- Tokens of accounts that no longer exist are removed from the Keychain at
+  launch, and test runs no longer leave tokens behind.
 
 ## [0.5.0] - 2026-11-01
 

@@ -56,7 +56,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (bundle id, menu-bar app, languages, translations complete, SF Symbols).
   While XCTest hosts the app, `AppDelegate` does not start polling.
   `Pullwatch/PullwatchUITests/`: XCUITests that launch the app with an empty
-  data folder (`-PullwatchDataDirectory <dir>`, read by `AppPaths`) and walk
+  data folder (`-PullwatchDataDirectory <dir>`, read by `AppPaths`) and
+  tokens in memory only (`-PullwatchEphemeralSecrets`, also implied by
+  `-PullwatchFakeGitHub`; `SecretStores`), and walk
   the first-run onboarding in Dutch and English. In debug builds
   `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
   PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed.

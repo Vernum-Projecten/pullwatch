@@ -27,6 +27,8 @@ final class OnboardingUITests: XCTestCase {
             "-AppleLanguages", "(\(language))",
             // De echte vraag om meldingen is een systeemvenster buiten de app.
             "-PullwatchSkipNotificationRequest", "YES",
+            // Tokens alleen in het geheugen: een testrun laat niets achter in de Keychain.
+            "-PullwatchEphemeralSecrets", "YES",
         ]
         if fakeGitHub { app.launchArguments += ["-PullwatchFakeGitHub", "YES"] }
         if let shots = ProcessInfo.processInfo.environment["PULLWATCH_SHOTS"] {

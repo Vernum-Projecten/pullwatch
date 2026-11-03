@@ -57,6 +57,21 @@ public struct KeychainStore: SecretStore {
         let status = SecItemDelete(baseQuery(account) as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw KeychainError(status: status) }
     }
+
+    /// De namen van alle items onder deze service (zonder de geheimen zelf te lezen).
+    public func accounts() throws -> [String] {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecReturnAttributes as String: true,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+        ]
+        var items: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &items)
+        if status == errSecItemNotFound { return [] }
+        guard status == errSecSuccess, let list = items as? [[String: Any]] else { throw KeychainError(status: status) }
+        return list.compactMap { $0[kSecAttrAccount as String] as? String }
+    }
 }
 
 public struct KeychainPATSource: TokenSource {
