@@ -382,7 +382,9 @@ extension RepoVersions {
             lines.append(String(localized: "Laatste tag \(release.tag):", comment: "Kop in de gekopieerde tekst; tagnaam"))
             if let error = release.error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
             for component in release.components {
-                lines.append("  \(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
+                let id = DataSourceID.releases(product: component.product)
+                let status = release.isUnchecked(id) ? SourceOff.notChecked(id) : String(localized: component.status.label)
+                lines.append("  \(component.label) \(component.versionText) (\(status))")
             }
         }
         // Alleen wat de repo zelf vraagt (met al zijn installs); de transitieve rest zou honderden regels zijn.
