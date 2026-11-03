@@ -24,6 +24,15 @@ import PullwatchTestSupport
         #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer glpat-typed")
     }
 
+    @Test func gitHubEnterpriseTalksToItsOwnServer() async throws {
+        let http = MockHTTPClient()
+        http.on("https://github.example.com/api/v3/user", body: #"{"login":"me"}"#)
+        var account = Account.fixture(kind: .gitHub)
+        account.instanceURL = URL(string: "https://github.example.com")
+        let provider = ProviderFactory.make(account, pat: "ghp_typed", secrets: InMemorySecretStore(), http: http)
+        #expect(try await provider.currentUserId() == "me")
+        #expect(http.requests.map(\.url?.absoluteString) == ["https://github.example.com/api/v3/user"])
+    }
 
     @Test func factoryUsesPatOverrideBeforeKeychain() async throws {
         let http = MockHTTPClient()

@@ -9,7 +9,7 @@ extension GitHubProvider {
         // Zonder token mag niemand de meldingen zien; de kleine limiet bewaren we voor de rest.
         if readsWithoutToken(repo) { return nil }
         let base = apiBase.appending(path: "repos").appending(path: repo)
-        let web = URL(string: "https://github.com")!.appending(path: repo).appending(path: "security")
+        let web = endpoints.web.appending(path: repo).appending(path: "security")
         var feeds: [SecurityFeed] = []
 
         // Code scanning: alleen open meldingen.
@@ -47,23 +47,32 @@ extension GitHubProvider {
         // Eigen adviezen die de repository gepubliceerd heeft.
         var advisories: [GitHubAdvisory] = []
         let advisoryLink = web.appending(path: "advisories")
-        do {
-            let items: [AdvisoryDTO] = try await allPages(
-                base.appending(path: "security-advisories"),
-                query: [URLQueryItem(name: "state", value: "published"), URLQueryItem(name: "per_page", value: String(pageSize))]
-            )
-            let date = now()
-            advisories = items.map { $0.advisory(fetchedAt: date, withPackages: true) }
-            feeds.append(SecurityFeed(kind: .repositoryAdvisories, availability: .available, link: advisoryLink))
-        } catch {
-            feeds.append(await feed(.repositoryAdvisories, repo: repo, error: error, settings: advisoryLink))
+        if endpoints.flavor == .server {
+            // GitHub Enterprise Server kent geen eigen adviezen van een repository.
+            feeds.append(SecurityFeed(kind: .repositoryAdvisories, availability: .notAvailable))
+        } else {
+            do {
+                let items: [AdvisoryDTO] = try await allPages(
+                    base.appending(path: "security-advisories"),
+                    query: [URLQueryItem(name: "state", value: "published"), URLQueryItem(name: "per_page", value: String(pageSize))]
+                )
+                let date = now()
+                advisories = items.map { $0.advisory(fetchedAt: date, withPackages: true) }
+                feeds.append(SecurityFeed(kind: .repositoryAdvisories, availability: .available, link: advisoryLink))
+            } catch {
+                feeds.append(await feed(.repositoryAdvisories, repo: repo, error: error, settings: advisoryLink))
+            }
         }
 
         return SecurityScan(feeds: feeds, alerts: alerts, secretCount: secretCount, advisories: advisories)
     }
 
+    /// Alleen een token van github.com: de Advisory Database staat op api.github.com, en een token
+    /// van een GitHub Enterprise-server hoort niet bij github.com terecht te komen. Zonder token
+    /// werkt de database ook, met een lagere rate limit.
     public func advisoryDatabaseToken() async -> String? {
-        try? await tokenSource.token()
+        guard endpoints.isDotCom else { return nil }
+        return try? await tokenSource.token()
     }
 
     /// Wat een mislukte soort betekent: geen recht (met de pagina van de installatie, waar de
@@ -85,9 +94,9 @@ extension GitHubProvider {
     private func installationsURL(for repo: String) async -> URL {
         let owner = String(repo.split(separator: "/").first ?? "")
         if (try? await resolveOwnerKind(owner)) == .organization {
-            return URL(string: "https://github.com/organizations")!.appending(path: owner).appending(path: "settings/installations")
+            return endpoints.web.appending(path: "organizations").appending(path: owner).appending(path: "settings/installations")
         }
-        return URL(string: "https://github.com/settings/installations")!
+        return endpoints.web.appending(path: "settings/installations")
     }
 
     /// Alle pagina's van een lijst, via de `next`-link, hooguit `maxPages`.

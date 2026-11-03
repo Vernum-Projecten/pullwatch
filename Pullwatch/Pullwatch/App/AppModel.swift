@@ -792,7 +792,10 @@ final class AppModel {
     func checkRepository(_ input: String, for account: Account, pat: String? = nil) async -> Result<RepositoryCheck, RepositoryInputError> {
         let repo: String
         do {
-            repo = try RepositoryReference.parse(input, kind: account.kind, organization: account.organization)
+            repo = try RepositoryReference.parse(
+                input, kind: account.kind, organization: account.organization,
+                instanceURL: account.isGitHubEnterprise ? account.instanceURL : nil
+            )
         } catch {
             return .failure(RepositoryInputError(message: error.userMessage))
         }

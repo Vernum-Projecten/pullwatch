@@ -105,6 +105,8 @@ public struct SecurityFeed: Codable, Hashable, Sendable {
         case notEnabled
         /// De GitHub App of het token mag het niet lezen; de eigenaar moet het recht goedkeuren.
         case needsPermission
+        /// Bestaat niet op deze server (bijvoorbeeld de eigen adviezen op GitHub Enterprise Server).
+        case notAvailable
         /// Netwerk, rate limit of een ander antwoord; de volgende check probeert het opnieuw.
         case failed
     }

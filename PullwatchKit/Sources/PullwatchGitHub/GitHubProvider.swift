@@ -10,7 +10,9 @@ public actor GitHubProvider: PRProvider {
     let tokenSource: any TokenSource
     let http: any HTTPClient
     let now: @Sendable () -> Date
-    let apiBase = URL(string: "https://api.github.com")!
+    /// Waar de API en de webpagina's staan: github.com, GHE.com of een eigen server.
+    let endpoints: GitHubEndpoints
+    var apiBase: URL { endpoints.api }
     let pageSize = 100
     let maxPages = 10
     private var ownerKinds: [String: OwnerKind] = [:]
@@ -21,16 +23,21 @@ public actor GitHubProvider: PRProvider {
     var repoAccess: [String: (access: RepoAccess, at: Date)] = [:]
     /// Tot wanneer de limiet voor verzoeken zonder token op is (60 per uur, zoeken 10 per minuut).
     var anonymousPausedUntil: Date?
+    /// De server kent een veld uit de GraphQL-vraag voor tags niet (een oudere GitHub Enterprise
+    /// Server): tags en releases komen dan via REST.
+    private var tagsViaREST = false
 
     public init(
         accountId: UUID,
         owners: [String],
         extraRepos: [String] = [],
+        instanceURL: URL? = nil,
         tokenSource: any TokenSource,
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.accountId = accountId
+        self.endpoints = GitHubEndpoints(instanceURL: instanceURL)
         self.owners = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         self.extraRepos = Account.reposOutside(owners: self.owners, extraRepos)
         self.tokenSource = tokenSource
@@ -41,11 +48,12 @@ public actor GitHubProvider: PRProvider {
     public init(
         accountId: UUID,
         owner: String,
+        instanceURL: URL? = nil,
         tokenSource: any TokenSource,
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
-        self.init(accountId: accountId, owners: [owner], tokenSource: tokenSource, http: http, now: now)
+        self.init(accountId: accountId, owners: [owner], instanceURL: instanceURL, tokenSource: tokenSource, http: http, now: now)
     }
 
     public func currentUserId() async throws -> String {
@@ -205,6 +213,16 @@ public actor GitHubProvider: PRProvider {
     /// daarna helemaal opgehaald. Een repo die niet (meer) bestaat of geen toegang geeft
     /// (GraphQL geeft dan `null`, de hele batch 401/403) komt in `unavailableRepos`.
     public func tags(in repos: [String], unchanged known: [String: String]) async throws -> TagFetch {
+        if tagsViaREST { return try await restTags(in: repos) }
+        do {
+            return try await graphQLTags(in: repos, unchanged: known)
+        } catch is GraphQLSchemaMismatch {
+            tagsViaREST = true
+            return try await restTags(in: repos)
+        }
+    }
+
+    private func graphQLTags(in repos: [String], unchanged known: [String: String]) async throws -> TagFetch {
         var fetch = TagFetch(tags: [])
         // Losse repo's die alleen zonder token te lezen zijn gaan via REST (GraphQL vraagt altijd
         // een token); de rest gaat samen via GraphQL.
@@ -276,7 +294,7 @@ public actor GitHubProvider: PRProvider {
         let response: TagQuery.Response
         let headers: HTTPURLResponse
         do {
-            let (body, http) = try await send(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
+            let (body, http) = try await send(endpoints.graphQL, body: try JSONEncoder().encode(request))
             response = try JSONDecoding.decode(TagQuery.Response.self, from: body)
             headers = http
         } catch ProviderError.unauthorized {
@@ -289,6 +307,7 @@ public actor GitHubProvider: PRProvider {
             throw ProviderError.rateLimited(until: reset.map(Date.init(timeIntervalSince1970:)) ?? now() + 60)
         }
         guard let payload = response.data else {
+            if GraphQLSchemaMismatch.matches(response.errors) { throw GraphQLSchemaMismatch() }
             throw ProviderError.decoding("GraphQL: \(response.errors?.first?.message ?? "geen data")")
         }
         var result: [String: TagQuery.Repository] = [:]
@@ -362,7 +381,7 @@ public actor GitHubProvider: PRProvider {
     func tagTreeURL(repo: String, tag: String) -> URL? {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         guard let encoded = tag.addingPercentEncoding(withAllowedCharacters: allowed) else { return nil }
-        return URL(string: "https://github.com/\(repo)/tree/\(encoded)")
+        return URL(string: "\(endpoints.web.absoluteString)/\(repo)/tree/\(encoded)")
     }
 
     /// PR's per GraphQL-verzoek bij `coAuthors(of:)`.
@@ -378,8 +397,14 @@ public actor GitHubProvider: PRProvider {
         for start in stride(from: 0, to: known.count, by: Self.coAuthorBatch) {
             let batch = Array(known[start..<min(start + Self.coAuthorBatch, known.count)])
             let request = CoAuthorQueryDTO(batch)
-            let data = try await data(apiBase.appending(path: "graphql"), body: try JSONEncoder().encode(request))
+            let data = try await data(endpoints.graphQL, body: try JSONEncoder().encode(request))
             let response = try JSONDecoding.decode(CoAuthorQueryDTO.Response.self, from: data)
+            // Een server zonder co-auteurs in GraphQL (een oudere GitHub Enterprise Server): geen
+            // co-auteurs, in plaats van elke poll dezelfde fout.
+            if response.data == nil, GraphQLSchemaMismatch.matches(response.errors) {
+                for pr in known { result[pr.dedupKey] = [] }
+                return result
+            }
             // Zonder `data` mislukte het hele verzoek (bv. de GraphQL-limiet): later opnieuw.
             guard let found = response.data else { throw ProviderError.decoding("graphql co-auteurs") }
             for (index, pr) in batch.enumerated() {
@@ -460,7 +485,7 @@ public actor GitHubProvider: PRProvider {
         )
     }
 
-    private func get<T: Decodable>(_ url: URL, query: [URLQueryItem] = []) async throws -> T {
+    func get<T: Decodable>(_ url: URL, query: [URLQueryItem] = []) async throws -> T {
         try JSONDecoding.decode(T.self, from: try await data(url, query: query), snakeCase: true)
     }
 
@@ -590,11 +615,6 @@ private struct TagQuery: Encodable {
     }
 
     struct Response: Decodable {
-        struct GraphQLError: Decodable {
-            let type: String?
-            let message: String?
-        }
-
         let data: [String: Repository?]?
         let errors: [GraphQLError]?
     }
@@ -738,5 +758,34 @@ private struct CoAuthorQueryDTO: Encodable {
         }
 
         let data: [String: Repository?]?
+        let errors: [GraphQLError]?
+    }
+}
+
+/// Een fout uit een GraphQL-antwoord; `extensions.code` noemt een veld dat de server niet kent.
+struct GraphQLError: Decodable {
+    struct Extensions: Decodable {
+        let code: String?
+    }
+
+    let type: String?
+    let message: String?
+    let extensions: Extensions?
+}
+
+/// De server kent een veld of argument uit de vraag niet: een GitHub Enterprise Server die ouder
+/// is dan github.com. Wat Pullwatch dan nog kan lezen, leest het op een andere manier.
+struct GraphQLSchemaMismatch: Error {
+    static let codes: Set<String> = [
+        "undefinedField", "undefinedType", "argumentNotAccepted", "argumentLiteralsIncompatible",
+    ]
+
+    static func matches(_ errors: [GraphQLError]?) -> Bool {
+        guard let errors, !errors.isEmpty else { return false }
+        return errors.contains { error in
+            error.extensions?.code.map(codes.contains) == true
+                || error.message?.contains("doesn't exist on type") == true
+                || error.message?.contains("doesn't accept argument") == true
+        }
     }
 }

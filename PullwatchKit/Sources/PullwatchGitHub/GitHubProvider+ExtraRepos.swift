@@ -74,6 +74,10 @@ extension GitHubProvider {
         let result: RepoAccess
         if let name = try await readableName(url, anonymous: false) {
             result = .token(name)
+        } else if !endpoints.isDotCom {
+            // GitHub Enterprise Server en GHE.com lezen meestal niets zonder inloggen; het token
+            // van zo'n server gaat dan ook nooit ergens anders heen.
+            result = .missing
         } else if let until = anonymousPausedUntil, until > now() {
             result = .paused(until: until)
         } else {

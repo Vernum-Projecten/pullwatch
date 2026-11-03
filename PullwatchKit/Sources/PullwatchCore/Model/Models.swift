@@ -15,7 +15,8 @@ public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
     }
 
     /// Kan een account van deze dienst op een eigen server staan (`Account.instanceURL`)?
-    public var supportsInstanceURL: Bool { self == .gitLab }
+    /// GitLab self-managed, en GitHub Enterprise Server of GHE.com.
+    public var supportsInstanceURL: Bool { self == .gitLab || self == .gitHub }
 
     /// Het adres van de dienst zonder eigen server; Azure DevOps heeft er een per organisatie.
     public var defaultInstanceURL: URL? {
@@ -211,7 +212,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     public var cliUser: String?
     /// Uitgezet: Pullwatch haalt niets op en meldt niets voor dit account; de keuzes blijven bewaard.
     public var isPaused: Bool
-    /// Eigen server (GitLab self-managed): alleen https, zonder "/" aan het eind
+    /// Eigen server (GitLab self-managed, GitHub Enterprise Server of `<naam>.ghe.com`): alleen https, zonder "/" aan het eind
     /// (`InstanceURL.parse`). nil = de standaard van de dienst (`ProviderKind.defaultInstanceURL`).
     public var instanceURL: URL?
 
@@ -231,6 +232,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// andere organisatie), in dezelfde vorm als `repoWatch`. Wat er gevolgd wordt staat gewoon in
     /// `repoWatch`. Azure DevOps: "project/repo" binnen de organisatie van het account.
     public var extraRepos: [String]
+
+    /// Een GitHub-account op GitHub Enterprise Server of GHE.com in plaats van github.com.
+    public var isGitHubEnterprise: Bool {
+        kind == .gitHub && instanceURL != nil && instanceURL != kind.defaultInstanceURL
+    }
 
     /// Volgt dit account iets: een repo met PR's, tags of gemerged, of nieuwe repo's.
     public var followsAnything: Bool {
@@ -302,13 +308,16 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
 
     /// Profielfoto van wie er inlogde, anders van de eerste eigenaar (openbaar, zonder token);
     /// Azure DevOps geeft foto's alleen met inloggen, dus daar nil.
-    public var avatarURL: URL? { Self.gitHubAvatarURL(login ?? organization, kind: kind) }
+    public var avatarURL: URL? { Self.gitHubAvatarURL(login ?? organization, kind: kind, web: effectiveInstanceURL) }
 
-    public static func gitHubAvatarURL(_ login: String, kind: ProviderKind = .gitHub, size: Int = 128) -> URL? {
+    /// `<web>/<login>.png`: github.com, of de eigen GitHub Enterprise-server (`web`), die dezelfde
+    /// route kent. Een server die alles achter inloggen zet geeft geen foto; dan het symbool.
+    public static func gitHubAvatarURL(_ login: String, kind: ProviderKind = .gitHub, size: Int = 128, web: URL? = nil) -> URL? {
         let login = login.trimmingCharacters(in: .whitespaces)
         guard kind == .gitHub, !login.isEmpty,
               let encoded = login.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else { return nil }
-        return URL(string: "https://github.com/\(encoded).png?size=\(size)")
+        let base = (web ?? kind.defaultInstanceURL)?.absoluteString ?? "https://github.com"
+        return URL(string: "\(base)/\(encoded).png?size=\(size)")
     }
 
     public init(
@@ -393,7 +402,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     }
 
     /// Wat er voor deze repo gevolgd wordt (hoofdletterongevoelig).
-    /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `github.com/<eigenaar>/<repo>`.
+    /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `<server>/<eigenaar>/<repo>`.
     public func repoWebURL(_ repo: String) -> URL? {
         switch kind {
         case .azureDevOps:
@@ -401,10 +410,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
             guard parts.count == 2 else { return nil }
             return URL(string: "https://dev.azure.com")?
                 .appending(path: organization).appending(path: parts[0]).appending(path: "_git").appending(path: parts[1])
-        case .gitHub:
-            return URL(string: "https://github.com")?.appending(path: repo)
-        case .gitLab:
-            // "groep/subgroep/project" onder de eigen server of gitlab.com.
+        case .gitHub, .gitLab:
+            // "eigenaar/repo" (GitHub) of "groep/subgroep/project" (GitLab) onder de eigen
+            // server, anders github.com of gitlab.com.
             return effectiveInstanceURL?.appending(path: repo)
         }
     }

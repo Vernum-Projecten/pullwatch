@@ -31,6 +31,26 @@ import PullwatchTestSupport
         #expect(runner.calls.first?.1 == ["auth", "token", "--user", "second"])
     }
 
+    @Test func ghAsksTokenForTheEnterpriseHost() async throws {
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(status: 0, stdout: "gho_x\n", stderr: "")
+        _ = try await GhCLISource(runner: runner, locator: homebrew, user: "me", host: "ghe.example.com").token()
+        #expect(runner.calls.first?.1 == ["auth", "token", "--hostname", "ghe.example.com", "--user", "me"])
+
+        // github.com blijft precies zoals het was.
+        let dotCom = MockProcessRunner()
+        dotCom.output = ProcessOutput(status: 0, stdout: "gho_x\n", stderr: "")
+        _ = try await GhCLISource(runner: dotCom, locator: homebrew, host: "github.com").token()
+        #expect(dotCom.calls.first?.1 == ["auth", "token"])
+    }
+
+    @Test func listsGhAccountsOfAHost() {
+        let json = #"{"hosts":{"github.com":[{"login":"me","active":true}],"ghe.example.com":[{"login":"x","active":false},{"login":"y","active":true}]}}"#
+        #expect(GhCLIAccounts.parse(json, host: "ghe.example.com") == ["y", "x"])
+        #expect(GhCLIAccounts.parse(json, host: "GHE.example.com") == ["y", "x"])
+        #expect(GhCLIAccounts.parse(json, host: "other.example.com").isEmpty)
+    }
+
     @Test func listsGhAccountsActiveFirst() {
         let json = #"{"hosts":{"github.com":[{"login":"work","active":false},{"login":"me","active":true}],"ghe.example.com":[{"login":"x","active":true}]}}"#
         #expect(GhCLIAccounts.parse(json) == ["me", "work"])

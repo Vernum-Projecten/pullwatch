@@ -25,7 +25,11 @@ public enum ProviderFactory {
         case .cli:
             switch account.kind {
             case .azureDevOps: tokens = AzCLISource(runner: runner)
-            case .gitHub: tokens = GhCLISource(runner: runner, user: account.cliUser)
+            case .gitHub:
+                tokens = GhCLISource(
+                    runner: runner, user: account.cliUser,
+                    host: GitHubEndpoints(instanceURL: account.effectiveInstanceURL).cliHost
+                )
             case .gitLab: tokens = GlabCLISource(runner: runner, host: account.effectiveInstanceURL?.host() ?? "gitlab.com")
             }
         case .gitHubApp:
@@ -46,7 +50,12 @@ public enum ProviderFactory {
             )
         case .gitHub:
             return GitHubProvider(
-                accountId: account.id, owners: account.owners, extraRepos: account.extraRepos, tokenSource: tokens, http: http
+                accountId: account.id,
+                owners: account.owners,
+                extraRepos: account.extraRepos,
+                instanceURL: account.effectiveInstanceURL,
+                tokenSource: tokens,
+                http: http
             )
         case .gitLab:
             return GitLabProvider(
