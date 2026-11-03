@@ -39,6 +39,11 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   first sync, fetching the history again and the version check, with Stop
   where that is safe. Toolbar buttons stay put while their job runs, and the
   menu shows a small spinner next to Refresh during a poll.
+- The version check keeps every install of a package: its version, its
+  workspace, direct or transitive, runtime, dev or optional, and the
+  shortest chain from a direct package. A package used in two versions is
+  no longer folded into the oldest one, and each vulnerability is listed
+  for every install it hits. Older saved checks still load.
 
 ### Fixed
 

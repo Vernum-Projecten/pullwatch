@@ -1,6 +1,7 @@
 import Foundation
 
-/// Een bekende kwetsbaarheid in een package van een repo.
+/// Een bekende kwetsbaarheid in één install van een package in een repo. Hetzelfde advies in de
+/// root en in `packages/api` zijn twee entries met dezelfde `key`.
 public struct Vulnerability: Codable, Hashable, Sendable {
     /// OSV-id, bv. "GHSA-29mw-wpgm-hmr9" of "GO-2024-2687".
     public let id: String
@@ -15,10 +16,16 @@ public struct Vulnerability: Codable, Hashable, Sendable {
     /// Laagste versie na `version` waarin het opgelost is.
     public let fixedIn: String?
     public let source: String
+    /// Waar en hoe de geraakte install in de repo zit, zoals `Dependency`.
+    public let workspace: String
+    public let scope: DependencyScope
+    public let kind: DependencyKind
+    public let via: [String]
 
     public init(
         id: String, cve: String?, summary: String?, severity: String?, ecosystem: String,
-        package: String, version: String, fixedIn: String?, source: String
+        package: String, version: String, fixedIn: String?, source: String,
+        workspace: String? = nil, scope: DependencyScope = .unknown, kind: DependencyKind = .runtime, via: [String] = []
     ) {
         self.id = id
         self.cve = cve
@@ -29,10 +36,41 @@ public struct Vulnerability: Codable, Hashable, Sendable {
         self.version = version
         self.fixedIn = fixedIn
         self.source = source
+        self.workspace = workspace ?? DependencyDetector.folder(of: source)
+        self.scope = scope
+        self.kind = kind
+        self.via = via
     }
 
-    /// Zelfde lek in hetzelfde package, ongeacht de versie.
+    private enum CodingKeys: String, CodingKey {
+        case id, cve, summary, severity, ecosystem, package, version, fixedIn, source, workspace, scope, kind, via
+    }
+
+    /// versions.json van vóór de installs heeft geen workspace, scope, soort en via.
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            id: try c.decode(String.self, forKey: .id),
+            cve: try c.decodeIfPresent(String.self, forKey: .cve),
+            summary: try c.decodeIfPresent(String.self, forKey: .summary),
+            severity: try c.decodeIfPresent(String.self, forKey: .severity),
+            ecosystem: try c.decode(String.self, forKey: .ecosystem),
+            package: try c.decode(String.self, forKey: .package),
+            version: try c.decode(String.self, forKey: .version),
+            fixedIn: try c.decodeIfPresent(String.self, forKey: .fixedIn),
+            source: try c.decode(String.self, forKey: .source),
+            workspace: try c.decodeIfPresent(String.self, forKey: .workspace),
+            scope: try c.decodeIfPresent(DependencyScope.self, forKey: .scope) ?? .unknown,
+            kind: try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime,
+            via: try c.decodeIfPresent([String].self, forKey: .via) ?? []
+        )
+    }
+
+    /// Zelfde lek in hetzelfde package, ongeacht versie en install.
     public var key: String { "\(id)|\(package)" }
+
+    /// Vaste id voor lijsten: één advies kan meerdere packages, versies en workspaces raken.
+    public var installId: String { "\(id)|\(ecosystem)|\(package)|\(version)|\(workspace)|\(source)" }
 
     public var url: URL { URL(string: "https://osv.dev/vulnerability")!.appending(path: id) }
 
@@ -159,7 +197,7 @@ public enum OSV {
         }
     }
 
-    /// Kwetsbaarheden per dependency; een id die alias is van een andere id voor hetzelfde package valt weg
+    /// Kwetsbaarheden per dependency (install); een id die alias is van een andere id voor hetzelfde package valt weg
     /// (GitHub en Go melden vaak hetzelfde lek onder twee ids).
     public static func vulnerabilities(
         dependencies: [Dependency],
@@ -191,13 +229,17 @@ public enum OSV {
                     package: dependency.name,
                     version: dependency.version,
                     fixedIn: fixedIn,
-                    source: dependency.source
+                    source: dependency.source,
+                    workspace: dependency.workspace,
+                    scope: dependency.scope,
+                    kind: dependency.kind,
+                    via: dependency.via
                 ))
             }
         }
         return result.sorted {
             if $0.severityRank != $1.severityRank { return $0.severityRank > $1.severityRank }
-            return ($0.package, $0.id) < ($1.package, $1.id)
+            return ($0.package, $0.id, $0.workspace, $0.version) < ($1.package, $1.id, $1.workspace, $1.version)
         }
     }
 }

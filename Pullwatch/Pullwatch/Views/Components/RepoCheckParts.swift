@@ -107,8 +107,8 @@ private struct VulnerabilityRow: View {
 }
 
 extension Vulnerability {
-    /// Vaste id voor lijsten: hetzelfde advies kan meerdere packages of versies raken.
-    var rowId: String { "\(id) \(package) \(version)" }
+    /// Vaste id voor lijsten: hetzelfde advies kan meerdere packages, versies en workspaces raken.
+    var rowId: String { installId }
 
     static func severityLabel(_ severity: String?) -> LocalizedStringResource {
         switch severity {
