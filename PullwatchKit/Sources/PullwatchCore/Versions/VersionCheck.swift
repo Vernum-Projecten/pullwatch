@@ -288,10 +288,10 @@ public struct VersionChecker: Sendable {
                 let fetched = await OSV.records(ids: allIds, http: http, now: now())
                 records = fetched.records
                 if fetched.failed > 0 {
-                    osvError = String(localized: "CVE-check onvolledig: van \(fetched.failed) van \(allIds.count) kwetsbaarheden ontbreken de details", bundle: .localizedCore)
+                    osvError = String(localized: "CVE-check onvolledig, details ontbreken: \(fetched.failed) van \(allIds.count)", bundle: .localizedCore, comment: "Aantal kwetsbaarheden zonder details, totaal")
                 }
             } catch {
-                osvError = String(localized: "CVE-check mislukt: \(Self.message(error))", bundle: .localizedCore)
+                osvError = String(localized: "CVE-check mislukt: \(Self.message(error))", bundle: .localizedCore, comment: "Foutmelding")
             }
         }
 

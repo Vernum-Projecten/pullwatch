@@ -60,4 +60,22 @@ import Testing
         }
         #expect(missing.isEmpty, "\(url.lastPathComponent) mist vertalingen:\n\(missing.sorted().joined(separator: "\n"))")
     }
+
+    /// Een tekst met een aantal en meervoudsvormen heeft in elke taal minstens `one` en `other`,
+    /// ook in het Nederlands: anders staat er "1 nieuwe PR's" of valt een taal terug op de sleutel.
+    @Test(arguments: catalogs)
+    func everyPluralHasOneAndOther(_ url: URL) throws {
+        let catalog = try JSONDecoder().decode(Catalog.self, from: Data(contentsOf: url))
+        var missing: [String] = []
+        for (key, entry) in catalog.strings {
+            let localizations = entry.localizations ?? [:]
+            guard localizations.values.contains(where: { $0.variations?["plural"] != nil }) else { continue }
+            for language in Self.languages {
+                let forms = Set(localizations[language]?.variations?["plural"]?.keys.map { $0 } ?? [])
+                let absent = ["one", "other"].filter { !forms.contains($0) }
+                if !absent.isEmpty { missing.append("\(language) \(absent.joined(separator: ", ")): \(key)") }
+            }
+        }
+        #expect(missing.isEmpty, "\(url.lastPathComponent) mist meervoudsvormen:\n\(missing.sorted().joined(separator: "\n"))")
+    }
 }

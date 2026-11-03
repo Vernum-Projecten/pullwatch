@@ -272,7 +272,7 @@ struct AccountEditor: View {
         do {
             let name = try await provider().testConnection()
             if Task.isCancelled { return }
-            connectionMessage = "✓ " + String(localized: "Verbonden als \(name)", comment: "Naam van de ingelogde gebruiker")
+            connectionMessage = String(localized: "✓ Verbonden als \(name)", comment: "Naam van de ingelogde gebruiker")
         } catch let error as ProviderError {
             if Task.isCancelled { return }
             connectionMessage = "✗ \(error.userMessage)"

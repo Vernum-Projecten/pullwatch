@@ -167,13 +167,13 @@ extension RepoVersions {
     /// Platte tekst voor het klembord: repo, onderdelen en kwetsbaarheden.
     var clipboardText: String {
         var lines = [repo]
-        if let error { lines.append(String(localized: "Fout: \(error)")) }
+        if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
         for component in components {
             lines.append("\(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
         }
         if let release {
-            lines.append(String(localized: "Laatste tag \(release.tag):"))
-            if let error = release.error { lines.append(String(localized: "Fout: \(error)")) }
+            lines.append(String(localized: "Laatste tag \(release.tag):", comment: "Kop in de gekopieerde tekst; tagnaam"))
+            if let error = release.error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
             for component in release.components {
                 lines.append("  \(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
             }
@@ -184,7 +184,7 @@ extension RepoVersions {
             for v in vulnerabilities {
                 var line = "- \(v.cve ?? v.id)"
                 if let location = location(of: v) { line += " {\(String(localized: location.label))}" }
-                if let severity = v.severity { line += " [\(severity)]" }
+                if let severity = v.severity { line += " [\(String(localized: Vulnerability.severityLabel(severity)))]" }
                 line += " \(v.package) \(v.version)"
                 if let fixedIn = v.fixedIn { line += " → \(fixedIn)" }
                 if let summary = v.summary { line += ": \(summary)" }

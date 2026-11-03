@@ -59,25 +59,25 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             let identifier: String
             switch plan {
             case .pullRequest(let pr):
-                content.title = String(localized: "\(pr.repo): nieuwe PR")
+                content.title = String(localized: "\(pr.repo): nieuwe PR", comment: "Meldingstitel; repo")
                 content.body = Self.body(pr.title, author: pr.authorName)
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey
             case .tag(let tag):
-                content.title = String(localized: "\(tag.repo): nieuwe tag")
+                content.title = String(localized: "\(tag.repo): nieuwe tag", comment: "Meldingstitel; repo")
                 content.body = Self.body(tag.name, author: tag.authorName)
                 content.userInfo = ["url": tag.webURL.absoluteString, "key": tag.dedupKey]
                 identifier = tag.dedupKey
             case .completed(let pr):
-                content.title = String(localized: "\(pr.repo): PR completed")
+                content.title = String(localized: "\(pr.repo): PR completed", comment: "Meldingstitel; repo. Completed is de Azure DevOps-term voor gemerged")
                 content.body = Self.body(pr.title, author: pr.authorName)
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey + ":completed"
             case .summary(let kind, let count, let lines):
                 switch kind {
-                case .pullRequest: content.title = String(localized: "\(count) nieuwe PR's")
-                case .tag: content.title = String(localized: "\(count) nieuwe tags")
-                case .completed: content.title = String(localized: "\(count) PR's completed")
+                case .pullRequest: content.title = String(localized: "\(count) nieuwe PR's", comment: "Meldingstitel; aantal")
+                case .tag: content.title = String(localized: "\(count) nieuwe tags", comment: "Meldingstitel; aantal")
+                case .completed: content.title = String(localized: "\(count) PR's completed", comment: "Meldingstitel; aantal gemergde PR's")
                 }
                 content.body = lines.joined(separator: "\n")
                 identifier = UUID().uuidString
@@ -90,14 +90,14 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     /// Tot drie losse meldingen (klik opent de OSV-pagina), daarboven één samenvatting.
     func deliverVulnerabilities(_ items: [(repo: String, vulnerability: Vulnerability)]) {
         func line(_ v: Vulnerability) -> String {
-            let severity = v.severity.map { " [\($0.capitalized)]" } ?? ""
+            let severity = v.severity.map { " [\(String(localized: Vulnerability.severityLabel($0)))]" } ?? ""
             let fix = v.fixedIn.map { " → \($0)" } ?? ""
             return "\(v.cve ?? v.id)\(severity) \(v.package) \(v.version)\(fix)"
         }
         if items.count <= 3 {
             for (repo, v) in items {
                 let content = UNMutableNotificationContent()
-                content.title = String(localized: "\(repo): nieuwe kwetsbaarheid")
+                content.title = String(localized: "\(repo): nieuwe kwetsbaarheid", comment: "Meldingstitel; repo")
                 content.body = [line(v), v.summary].compactMap { $0 }.joined(separator: "\n")
                 content.userInfo = ["url": v.url.absoluteString]
                 content.sound = .default
@@ -105,7 +105,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             }
         } else {
             let content = UNMutableNotificationContent()
-            content.title = String(localized: "\(items.count) nieuwe kwetsbaarheden")
+            content.title = String(localized: "\(items.count) nieuwe kwetsbaarheden", comment: "Meldingstitel; aantal")
             content.body = (items.prefix(3).map { "\($0.repo): \(line($0.vulnerability))" } + [String(localized: "Zie Versies… in het menu")])
                 .joined(separator: "\n")
             content.sound = .default
@@ -120,10 +120,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         let content = UNMutableNotificationContent()
         if let only = items.first, items.count == 1 {
             content.title = String(localized: "\(only.label) \(only.latest ?? "") beschikbaar", comment: "Package, versie")
-            content.body = String(localized: "\(only.behind.count) repo's lopen achter")
+            content.body = String(localized: "\(only.behind.count) repo's lopen achter", comment: "Meldingstekst; aantal repo's met een oudere versie")
         } else {
-            content.title = String(localized: "\(items.count) nieuwe versies")
-            content.body = (lines.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer")] : []))
+            content.title = String(localized: "\(items.count) nieuwe versies", comment: "Meldingstitel; aantal packages met een nieuwe versie")
+            content.body = (lines.prefix(3) + (items.count > 3 ? [String(localized: "+ \(items.count - 3) meer", comment: "Laatste regel van een melding; aantal regels dat niet getoond wordt")] : []))
                 .joined(separator: "\n")
         }
         content.userInfo = ["section": "versions"]
@@ -134,7 +134,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     /// Klik opent de DMG (of de releasepagina als die er niet bij staat).
     func deliverUpdate(_ update: AvailableUpdate) {
         let content = UNMutableNotificationContent()
-        content.title = String(localized: "Pullwatch \(update.version) is beschikbaar")
+        content.title = String(localized: "Pullwatch \(update.version) is beschikbaar", comment: "Meldingstitel; versienummer")
         content.body = String(localized: "Klik om te downloaden.")
         content.userInfo = ["url": (update.downloadURL ?? update.pageURL).absoluteString]
         add(UNNotificationRequest(identifier: "update-\(update.version)", content: content, trigger: nil))

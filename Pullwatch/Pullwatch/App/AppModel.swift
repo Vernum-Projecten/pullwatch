@@ -761,8 +761,8 @@ final class AppModel {
             availableUpdate = update
             nextUpdateCheck = Date() + UpdateChecker.interval
             if manual {
-                updateCheckMessage = update.map { String(localized: "Versie \($0.version) is beschikbaar") }
-                    ?? String(localized: "Je hebt de nieuwste versie (\(Self.currentVersion))")
+                updateCheckMessage = update.map { String(localized: "Versie \($0.version) is beschikbaar", comment: "Versienummer") }
+                    ?? String(localized: "Je hebt de nieuwste versie (\(Self.currentVersion))", comment: "Huidig versienummer")
             }
             let notifiedKey = "notifiedUpdateVersion"
             if let update, !manual, UserDefaults.standard.string(forKey: notifiedKey) != update.version {
@@ -773,7 +773,7 @@ final class AppModel {
             logger.notice("updatecheck mislukt: \(error.localizedDescription)")
             if manual {
                 let reason = (error as? ProviderError)?.userMessage ?? error.localizedDescription
-                updateCheckMessage = String(localized: "Controleren mislukt: \(reason)")
+                updateCheckMessage = String(localized: "Controleren mislukt: \(reason)", comment: "Reden waarom de updatecheck mislukte")
             }
         }
     }

@@ -44,6 +44,8 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   was just opened, show up at once instead of up to a minute later.
 - Reloading the repositories of an account keeps the list in place, and
   Reload works again after a failed load.
+- Notifications say "1 new PR" instead of "1 new PRs", in every language,
+  and show the severity of a vulnerability in your language.
 
 ## [0.5.0] - 2026-11-01
 
