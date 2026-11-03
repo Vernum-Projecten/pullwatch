@@ -31,3 +31,36 @@ the name and scope filled in), or signs in with the GitLab CLI
 is enough; `api` works too but gives more than it needs. A self-managed server
 must be reachable over https; Pullwatch refuses plain http so the token never
 travels unencrypted.
+
+GitHub Enterprise needs nothing here either. Pullwatch talks to GitHub
+Enterprise Server at `https://<server>/api/v3` (GraphQL at
+`https://<server>/api/graphql`) and to GitHub Enterprise Cloud with data
+residency (`https://<name>.ghe.com`) at `https://api.<name>.ghe.com` (GraphQL at
+`https://api.<name>.ghe.com/graphql`). Each person signs in on that server,
+which must be reachable over https:
+
+- **Personal access token**, made on the server (Settings, Developer
+  settings, Personal access tokens; the account editor's **Token maken** link
+  opens the classic token page with the name and the scopes filled in).
+  Classic: `repo` and `read:org`, plus `security_events` for code scanning
+  and secret scanning alerts. Fine-grained (where the server has them):
+  **Pull requests**, **Contents** and **Metadata** read-only on the
+  repositories to follow, optionally **Code scanning alerts** and **Secret
+  scanning alerts** read-only.
+- **GitHub CLI**: `gh auth login --hostname <server>`; Pullwatch then runs
+  `gh auth token --hostname <server>` and lists the `gh` accounts of that host.
+
+**Sign in with GitHub** is for github.com only. The Pullwatch GitHub App lives
+on github.com; on a GitHub Enterprise Server a GitHub App has to be registered
+on that server, with its own client ID, and a ghe.com enterprise likewise.
+Letting a person enter such a client ID is left for later.
+
+What a GitHub Enterprise server lacks shows as not available instead of an
+error: GitHub Enterprise Server has no repository security advisories (the
+repository page says **Niet beschikbaar op deze server**), code scanning and
+secret scanning need GitHub Advanced Security on the server (without it they
+show **Staat uit**), and a server whose GraphQL API misses a field Pullwatch
+asks for tags and releases falls back to the REST API (tags then have no date
+unless they have a release) and shows no co-authors. The GitHub Advisory
+Database lookups keep going to `api.github.com`, without the server's token:
+an enterprise token never leaves its own server.
