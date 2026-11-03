@@ -4,7 +4,8 @@ import SwiftUI
 /// Versies per package over alle gevolgde repo's, in een tabel: per package de repo's die het
 /// gebruiken als uitklapbare rijen; dubbelklik op een repo opent de pagina ervan.
 struct PackagesView: View {
-    let model: AppModel
+    @Environment(VersionsModel.self) private var versions
+    @Environment(AppRouter.self) private var router
 
     @State private var searchText = ""
     @State private var selection: PackageNode.ID?
@@ -35,7 +36,7 @@ struct PackagesView: View {
 
     private func recompute() {
         let query = searchText.trimmingCharacters(in: .whitespaces)
-        let found = model.packageSummaries.filter { summary in
+        let found = versions.packageSummaries.filter { summary in
             query.isEmpty
                 || summary.label.localizedCaseInsensitiveContains(query)
                 || (summary.behind + summary.current + summary.transitiveOnly).contains { $0.repo.localizedCaseInsensitiveContains(query) }
@@ -119,20 +120,20 @@ struct PackagesView: View {
         }
         .contextMenu(forSelectionType: PackageNode.ID.self) { ids in
             if let repoId = PackageNode.repoId(in: ids) {
-                Button("Open de pagina van deze repo") { model.showRepo(id: repoId) }
+                Button("Open de pagina van deze repo") { router.showRepo(id: repoId) }
             }
         } primaryAction: { ids in
-            if let repoId = PackageNode.repoId(in: ids) { model.showRepo(id: repoId) }
+            if let repoId = PackageNode.repoId(in: ids) { router.showRepo(id: repoId) }
         }
         .overlay {
-            if model.versionReport == nil && model.versionCheck != nil {
+            if versions.versionReport == nil && versions.versionCheck != nil {
                 // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
                 ContentUnavailableView(
                     "Afhankelijkheden checken…",
                     systemImage: "shippingbox",
                     description: Text("Pullwatch leest de runtimes en packages van de repo's die je volgt.")
                 )
-            } else if model.versionReport == nil {
+            } else if versions.versionReport == nil {
                 ContentUnavailableView(
                     "Nog niet gecheckt",
                     systemImage: "shippingbox",
@@ -156,24 +157,24 @@ struct PackagesView: View {
         .searchable(text: $searchText, prompt: Text("Zoek op package of repo…"))
         .searchShortcut()
         .navigationTitle(Text("Afhankelijkheden"))
-        .navigationSubtitle(CheckedSubtitle.text(model.versionReport?.checkedAt))
+        .navigationSubtitle(CheckedSubtitle.text(versions.versionReport?.checkedAt))
         .toolbar {
-            CheckAllToolbarItem(model: model)
+            CheckAllToolbarItem()
         }
         .onAppear {
-            seenAtOpen = model.seenPackageVersions
-            model.markPackagesSeen()
+            seenAtOpen = versions.seenPackageVersions
+            versions.markPackagesSeen()
         }
-        .onChange(of: model.packagesSearch, initial: true) { _, search in
+        .onChange(of: router.packagesSearch, initial: true) { _, search in
             guard let search else { return }
             searchText = search
-            model.packagesSearch = nil
+            router.packagesSearch = nil
         }
-        .onChange(of: model.versionReport?.checkedAt) {
+        .onChange(of: versions.versionReport?.checkedAt) {
             // Nieuwe check terwijl je kijkt: wat nu nieuw is houdt zijn stip tot je terugkomt.
-            model.markPackagesSeen()
+            versions.markPackagesSeen()
         }
-        .onChange(of: Query(text: searchText, summaries: model.packageSummaries, seen: seenAtOpen), initial: true) {
+        .onChange(of: Query(text: searchText, summaries: versions.packageSummaries, seen: seenAtOpen), initial: true) {
             recompute()
         }
     }

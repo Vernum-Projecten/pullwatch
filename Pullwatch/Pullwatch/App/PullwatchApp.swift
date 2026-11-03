@@ -12,8 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppModel.shared.start()
         #if DEBUG
         // Voor schermafbeeldingen: meteen de instellingen of het Over-venster open.
-        if UserDefaults.standard.bool(forKey: "PullwatchOpenSettings") { AppModel.shared.show(.settings) }
-        if UserDefaults.standard.bool(forKey: "PullwatchOpenAbout") { AppModel.shared.show(.about) }
+        if UserDefaults.standard.bool(forKey: "PullwatchOpenSettings") { AppModel.shared.router.show(.settings) }
+        if UserDefaults.standard.bool(forKey: "PullwatchOpenAbout") { AppModel.shared.router.show(.about) }
         #endif
     }
 
@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// er zichtbaar niets en lijkt Pullwatch kapot.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         let model = AppModel.shared
-        model.show(model.needsOnboarding ? .onboarding : .main)
+        model.router.show(model.accounts.needsOnboarding ? .onboarding : .main)
         return false
     }
 }
@@ -50,6 +50,21 @@ final class WindowPresence {
 }
 
 extension View {
+    /// Geeft een venster de modellen van de app mee in de environment. Elke view leest daar
+    /// alleen het model dat hij nodig heeft (`@Environment(PollingModel.self)`), zodat een
+    /// wijziging in een ander model hem niet opnieuw laat tekenen.
+    func appModels(_ app: AppModel) -> some View {
+        environment(app)
+            .environment(app.accounts)
+            .environment(app.historyModel)
+            .environment(app.notifications)
+            .environment(app.versions)
+            .environment(app.overview)
+            .environment(app.polling)
+            .environment(app.updates)
+            .environment(app.router)
+    }
+
     /// Dit venster telt mee voor het Dock-icoon zolang het open is.
     func countsAsOpenWindow(_ window: String) -> some View {
         onAppear { WindowPresence.shared.opened(window) }
@@ -64,27 +79,31 @@ struct PullwatchApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuView(model: model)
+            MenuView()
+                .appModels(model)
         } label: {
-            MenuBarLabel(model: model)
+            MenuBarLabel()
+                .appModels(model)
         }
         .menuBarExtraStyle(.window)
 
         Window("Pullwatch", id: WindowID.main.rawValue) {
-            MainView(model: model)
+            MainView()
+                .appModels(model)
                 .countsAsOpenWindow(WindowID.main.rawValue)
         }
         .commands {
             ShortcutCommands(model: model)
             CommandGroup(replacing: .appInfo) {
-                Button("Over Pullwatch") { model.show(.about) }
+                Button("Over Pullwatch") { model.router.show(.about) }
             }
         }
         .windowResizability(.contentMinSize)
         .defaultLaunchBehavior(.suppressed)
 
         Window("Welkom bij Pullwatch", id: WindowID.onboarding.rawValue) {
-            OnboardingView(model: model)
+            OnboardingView()
+                .appModels(model)
                 .countsAsOpenWindow(WindowID.onboarding.rawValue)
         }
         .windowResizability(.contentSize)
@@ -94,7 +113,8 @@ struct PullwatchApp: App {
         .restorationBehavior(.disabled)
 
         Settings {
-            SettingsView(model: model)
+            SettingsView()
+                .appModels(model)
                 .countsAsOpenWindow("settings")
         }
 
@@ -112,7 +132,8 @@ struct PullwatchApp: App {
         // Alleen voor schermafbeeldingen (`-PullwatchMenuPreview YES`): het menupaneel als gewoon
         // venster, want een MenuBarExtra laat zich niet vanzelf openen.
         Window(Text(verbatim: "Menu"), id: "menu-preview") {
-            MenuView(model: model)
+            MenuView()
+                .appModels(model)
                 .onAppear { SnapshotCamera.shoot("menu", windowId: "menu-preview") }
         }
         .windowResizability(.contentSize)
@@ -134,13 +155,16 @@ struct PullwatchApp: App {
 /// Icoon in de menubalk. Bestaat zolang de app draait, en opent daarom de vensters waar het
 /// model om vraagt (`windowRequest`): alleen een view heeft `openWindow`.
 private struct MenuBarLabel: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(HistoryModel.self) private var historyModel
+    @Environment(PollingModel.self) private var polling
+    @Environment(AppRouter.self) private var router
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         HStack(spacing: 2) {
-            if model.hasPollError {
+            if polling.hasPollError {
                 Image(systemName: "exclamationmark.triangle")
                     .accessibilityLabel(Text("Pullwatch, een account geeft een fout"))
             } else {
@@ -148,13 +172,13 @@ private struct MenuBarLabel: View {
                 Image(.menuBarIcon)
                     .accessibilityLabel(Text(verbatim: "Pullwatch"))
             }
-            if model.unreadCount > 0 && model.config.notifications.menuBarDot {
+            if historyModel.unreadCount > 0 && accounts.config.notifications.menuBarDot {
                 Image(systemName: "circle.fill")
                     .imageScale(.small)
                     .accessibilityLabel(Text("Ongelezen"))
             }
         }
-        .onChange(of: model.windowRequest) { _, request in
+        .onChange(of: router.windowRequest) { _, request in
             guard let request else { return }
             if request.window == .settings {
                 openSettings()
@@ -162,7 +186,7 @@ private struct MenuBarLabel: View {
                 openWindow(id: request.window.rawValue)
             }
             NSApp.activate()
-            model.windowRequest = nil
+            router.windowRequest = nil
         }
     }
 }

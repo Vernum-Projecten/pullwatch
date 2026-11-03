@@ -5,64 +5,70 @@ import SwiftUI
 /// Het paneel onder het menubalk-icoon: losse onderdelen die elk alleen krijgen wat ze tonen,
 /// zodat een poll niet het hele paneel opnieuw laat tekenen. Acties gaan via het model.
 struct MenuView: View {
-    let model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(HistoryModel.self) private var historyModel
+    @Environment(PollingModel.self) private var polling
+    @Environment(NotificationsModel.self) private var notifications
+    @Environment(UpdatesModel.self) private var updates
+    @Environment(AppRouter.self) private var router
     /// Welke rij of knop de aanwijzer raakt; één waarde voor het hele paneel.
     @State private var hover = MenuHover()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             MenuHeader(
-                isPolling: model.pollProgress != nil,
-                refresh: { Task { await model.refreshNow() } },
-                openSettings: { MenuPanel.close(); model.show(.settings) },
-                openAbout: { MenuPanel.close(); model.show(.about) }
+                isPolling: polling.pollProgress != nil,
+                refresh: { Task { await polling.refreshNow() } },
+                openSettings: { MenuPanel.close(); router.show(.settings) },
+                openAbout: { MenuPanel.close(); router.show(.about) }
             )
             .padding(.horizontal, MenuMetrics.rowInset)
 
-            if let update = model.availableUpdate {
-                UpdateBanner(update: update) { MenuPanel.close(); model.installUpdate() }
+            if let update = updates.availableUpdate {
+                UpdateBanner(update: update) { MenuPanel.close(); updates.installUpdate() }
                     .padding(.horizontal, MenuMetrics.rowInset)
             }
-            if !model.notificationsAllowed && !model.needsOnboarding {
+            if !notifications.notificationsAllowed && !accounts.needsOnboarding {
                 NotificationsOffNotice()
                     .padding(.horizontal, MenuMetrics.rowInset)
             }
-            if let mute = model.recentMute {
-                MuteBanner(mute: mute, undo: model.undoMute, dismiss: model.dismissMute)
+            if let mute = notifications.recentMute {
+                MuteBanner(mute: mute, undo: app.undoMute, dismiss: notifications.dismissMute)
                     .padding(.horizontal, MenuMetrics.rowInset)
             }
 
             Divider()
 
-            if model.config.pollableAccounts.isEmpty {
-                SetupPrompt { MenuPanel.close(); model.show(.onboarding) }
+            if accounts.config.pollableAccounts.isEmpty {
+                SetupPrompt { MenuPanel.close(); router.show(.onboarding) }
             } else {
-                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: model.menuPullRequests, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
+                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                     MenuPanel.close()
-                    model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
-                    model.show(.main)
+                    app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
+                    router.show(.main)
                 }
-                if model.hasTags {
-                    RecentSection(title: "Tags en releases", empty: nil, items: model.menuTags, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
+                if historyModel.hasTags {
+                    RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                         MenuPanel.close()
-                        model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
-                        model.show(.main)
+                        app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
+                        router.show(.main)
                     }
                 }
             }
 
-            if !model.config.accounts.isEmpty {
+            if !accounts.config.accounts.isEmpty {
                 Divider()
-                AccountStatusList(accounts: model.config.accounts, statuses: model.statuses)
+                AccountStatusList(accounts: accounts.config.accounts, statuses: polling.statuses)
                     .padding(.horizontal, MenuMetrics.rowInset)
             }
 
             Divider()
 
             MenuFooter(
-                unreadCount: model.unreadCount,
-                markAllRead: model.markAllRead,
-                openMain: { MenuPanel.close(); model.show(.main) }
+                unreadCount: historyModel.unreadCount,
+                markAllRead: historyModel.markAllRead,
+                openMain: { MenuPanel.close(); router.show(.main) }
             )
             .padding(.horizontal, MenuMetrics.rowInset)
         }

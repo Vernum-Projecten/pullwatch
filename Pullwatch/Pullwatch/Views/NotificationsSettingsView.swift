@@ -4,13 +4,14 @@ import SwiftUI
 /// Instellingen > Meldingen: per soort aan of uit met een voorbeeld van de melding, stille uren
 /// en de badges. Welke repo's melden staat bij de repo zelf (de bel, of Repo dempen op een melding).
 struct NotificationsSettingsView: View {
-    @Bindable var model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(NotificationsModel.self) private var notifications
 
     private var samples: NotificationSamples { NotificationSamples(builder: NotificationContentBuilder()) }
 
     var body: some View {
         Form {
-            if !model.notificationsAllowed && !Notifier.isSuppressed {
+            if !notifications.notificationsAllowed && !Notifier.isSuppressed {
                 Section {
                     LabeledContent {
                         Button("Systeeminstellingen openen") { Notifier.openSystemSettings() }
@@ -22,12 +23,12 @@ struct NotificationsSettingsView: View {
             }
 
             Section {
-                kindToggle(.pullRequest, "Nieuwe pull requests", isOn: $model.notificationSettings.pullRequests)
-                kindToggle(.merged, "Gemergede pull requests", isOn: $model.notificationSettings.merged)
-                kindToggle(.checksFailed, "Mislukte checks van je eigen pull requests", isOn: $model.notificationSettings.checksFailed)
+                kindToggle(.pullRequest, "Nieuwe pull requests", isOn: Bindable(app).notificationSettings.pullRequests)
+                kindToggle(.merged, "Gemergede pull requests", isOn: Bindable(app).notificationSettings.merged)
+                kindToggle(.checksFailed, "Mislukte checks van je eigen pull requests", isOn: Bindable(app).notificationSettings.checksFailed)
                     .help("Een melding als de checks (CI) van een open pull request van jou mislukken, ook als je eigen PR's verborgen zijn")
-                kindToggle(.release, "Nieuwe releases", isOn: $model.notificationSettings.releases)
-                kindToggle(.tag, "Nieuwe tags zonder release", isOn: $model.notificationSettings.tags)
+                kindToggle(.release, "Nieuwe releases", isOn: Bindable(app).notificationSettings.releases)
+                kindToggle(.tag, "Nieuwe tags zonder release", isOn: Bindable(app).notificationSettings.tags)
             } header: {
                 Text("Pull requests en tags")
             } footer: {
@@ -35,31 +36,31 @@ struct NotificationsSettingsView: View {
             }
 
             Section {
-                kindToggle(.vulnerability, "Nieuwe kwetsbaarheden", isOn: $model.notificationSettings.vulnerabilities)
-                kindToggle(.securityAlert, "Nieuwe kritieke of hoge beveiligingsmeldingen", isOn: $model.notificationSettings.securityAlerts)
+                kindToggle(.vulnerability, "Nieuwe kwetsbaarheden", isOn: Bindable(app).notificationSettings.vulnerabilities)
+                kindToggle(.securityAlert, "Nieuwe kritieke of hoge beveiligingsmeldingen", isOn: Bindable(app).notificationSettings.securityAlerts)
                     .help("Code scanning op GitHub en Advanced Security op Azure DevOps, per repo")
-                kindToggle(.packageUpdate, "Nieuwe versies", isOn: $model.notificationSettings.packageUpdates)
-                Toggle("Alleen voor updates die nu kunnen", isOn: $model.notificationSettings.onlyUpdatesYouCanTake)
-                    .disabled(!model.notificationSettings.packageUpdates)
+                kindToggle(.packageUpdate, "Nieuwe versies", isOn: Bindable(app).notificationSettings.packageUpdates)
+                Toggle("Alleen voor updates die nu kunnen", isOn: Bindable(app).notificationSettings.onlyUpdatesYouCanTake)
+                    .disabled(!app.notificationSettings.packageUpdates)
                     .help("Alleen een melding als een repo de nieuwe versie binnen zijn bereik kan nemen, zonder manifest aan te passen of eerst iets anders bij te werken")
             } header: {
                 Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {
-                if model.checksVersionsDaily {
+                if app.checksVersionsDaily {
                     Text("Na de dagelijkse check van je gevolgde repo's.")
                 } else {
                     Text("De dagelijkse check staat uit onder Algemeen, dus deze meldingen komen nu niet.")
                 }
             }
-            .disabled(!model.checksVersionsDaily)
+            .disabled(!app.checksVersionsDaily)
 
             Section {
-                Toggle("Stille uren", isOn: $model.notificationSettings.quietHours.isOn)
+                Toggle("Stille uren", isOn: Bindable(app).notificationSettings.quietHours.isOn)
                     .accessibilityIdentifier("settings.notifications.quietHours")
                 DatePicker("Van", selection: time(\.start), displayedComponents: .hourAndMinute)
-                    .disabled(!model.notificationSettings.quietHours.isOn)
+                    .disabled(!app.notificationSettings.quietHours.isOn)
                 DatePicker("Tot", selection: time(\.end), displayedComponents: .hourAndMinute)
-                    .disabled(!model.notificationSettings.quietHours.isOn)
+                    .disabled(!app.notificationSettings.quietHours.isOn)
             } header: {
                 Text("Stille uren")
             } footer: {
@@ -67,9 +68,9 @@ struct NotificationsSettingsView: View {
             }
 
             Section {
-                Toggle("Aantal ongelezen op het Dock-icoon", isOn: $model.notificationSettings.dockBadge)
+                Toggle("Aantal ongelezen op het Dock-icoon", isOn: Bindable(app).notificationSettings.dockBadge)
                     .help("Pullwatch staat alleen in het Dock zolang er een venster open is")
-                Toggle("Stip in de menubalk bij ongelezen", isOn: $model.notificationSettings.menuBarDot)
+                Toggle("Stip in de menubalk bij ongelezen", isOn: Bindable(app).notificationSettings.menuBarDot)
             } header: {
                 Text("Ongelezen")
             }
@@ -84,7 +85,7 @@ struct NotificationsSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .task { _ = await model.notificationStatus() }
+        .task { _ = await notifications.notificationStatus() }
     }
 
     /// De schakelaar van een soort met daaronder hoe de melding eruitziet.
@@ -102,11 +103,11 @@ struct NotificationsSettingsView: View {
     /// Minuten na middernacht als tijd van vandaag, voor de `DatePicker`.
     private func time(_ field: WritableKeyPath<QuietHours, Int>) -> Binding<Date> {
         Binding {
-            let minutes = model.notificationSettings.quietHours[keyPath: field]
+            let minutes = app.notificationSettings.quietHours[keyPath: field]
             return Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: Date()) ?? Date()
         } set: { date in
             let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
-            model.notificationSettings.quietHours[keyPath: field] = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+            app.notificationSettings.quietHours[keyPath: field] = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
         }
     }
 }

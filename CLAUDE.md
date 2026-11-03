@@ -39,8 +39,17 @@ of each part is in `docs/superpowers/specs/` and its plan in
   opens by itself on a first launch via `defaultLaunchBehavior`, and the
   `Settings` scene; `WindowPresence` shows the Dock icon while one of them is
   open; the menu-bar label opens windows the model asks for through
-  `windowRequest`), `AppModel.swift` (the one `@Observable` model: polling
-  loop, config, history, update check; `show(_:)` opens a window or section),
+  `AppRouter.windowRequest`; `appModels(_:)` puts every model in each scene's
+  environment), `AppModel.swift` (the composition root: creates the models
+  once, starts the loop, and keeps the intents that span models), and one
+  `@Observable` model per job, each read by views from the environment:
+  `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
+  `HistoryModel` (history, read state, menu lists, Dock badge),
+  `PollingModel` (one poll, statuses, refetch), `VersionsModel` (the version
+  check and its report), `OverviewModel` (repo summaries and sidebar),
+  `NotificationsModel`, `UpdatesModel` and `AppRouter` (windows, sidebar,
+  paths, filters; `show(_:)` opens a window or section); `AppServices` holds
+  the stores, the engine and the notifier,
   `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
   the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` (debug only),
   `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused

@@ -67,7 +67,7 @@ struct ShortcutCommands: Commands {
     var body: some Commands {
         CommandMenu("Ga") {
             ForEach(MainSection.allCases) { section in
-                Button(section.title) { model.show(section) }
+                Button(section.title) { model.router.show(section) }
                     .keyboardShortcut(section.shortcut, modifiers: .command)
             }
             Divider()
@@ -76,58 +76,58 @@ struct ShortcutCommands: Commands {
                 .disabled(searchFocus == nil)
             Button("Verversen") { model.refreshCurrent() }
                 .keyboardShortcut("r")
-            Button("Terug") { model.goBack() }
+            Button("Terug") { model.router.goBack() }
                 .keyboardShortcut("[")
-                .disabled(model.path.isEmpty)
+                .disabled(model.router.path.isEmpty)
             Button("Open in browser") {
-                if let browserTarget { model.open(browserTarget) }
+                if let browserTarget { model.historyModel.open(browserTarget) }
             }
             .keyboardShortcut("o")
             .disabled(browserTarget == nil || browserTarget == .history([]))
             // Zoals Mail: ⇧⌘U wisselt de selectie tussen gelezen en ongelezen.
             Button(readTarget?.selectionHasUnread == false ? "Markeer als ongelezen" : "Markeer als gelezen") {
-                if let readTarget { model.setRead(readTarget.selected, readTarget.selectionHasUnread) }
+                if let readTarget { model.historyModel.setRead(readTarget.selected, readTarget.selectionHasUnread) }
             }
             .keyboardShortcut("u", modifiers: [.command, .shift])
             .disabled(readTarget?.selected.isEmpty ?? true)
             Button("Alles als gelezen markeren") {
-                if let readTarget { model.setRead(readTarget.visible, true) }
+                if let readTarget { model.historyModel.setRead(readTarget.visible, true) }
             }
             .keyboardShortcut("k")
             .disabled(!(readTarget?.visibleHasUnread ?? false))
             Divider()
             Button("Open de pagina van de repo") {
-                if let repoTarget { model.showRepo(id: repoTarget.id) }
+                if let repoTarget { model.router.showRepo(id: repoTarget.id) }
             }
             .keyboardShortcut(.downArrow)
             .disabled(repoTarget == nil || repoTarget?.isOpen == true)
             Button("Statistieken van de repo") {
-                if let repoTarget { model.showStats(repoId: repoTarget.id) }
+                if let repoTarget { model.router.showStats(repoId: repoTarget.id) }
             }
             .keyboardShortcut("s", modifiers: [.command, .option])
             .disabled(repoTarget?.isOpen != true)
             Button("Kopieer de afhankelijkheden van de repo") {
-                guard let summary = repoTarget.flatMap({ model.repoSummariesById[$0.id] }),
-                      let text = summary.versions?.clipboardText(advisories: summary.advisories, report: model.versionReport) else { return }
+                guard let summary = repoTarget.flatMap({ model.overview.repoSummariesById[$0.id] }),
+                      let text = summary.versions?.clipboardText(advisories: summary.advisories, report: model.versions.versionReport) else { return }
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
-            .disabled(repoTarget?.isOpen != true || repoTarget.flatMap { model.repoSummariesById[$0.id] }?.versions == nil)
+            .disabled(repoTarget?.isOpen != true || repoTarget.flatMap { model.overview.repoSummariesById[$0.id] }?.versions == nil)
             Button("Volg een repository…") { model.watchRepository() }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
-                .disabled(model.accountsForExtraRepos.isEmpty)
+                .disabled(model.accounts.accountsForExtraRepos.isEmpty)
             Divider()
             Button("Geschiedenis opnieuw ophalen") {
-                Task { await model.refetchHistory() }
+                Task { await model.polling.refetchHistory() }
             }
             .keyboardShortcut("r", modifiers: [.command, .shift])
-            .disabled(model.refetch != nil)
+            .disabled(model.polling.refetch != nil)
             Button("Alle repo's checken") {
-                Task { await model.checkVersions() }
+                Task { await model.versions.checkVersions() }
             }
             .keyboardShortcut("r", modifiers: [.command, .option])
-            .disabled(model.versionCheck != nil || !model.refreshingRepos.isEmpty)
+            .disabled(model.versions.versionCheck != nil || !model.versions.refreshingRepos.isEmpty)
             Button("Ophalen stoppen") {
                 model.cancelSync()
             }

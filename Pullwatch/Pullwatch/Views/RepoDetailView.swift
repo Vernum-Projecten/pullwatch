@@ -6,7 +6,9 @@ import SwiftUI
 /// tabblad: Overzicht (status, PR's, activiteit, volgen), Controle (runtimes en kwetsbaarheden),
 /// Packages en Beveiliging. Een gekozen rij toont zijn details in het inspectievenster rechts.
 struct RepoDetailView: View {
-    @Bindable var model: AppModel
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(VersionsModel.self) private var versions
+    @Environment(AppRouter.self) private var router
     let summary: RepoSummary
 
     @State private var page = RepoPage()
@@ -14,48 +16,48 @@ struct RepoDetailView: View {
     /// tijdens het vergroten van het venster of het openen van het inspectievenster.
     @State private var tableWidth = TableWidth.wide
 
-    private var account: Account? { model.config.accounts.first { $0.id == summary.accountId } }
+    private var account: Account? { accounts.config.accounts.first { $0.id == summary.accountId } }
 
     private var input: RepoPage.Input {
-        RepoPage.Input(versions: summary.versions, gitHub: summary.advisories, checkedAt: model.versionReport?.checkedAt)
+        RepoPage.Input(versions: summary.versions, gitHub: summary.advisories, checkedAt: versions.versionReport?.checkedAt)
     }
 
     var body: some View {
         let page = page
-        let tab = model.repoTab
+        let tab = router.repoTab
         let webPage = account?.repoWebURL(summary.repo)
         VStack(spacing: 0) {
-            RepoTabPicker(tab: $model.repoTab)
+            RepoTabPicker(tab: Bindable(router).repoTab)
             // De tellers filteren de check en de packages; op Overzicht en Beveiliging zeggen ze
             // niets over wat er staat, dus daar geen balk.
             if tab.showsCheckSummary, let counts = page.summary {
                 RepoCheckSummaryBar(
                     summary: counts,
                     isActive: { page.isActive($0, tab: tab) },
-                    apply: { model.repoTab = page.apply($0, tab: tab) }
+                    apply: { router.repoTab = page.apply($0, tab: tab) }
                 )
                 Divider()
             }
-            RepoTabContent(model: model, summary: summary, account: account, page: page, tab: tab, width: tableWidth)
+            RepoTabContent(summary: summary, account: account, page: page, tab: tab, width: tableWidth)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onGeometryChange(for: TableWidth.self) { TableWidth($0.size.width) } action: { tableWidth = $0 }
         }
         .inspector(isPresented: Binding(get: { page.showsInspector && tab.hasTable }, set: { page.showsInspector = $0 })) {
-            RepoInspector(model: model, summary: summary, page: page, tab: tab)
+            RepoInspector(summary: summary, page: page, tab: tab)
                 .inspectorColumnWidth(min: 240, ideal: 280, max: 420)
         }
         .searchable(text: Binding(get: { page.searchText }, set: { page.searchText = $0 }), prompt: Text(tab.searchPrompt))
         .navigationTitle(Text(verbatim: summary.shortName))
         .navigationSubtitle(Text(verbatim: summary.repo))
         .toolbar {
-            RepoDetailToolbar(model: model, summary: summary, page: page, webPage: webPage)
+            RepoDetailToolbar(summary: summary, page: page, webPage: webPage)
         }
         .task(id: input) {
-            let versions = input.versions
-            let context = versions.map(model.updateContext(for:)) ?? .empty
+            let repoVersions = input.versions
+            let context = repoVersions.map(versions.updateContext(for:)) ?? .empty
             // Alleen de nieuwste versies van de packages van deze repo, als waarde voor buiten de main actor.
-            let keys = (versions?.packages ?? []) + (versions?.otherPackages ?? [])
-            let latest = Dictionary(keys.compactMap { use in model.latestVersion(of: use.key).map { (use.key, $0) } },
+            let keys = (repoVersions?.packages ?? []) + (repoVersions?.otherPackages ?? [])
+            let latest = Dictionary(keys.compactMap { use in versions.latestVersion(of: use.key).map { (use.key, $0) } },
                                     uniquingKeysWith: { first, _ in first })
             await page.update(input, context: context, latest: latest)
         }
@@ -64,13 +66,13 @@ struct RepoDetailView: View {
         }
         .onChange(of: page.searchText) { _, text in
             // Zoeken op het overzicht zoekt in de controle.
-            if tab == .overview && !text.isEmpty { model.repoTab = .check }
+            if tab == .overview && !text.isEmpty { router.repoTab = .check }
         }
-        .onChange(of: model.repoSelectionRequest, initial: true) { _, request in
+        .onChange(of: router.repoSelectionRequest, initial: true) { _, request in
             guard let request else { return }
-            model.repoTab = request.tab
+            router.repoTab = request.tab
             page.select(request)
-            model.repoSelectionRequest = nil
+            router.repoSelectionRequest = nil
         }
         .focusedSceneValue(\.browserTarget, webPage.map(BrowserTarget.page))
         .focusedSceneValue(\.repoTarget, RepoTarget(id: summary.id, isOpen: true))
@@ -98,7 +100,7 @@ private struct RepoTabPicker: View {
 
 /// Het gekozen tabblad.
 private struct RepoTabContent: View {
-    let model: AppModel
+    @Environment(VersionsModel.self) private var versions
     let summary: RepoSummary
     let account: Account?
     let page: RepoPage
@@ -109,14 +111,14 @@ private struct RepoTabContent: View {
         VStack(spacing: 0) {
             switch tab {
             case .overview:
-                RepoOverviewTab(model: model, summary: summary, account: account)
+                RepoOverviewTab(summary: summary, account: account)
             case .check:
                 RepoCheckTab(
-                    versions: summary.versions, page: page, width: width, isChecking: model.versionCheck != nil,
+                    versions: summary.versions, page: page, width: width, isChecking: versions.versionCheck != nil,
                     openAdvisory: { NSWorkspace.shared.open($0.pageURL) }
                 )
             case .packages:
-                RepoPackagesTab(versions: summary.versions, page: page, width: width, isChecking: model.versionCheck != nil)
+                RepoPackagesTab(versions: summary.versions, page: page, width: width, isChecking: versions.versionCheck != nil)
             case .security:
                 RepoSecurityTab(scan: summary.versions?.security, provider: account?.kind ?? .gitHub, page: page, width: width)
             }
@@ -127,7 +129,10 @@ private struct RepoTabContent: View {
 // MARK: - Overzicht
 
 private struct RepoOverviewTab: View {
-    @Bindable var model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(HistoryModel.self) private var historyModel
+    @Environment(VersionsModel.self) private var versions
+    @Environment(AppRouter.self) private var router
     let summary: RepoSummary
     let account: Account?
 
@@ -135,7 +140,7 @@ private struct RepoOverviewTab: View {
 
     /// Open eerst, daarna de rest op volgorde van binnenkomst; hoogstens tien.
     private var pullRequests: [HistoryItem] {
-        let items = model.history.items.filter {
+        let items = historyModel.history.items.filter {
             $0.entry.kind == .pullRequest && $0.entry.accountId == summary.accountId
                 && $0.entry.repo.caseInsensitiveCompare(summary.repo) == .orderedSame
         }
@@ -148,24 +153,24 @@ private struct RepoOverviewTab: View {
                 health: summary.health,
                 accountName: account?.displayName,
                 latestTag: summary.latestTag,
-                checkedAt: summary.versions == nil ? nil : model.versionReport?.checkedAt
+                checkedAt: summary.versions == nil ? nil : versions.versionReport?.checkedAt
             )
             RepoPullRequestsSection(
                 items: pullRequests,
                 openCount: summary.openPullRequests,
-                open: { model.open($0) },
-                showAll: { model.showHistory($0, repo: historyRepo) }
+                open: { historyModel.open($0) },
+                showAll: { router.showHistory($0, repo: historyRepo) }
             )
             Section("PR's per maand") {
                 ActivityChart(
-                    stats: model.activityStats(period: .month, filter: ActivityFilter(repoId: summary.id)),
+                    stats: historyModel.activityStats(period: .month, filter: ActivityFilter(repoId: summary.id)),
                     period: .month
                 )
                 .frame(height: 140)
                 .padding(.vertical, 4)
             }
             if let account {
-                RepoWatchSection(watch: $model[watch: summary.repo, account: account.id])
+                RepoWatchSection(watch: Bindable(app)[watch: summary.repo, account: account.id])
             }
         }
         .formStyle(.grouped)
@@ -393,7 +398,8 @@ private struct RepoSecurityTab: View {
 // MARK: - Inspectievenster
 
 private struct RepoInspector: View {
-    let model: AppModel
+    @Environment(VersionsModel.self) private var versions
+    @Environment(AppRouter.self) private var router
     let summary: RepoSummary
     let page: RepoPage
     let tab: RepoTab
@@ -408,7 +414,7 @@ private struct RepoInspector: View {
                         install: selected.install,
                         releaseTag: page.summary?.comparedWith,
                         showsWorkspace: page.vulnerabilitiesSpanWorkspaces,
-                        showPackage: model.packageSummaries.contains { $0.label == selected.row.package } ? { model.showPackage($0) } : nil
+                        showPackage: versions.packageSummaries.contains { $0.label == selected.row.package } ? { router.showPackage($0) } : nil
                     )
                 } else {
                     NoSelectionView(text: Text("Kies een kwetsbaarheid om de details te zien."))
@@ -418,7 +424,7 @@ private struct RepoInspector: View {
                     PackageInspector(
                         row: selected,
                         showsWorkspace: page.packagesSpanWorkspaces,
-                        showPackage: model.packageSummaries.contains { $0.id == selected.row.package.id } ? { model.showPackage($0) } : nil
+                        showPackage: versions.packageSummaries.contains { $0.id == selected.row.package.id } ? { router.showPackage($0) } : nil
                     )
                 } else {
                     NoSelectionView(text: Text("Kies een package om de details te zien."))
@@ -453,37 +459,38 @@ private struct NoSelectionView: View {
 /// Filter, inspectievenster, opnieuw checken en de rest. Het tabblad staat bovenaan de pagina
 /// zelf, zodat deze knoppen ook in het kleinste venster zichtbaar blijven.
 private struct RepoDetailToolbar: ToolbarContent {
-    @Bindable var model: AppModel
+    @Environment(VersionsModel.self) private var versions
+    @Environment(AppRouter.self) private var router
     let summary: RepoSummary
     let page: RepoPage
     let webPage: URL?
 
     var body: some ToolbarContent {
         ToolbarItemGroup {
-            RepoFilterMenu(page: page, tab: model.repoTab)
+            RepoFilterMenu(page: page, tab: router.repoTab)
             Button {
                 page.showsInspector.toggle()
             } label: {
                 Label("Inspectievenster", systemImage: "sidebar.trailing")
             }
             .keyboardShortcut("i", modifiers: [.command, .option])
-            .disabled(!model.repoTab.hasTable)
+            .disabled(!router.repoTab.hasTable)
             .help("Toon of verberg de details van de gekozen rij (spatie)")
             Button {
-                Task { await model.refreshVersions(of: summary) }
+                Task { await versions.refreshVersions(of: summary) }
             } label: {
                 Label("Check", systemImage: "arrow.clockwise")
             }
-            .disabled(model.versionCheck != nil || model.versionReport == nil || !model.refreshingRepos.isEmpty)
-            .help(model.versionReport == nil ? Text("Check eerst alle repo's") : Text("Check deze repo opnieuw"))
+            .disabled(versions.versionCheck != nil || versions.versionReport == nil || !versions.refreshingRepos.isEmpty)
+            .help(versions.versionReport == nil ? Text("Check eerst alle repo's") : Text("Check deze repo opnieuw"))
             Menu {
                 if let webPage {
                     Button("Open in browser") { NSWorkspace.shared.open(webPage) }
                 }
-                Button("Statistieken") { model.showStats(repoId: summary.id) }
-                if let versions = summary.versions {
+                Button("Statistieken") { router.showStats(repoId: summary.id) }
+                if let repoVersions = summary.versions {
                     Button("Kopieer alles") {
-                        Pasteboard.copy(versions.clipboardText(advisories: summary.advisories, report: model.versionReport))
+                        Pasteboard.copy(repoVersions.clipboardText(advisories: summary.advisories, report: versions.versionReport))
                     }
                     .help("Kopieer de afhankelijkheden en kwetsbaarheden van deze repo naar het klembord")
                 }

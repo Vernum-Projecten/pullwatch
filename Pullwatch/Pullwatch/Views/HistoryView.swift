@@ -3,7 +3,12 @@ import SwiftUI
 
 /// Alle PR's of tags uit de geschiedenis in een tabel: zoeken, sorteren, filters als tokens.
 struct HistoryView: View {
-    @Bindable var model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(HistoryModel.self) private var historyModel
+    @Environment(PollingModel.self) private var polling
+    @Environment(OverviewModel.self) private var overview
+    @Environment(AppRouter.self) private var router
     let kind: ItemKind
     /// Alleen dit project (uit de zijbalk); nil voor alles.
     var group: HistoryGroup.ID? = nil
@@ -27,14 +32,14 @@ struct HistoryView: View {
     }
 
     private var query: Query {
-        Query(text: searchText, tokens: model.historyTokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
+        Query(text: searchText, tokens: router.historyTokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
     }
 
     private func recompute() {
-        let tokens = model.historyTokens
+        let tokens = router.historyTokens
         let authors = Set(tokens.compactMap { if case .author(let name) = $0 { name } else { nil } })
         let repos = tokens.compactMap { if case .repo(let repo) = $0 { repo } else { nil } }
-        let found = model.history.search(searchText, kind: kind, group: group).filter { item in
+        let found = historyModel.history.search(searchText, kind: kind, group: group).filter { item in
             (authors.isEmpty || item.entry.author.map(authors.contains) == true)
                 && (repos.isEmpty || repos.contains {
                     $0.accountId == item.entry.accountId && $0.repo.caseInsensitiveCompare(item.entry.repo) == .orderedSame
@@ -47,7 +52,7 @@ struct HistoryView: View {
         if text.isEmpty {
             suggestedAuthors = []
         } else {
-            let names = Set(model.history.items.compactMap(\.entry.author)
+            let names = Set(historyModel.history.items.compactMap(\.entry.author)
                 .filter { $0.localizedCaseInsensitiveContains(text) && !authors.contains($0) })
             suggestedAuthors = Array(names.sorted().prefix(5))
         }
@@ -63,16 +68,16 @@ struct HistoryView: View {
 
     /// De dienst van het account van dit item, voor de foto's bij de auteur.
     private func kind(of item: HistoryItem) -> ProviderKind {
-        model.config.accounts.first { $0.id == item.entry.accountId }?.kind ?? .azureDevOps
+        accounts.config.accounts.first { $0.id == item.entry.accountId }?.kind ?? .azureDevOps
     }
 
     /// De server van het account (github.com of GitHub Enterprise), voor de foto's bij de auteur.
     private func web(of item: HistoryItem) -> URL? {
-        model.config.accounts.first { $0.id == item.entry.accountId }?.effectiveInstanceURL
+        accounts.config.accounts.first { $0.id == item.entry.accountId }?.effectiveInstanceURL
     }
 
     private func open(_ ids: Set<HistoryItem.ID>) {
-        model.open(.history(Array(ids)))
+        historyModel.open(.history(Array(ids)))
     }
 
     var body: some View {
@@ -151,14 +156,14 @@ struct HistoryView: View {
                 count: ids.count,
                 hasUnread: rows.contains { ids.contains($0.id) && !$0.isRead },
                 visibleHasUnread: rows.contains { !$0.isRead },
-                setRead: { model.setRead(ids, $0) },
-                markAllRead: { model.setRead(Set(rows.map(\.id)), true) },
+                setRead: { historyModel.setRead(ids, $0) },
+                markAllRead: { historyModel.setRead(Set(rows.map(\.id)), true) },
                 repo: repo(of: ids),
                 author: rows.first { ids.contains($0.id) }?.entry.author,
                 open: { open(ids) },
-                showRepo: { model.showRepo(accountId: $0.accountId, repo: $0.repo) },
+                showRepo: { app.showRepo(accountId: $0.accountId, repo: $0.repo) },
                 filterAuthor: { name in
-                    if !model.historyTokens.contains(.author(name)) { model.historyTokens.append(.author(name)) }
+                    if !router.historyTokens.contains(.author(name)) { router.historyTokens.append(.author(name)) }
                 }
             )
         } primaryAction: { ids in
@@ -166,8 +171,8 @@ struct HistoryView: View {
         }
         .overlay {
             if rows.isEmpty {
-                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty
-                    && model.isFillingHistory {
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && router.historyTokens.isEmpty
+                    && polling.isFillingHistory {
                     // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
                     ContentUnavailableView {
                         Label {
@@ -184,7 +189,7 @@ struct HistoryView: View {
                         systemImage: "line.3.horizontal.decrease.circle",
                         description: Text("Kies Alles om alle tags te zien.")
                     )
-                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
+                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && router.historyTokens.isEmpty {
                     ContentUnavailableView {
                         Label {
                             Text(kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags")
@@ -203,7 +208,7 @@ struct HistoryView: View {
         }
         .searchable(
             text: $searchText,
-            tokens: $model.historyTokens,
+            tokens: Bindable(router).historyTokens,
             prompt: groupName.map { Text("Zoek in \($0)…", comment: "Projectnaam") } ?? Text("Zoek op titel, auteur, repo…")
         ) { token in
             HistoryTokenLabel(token: token)
@@ -230,14 +235,13 @@ struct HistoryView: View {
                 }
             }
             HistoryToolbar(
-                model: model,
                 selectedRepo: repo(of: selection),
-                markAllRead: { model.setRead(Set(rows.map(\.id)), true) },
+                markAllRead: { historyModel.setRead(Set(rows.map(\.id)), true) },
                 hasUnread: rows.contains { !$0.isRead }
             )
         }
         .onChange(of: query, initial: true) { recompute() }
-        .onChange(of: model.history) { recompute() }
+        .onChange(of: historyModel.history) { recompute() }
         .focusedSceneValue(\.browserTarget, .history(rows.filter { selection.contains($0.id) }.map(\.id)))
         .focusedSceneValue(\.readTarget, ReadTarget(
             selected: Set(rows.filter { selection.contains($0.id) }.map(\.id)),
@@ -246,13 +250,13 @@ struct HistoryView: View {
             visibleHasUnread: rows.contains { !$0.isRead }
         ))
         .focusedSceneValue(\.repoTarget, repo(of: selection).map {
-            RepoTarget(id: model.repoId(accountId: $0.accountId, repo: $0.repo), isOpen: false)
+            RepoTarget(id: overview.repoId(accountId: $0.accountId, repo: $0.repo), isOpen: false)
         })
     }
 
     /// Onder "PR's ophalen…": van welk account, als dat bekend is.
     private var fillingDescription: Text {
-        guard let account = model.fillingAccountName else {
+        guard let account = polling.fillingAccountName else {
             return Text(kind == .pullRequest
                         ? "Pullwatch haalt de PR's op van de repo's die je volgt."
                         : "Pullwatch haalt de tags op van de repo's die je volgt.")
@@ -373,7 +377,8 @@ private struct HistoryContextMenu: View {
 /// Opnieuw ophalen en de repo van de selectie openen. De knop blijft staan (uitgeschakeld)
 /// terwijl het loopt; de voortgang staat in de balk onderin het venster.
 private struct HistoryToolbar: ToolbarContent {
-    let model: AppModel
+    @Environment(AppModel.self) private var app
+    @Environment(PollingModel.self) private var polling
     let selectedRepo: HistoryRepo?
     let markAllRead: () -> Void
     let hasUnread: Bool
@@ -388,17 +393,17 @@ private struct HistoryToolbar: ToolbarContent {
         }
         ToolbarItem {
             Button {
-                Task { await model.refetchHistory() }
+                Task { await polling.refetchHistory() }
             } label: {
                 Label("Opnieuw ophalen", systemImage: "arrow.clockwise")
             }
-            .disabled(model.refetch != nil)
+            .disabled(polling.refetch != nil)
             .help("Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)")
         }
         ToolbarSpacer(.fixed)
         ToolbarItem {
             Button {
-                if let selectedRepo { model.showRepo(accountId: selectedRepo.accountId, repo: selectedRepo.repo) }
+                if let selectedRepo { app.showRepo(accountId: selectedRepo.accountId, repo: selectedRepo.repo) }
             } label: {
                 Label("Repo", systemImage: "folder")
             }

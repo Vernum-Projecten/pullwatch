@@ -1,9 +1,6 @@
 import AppKit
 import Observation
-import os
 import PullwatchCore
-import PullwatchGitHub
-import UserNotifications
 
 /// Log is Sendable; ook bruikbaar vanuit nonisolated callbacks.
 nonisolated private let logger = Log(category: "app")
@@ -122,6 +119,8 @@ final class AppModel {
 
     /// Bij een eerste start opent het welkomstvenster vanzelf; niet als host van de unit-tests.
     var opensOnboardingAtLaunch: Bool { accounts.needsOnboarding && !Self.isTestHost }
+
+    private var config: AppConfig { accounts.config }
 
     // MARK: - Over meer modellen
 
@@ -334,137 +333,4 @@ final class AppModel {
         for kind in mute.kinds { watch[notifies: kind] = mute.previous[notifies: kind] }
         setWatch(watch, repo: mute.repo, accountId: mute.accountId)
     }
-
-    // MARK: - Doorgeefluik voor de views (tot ze de modellen zelf lezen)
-
-    var config: AppConfig { accounts.config }
-    var onboardingCompleted: Bool { accounts.onboardingCompleted }
-    var needsOnboarding: Bool { accounts.needsOnboarding }
-    var gitHubApp: GitHubAppConfig { accounts.gitHubApp }
-    var extraRepoStatus: [String: AccountsModel.ExtraRepoStatus] { accounts.extraRepoStatus }
-    var accountsForExtraRepos: [Account] { accounts.accountsForExtraRepos }
-    func completeOnboarding() { accounts.completeOnboarding() }
-    func discardDraft(_ id: UUID) { accounts.discardDraft(id) }
-    func extraRepoKey(accountId: UUID, repo: String) -> String { accounts.extraRepoKey(accountId: accountId, repo: repo) }
-    func repositories(for account: Account, pat: String? = nil) async throws -> [String] {
-        try await accounts.repositories(for: account, pat: pat)
-    }
-    func checkRepository(_ input: String, for account: Account, pat: String? = nil) async -> Result<RepositoryCheck, RepositoryInputError> {
-        await accounts.checkRepository(input, for: account, pat: pat)
-    }
-    func refreshExtraRepoStatus(_ account: Account, pat: String? = nil) async {
-        await accounts.refreshExtraRepoStatus(account, pat: pat)
-    }
-    func provider(for account: Account, pat: String? = nil) -> any PRProvider { accounts.provider(for: account, pat: pat) }
-    func defaultAuthMethod(for kind: ProviderKind) -> AuthMethod { accounts.defaultAuthMethod(for: kind) }
-    func hasGitHubAppTokens(_ id: UUID) -> Bool { accounts.hasGitHubAppTokens(id) }
-    func startGitHubSignIn() async throws -> DeviceCode { try await accounts.startGitHubSignIn() }
-    func finishGitHubSignIn(_ code: DeviceCode, accountId: UUID) async throws {
-        try await accounts.finishGitHubSignIn(code, accountId: accountId)
-    }
-    func gitHubLogin(_ accountId: UUID) async -> String? { await accounts.gitHubLogin(accountId) }
-    func gitHubInstallationOwners(_ accountId: UUID) async throws -> [GitHubOwner] {
-        try await accounts.gitHubInstallationOwners(accountId)
-    }
-    func signOutOfGitHub(_ id: UUID) { accounts.signOutOfGitHub(id) }
-    func hasStoredPAT(_ id: UUID) -> Bool { accounts.hasStoredPAT(id) }
-
-    var history: History { historyModel.history }
-    var menuPullRequests: [HistoryItem] { historyModel.menuPullRequests }
-    var menuTags: [HistoryItem] { historyModel.menuTags }
-    var hasTags: Bool { historyModel.hasTags }
-    var unreadCount: Int { historyModel.unreadCount }
-    func activityStats(period: StatsPeriod, filter: ActivityFilter) -> ActivityStats {
-        historyModel.activityStats(period: period, filter: filter)
-    }
-    func open(_ target: BrowserTarget) { historyModel.open(target) }
-    func open(_ item: HistoryItem) { historyModel.open(item) }
-    func markRead(_ key: String) { historyModel.markRead(key) }
-    func markAllRead() { historyModel.markAllRead() }
-    func setRead(_ ids: Set<String>, _ isRead: Bool) { historyModel.setRead(ids, isRead) }
-
-    var statuses: [UUID: AccountState] { polling.statuses }
-    var refetch: PollingModel.RefetchProgress? { polling.refetch }
-    var pollProgress: PollProgress? { polling.pollProgress }
-    var hasPollError: Bool { polling.hasPollError }
-    var isFillingHistory: Bool { polling.isFillingHistory }
-    var fillingAccountName: String? { polling.fillingAccountName }
-    func refreshNow() async { await polling.refreshNow() }
-    func refetchHistory() async { await polling.refetchHistory() }
-
-    var versionReport: VersionReport? { versions.versionReport }
-    var packageSummaries: [PackageSummary] { versions.packageSummaries }
-    var versionCheck: CheckProgress? { versions.versionCheck }
-    var refreshingRepos: Set<String> { versions.refreshingRepos }
-    var seenPackageVersions: [String: String] { versions.seenPackageVersions }
-    func updateContext(for repo: RepoVersions) -> UpdateContext { versions.updateContext(for: repo) }
-    func latestVersion(of key: String) -> String? { versions.latestVersion(of: key) }
-    func markPackagesSeen() { versions.markPackagesSeen() }
-    func checkVersions() async { await versions.checkVersions() }
-    func refreshVersions(of repo: RepoSummary) async { await versions.refreshVersions(of: repo) }
-
-    var repoSummaries: [RepoSummary] { overview.repoSummaries }
-    var repoSummariesById: [String: RepoSummary] { overview.repoSummariesById }
-    var sidebar: SidebarContent { overview.sidebar }
-    var accountNames: [UUID: String] { overview.accountNames }
-    func repoId(accountId: UUID, repo: String) -> String { overview.repoId(accountId: accountId, repo: repo) }
-
-    var notificationsAllowed: Bool { notifications.notificationsAllowed }
-    var recentMute: RepositoryMute? { notifications.recentMute }
-    var notificationBuilder: NotificationContentBuilder { notifications.builder }
-    func requestNotifications() async { await notifications.requestNotifications() }
-    func notificationStatus() async -> UNAuthorizationStatus { await notifications.notificationStatus() }
-    func dismissMute() { notifications.dismissMute() }
-
-    var availableUpdate: AvailableUpdate? { updates.availableUpdate }
-    var updateCheckMessage: String? { updates.updateCheckMessage }
-    var isCheckingForUpdates: Bool { updates.isCheckingForUpdates }
-    var installsUpdatesAutomatically: Bool { updates.installsUpdatesAutomatically }
-    var installsUpdatesInApp: Bool { updates.installsUpdatesInApp }
-    func setInstallsUpdatesAutomatically(_ on: Bool) { updates.setInstallsUpdatesAutomatically(on) }
-    func checkForUpdates(manual: Bool) async { await updates.checkForUpdates(manual: manual) }
-    func installUpdate() { updates.installUpdate() }
-
-    var windowRequest: WindowRequest? {
-        get { router.windowRequest }
-        set { router.windowRequest = newValue }
-    }
-    var sidebarSelection: SidebarItem? {
-        get { router.sidebarSelection }
-        set { router.sidebarSelection = newValue }
-    }
-    var path: [Route] {
-        get { router.path }
-        set { router.path = newValue }
-    }
-    var historyTokens: [HistoryToken] {
-        get { router.historyTokens }
-        set { router.historyTokens = newValue }
-    }
-    var packagesSearch: String? {
-        get { router.packagesSearch }
-        set { router.packagesSearch = newValue }
-    }
-    var repoTab: RepoTab {
-        get { router.repoTab }
-        set { router.repoTab = newValue }
-    }
-    var repoSelectionRequest: RepoSelectionRequest? {
-        get { router.repoSelectionRequest }
-        set { router.repoSelectionRequest = newValue }
-    }
-    var isWatchingRepository: Bool {
-        get { router.isWatchingRepository }
-        set { router.isWatchingRepository = newValue }
-    }
-    var mainSection: MainSection { router.mainSection }
-    func show(_ window: WindowID) { router.show(window) }
-    func show(_ section: MainSection) { router.show(section) }
-    func showRepo(id: String) { router.showRepo(id: id) }
-    func showHistory(_ kind: ItemKind, author: String? = nil, repo: HistoryRepo? = nil) {
-        router.showHistory(kind, author: author, repo: repo)
-    }
-    func showPackage(_ name: String) { router.showPackage(name) }
-    func showStats(repoId: String) { router.showStats(repoId: repoId) }
-    func goBack() { router.goBack() }
 }

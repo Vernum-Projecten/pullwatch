@@ -7,7 +7,8 @@ import UserNotifications
 /// zonder dit lijkt de app na het openen niet te starten. Drie stappen: wat Pullwatch doet en
 /// waar het icoon staat, het eerste account, en meldingen en starten bij inloggen.
 struct OnboardingView: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
+    @Environment(AppRouter.self) private var router
 
     enum Step: CaseIterable {
         case welcome, account, finish
@@ -36,17 +37,17 @@ struct OnboardingView: View {
                 switch step {
                 case .welcome: WelcomeStep()
                 case .account:
-                    AccountStep(model: model, draft: $draft, enterprise: $draftIsEnterprise, saveAction: saveAction) {
+                    AccountStep(draft: $draft, enterprise: $draftIsEnterprise, saveAction: saveAction) {
                         draft = nil
                         step = .finish
                     }
-                case .finish: FinishStep(model: model)
+                case .finish: FinishStep()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Divider()
-            OnboardingFooter(step: step, canContinue: !model.config.pollableAccounts.isEmpty, draftSave: draft == nil ? nil : saveAction) { action in
+            OnboardingFooter(step: step, canContinue: !accounts.config.pollableAccounts.isEmpty, draftSave: draft == nil ? nil : saveAction) { action in
                 switch action {
                 case .back: back()
                 case .start: step = .account
@@ -61,7 +62,7 @@ struct OnboardingView: View {
         #if DEBUG
         .onAppear { SnapshotCamera.shoot("onboarding-welcome", windowId: "onboarding") }
         .onChange(of: step) { _, step in SnapshotCamera.shoot("onboarding-\(step)", windowId: "onboarding") }
-        .onChange(of: model.config.accounts.count) { _, _ in SnapshotCamera.shoot("onboarding-account-editor", windowId: "onboarding") }
+        .onChange(of: accounts.config.accounts.count) { _, _ in SnapshotCamera.shoot("onboarding-account-editor", windowId: "onboarding") }
         .task { await tour() }
         #endif
     }
@@ -73,7 +74,7 @@ struct OnboardingView: View {
         case .welcome: break
         case .account:
             if let draft {
-                model.discardDraft(draft.id)
+                accounts.discardDraft(draft.id)
                 self.draft = nil
             } else {
                 step = .welcome
@@ -101,7 +102,7 @@ struct OnboardingView: View {
         try? await Task.sleep(for: pause)
         for (kind, enterprise) in [(ProviderKind.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false)] {
             draftIsEnterprise = enterprise
-            draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
+            draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
             try? await Task.sleep(for: pause)
             SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)\(enterprise ? "-enterprise" : "")", windowId: "onboarding")
             try? await Task.sleep(for: pause)
@@ -113,10 +114,10 @@ struct OnboardingView: View {
     #endif
 
     private func finish() {
-        if let draft { model.discardDraft(draft.id) }
-        model.completeOnboarding()
+        if let draft { accounts.discardDraft(draft.id) }
+        accounts.completeOnboarding()
         dismissWindow(id: "onboarding")
-        if !model.config.pollableAccounts.isEmpty { model.show(.main) }
+        if !accounts.config.pollableAccounts.isEmpty { router.show(.main) }
     }
 }
 
@@ -309,7 +310,7 @@ struct MenuBarHint: View {
 }
 
 private struct AccountStep: View {
-    let model: AppModel
+    @Environment(AccountsModel.self) private var accounts
     @Binding var draft: Account?
     @Binding var enterprise: Bool
     let saveAction: AccountSaveAction
@@ -333,10 +334,10 @@ private struct AccountStep: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
-                AccountEditor(model: model, original: account, enterprise: enterprise, saveAction: saveAction, onSaved: onAdded)
+                AccountEditor(accounts: accounts, original: account, enterprise: enterprise, saveAction: saveAction, onSaved: onAdded)
                     .id(account.id)
             } else {
-                let added = model.config.pollableAccounts
+                let added = accounts.config.pollableAccounts
                 if !added.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(added) { account in
@@ -384,7 +385,7 @@ private struct AccountStep: View {
     private func start(_ kind: ProviderKind, enterprise: Bool = false) {
         self.enterprise = enterprise
         // Op GitHub Enterprise bestaat de Pullwatch-app niet: daar een token.
-        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
+        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
     }
 }
 
@@ -462,7 +463,6 @@ private struct ProviderChoice: View {
 }
 
 private struct FinishStep: View {
-    let model: AppModel
 
     var body: some View {
         FitsOrScrolls {
@@ -479,7 +479,7 @@ private struct FinishStep: View {
                 .accessibilityAddTraits(.isHeader)
             Form {
                 Section {
-                    NotificationPermissionRow(model: model)
+                    NotificationPermissionRow()
                     LaunchAtLoginToggle()
                 }
             }
@@ -503,7 +503,7 @@ private struct FinishStep: View {
 /// een knop de meldingsinstellingen van Pullwatch. Terug uit Systeeminstellingen ziet de rij
 /// de nieuwe stand vanzelf.
 struct NotificationPermissionRow: View {
-    let model: AppModel
+    @Environment(NotificationsModel.self) private var notifications
     @State private var status: UNAuthorizationStatus?
     @State private var asking = false
 
@@ -520,19 +520,19 @@ struct NotificationPermissionRow: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.notifications")
         .task {
-            status = await model.notificationStatus()
+            status = await notifications.notificationStatus()
             if status == .notDetermined && requestsByItself { await ask() }
             // Terug uit Systeeminstellingen: de nieuwe stand meteen laten zien.
             for await _ in NotificationCenter.default.notifications(named: NSApplication.didBecomeActiveNotification) {
-                status = await model.notificationStatus()
+                status = await notifications.notificationStatus()
             }
         }
     }
 
     private func ask() async {
         asking = true
-        await model.requestNotifications()
-        status = await model.notificationStatus()
+        await notifications.requestNotifications()
+        status = await notifications.notificationStatus()
         asking = false
     }
 
