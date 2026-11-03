@@ -7,5 +7,8 @@
 PW_GITHUB_CLIENT_ID = Iv23likvKTZoOHgDa4N3
 PW_GITHUB_APP_SLUG = test-pullwatch
 
+// Debug-builds installeren nooit een update: zonder Sparkle-sleutel blijft alleen de melding.
+SPARKLE_PUBLIC_ED_KEY =
+
 // Eigen instellingen per Mac, niet in git (.gitignore); mag ontbreken.
 #include? "Local.xcconfig"

@@ -6,6 +6,16 @@
 	<string>$(PW_GITHUB_APP_SLUG)</string>
 	<key>PWGitHubClientID</key>
 	<string>$(PW_GITHUB_CLIENT_ID)</string>
+	<key>PWReleasesOwner</key>
+	<string>$(PW_RELEASES_OWNER)</string>
+	<key>SUPublicEDKey</key>
+	<string>$(SPARKLE_PUBLIC_ED_KEY)</string>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>SUAllowsAutomaticUpdates</key>
+	<true/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>nl</string>

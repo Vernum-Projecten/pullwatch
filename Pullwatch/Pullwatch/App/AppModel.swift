@@ -348,6 +348,8 @@ final class AppModel {
     /// Vroegste moment voor de volgende automatische versiecheck (na een mislukte of lopende poging).
     @ObservationIgnored private var nextAutoVersionAttempt: Date?
     @ObservationIgnored private var nextUpdateCheck: Date?
+    /// Sparkle, als de build een openbare sleutel heeft; anders alleen de melding met downloadknop.
+    @ObservationIgnored let updater = Updater()
 
     private init() {
         do {
@@ -413,7 +415,11 @@ final class AppModel {
 
     func start() {
         guard loopTask == nil else { return }
+        updater.includeTestVersions = config.includeTestVersions
+        updater.start()
+        installsUpdatesAutomatically = updater.installsAutomatically
         notifier.onOpen = { [weak self] key in self?.markRead(key) }
+        notifier.onInstallUpdate = { [weak self] in self?.installUpdate() }
         notifier.onOpenSection = { [weak self] section in
             guard let self, let section = MainSection(rawValue: section) else { return }
             self.show(section)
@@ -887,6 +893,30 @@ final class AppModel {
         }
     }
 
+    /// Updates installeren in de app kan (Sparkle met een openbare sleutel in de build).
+    var installsUpdatesInApp: Bool { updater.isEnabled }
+
+    /// Updates vanzelf downloaden en bij het afsluiten installeren; Sparkle bewaart de keuze.
+    private(set) var installsUpdatesAutomatically = false
+
+    func setInstallsUpdatesAutomatically(_ on: Bool) {
+        updater.installsAutomatically = on
+        installsUpdatesAutomatically = updater.installsAutomatically
+        if on, availableUpdate?.installsInApp == true { updater.downloadInBackground() }
+    }
+
+    var includesTestVersions: Bool {
+        get { config.includeTestVersions }
+        set {
+            config.includeTestVersions = newValue
+            updater.includeTestVersions = newValue
+            saveConfig()
+            // Een andere keuze kan een andere update geven (of geen).
+            nextUpdateCheck = nil
+            availableUpdate = nil
+        }
+    }
+
     var notifiesPackageUpdates: Bool {
         get { config.notifyPackageUpdates }
         set {
@@ -933,20 +963,30 @@ final class AppModel {
     }
 
     /// Kijkt op GitHub naar een nieuwere release. Automatisch: één melding per nieuwe versie.
+    /// Met Sparkle uit de appcast (en met "Nu controleren" meteen Sparkle's venster); zonder
+    /// sleutel uit de nieuwste release, met de DMG als download.
     func checkForUpdates(manual: Bool) async {
         guard !isCheckingForUpdates else { return }
         isCheckingForUpdates = true
         defer { isCheckingForUpdates = false }
         do {
-            let update = try await UpdateChecker.check(current: Self.currentVersion, http: URLSessionHTTPClient())
+            let update = try await findUpdate()
             availableUpdate = update
             nextUpdateCheck = Date() + UpdateChecker.interval
             if manual {
                 updateCheckMessage = update.map { String(localized: "Versie \($0.version) is beschikbaar", comment: "Versienummer") }
                     ?? String(localized: "Je hebt de nieuwste versie (\(Self.currentVersion))", comment: "Huidig versienummer")
             }
+            guard let update else { return }
+            if update.installsInApp {
+                if manual {
+                    updater.installNow()
+                } else if updater.installsAutomatically {
+                    updater.downloadInBackground()
+                }
+            }
             let notifiedKey = "notifiedUpdateVersion"
-            if let update, !manual, UserDefaults.standard.string(forKey: notifiedKey) != update.version {
+            if !manual, UserDefaults.standard.string(forKey: notifiedKey) != update.version {
                 UserDefaults.standard.set(update.version, forKey: notifiedKey)
                 notifier.deliverUpdate(update)
             }
@@ -959,6 +999,29 @@ final class AppModel {
         }
     }
 
+    /// Met Sparkle de update uit de appcast (die Sparkle daarna zelf ook leest); zonder
+    /// sleutel de nieuwste release.
+    private func findUpdate() async throws -> AvailableUpdate? {
+        let http = URLSessionHTTPClient()
+        guard updater.isEnabled else {
+            return try await UpdateChecker.check(current: Self.currentVersion, owner: updater.owner, http: http)
+        }
+        let feed = try await UpdateFeed.url(owner: updater.owner, includeTestVersions: config.includeTestVersions, http: http)
+        updater.feedURL = feed
+        let item = try await UpdateFeed.newest(
+            feed: feed,
+            currentBuild: Updater.currentBuild,
+            includeTestVersions: config.includeTestVersions,
+            system: ProcessInfo.processInfo.operatingSystemVersion,
+            http: http
+        )
+        return item.map { AvailableUpdate($0, owner: updater.owner) }
+    }
+
+    /// De update installeren: Sparkle's venster met de release notes en Installeren.
+    func installUpdate() {
+        updater.installNow()
+    }
 
     /// Lopende `tick()`s; de voortgang gaat pas weg als de laatste klaar is.
     @ObservationIgnored private var activePolls = 0

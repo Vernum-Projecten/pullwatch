@@ -10,6 +10,7 @@
 		0000000000000000000C0001 /* PullwatchCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0001 /* PullwatchCore */; };
 		0000000000000000000C0002 /* PullwatchGitHub in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0002 /* PullwatchGitHub */; };
 		0000000000000000000C0003 /* PullwatchProviders in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0003 /* PullwatchProviders */; };
+		0000000000000000000C0004 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0004 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,7 @@
 				0000000000000000000C0001 /* PullwatchCore in Frameworks */,
 				0000000000000000000C0002 /* PullwatchGitHub in Frameworks */,
 				0000000000000000000C0003 /* PullwatchProviders in Frameworks */,
+				0000000000000000000C0004 /* Sparkle in Frameworks */,
 			);
 		};
 		000000000000000230000000 /* Frameworks */ = {
@@ -135,6 +137,7 @@
 				0000000000000000000B0001 /* PullwatchCore */,
 				0000000000000000000B0002 /* PullwatchGitHub */,
 				0000000000000000000B0003 /* PullwatchProviders */,
+				0000000000000000000B0004 /* Sparkle */,
 			);
 			productName = Pullwatch;
 			productReference = 000000000000000000000120 /* Pullwatch.app */;
@@ -219,6 +222,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				0000000000000000000A0001 /* XCLocalSwiftPackageReference "../PullwatchKit" */,
+				0000000000000000000A0002 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -555,6 +559,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		0000000000000000000A0002 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		0000000000000000000B0001 /* PullwatchCore */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -567,6 +582,11 @@
 		0000000000000000000B0003 /* PullwatchProviders */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PullwatchProviders;
+		};
+		0000000000000000000B0004 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0000000000000000000A0002 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
