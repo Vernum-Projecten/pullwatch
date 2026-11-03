@@ -42,6 +42,14 @@ nonisolated extension ItemKind {
     }
 }
 
+// Vaste waarden (kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
+nonisolated extension ReleaseInfo {
+    /// Groen zoals een release op GitHub, oranje zoals een pre-release.
+    var color: Color { isPrerelease ? .orange : .green }
+
+    var label: LocalizedStringResource { isPrerelease ? "Pre-release" : "Release" }
+}
+
 // Vaste waarden (symbool, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.
 nonisolated extension PRState {
     var color: Color {

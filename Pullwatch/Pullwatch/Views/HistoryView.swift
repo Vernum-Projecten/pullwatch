@@ -16,14 +16,19 @@ struct HistoryView: View {
     @State private var rows: [HistoryItem] = []
     /// Auteurs die bij de zoektekst passen, als voorstel voor een token.
     @State private var suggestedAuthors: [String] = []
+    /// Alleen bij tags: alles, alleen releases of alleen tags zonder release.
+    @State private var tagFilter = TagFilter.all
 
     private struct Query: Equatable {
         let text: String
         let tokens: [HistoryToken]
         let sortOrder: [KeyPathComparator<HistoryItem>]
+        let tagFilter: TagFilter
     }
 
-    private var query: Query { Query(text: searchText, tokens: model.historyTokens, sortOrder: sortOrder) }
+    private var query: Query {
+        Query(text: searchText, tokens: model.historyTokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
+    }
 
     private func recompute() {
         let tokens = model.historyTokens
@@ -34,6 +39,7 @@ struct HistoryView: View {
                 && (repos.isEmpty || repos.contains {
                     $0.accountId == item.entry.accountId && $0.repo.caseInsensitiveCompare(item.entry.repo) == .orderedSame
                 })
+                && query.tagFilter.includes(item.entry)
         }
         rows = found.sorted(using: sortOrder)
 
@@ -73,6 +79,8 @@ struct HistoryView: View {
             TableColumn("Status") { item in
                 if let state = item.entry.prState {
                     Pill(text: state.label, tint: state.color)
+                } else if let release = item.entry.release {
+                    Pill(text: release.label, tint: release.color)
                 }
             }
             .width(76)
@@ -86,7 +94,15 @@ struct HistoryView: View {
                     Text(verbatim: item.entry.title)
                         .fontWeight(item.isRead ? .regular : .semibold)
                         .lineLimit(1)
+                        .layoutPriority(1)
                         .help(item.entry.title)
+                    // Bij een release de titel ervan naast de tagnaam.
+                    if let release = item.entry.releaseTitle {
+                        Text(verbatim: release)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .help(release)
+                    }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
@@ -98,7 +114,10 @@ struct HistoryView: View {
             .width(min: 100, ideal: 180)
             TableColumn("Auteur", value: \.authorSortKey) { item in
                 if let author = item.entry.author {
-                    ContributorsLabel(author: author, coAuthors: item.entry.coAuthors, kind: kind(of: item))
+                    ContributorsLabel(
+                        author: author, coAuthors: item.entry.coAuthors, kind: kind(of: item),
+                        avatarURL: item.entry.authorAvatarURL
+                    )
                 } else {
                     Text("onbekend").foregroundStyle(.secondary)
                 }
@@ -138,6 +157,12 @@ struct HistoryView: View {
                         systemImage: kind.symbol,
                         description: fillingDescription
                     )
+                } else if kind == .tag && tagFilter != .all {
+                    ContentUnavailableView(
+                        tagFilter == .releases ? "Geen releases" : "Geen tags zonder release",
+                        systemImage: "line.3.horizontal.decrease.circle",
+                        description: Text("Kies Alles om alle tags te zien.")
+                    )
                 } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
                     ContentUnavailableView(
                         kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags",
@@ -165,9 +190,20 @@ struct HistoryView: View {
                     .searchCompletion(HistoryToken.author(name))
             }
         }
-        .navigationTitle(groupName.map { Text(verbatim: $0) } ?? Text(kind == .pullRequest ? "PR's" : "Tags"))
+        .navigationTitle(groupName.map { Text(verbatim: $0) } ?? Text(kind == .pullRequest ? "PR's" : "Tags en releases"))
         .navigationSubtitle(subtitle)
         .toolbar {
+            if kind == .tag {
+                ToolbarItem {
+                    Picker("Tonen", selection: $tagFilter) {
+                        ForEach(TagFilter.allCases) { filter in
+                            Text(filter.title).tag(filter)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .help("Alle tags, alleen releases of alleen tags zonder release")
+                }
+            }
             HistoryToolbar(
                 model: model,
                 selectedRepo: repo(of: selection),
@@ -211,6 +247,32 @@ struct HistoryView: View {
 nonisolated extension HistoryItem {
     /// Sorteersleutel voor de kolom Auteur; zonder auteur achteraan.
     var authorSortKey: String { entry.author ?? "\u{10FFFF}" }
+}
+
+/// Welke tags de lijst toont: alles, alleen die met een release (ook pre-releases) of alleen
+/// die zonder.
+enum TagFilter: String, CaseIterable, Identifiable {
+    case all, releases, withoutRelease
+
+    var id: Self { self }
+
+    var title: LocalizedStringResource {
+        switch self {
+        case .all: "Alles"
+        case .releases: "Alleen releases"
+        case .withoutRelease: "Tags zonder release"
+        }
+    }
+}
+
+nonisolated extension TagFilter {
+    func includes(_ entry: HistoryEntry) -> Bool {
+        switch self {
+        case .all: true
+        case .releases: entry.release != nil
+        case .withoutRelease: entry.kind == .tag && entry.release == nil
+        }
+    }
 }
 
 /// Een token in het zoekveld: een auteur of een repo.

@@ -34,7 +34,7 @@ struct MenuView: View {
                     model.show(.main)
                 }
                 if model.hasTags {
-                    RecentSection(title: "Tags", empty: nil, items: model.menuTags, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
+                    RecentSection(title: "Tags en releases", empty: nil, items: model.menuTags, open: model.open, setRead: { model.setRead([$0.id], $1) }) { item in
                         MenuPanel.close()
                         model.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         model.show(.main)
@@ -201,7 +201,15 @@ private struct RecentRow: View {
                     .foregroundStyle(item.entry.kind.color)
                     .frame(width: 14)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.entry.title).lineLimit(1)
+                    if let release = item.entry.releaseTitle {
+                        // De titel van de release, met de tagnaam erachter.
+                        HStack(spacing: 4) {
+                            Text(verbatim: release).lineLimit(1)
+                            Text(verbatim: item.entry.title).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                    } else {
+                        Text(item.entry.title).lineLimit(1)
+                    }
                     Text("\(item.entry.repo), \(item.entry.author ?? String(localized: "onbekend")), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
                         .font(.caption)
                         .foregroundStyle(.secondary)

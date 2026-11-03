@@ -13,7 +13,7 @@ enum MainSection: String, CaseIterable, Identifiable {
     var title: LocalizedStringResource {
         switch self {
         case .pullRequests: "PR's"
-        case .tags: "Tags"
+        case .tags: "Tags en releases"
         case .stats: "Statistieken"
         case .repos: "Repo's"
         case .dependencies: "Afhankelijkheden"

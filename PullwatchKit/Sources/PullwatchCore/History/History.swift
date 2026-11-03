@@ -55,6 +55,22 @@ public enum HistoryEntry: Codable, Hashable, Sendable {
         }
     }
 
+    /// Foto van de auteur van een tag (GitHub); `nil` voor PR's.
+    public var authorAvatarURL: URL? {
+        switch self {
+        case .pullRequest: return nil
+        case .tag(let tag): return tag.authorAvatarURL
+        }
+    }
+
+    /// De release bij een tag; `nil` voor PR's en tags zonder release.
+    public var release: ReleaseInfo? {
+        switch self {
+        case .pullRequest: return nil
+        case .tag(let tag): return tag.release
+        }
+    }
+
     /// De titel van de release bij een tag, als die iets anders zegt dan de tagnaam.
     public var releaseTitle: String? {
         switch self {

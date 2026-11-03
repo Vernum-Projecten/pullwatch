@@ -972,6 +972,8 @@ final class AppModel {
         if history.merge(synced: result.syncedPullRequests, notBefore: cutoff) { changed = true }
         // Bestaande tags uit de eerste tag-poll van een repo: gelezen, zonder melding.
         if history.merge(syncedTags: result.syncedTags, notBefore: cutoff) { changed = true }
+        // Bekende tags krijgen hun auteur en release bij, zonder melding en op hun plek.
+        if history.update(tags: result.updatedTags) { changed = true }
         if history.prune(now: now, retention: config.historyRetention) { changed = true }
         if changed { saveHistory() }
         let audible = NotificationPlanner.audible(

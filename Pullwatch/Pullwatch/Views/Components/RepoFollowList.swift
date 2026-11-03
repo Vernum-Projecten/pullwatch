@@ -36,7 +36,7 @@ extension WatchKind {
     var help: LocalizedStringKey {
         switch self {
         case .pullRequests: "Nieuwe pull requests in het menu, de geschiedenis en de meldingen"
-        case .tags: "Nieuwe tags in het menu, de geschiedenis en de meldingen"
+        case .tags: "Nieuwe tags en releases in het menu, de geschiedenis en de meldingen"
         case .merged: "Een melding en een regel in de geschiedenis als een gevolgde PR gemerged wordt (in Azure DevOps heet dat completed)"
         }
     }
@@ -60,7 +60,7 @@ extension WatchKind {
     var notifyTitle: LocalizedStringKey {
         switch self {
         case .pullRequests: "Melding bij nieuwe PR's"
-        case .tags: "Melding bij nieuwe tags"
+        case .tags: "Melding bij nieuwe tags en releases"
         case .merged: "Melding als een PR gemerged wordt"
         }
     }
