@@ -486,6 +486,10 @@ public struct PullRequest: Codable, Hashable, Sendable {
     /// ze alleen voor open en net gemergde PR's, en alleen opnieuw als de PR veranderde of de
     /// checks nog lopen.
     public var checks: PRChecks?
+    /// Of en waar de PR in de rij staat om vanzelf te mergen (merge queue, merge train,
+    /// auto-complete); nil als hij er niet in staat of de dienst het niet weet. Telt alleen
+    /// zolang de PR open is.
+    public var mergeQueue: MergeQueueEntry?
 
     public init(
         accountId: UUID,
@@ -501,7 +505,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
         closedAt: Date? = nil,
         coAuthors: [Person] = [],
         revision: String? = nil,
-        checks: PRChecks? = nil
+        checks: PRChecks? = nil,
+        mergeQueue: MergeQueueEntry? = nil
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -517,10 +522,12 @@ public struct PullRequest: Codable, Hashable, Sendable {
         self.coAuthors = coAuthors
         self.revision = revision
         self.checks = checks
+        self.mergeQueue = mergeQueue
     }
 
     private enum CodingKeys: String, CodingKey {
         case accountId, repo, number, title, authorId, authorName, isDraft, createdAt, webURL, state, closedAt, coAuthors, revision, checks
+        case mergeQueue
     }
 
     /// Oude JSON heeft geen `state`/`closedAt`: dan is de PR open. Zonder `coAuthors` (van vóór de
@@ -542,7 +549,12 @@ public struct PullRequest: Codable, Hashable, Sendable {
         revision = try c.decodeIfPresent(String.self, forKey: .revision)
         // Ontbreekt in JSON van vóór de checks.
         checks = try c.decodeIfPresent(PRChecks.self, forKey: .checks)
+        // Ontbreekt in JSON van vóór de wachtrij.
+        mergeQueue = try c.decodeIfPresent(MergeQueueEntry.self, forKey: .mergeQueue)
     }
+
+    /// Open en in de rij om vanzelf te mergen. Een draft kan niet mergen en telt dus niet.
+    public var isQueued: Bool { state == .open && !isDraft && mergeQueue != nil }
 
     /// De auteur en daarna de co-auteurs, zoals ze in lijsten en statistieken heten.
     public var contributorNames: [String] { [authorName] + coAuthors.map(\.handle) }

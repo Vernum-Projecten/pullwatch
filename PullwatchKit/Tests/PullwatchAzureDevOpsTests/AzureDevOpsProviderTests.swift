@@ -26,6 +26,25 @@ import PullwatchTestSupport
         )
     }
 
+    /// Auto-complete aan (`autoCompleteSetBy`): de PR voltooit vanzelf en staat dus in de rij.
+    @Test func `Auto-complete shows as queued`() async throws {
+        let http = MockHTTPClient()
+        http.on("_apis/projects", body: projects)
+        let autoComplete = #"""
+            {"pullRequestId":18,"title":"PR 18","creationDate":"2025-10-15T10:00:00Z","status":"active",
+             "createdBy":{"id":"user-guid","displayName":"Jan Jansen"},
+             "autoCompleteSetBy":{"id":"other-guid","displayName":"Piet Pieters"},
+             "repository":{"name":"api","project":{"name":"My Project"}}}
+            """#
+        http.on("_apis/git/pullrequests", body: #"{"value":[\#(autoComplete),\#(prJSON(id: 17))]}"#)
+
+        let prs = try await makeProvider(http).openPullRequests()
+
+        #expect(prs.first { $0.number == 18 }?.mergeQueue == MergeQueueEntry(kind: .autoComplete))
+        #expect(prs.first { $0.number == 18 }?.isQueued == true)
+        #expect(prs.first { $0.number == 17 }?.mergeQueue == nil)
+    }
+
     @Test func mapsPullRequestFields() async throws {
         let http = MockHTTPClient()
         http.on("_apis/projects", body: projects)

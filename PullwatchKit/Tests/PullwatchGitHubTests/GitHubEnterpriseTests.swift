@@ -141,7 +141,10 @@ import PullwatchTestSupport
         #expect(try await provider.fileContent(in: "me/dotfiles", path: "Package.swift", ref: nil).hasPrefix("// swift-tools"))
         #expect(try await provider.installationOwners().isEmpty)
 
-        #expect(urls(http).allSatisfy { $0.hasPrefix("https://github.example.com/api/v3/") }, "\(urls(http))")
+        // De open PR's vragen ook de merge queue, via de GraphQL van dezelfde server.
+        let graphQL = urls(http).filter { $0.hasSuffix("/graphql") }
+        #expect(graphQL == ["https://github.example.com/api/graphql"])
+        #expect(urls(http).filter { !graphQL.contains($0) }.allSatisfy { $0.hasPrefix("https://github.example.com/api/v3/") }, "\(urls(http))")
         #expect(http.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer ghes-token" })
     }
 

@@ -121,6 +121,33 @@ import Testing
         #expect(HistoryEntry.pullRequest(pr(.open, draft: true)).glyph == PRStatus.draft.glyph)
     }
 
+    /// Een open PR in de rij om vanzelf te mergen is Queued, met de Octicon git-merge-queue en
+    /// zijn plek in de tooltip; een draft blijft een draft en een gemergde PR gemerged.
+    @Test func `A pull request in the merge queue is queued`() {
+        var pr = PullRequest(
+            accountId: UUID(), repo: "r", number: 1, title: "t", authorId: "a", authorName: "a",
+            isDraft: false, createdAt: .now, webURL: URL(string: "https://example.com")!
+        )
+        pr.mergeQueue = MergeQueueEntry(kind: .mergeQueue, position: 2)
+        #expect(PRStatus(pr) == .queued)
+        #expect(PRStatus.queued.glyph == .asset("pr.queued"))
+        let entry = HistoryEntry.pullRequest(pr)
+        #expect(entry.glyph == PRStatus.queued.glyph)
+        #expect(String(localized: entry.glyphLabel) != String(localized: PRStatus.queued.spokenName), "met de plek erbij")
+        #expect(entry.statePill.map { String(localized: $0.text) } == String(localized: LocalizedStringResource("In wachtrij")))
+
+        pr.mergeQueue?.position = nil
+        #expect(String(localized: HistoryEntry.pullRequest(pr).glyphLabel) == String(localized: PRStatus.queued.spokenName))
+
+        let draft = PullRequest(
+            accountId: pr.accountId, repo: "r", number: 2, title: "t", authorId: "a", authorName: "a",
+            isDraft: true, createdAt: .now, webURL: pr.webURL, mergeQueue: MergeQueueEntry(kind: .autoComplete)
+        )
+        #expect(PRStatus(draft) == .draft)
+        pr.state = .merged
+        #expect(PRStatus(pr) == .merged)
+    }
+
     /// Waar alleen het icoon staat, zeggen tooltip en VoiceOver soort en status in woorden, per
     /// status verschillend; de betekenis hangt dus niet aan kleur of vorm alleen.
     @Test func everyIconHasItsOwnWords() {

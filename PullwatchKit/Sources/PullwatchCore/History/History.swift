@@ -264,8 +264,12 @@ public struct History: Codable, Equatable, Sendable {
         guard case .pullRequest(var existing) = item.entry else { return false }
         let coAuthors = pr.coAuthors.isEmpty ? existing.coAuthors : pr.coAuthors
         let checks = pr.checks ?? existing.checks
+        // De wachtrij komt per poll (`update(mergeQueues:)`); na een merge of sluiten is hij voorbij.
+        let mergeQueue = pr.state == .open ? existing.mergeQueue : nil
         guard existing.state != pr.state || existing.closedAt != pr.closedAt || existing.title != pr.title
-                || existing.coAuthors != coAuthors || existing.checks != checks else { return false }
+                || existing.coAuthors != coAuthors || existing.checks != checks
+                || existing.mergeQueue != mergeQueue else { return false }
+        existing.mergeQueue = mergeQueue
         existing.state = pr.state
         existing.closedAt = pr.closedAt
         existing.title = pr.title
@@ -285,6 +289,24 @@ public struct History: Codable, Equatable, Sendable {
             guard case .pullRequest(var pr) = items[index].entry, let found = checks[pr.dedupKey],
                   pr.checks != found else { continue }
             pr.checks = found
+            items[index].entry = .pullRequest(pr)
+            changed = true
+        }
+        return changed
+    }
+
+    /// Zet bij de open PR's in de geschiedenis of ze in de rij staan om vanzelf te mergen (per
+    /// dedupKey; `nil` als waarde: niet in de rij), zonder volgorde of gelezen-status te
+    /// veranderen. Een PR die niet meer open is houdt wat hij had: zijn status zegt dan genoeg.
+    /// Geeft `true` als er iets veranderde.
+    @discardableResult
+    public mutating func update(mergeQueues: [String: MergeQueueEntry?]) -> Bool {
+        guard !mergeQueues.isEmpty else { return false }
+        var changed = false
+        for index in items.indices {
+            guard case .pullRequest(var pr) = items[index].entry, pr.state == .open,
+                  let found = mergeQueues[pr.dedupKey], pr.mergeQueue != found else { continue }
+            pr.mergeQueue = found
             items[index].entry = .pullRequest(pr)
             changed = true
         }

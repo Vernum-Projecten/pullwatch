@@ -36,6 +36,10 @@ public struct PollResult: Equatable, Sendable {
     /// Eigen open PR's waarvan de checks net mislukten (voor de melding "Checks mislukt"); alleen
     /// met `checksForOwnPullRequests`. Een PR waarvan Pullwatch de checks nog nooit zag meldt niet.
     public var failedChecks: [PullRequest] = []
+    /// Van elke open PR die deze poll ophaalde of hij in de rij staat om vanzelf te mergen
+    /// (`PullRequest.mergeQueue`), per dedupKey; `nil` als waarde: niet (meer) in de rij. Om de
+    /// geschiedenis bij te werken, niet voor meldingen: in de rij komen meldt niets.
+    public var mergeQueues: [String: MergeQueueEntry?] = [:]
 }
 
 /// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account
@@ -303,6 +307,7 @@ public actor PollEngine {
                     let checks = handleChecks(fetched, includeOwn: checksForOwnPullRequests, at: t)
                     result.checks.merge(checks.all) { _, new in new }
                     result.failedChecks += checks.failed
+                    for pr in fetched.pullRequests { result.mergeQueues[pr.dedupKey] = .some(pr.mergeQueue) }
                     let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
                     result.newTags += fresh.tags

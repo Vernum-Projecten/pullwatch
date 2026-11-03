@@ -6,8 +6,9 @@ contributors, licensed under the Apache License, Version 2.0 (see LICENSE).
 
 This product includes icons from GitHub Octicons
 (https://github.com/primer/octicons, version 19.41.0): git-pull-request,
-git-pull-request-draft, git-merge and git-pull-request-closed, used for the
-pull request symbols in Pullwatch/Pullwatch/Assets.xcassets (pr.*.symbolset),
+git-pull-request-draft, git-merge-queue, git-merge and git-pull-request-closed,
+used for the pull request symbols in Pullwatch/Pullwatch/Assets.xcassets
+(pr.*.symbolset),
 the menu bar icon (MenuBarIcon.imageset) and the glyph of the app icon
 (AppIcon.icon/Assets/pull-request.svg); and check, x and dot-fill, used for
 the symbols of a pull request's checks (checks.*.symbolset). They are

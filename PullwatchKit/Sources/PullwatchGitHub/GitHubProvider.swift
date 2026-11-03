@@ -29,6 +29,12 @@ public actor GitHubProvider: PRProvider {
     /// De server kent de velden voor de telling van de checks niet (een oudere GitHub Enterprise
     /// Server): dan vraagt Pullwatch ze niet meer en heeft een PR geen checks.
     var checksUnsupported = false
+    /// De server kent de merge queue niet (een oudere GitHub Enterprise Server): dan vraagt
+    /// Pullwatch er niet meer naar en staat geen PR in de rij.
+    var mergeQueueUnsupported = false
+    /// De PR's (dedupKey) die bij de vorige vraag in de merge queue stonden, voor als een
+    /// volgende vraag mislukt: dan blijven ze staan in plaats van even uit de rij te vallen.
+    var knownMergeQueues: [String: MergeQueueEntry] = [:]
 
     public init(
         accountId: UUID,
@@ -155,7 +161,8 @@ public actor GitHubProvider: PRProvider {
     }
 
     /// Open PR's bij alle gevolgde eigenaren: één zoekopdracht per eigenaar (`user:` of `org:`),
-    /// plus de losse repo's in gebundelde zoekopdrachten (`repo:`).
+    /// plus de losse repo's in gebundelde zoekopdrachten (`repo:`), met hun plek in de merge queue
+    /// (`GitHubProvider+MergeQueue`).
     public func openPullRequests() async throws -> [PullRequest] {
         var result: [PullRequest] = []
         for owner in owners {
@@ -163,7 +170,7 @@ public actor GitHubProvider: PRProvider {
             result += try await searchPullRequests("is:pr is:open \(qualifier):\(owner)", byUpdate: false, limit: .max)
         }
         result += try await extraPullRequests("is:pr is:open", byUpdate: false, limit: .max)
-        return result
+        return await withMergeQueues(result)
     }
 
     /// Bijgewerkte PR's bij alle gevolgde eigenaren en losse repo's, nieuwste eerst, samen hooguit `limit`.
