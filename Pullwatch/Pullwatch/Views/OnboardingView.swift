@@ -404,6 +404,8 @@ private struct GitHubChoice: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+            // De knoppen onderaan de kaart; logo, naam en uitleg staan bovenaan, net als bij de andere kaarten.
+            Spacer(minLength: 4)
             VStack(spacing: 4) {
                 Button(action: dotCom) {
                     Text(verbatim: "GitHub.com").frame(maxWidth: .infinity)
@@ -418,7 +420,7 @@ private struct GitHubChoice: View {
             }
             .controlSize(.small)
         }
-        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity, alignment: .top)
         .padding(12)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator))
@@ -447,7 +449,8 @@ private struct ProviderChoice: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity)
+            // Bovenaan uitgelijnd, zodat logo, naam en uitleg van alle kaarten op één lijn staan.
+            .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity, alignment: .top)
             .padding(12)
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }
