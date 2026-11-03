@@ -1,4 +1,5 @@
-- **Choose per repository what to follow.** The account's repository list
-  has three columns again, PRs, Tags and Merged, with an "all" checkbox
-  per owner and column. Notifications per kind are in a repository's
-  context menu. New repositories can follow nothing, PRs, or PRs and tags.
+- **What to follow per repository is simpler.** The account's repository
+  list keeps its PRs, Tags and Merged columns with an "all" checkbox per
+  owner and column, without a bell in every cell: notifications per kind
+  are in a repository's context menu. Merged needs PRs, and New
+  Repositories chooses between nothing, PRs, or PRs and tags.
