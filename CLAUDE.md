@@ -64,7 +64,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
   PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
-  without a window, in four modules under `Sources/`. The names start with
+  without a window, in five modules under `Sources/`. The names start with
   `Pullwatch` so a module never shares its name with a type in it.
   `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
   `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
@@ -73,19 +73,25 @@ of each part is in `docs/superpowers/specs/` and its plan in
   statistics, repo overview), `Versions/` (the version and vulnerability
   checks: stack and dependency detection, package registries, end-of-life,
   OSV), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
-  store, Keychain, logging, localisation). `PullwatchGitHub/`:
-  `GitHubProvider`, the GitHub App device flow and token store
+  store, Keychain and `SecretStores`, logging, localisation). `PullwatchGitHub/`:
+  `GitHubProvider` (github.com, GitHub Enterprise Server and GHE.com through
+  `GitHubEndpoints`), the GitHub App device flow and token store
   (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
   `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
+  `PullwatchGitLab/`: `GitLabProvider` (gitlab.com and self-managed, REST v4)
+  and the `glab` token source.
   `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
-  provider. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
+  provider. Every provider also reads the repositories a person adds by
+  hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
+  anonymous fallback for public repositories on github.com and gitlab.com
+  only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
   screens) and `PullwatchProviders`. Only what another module or the app
   uses is `public`; what only the package's own modules share is `package`.
   A module with text has its own `Localizable.xcstrings` and its own
   `Bundle.localized…` helper (`Support/Localization.swift`).
   `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
-  `PullwatchProvidersTests`), and `PullwatchTestSupport` with the shared
+  `PullwatchGitLabTests`, `PullwatchProvidersTests`), and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
   and fixtures.
 - `docs/setup.md`: everything the maintainer configures outside the code
