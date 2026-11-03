@@ -132,3 +132,7 @@ Logs: `log stream --predicate 'subsystem == "nl.torrisi.pullwatch"'`
 ## License
 
 [Apache 2.0](LICENSE)
+
+## Third-party
+
+- The pull request icons (open, draft, merged and closed), the menu bar icon and the glyph of the app icon are [GitHub Octicons](https://github.com/primer/octicons) (`git-pull-request`, `git-pull-request-draft`, `git-merge`, `git-pull-request-closed`), MIT License, Copyright (c) GitHub Inc. See [NOTICE](NOTICE).

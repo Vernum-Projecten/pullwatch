@@ -77,13 +77,19 @@ struct HistoryView: View {
             }
             .width(44)
             TableColumn("Status") { item in
-                if let state = item.entry.prState {
-                    Pill(text: state.label, tint: state.color)
+                // Zoals GitHub: het icoon van de status in zijn kleur, met de status als pill.
+                if let status = item.entry.prStatus {
+                    HStack(spacing: 4) {
+                        status.glyph.image
+                            .foregroundStyle(status.color)
+                            .accessibilityHidden(true)
+                        Pill(text: status.label, tint: status.color)
+                    }
                 } else if let release = item.entry.release {
                     Pill(text: release.label, tint: release.color)
                 }
             }
-            .width(76)
+            .width(96)
             TableColumn("Titel", value: \.entry.title) { item in
                 // Zoals Mail en het menupaneel: een blauwe stip voor ongelezen, op een vaste plek.
                 HStack(spacing: 6) {
@@ -152,11 +158,15 @@ struct HistoryView: View {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty
                     && model.isFillingHistory {
                     // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
-                    ContentUnavailableView(
-                        kind == .pullRequest ? "PR's ophalen…" : "Tags ophalen…",
-                        systemImage: kind.symbol,
-                        description: fillingDescription
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text(kind == .pullRequest ? "PR's ophalen…" : "Tags ophalen…")
+                        } icon: {
+                            kind.glyph.image
+                        }
+                    } description: {
+                        fillingDescription
+                    }
                 } else if kind == .tag && tagFilter != .all {
                     ContentUnavailableView(
                         tagFilter == .releases ? "Geen releases" : "Geen tags zonder release",
@@ -164,13 +174,17 @@ struct HistoryView: View {
                         description: Text("Kies Alles om alle tags te zien.")
                     )
                 } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && model.historyTokens.isEmpty {
-                    ContentUnavailableView(
-                        kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags",
-                        systemImage: kind.symbol,
-                        description: Text(kind == .pullRequest
-                                          ? "Nieuwe pull requests in de repo's die je volgt komen hier te staan."
-                                          : "Nieuwe tags in de repo's die je volgt komen hier te staan.")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text(kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags")
+                        } icon: {
+                            kind.glyph.image
+                        }
+                    } description: {
+                        Text(kind == .pullRequest
+                             ? "Nieuwe pull requests in de repo's die je volgt komen hier te staan."
+                             : "Nieuwe tags in de repo's die je volgt komen hier te staan.")
+                    }
                 } else {
                     ContentUnavailableView.search(text: searchText)
                 }

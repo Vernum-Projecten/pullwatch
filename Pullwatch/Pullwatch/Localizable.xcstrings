@@ -3842,6 +3842,34 @@
         }
       }
     },
+    "Draft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brouillon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft"
+          }
+        }
+      }
+    },
     "Draft-PR's meenemen": {
       "localizations": {
         "de": {
@@ -8436,6 +8464,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pull requests"
+          }
+        }
+      }
+    },
+    "Pull-request-iconen uit GitHubs Octicons, onder de MIT-licentie.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-Request-Symbole aus GitHubs Octicons, unter der MIT-Lizenz."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request icons from GitHub's Octicons, under the MIT License."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icônes de pull request issues des Octicons de GitHub, sous licence MIT."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull-request-iconen uit GitHubs Octicons, onder de MIT-licentie."
           }
         }
       }

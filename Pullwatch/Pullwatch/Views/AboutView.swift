@@ -3,7 +3,8 @@ import SwiftUI
 
 /// Het Over-venster: icoon, naam en versie, wat Pullwatch doet, de links (code, release notes,
 /// een probleem melden, licentie), wie het maakte en waar de versie- en kwetsbaarheidsgegevens
-/// vandaan komen. Geopend via "Over Pullwatch" in het appmenu en de ℹ︎ in het menupaneel.
+/// en de PR-iconen vandaan komen. Geopend via "Over Pullwatch" in het appmenu en de ℹ︎ in het
+/// menupaneel.
 struct AboutView: View {
     static let repository = URL(string: "https://github.com/alessandro823/pullwatch")!
 
@@ -49,6 +50,7 @@ struct AboutView: View {
             VStack(spacing: 4) {
                 Text("Gemaakt door Alessandro Torrisi.")
                 Text("Versies van endoflife.date, kwetsbaarheden van OSV.dev.")
+                Text("Pull-request-iconen uit GitHubs Octicons, onder de MIT-licentie.")
                 Text("Gratis en open source onder de Apache-licentie 2.0.")
                 if !copyright.isEmpty {
                     Text(verbatim: copyright)

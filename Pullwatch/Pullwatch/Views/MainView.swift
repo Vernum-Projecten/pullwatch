@@ -99,7 +99,7 @@ private struct SectionLabel: View {
         Label {
             Text(section.title)
         } icon: {
-            Image(systemName: section.symbol)
+            section.glyph.image
         }
         .badge(badge)
         .tag(SidebarItem.section(section))
