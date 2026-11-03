@@ -1,4 +1,5 @@
 import PullwatchCore
+import PullwatchGitHub
 import SwiftUI
 
 struct AccountEditor: View {

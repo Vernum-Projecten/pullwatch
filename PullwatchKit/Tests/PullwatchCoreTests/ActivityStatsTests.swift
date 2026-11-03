@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+import PullwatchTestSupport
 
 @Suite struct ActivityStatsTests {
     var calendar: Calendar {

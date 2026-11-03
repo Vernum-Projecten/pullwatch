@@ -34,11 +34,20 @@ Hard rules); keep these conventions while doing so.
   pull request is about, so its diff stays readable.
 - No "·" separators or em dashes in user-facing text: a translated phrase,
   a second line in `.secondary`, or separate views.
-- `PullwatchCore` (`PullwatchKit/Sources/PullwatchCore/`, by area) holds
-  everything without a window: providers, polling, history, version checks,
-  the update check. The app (`Pullwatch/Pullwatch/`) only wires (`App/`) and
-  draws (`Views/`): `AppModel` is the one `@Observable` model, views read it.
-  A new file goes in the folder of its area; the Xcode project picks it up.
+- `PullwatchKit` holds everything without a window, in modules:
+  `PullwatchCore` (`Sources/PullwatchCore/`, by area: models, the
+  `PRProvider` and `TokenSource` protocols, polling, history, version checks,
+  the update check; no provider API code), one module per provider
+  (`PullwatchGitHub`, `PullwatchAzureDevOps`) that depends only on
+  `PullwatchCore`, and `PullwatchProviders` (`ProviderFactory`). A new
+  provider is a new module plus one case in `ProviderFactory`. Module names
+  start with `Pullwatch` so none shares its name with a type in it. Only
+  what another module or the app uses is `public`; what only the package's
+  modules share is `package`. The app (`Pullwatch/Pullwatch/`) only wires
+  (`App/`) and draws (`Views/`): `AppModel` is the one `@Observable` model,
+  views read it. A new file goes in the folder of its module and area; the
+  Xcode project picks it up. A new library product also needs an
+  `XCSwiftPackageProductDependency` in `project.pbxproj`.
 - Network access goes through the `HTTPClient` protocol (`HTTP.swift`) and
   processes through `ProcessRunner`, so tests can stub both. Errors a person
   sees go through `ProviderError.userMessage`.
@@ -76,8 +85,17 @@ Hard rules); keep these conventions while doing so.
 ## Text and languages
 
 The app speaks Dutch (development language of the package), English, German
-and French, through `Pullwatch/Pullwatch/Localizable.xcstrings` and
-`PullwatchKit/Sources/PullwatchCore/Localizable.xcstrings`.
+and French, through `Pullwatch/Pullwatch/Localizable.xcstrings` and one
+`Localizable.xcstrings` per PullwatchKit module with text (now
+`PullwatchCore` and `PullwatchGitHub`).
+
+- In a package module, text goes through that module's own bundle helper
+  (`bundle: .localizedCore`, `bundle: .localizedGitHub`), which is
+  `#bundle` in the language the app chose; a new module with text gets its
+  own catalog, helper (`Bundle.localized(#bundle, for:)`) and an entry in
+  `LocalizationTests.catalogs`. Give each key an `nl` entry too, so the
+  module's bundle has an `nl.lproj`; without it Dutch falls back to
+  another language.
 
 - SwiftUI literals (`Text("…")`, `Button("…")`) localise by themselves;
   the keys are the Dutch text, as in the existing code.
@@ -92,9 +110,11 @@ and French, through `Pullwatch/Pullwatch/Localizable.xcstrings` and
 ## Tests
 
 - Swift Testing only (`@Suite`, `@Test`, `#expect`, `#require`). Logic goes
-  in `PullwatchCore` and is tested in `PullwatchKit/Tests/PullwatchCoreTests`;
-  `Pullwatch/PullwatchTests` checks the built app (hosted, no polling).
+  in a PullwatchKit module and is tested in that module's test target
+  (`PullwatchKit/Tests/<Module>Tests`); `Pullwatch/PullwatchTests` checks
+  the built app (hosted, no polling).
 - Network tests go through `MockHTTPClient`, process tests through
-  `MockProcessRunner` (both in `PullwatchKit/Tests/PullwatchCoreTests/Support`); never
-  the real GitHub, Azure DevOps, `gh` or `az`.
+  `MockProcessRunner` (both in `PullwatchKit/Tests/PullwatchTestSupport`,
+  `package` so every test target can use them); never the real GitHub,
+  Azure DevOps, `gh` or `az`.
 - Never weaken, skip or delete a test to make a build pass.

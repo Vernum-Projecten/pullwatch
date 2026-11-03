@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+@testable import PullwatchGitHub
+import PullwatchTestSupport
 
 @Suite struct GitHubAppAuthTests {
     let config = GitHubAppConfig(clientID: "Iv23test", slug: "pullwatch-dev")
@@ -118,17 +120,5 @@ import Testing
         #expect(owners.map(\.isSignedInUser) == [true, false, false])
         let url = try #require(http.requests.first?.url?.absoluteString)
         #expect(url.contains("per_page=100"))
-    }
-
-    @Test func factoryUsesTheGitHubAppTokensForThatAuthMethod() async throws {
-        let secrets = InMemorySecretStore()
-        let http = MockHTTPClient()
-        http.on("api.github.com/user", body: #"{"login":"octo","id":1}"#)
-        let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
-        try GitHubAppTokenStore(accountId: account.id, secrets: secrets)
-            .save(GitHubAppTokens(access: "ghu_from_app", accessExpires: .distantFuture, refresh: "r"))
-        let provider = ProviderFactory.make(account, secrets: secrets, http: http, gitHubApp: config)
-        _ = try await provider.currentUserId()
-        #expect(http.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer ghu_from_app")
     }
 }

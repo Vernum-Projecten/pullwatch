@@ -6,14 +6,27 @@ import Testing
 @Suite struct LocalizationTests {
     static let languages = ["nl", "en", "de", "fr"]
 
-    /// De catalogs naast deze map: die van de app en die van PullwatchCore.
+    /// De catalogs naast deze map: die van de app en die van elke PullwatchKit-module met teksten.
     static let catalogs: [URL] = {
         let tests = URL(filePath: #filePath).deletingLastPathComponent()
         return [
             tests.appending(path: "../Pullwatch/Localizable.xcstrings"),
             tests.appending(path: "../../PullwatchKit/Sources/PullwatchCore/Localizable.xcstrings"),
+            tests.appending(path: "../../PullwatchKit/Sources/PullwatchGitHub/Localizable.xcstrings"),
         ].map(\.standardizedFileURL)
     }()
+
+    /// Een nieuwe module met een eigen catalog hoort in `catalogs`, anders controleert niemand hem.
+    @Test func everyKitCatalogIsChecked() throws {
+        let sources = URL(filePath: #filePath).deletingLastPathComponent()
+            .appending(path: "../../PullwatchKit/Sources").standardizedFileURL
+        let modules = try FileManager.default.contentsOfDirectory(atPath: sources.path(percentEncoded: false))
+        let found = modules
+            .map { sources.appending(path: "\($0)/Localizable.xcstrings").standardizedFileURL }
+            .filter { FileManager.default.fileExists(atPath: $0.path(percentEncoded: false)) }
+        #expect(!found.isEmpty)
+        #expect(Set(found).isSubset(of: Set(Self.catalogs)), "Ontbreekt in catalogs: \(Set(found).subtracting(Self.catalogs).map(\.path))")
+    }
 
     struct Catalog: Decodable {
         struct Entry: Decodable {

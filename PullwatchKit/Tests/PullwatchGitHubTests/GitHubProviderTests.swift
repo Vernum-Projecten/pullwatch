@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import PullwatchCore
+@testable import PullwatchGitHub
+import PullwatchTestSupport
 
 @Suite struct GitHubProviderTests {
     func item(number: Int, repo: String = "acme/web", draft: Bool? = false, login: String = "octocat") -> String {

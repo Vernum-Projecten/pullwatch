@@ -1,7 +1,7 @@
 name: CI
 
 # Every pull request and every push to main: the shell scripts and the
-# workflows are linted, PullwatchCore's tests run, the app is built and its
+# workflows are linted, PullwatchKit's tests run, the app is built and its
 # unit and UI tests run, and an unsigned universal release is packaged the
 # way scripts/release/release.sh packages a real one. No job needs a secret.
 

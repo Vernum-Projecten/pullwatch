@@ -1,9 +1,11 @@
 import Foundation
-@testable import PullwatchCore
+import PullwatchCore
 
 /// Route-matching op substring van de volledige URL; de EERSTE geregistreerde match wint.
 /// Registreer dus specifieke routes vóór algemene.
-final class MockHTTPClient: HTTPClient, @unchecked Sendable {
+package final class MockHTTPClient: HTTPClient, @unchecked Sendable {
+    package init() {}
+
     private struct Route {
         let substring: String
         let status: Int
@@ -16,18 +18,18 @@ final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     private var recorded: [URLRequest] = []
     private var sequences: [String: [String]] = [:]
 
-    var requests: [URLRequest] { lock.withLock { recorded } }
+    package var requests: [URLRequest] { lock.withLock { recorded } }
 
-    func on(_ substring: String, status: Int = 200, headers: [String: String] = [:], body: String) {
+    package func on(_ substring: String, status: Int = 200, headers: [String: String] = [:], body: String) {
         lock.withLock { routes.append(Route(substring: substring, status: status, headers: headers, body: body)) }
     }
 
     /// Antwoorden die na elkaar komen voor dezelfde route; het laatste blijft daarna gelden.
-    func onSequence(_ substring: String, bodies: [String]) {
+    package func onSequence(_ substring: String, bodies: [String]) {
         lock.withLock { sequences[substring, default: []].append(contentsOf: bodies) }
     }
 
-    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    package func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let url = request.url!
         let route: Route? = lock.withLock {
             recorded.append(request)

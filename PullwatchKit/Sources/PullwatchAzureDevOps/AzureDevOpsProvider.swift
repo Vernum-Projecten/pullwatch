@@ -1,4 +1,5 @@
 import Foundation
+import PullwatchCore
 
 public actor AzureDevOpsProvider: PRProvider {
     private let accountId: UUID

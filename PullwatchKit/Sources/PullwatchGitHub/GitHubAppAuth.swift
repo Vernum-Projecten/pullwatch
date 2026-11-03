@@ -1,4 +1,5 @@
 import Foundation
+import PullwatchCore
 
 // Inloggen bij GitHub via de Pullwatch GitHub App met de device flow (RFC 8628), overgenomen uit
 // FerroLICENCE (`GitHubKit/Auth.swift`). Geen client secret: de client id is openbaar.
@@ -74,11 +75,11 @@ public enum GitHubSignInError: Error, Equatable, Sendable {
 
     public var userMessage: String {
         switch self {
-        case .expired: String(localized: "De code is verlopen. Begin opnieuw.", bundle: .localizedCore)
-        case .denied: String(localized: "GitHub heeft het geweigerd. Begin opnieuw en keur Pullwatch goed.", bundle: .localizedCore)
-        case .notSignedIn: String(localized: "Log opnieuw in bij GitHub.", bundle: .localizedCore)
-        case .notConfigured: String(localized: "Inloggen bij GitHub is in deze versie nog niet ingesteld.", bundle: .localizedCore)
-        case .github(let message): String(localized: "GitHub antwoordde: \(message)", bundle: .localizedCore)
+        case .expired: String(localized: "De code is verlopen. Begin opnieuw.", bundle: .localizedGitHub)
+        case .denied: String(localized: "GitHub heeft het geweigerd. Begin opnieuw en keur Pullwatch goed.", bundle: .localizedGitHub)
+        case .notSignedIn: String(localized: "Log opnieuw in bij GitHub.", bundle: .localizedGitHub)
+        case .notConfigured: String(localized: "Inloggen bij GitHub is in deze versie nog niet ingesteld.", bundle: .localizedGitHub)
+        case .github(let message): String(localized: "GitHub antwoordde: \(message)", bundle: .localizedGitHub)
         }
     }
 }

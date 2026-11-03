@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0000000000000000000C0001 /* PullwatchCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0001 /* PullwatchCore */; };
+		0000000000000000000C0002 /* PullwatchGitHub in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0002 /* PullwatchGitHub */; };
+		0000000000000000000C0003 /* PullwatchProviders in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0003 /* PullwatchProviders */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +74,8 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				0000000000000000000C0001 /* PullwatchCore in Frameworks */,
+				0000000000000000000C0002 /* PullwatchGitHub in Frameworks */,
+				0000000000000000000C0003 /* PullwatchProviders in Frameworks */,
 			);
 		};
 		000000000000000230000000 /* Frameworks */ = {
@@ -129,6 +133,8 @@
 			name = Pullwatch;
 			packageProductDependencies = (
 				0000000000000000000B0001 /* PullwatchCore */,
+				0000000000000000000B0002 /* PullwatchGitHub */,
+				0000000000000000000B0003 /* PullwatchProviders */,
 			);
 			productName = Pullwatch;
 			productReference = 000000000000000000000120 /* Pullwatch.app */;
@@ -547,6 +553,14 @@
 		0000000000000000000B0001 /* PullwatchCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PullwatchCore;
+		};
+		0000000000000000000B0002 /* PullwatchGitHub */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PullwatchGitHub;
+		};
+		0000000000000000000B0003 /* PullwatchProviders */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PullwatchProviders;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

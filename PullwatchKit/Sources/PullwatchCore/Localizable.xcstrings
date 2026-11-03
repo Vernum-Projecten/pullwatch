@@ -220,28 +220,6 @@
         }
       }
     },
-    "De code is verlopen. Begin opnieuw.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Code ist abgelaufen. Beginne von vorn."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The code expired. Start again."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le code a expiré. Recommencez."
-          }
-        }
-      }
-    },
     "Geen toegang tot \"%@\", controleer de naam": {
       "localizations": {
         "de": {
@@ -294,94 +272,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen token ingesteld"
-          }
-        }
-      }
-    },
-    "GitHub antwoordde: %@": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub antwortete: %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub answered: %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub a répondu : %@"
-          }
-        }
-      }
-    },
-    "GitHub heeft het geweigerd. Begin opnieuw en keur Pullwatch goed.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub hat abgelehnt. Beginne von vorn und erlaube Pullwatch."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub said no. Start again and approve Pullwatch."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub a refusé. Recommencez et autorisez Pullwatch."
-          }
-        }
-      }
-    },
-    "Inloggen bij GitHub is in deze versie nog niet ingesteld.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Anmeldung mit GitHub ist in dieser Version noch nicht eingerichtet."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-in with GitHub isn’t set up in this version yet."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La connexion avec GitHub n’est pas encore configurée dans cette version."
-          }
-        }
-      }
-    },
-    "Log opnieuw in bij GitHub.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Melde dich erneut bei GitHub an."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in to GitHub again."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reconnectez-vous à GitHub."
           }
         }
       }

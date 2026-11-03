@@ -2,6 +2,8 @@ import AppKit
 import Observation
 import os
 import PullwatchCore
+import PullwatchGitHub
+import PullwatchProviders
 import UserNotifications
 
 private let logger = Log(category: "app")
