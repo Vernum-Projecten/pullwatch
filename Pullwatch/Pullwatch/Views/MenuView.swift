@@ -67,8 +67,9 @@ enum MenuPanel {
     }
 }
 
-/// Kop van het paneel: naam en versie, en rechtsboven drie ronde glazen knoppen (over,
-/// verversen, instellingen) in één glascontainer, zodat ze als één bediening ogen.
+/// Kop van het paneel: naam en versie, en rechtsboven drie symboolknoppen (over, verversen,
+/// instellingen). Gewone randloze knoppen: het paneel zelf is al van Liquid Glass, en Apple
+/// raadt glas op glas en glas in de inhoudslaag af.
 private struct MenuHeader: View {
     let refresh: () -> Void
     let openSettings: () -> Void
@@ -82,22 +83,21 @@ private struct MenuHeader: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
             Spacer()
-            GlassEffectContainer(spacing: 6) {
-                HStack(spacing: 6) {
-                    Button("Over Pullwatch", systemImage: "info", action: openAbout)
+            HStack(spacing: 12) {
+                Button("Over Pullwatch", systemImage: "info.circle", action: openAbout)
                     .help("Over Pullwatch")
-                    Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
-                        .keyboardShortcut("r")
-                        .help("Nu verversen")
-                    Button("Instellingen", systemImage: "gearshape", action: openSettings)
-                        .keyboardShortcut(",")
-                        .help("Instellingen")
-                        .accessibilityIdentifier("menu.settings")
-                }
-                .labelStyle(.iconOnly)
-                .buttonStyle(.glass)
-                .buttonBorderShape(.circle)
+                Button("Nu verversen", systemImage: "arrow.clockwise", action: refresh)
+                    .keyboardShortcut("r")
+                    .help("Nu verversen")
+                Button("Instellingen", systemImage: "gearshape", action: openSettings)
+                    .keyboardShortcut(",")
+                    .help("Instellingen")
+                    .accessibilityIdentifier("menu.settings")
             }
+            .labelStyle(.iconOnly)
+            .buttonStyle(.borderless)
+            .imageScale(.large)
+            .foregroundStyle(.secondary)
         }
     }
 }
