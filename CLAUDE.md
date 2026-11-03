@@ -70,6 +70,10 @@ of each part is in `docs/superpowers/specs/` and its plan in
   plans (Dutch).
 - `scripts/release/release.sh [--unsigned]`: Release build (universal), DMG,
   and with a Developer ID also signing, notarisation and stapling.
+  `package.sh <app> <version> <out-dir>` makes `Pullwatch-<version>.dmg`
+  (the install window: background from `dmg-background.swift`, icons placed
+  by Finder through AppleScript) and `Pullwatch-<version>.zip`. The icon
+  positions in both files must match.
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
   (issue type, Priority, Effort), `rel.sh` (sub-issues and blocked-by),
   `labels.sh` (the label set). `scripts/dev/xcode-skills.sh` exports
@@ -157,7 +161,7 @@ it again; each issue lists the files to copy.
 ## Releases
 
 Today: `scripts/release/release.sh` on Alessandro's Mac (Developer ID of Code24 BV,
-notarytool profile `pullwatch`) builds a signed, notarised DMG that he
-uploads to a GitHub release `vX.Y.Z`. The app's `UpdateChecker` reads
+notarytool profile `pullwatch`) builds a signed, notarised DMG (and a
+zip for the coming updater) that he uploads to a GitHub release `vX.Y.Z`. The app's `UpdateChecker` reads
 `releases/latest` once a day. The release lane moves to CI with Sparkle
 updates in #8 and #9.

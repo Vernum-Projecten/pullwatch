@@ -20,9 +20,11 @@ Open `Pullwatch/Pullwatch.xcodeproj` in Xcode and run the **Pullwatch** scheme (
 ```bash
 swift test --package-path PullwatchKit              # PullwatchCore unit tests
 xcodebuild -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch build
-scripts/release/release.sh --unsigned               # dist/Pullwatch-<version>.dmg, ad-hoc signed
+scripts/release/release.sh --unsigned               # dist/Pullwatch-<version>.dmg and .zip, ad-hoc signed
 scripts/release/release.sh                          # signed with Developer ID, notarized and stapled DMG
 ```
+
+`release.sh` builds the app and hands it to `scripts/release/package.sh`, which makes the disk image and `Pullwatch-<version>.zip` (for the updater). The disk image opens as an install window: the app on the left, Applications on the right, and a background drawn by `scripts/release/dmg-background.swift` that says "Install Pullwatch" with an arrow between them. Finder lays out that window through AppleScript, so the first run asks whether your terminal may control Finder; allow it (System Settings, Privacy & Security, Automation).
 
 The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
 
