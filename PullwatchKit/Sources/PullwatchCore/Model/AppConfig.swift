@@ -17,6 +17,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// Het welkomstvenster is afgerond of overgeslagen. Staat in de config (niet in de defaults),
     /// zodat een eigen datamap (`-PullwatchDataDirectory`, de UI-tests) er los van staat.
     public var onboardingCompleted: Bool
+    /// Bronnen die de gebruiker heeft uitgezet. Standaard staat elke bron aan.
+    public var disabledSources: Set<DataSourceID>
 
     public init(
         accounts: [Account] = [],
@@ -29,7 +31,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         notifyOnlyUpdatesYouCanTake: Bool? = nil,
         notifySecurityAlerts: Bool? = nil,
         notifications: NotificationSettings = NotificationSettings(),
-        onboardingCompleted: Bool = false
+        onboardingCompleted: Bool = false,
+        disabledSources: Set<DataSourceID> = []
     ) {
         self.accounts = accounts
         self.pollInterval = pollInterval
@@ -44,6 +47,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         if let notifySecurityAlerts { notifications.securityAlerts = notifySecurityAlerts }
         self.notifications = notifications
         self.onboardingCompleted = onboardingCompleted
+        self.disabledSources = disabledSources
     }
 
     public init(from decoder: any Decoder) throws {
@@ -65,11 +69,17 @@ public struct AppConfig: Codable, Equatable, Sendable {
             self.notifications = notifications
         }
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
+        // Onbekende id's (van een nieuwere of oudere versie) worden genegeerd.
+        disabledSources = Set(try c.decodeIfPresent([String].self, forKey: .disabledSources)?.compactMap(DataSourceID.init(rawValue:)) ?? [])
+    }
+
+    public func isEnabled(_ id: DataSourceID) -> Bool {
+        !disabledSources.contains(id)
     }
 
     private enum CodingKeys: String, CodingKey {
         case accounts, pollInterval, historyRetention, autoVersionCheck, checkForUpdates, includeTestVersions
-        case notifications, onboardingCompleted
+        case notifications, onboardingCompleted, disabledSources
         case notifyPackageUpdates, notifyOnlyUpdatesYouCanTake, notifySecurityAlerts
     }
 
@@ -83,6 +93,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         try c.encode(includeTestVersions, forKey: .includeTestVersions)
         try c.encode(notifications, forKey: .notifications)
         try c.encode(onboardingCompleted, forKey: .onboardingCompleted)
+        // Gesorteerd, zodat config.json niet bij elke keer opslaan van volgorde wisselt.
+        try c.encode(disabledSources.map(\.rawValue).sorted(), forKey: .disabledSources)
         // Nog wel geschreven: een oudere Pullwatch leest alleen deze drie.
         try c.encode(notifyPackageUpdates, forKey: .notifyPackageUpdates)
         try c.encode(notifyOnlyUpdatesYouCanTake, forKey: .notifyOnlyUpdatesYouCanTake)

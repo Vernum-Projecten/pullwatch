@@ -1,1 +1,0 @@
-- **Log level** in Settings, General, and a button that opens Console.

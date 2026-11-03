@@ -24,6 +24,17 @@ import PullwatchTestSupport
         http.on("\(api)groups/acme?", body: GitLabFixtures.group)
     }
 
+    /// Het overzicht van bronnen (PullwatchCore kent de provider niet) noemt dezelfde API.
+    @Test func sourcesOverviewNamesTheSameAPI() async {
+        for instance in [nil, "https://gitlab.com", "https://git.example.com", "https://example.com/gitlab"].map({ $0.flatMap(URL.init(string:)) }) {
+            let account = Account(kind: .gitLab, organization: "acme", authMethod: .pat, instanceURL: instance)
+            let provider = makeProvider(MockHTTPClient(), instance: instance)
+            let endpoint = await provider.endpoint("projects")
+            #expect(SourcesOverview.server(of: account).appending(path: "projects") == endpoint,
+                    "\(String(describing: instance))")
+        }
+    }
+
     func urls(_ http: MockHTTPClient) -> [String] {
         http.requests.compactMap { $0.url?.absoluteString }
     }
@@ -264,6 +275,44 @@ import PullwatchTestSupport
         let tagsURL = try #require(urls(http).first)
         #expect(tagsURL.contains("order_by=updated"))
         #expect(tagsURL.contains("per_page=100"))
+    }
+
+    /// De API en de profielfoto's van de auteurs van releases (geüpload op de server, of Gravatar)
+    /// op gitlab.com en op een eigen server: elke host die daarbij de deur uit gaat moet in het
+    /// overzicht van bronnen staan, ook zonder geladen geschiedenis.
+    @Test func everyGitLabHostIsInTheOverview() async throws {
+        let instances = [nil, URL(string: "https://git.example.com/gitlab")]
+        let http = MockHTTPClient()
+        http.on("repository/tags", body: "[" + [
+            GitLabFixtures.tag("v1", created: nil, committed: "2025-07-01T10:00:00Z", author: "A", release: true),
+            GitLabFixtures.tag("v0", created: nil, committed: "2025-06-01T10:00:00Z", author: "A", release: true),
+        ].joined(separator: ",") + "]")
+        http.on(".png", body: "")
+        http.on("secure.gravatar.com", body: "")
+        var accounts: [Account] = []
+        for instance in instances {
+            let web = instance?.absoluteString ?? "https://gitlab.com"
+            http.on("\(web)/api/v4/projects/acme%2Fapi/releases", body: "[" + [
+                GitLabFixtures.release("v1", name: "v1", author: "bob", avatar: "\(web)/uploads/-/system/user/avatar/9/avatar.png"),
+                GitLabFixtures.release("v0", name: "v0", author: "carol", avatar: "https://secure.gravatar.com/avatar/abc?s=80&d=identicon"),
+            ].joined(separator: ",") + "]")
+            accounts.append(Account(kind: .gitLab, organization: "acme", authMethod: .pat, instanceURL: instance))
+            let fetch = try await makeProvider(http, instance: instance).tags(in: ["acme/api"])
+            // Zoals HistoryView de foto's laadt.
+            #expect(fetch.tags.count == 2)
+            for url in fetch.tags.compactMap(\.authorAvatarURL) + fetch.tags.compactMap(\.release?.authorAvatarURL) {
+                _ = try await http.send(URLRequest(url: url))
+            }
+        }
+
+        let called = Set(http.requests.compactMap { $0.url?.host() })
+        for host in ["gitlab.com", "git.example.com", "secure.gravatar.com"] {
+            #expect(called.contains(host), "\(host) werd niet aangeroepen")
+        }
+        let listed = Set(SourcesOverview.otherConnections(config: AppConfig(accounts: accounts, checkForUpdates: false)).flatMap(\.urls).compactMap { $0.host() })
+        for host in called.sorted() {
+            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
+        }
     }
 
     @Test func noReleaseRequestWithoutReleases() async throws {

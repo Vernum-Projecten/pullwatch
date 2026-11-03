@@ -1,11 +1,11 @@
 import PullwatchCore
 import SwiftUI
 
-/// Het Instellingen-venster (de Settings-scene): Accounts, Meldingen en Algemeen. Alles wordt meteen
+/// Het Instellingen-venster (de Settings-scene): Accounts, Meldingen, Algemeen en Bronnen. Alles wordt meteen
 /// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
 
-    enum Pane: String { case accounts, notifications, general }
+    enum Pane: String { case accounts, notifications, general, sources }
 
     @State private var pane: Pane = {
         #if DEBUG
@@ -31,6 +31,12 @@ struct SettingsView: View {
                 GeneralSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shoot("settings-general", windowId: "com_apple_SwiftUI_Settings_window") }
+                    #endif
+            }
+            Tab("Bronnen", systemImage: "network", value: Pane.sources) {
+                SourcesSettingsView { pane = .general }
+                    #if DEBUG
+                    .onAppear { SnapshotCamera.shootScrolling("settings-sources", windowId: "com_apple_SwiftUI_Settings_window", pages: 5) }
                     #endif
             }
         }
@@ -278,9 +284,26 @@ private struct GeneralSettingsView: View {
     @Environment(AppModel.self) private var app
     @Environment(UpdatesModel.self) private var updates
     @State private var logLevel = Log.minimum
+    @State private var language = AppLanguage.current(in: .standard)
 
     var body: some View {
         Form {
+            Section {
+                Picker("Taal", selection: $language) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(verbatim: language.name).tag(language)
+                    }
+                }
+                .onChange(of: language) { _, language in AppLanguage.select(language, in: .standard) }
+                if language != AppLanguage.atLaunch {
+                    LabeledContent {
+                        Button("Opnieuw starten") { AppLanguage.relaunch() }
+                    } label: {
+                        Text("Start Pullwatch opnieuw om de taal te wijzigen.")
+                    }
+                }
+            }
+
             Section {
                 Picker("Kijk elke", selection: Bindable(app).pollInterval) {
                     ForEach(AppModel.pollIntervals, id: \.self) { seconds in

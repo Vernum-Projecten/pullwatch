@@ -44,6 +44,8 @@ struct RepoPullRequestsSection: View {
     let openCount: Int
     let open: (HistoryItem) -> Void
     let showAll: (ItemKind) -> Void
+    /// Kopieert de lijst als opdracht voor een AI-agent (`AgentBrief.pullRequests`).
+    let brief: () -> String
 
     var body: some View {
         Section {
@@ -66,6 +68,7 @@ struct RepoPullRequestsSection: View {
                 if openCount > 0 {
                     Text("\(openCount) open").foregroundStyle(.secondary)
                 }
+                AgentBriefButton(brief: brief)
             }
         } footer: {
             VStack(alignment: .trailing, spacing: 6) {
@@ -86,14 +89,19 @@ struct RepoPullRequestsSection: View {
 /// De checks van PR's in deze repo mag Pullwatch niet lezen: dan staat er geen cel, en hier
 /// waarom, met wat er nodig is.
 private struct ChecksPermissionNote: View {
+    @Environment(AccountsModel.self) private var accounts
+
     var body: some View {
-        HStack(spacing: 4) {
-            Text("Checks")
-            Text("Toestemming nodig").foregroundStyle(.secondary)
+        // Met de bron CI-checks uit vraagt Pullwatch geen checks, dus ook geen toestemming.
+        if accounts.config.isEnabled(.ciChecks) {
+            HStack(spacing: 4) {
+                Text("Checks")
+                Text("Toestemming nodig").foregroundStyle(.secondary)
+            }
+            .font(.caption)
+            .help(Text("Pullwatch mag de checks van deze PR's niet lezen. Bij GitHub keurt de eigenaar de rechten Checks en Commit statuses (lezen) van de Pullwatch-app goed; bij Azure DevOps en GitLab mag het token de builds of pipelines lezen."))
+            .accessibilityElement(children: .combine)
         }
-        .font(.caption)
-        .help(Text("Pullwatch mag de checks van deze PR's niet lezen. Bij GitHub keurt de eigenaar de rechten Checks en Commit statuses (lezen) van de Pullwatch-app goed; bij Azure DevOps en GitLab mag het token de builds of pipelines lezen."))
-        .accessibilityElement(children: .combine)
     }
 }
 

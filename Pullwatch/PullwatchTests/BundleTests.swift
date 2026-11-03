@@ -21,7 +21,7 @@ import Testing
     }
 
     /// De talen staan in de bundle, zodat macOS ze aanbiedt onder Systeeminstellingen → Algemeen →
-    /// Taal en regio → Apps (Pullwatch heeft geen eigen taalkeuze meer).
+    /// Taal en regio → Apps (en in Instellingen van Pullwatch zelf).
     @Test func shipsEveryLanguageTheAppOffers() {
         for code in ["nl", "en", "de", "fr"] {
             #expect(Bundle.main.localizations.contains(code), "geen \(code).lproj in de app")

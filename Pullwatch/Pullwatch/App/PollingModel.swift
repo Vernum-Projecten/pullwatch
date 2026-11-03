@@ -156,6 +156,8 @@ final class PollingModel {
             interval: TimeInterval(config.clampedInterval),
             retention: retention,
             checksForOwnPullRequests: config.notifications.checksFailed,
+            // Instellingen, Bronnen: met CI-checks uit vraagt de poll geen checks (en meldt dus ook geen mislukte).
+            fetchChecks: config.isEnabled(.ciChecks),
             progress: { [weak self] progress in await self?.setPollProgress(progress) }
         )
         activePolls -= 1

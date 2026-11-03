@@ -36,6 +36,24 @@ import PullwatchTestSupport
         #expect(result.checks == [pr.dedupKey: green])
     }
 
+    @Test func `With the CI checks source off a poll asks no checks`() async {
+        let engine = makeEngine()
+        _ = await engine.poll(accounts: [account], interval: 120, retention: .oneYear, fetchChecks: false)
+        let pr = PullRequest.fixture(accountId: account.id, number: 2, revision: "r1")
+        await provider.set(pullRequests: [pr])
+        await provider.set(checks: [pr.dedupKey: red])
+        clock.advance(120)
+
+        let result = await engine.poll(
+            accounts: [account], interval: 120, retention: .oneYear, checksForOwnPullRequests: true, fetchChecks: false
+        )
+
+        #expect(await provider.checkRequests.isEmpty)
+        #expect(result.checks.isEmpty)
+        #expect(result.failedChecks.isEmpty)
+        #expect(result.newPullRequests.map(\.checks) == [nil])
+    }
+
     @Test func `Finished checks of an unchanged pull request cost no request`() async {
         let engine = makeEngine()
         let pr = PullRequest.fixture(accountId: account.id, number: 1, revision: "r1")

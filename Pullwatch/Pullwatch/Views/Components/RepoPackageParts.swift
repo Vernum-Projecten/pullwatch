@@ -7,6 +7,13 @@ import SwiftUI
 struct RepoPackageTable: View {
     @Bindable var page: RepoPage
     let width: TableWidth
+    /// De bronnen die bij de check uit stonden; een package van een register dat uit stond heeft
+    /// geen nieuwste versie, en de status zegt waarom.
+    var skippedSources: Set<DataSourceID> = []
+
+    private func skippedRegistry(of row: RepoPackageTableRow) -> DataSourceID? {
+        DataSourceID.registry(ecosystem: row.row.package.ecosystem).flatMap { skippedSources.contains($0) ? $0 : nil }
+    }
 
     private func isExpanded(_ id: String) -> Binding<Bool> {
         Binding(
@@ -50,7 +57,7 @@ struct RepoPackageTable: View {
                 .width(min: 64, ideal: 80)
             }
             TableColumn("Status", value: \.statusSortKey) { row in
-                PackageStatusCell(row: row)
+                PackageStatusCell(row: row, skippedRegistry: skippedRegistry(of: row))
             }
             .width(min: 120, ideal: 170)
         } rows: {
@@ -143,12 +150,19 @@ private struct PackageNameCell: View {
 
 private struct PackageStatusCell: View {
     let row: RepoPackageTableRow
+    let skippedRegistry: DataSourceID?
 
     var body: some View {
-        // Zonder nieuwste versie (een transitief package vraagt Pullwatch niet bij het register op) leeg.
+        // Zonder nieuwste versie (een transitief package vraagt Pullwatch niet bij het register op)
+        // leeg; stond het register uit, dan de vaste zin, want dan is er niets gecontroleerd.
         if let status = row.status {
             UpdateStatusLabel(status: status)
                 .accessibilityHidden(true)
+        } else if let skippedRegistry, row.install == nil {
+            Text(verbatim: SourceOff.versionNotChecked(skippedRegistry))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .help(Text(verbatim: SourceOff.versionNotChecked(skippedRegistry)))
         }
     }
 }
@@ -160,6 +174,8 @@ private struct PackageStatusCell: View {
 struct PackageInspector: View {
     let row: RepoPackageTableRow
     let showsWorkspace: Bool
+    /// Het register van dit package stond uit bij de check (Instellingen, Bronnen).
+    var skippedRegistry: DataSourceID? = nil
     var showPackage: ((String) -> Void)? = nil
 
     var body: some View {
@@ -171,6 +187,9 @@ struct PackageInspector: View {
                         .textSelection(.enabled)
                     Text(verbatim: row.row.package.ecosystem)
                         .foregroundStyle(.secondary)
+                    if let skippedRegistry {
+                        SourceOffText(text: SourceOff.versionNotChecked(skippedRegistry))
+                    }
                     if let status = row.status {
                         UpdateStatusLabel(status: status)
                         if let reason = status.reason {
@@ -189,7 +208,8 @@ struct PackageInspector: View {
                     LabeledContent("Nu mogelijk") { Text(verbatim: usable).monospacedDigit() }
                 }
                 LabeledContent("Nieuwste") {
-                    Text(verbatim: row.row.latest ?? String(localized: "Onbekend")).monospacedDigit()
+                    Text(verbatim: row.row.latest ?? (skippedRegistry == nil ? String(localized: "Onbekend") : String(localized: "Niet gecontroleerd")))
+                        .monospacedDigit()
                 }
                 if showsWorkspace {
                     LabeledContent("Workspace") { Text(verbatim: Workspace.name(row.row.workspace)) }

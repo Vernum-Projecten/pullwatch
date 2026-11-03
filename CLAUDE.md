@@ -46,17 +46,25 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
   `HistoryModel` (history, read state, menu lists, Dock badge),
   `PollingModel` (one poll, statuses, refetch), `VersionsModel` (the version
-  check and its report), `OverviewModel` (repo summaries and sidebar),
+  check, the stored report and the one the screens show without the data of
+  sources that are off), `OverviewModel` (repo summaries and sidebar),
   `NotificationsModel`, `UpdatesModel` and `AppRouter` (windows, sidebar,
   paths, filters; `show(_:)` opens a window or section); `AppServices` holds
   the stores, the engine and the notifier,
   `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
   the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` (debug only),
   `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
-  value). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
+  value), `AppLanguage` (the language choice in General: follow macOS or a
+  fixed language through `AppleLanguages`, applied by relaunching). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
   (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
-  Statistics), `SettingsView` (the Settings window: Accounts and General),
-  `AccountEditor`, the section views, and `Components/`. `Localizable.xcstrings`
+  Statistics), `SettingsView` (the Settings window: Accounts, Notifications,
+  General with the language choice, and Sources), `SourcesSettingsView` (the Sources tab:
+  every outgoing connection, switches for the data sources, **Copy
+  overview**), `AccountEditor`, the section views, and `Components/`
+  (`SourceStatusParts`: the "Niet gecontroleerd: bron … staat uit" texts;
+  `CopyButton` and `AgentBriefButton`). `RepoDetailView` puts the agent
+  briefs behind the Overview headings and in the toolbar's More menu
+  (`RepoBriefs`, one per section). `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
   app icon, an Icon Composer bundle (`icon.json` plus one SVG per layer in
@@ -81,7 +89,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   notification planning, filters, seen state), `History/` (history,
   statistics, repo overview), `Versions/` (the version and vulnerability
   checks: stack and dependency detection, package registries, end-of-life,
-  OSV), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
+  OSV; `DataSource` is the catalogue of data sources that can be switched
+  off, vulnerability and version sources and the CI checks of pull
+  requests, `SourcesOverview` lists every connection for the Sources tab
+  and its copied overview, `AgentBrief` turns a section of the repository
+  page into a Markdown brief for an AI agent), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
   store, Keychain and `SecretStores`, logging, localisation). `PullwatchGitHub/`:
   `GitHubProvider` (github.com, GitHub Enterprise Server and GHE.com through
   `GitHubEndpoints`), the GitHub App device flow and token store

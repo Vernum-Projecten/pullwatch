@@ -110,6 +110,151 @@
         }
       }
     },
+    "%@; Automatisch op updates controleren staat aan": {
+      "comment": "Beschrijving van de updatecheck met de stand van de instelling in Algemeen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch nach Updates suchen ist eingeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatically check for updates is on"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; Rechercher automatiquement les mises à jour est activé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch op updates controleren staat aan"
+          }
+        }
+      }
+    },
+    "%@; Automatisch op updates controleren staat uit": {
+      "comment": "Beschrijving van de updatecheck met de stand van de instelling in Algemeen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch nach Updates suchen ist ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatically check for updates is off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; Rechercher automatiquement les mises à jour est désactivé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; Automatisch op updates controleren staat uit"
+          }
+        }
+      }
+    },
+    "%@; dit account staat uit": {
+      "comment": "Beschrijving van de server van een account dat uitgezet is",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; dieses Konto ist ausgeschaltet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; this account is turned off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ; ce compte est désactivé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@; dit account staat uit"
+          }
+        }
+      }
+    },
+    "- %@: aan. %@. %@": {
+      "comment": "Regel in het gekopieerde overzicht: naam, beschrijving, adres(sen); de bron staat aan",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: ein. %2$@. %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: on. %2$@. %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@ : activé. %2$@. %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: aan. %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "- %@: uit. %@. %@": {
+      "comment": "Regel in het gekopieerde overzicht: naam, beschrijving, adres(sen); de bron staat uit",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: aus. %2$@. %3$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: off. %2$@. %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@ : désactivé. %2$@. %3$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "- %1$@: uit. %2$@. %3$@"
+          }
+        }
+      }
+    },
     "1 jaar": {
       "localizations": {
         "de": {
@@ -223,6 +368,34 @@
         }
       }
     },
+    "Aanvullende details bij een gevonden kwetsbaarheid: ernst, CVSS, CWE en publicatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusätzliche Details zu einer gefundenen Schwachstelle: Schweregrad, CVSS, CWE und Veröffentlichung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional details for a vulnerability that was found: severity, CVSS, CWE and publication"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détails supplémentaires sur une vulnérabilité trouvée : gravité, CVSS, CWE et publication"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvullende details bij een gevonden kwetsbaarheid: ernst, CVSS, CWE en publicatie"
+          }
+        }
+      }
+    },
     "Altijd": {
       "localizations": {
         "de": {
@@ -251,6 +424,62 @@
         }
       }
     },
+    "Bekende kwetsbaarheden (CVE's en GHSA's) in de packages die je repo's gebruiken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekannte Schwachstellen (CVEs und GHSAs) in den Paketen, die deine Repos verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Known vulnerabilities (CVEs and GHSAs) in the packages your repos use"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilités connues (CVE et GHSA) dans les paquets que tes dépôts utilisent"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekende kwetsbaarheden (CVE's en GHSA's) in de packages die je repo's gebruiken"
+          }
+        }
+      }
+    },
+    "Beveiligingsmeldingen van Advanced Security per repo, ook over kwetsbare packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced-Security-Meldungen pro Repo, auch zu anfälligen Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced Security alerts per repo, including vulnerable packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertes Advanced Security par dépôt, y compris sur les paquets vulnérables"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beveiligingsmeldingen van Advanced Security per repo, ook over kwetsbare packages"
+          }
+        }
+      }
+    },
     "Bij deze dienst kun je nog geen losse repositories toevoegen.": {
       "localizations": {
         "de": {
@@ -275,6 +504,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bij deze dienst kun je nog geen losse repositories toevoegen."
+          }
+        }
+      }
+    },
+    "CI-checks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CI checks"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CI-Checks"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks CI"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CI-checks"
           }
         }
       }
@@ -333,6 +590,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "CVE-check onvolledig, details ontbreken: %1$lld van %2$lld"
+          }
+        }
+      }
+    },
+    "Code scanning, secret scanning en de eigen adviezen van een repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code Scanning, Secret Scanning und die eigenen Advisories eines Repos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning and a repo's own advisories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning et les avis propres à un dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code scanning, secret scanning en de eigen adviezen van een repo"
+          }
+        }
+      }
+    },
+    "De checks (CI) van pull requests: hoeveel er geslaagd, mislukt of nog bezig zijn, en de melding als die van je eigen PR mislukken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The checks (CI) of pull requests: how many passed, failed or are still running, and the notification when those of your own PR fail"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Checks (CI) von Pull Requests: wie viele bestanden, fehlgeschlagen oder noch in Arbeit sind, und die Mitteilung, wenn die deines eigenen PR fehlschlagen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les checks (CI) des pull requests : combien ont réussi, échoué ou sont encore en cours, et la notification quand ceux de votre propre PR échouent"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De checks (CI) van pull requests: hoeveel er geslaagd, mislukt of nog bezig zijn, en de melding als die van je eigen PR mislukken"
           }
         }
       }
@@ -653,6 +966,151 @@
         }
       }
     },
+    "GitHub-beveiliging": {
+      "comment": "Naam van een bron (Instellingen, Bronnen); geen eigennaam, dus vertaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-Sicherheit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub security"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sécurité GitHub"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-beveiliging"
+          }
+        }
+      }
+    },
+    "Go-moduleproxy": {
+      "comment": "Naam van een bron (Instellingen, Bronnen); geen eigennaam, dus vertaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go-Modul-Proxy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go module proxy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proxy des modules Go"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go-moduleproxy"
+          }
+        }
+      }
+    },
+    "Inloggen bij GitHub": {
+      "comment": "Verbinding in het overzicht van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung bei GitHub"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing in to GitHub"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion à GitHub"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inloggen bij GitHub"
+          }
+        }
+      }
+    },
+    "Inloggen met de GitHub App en het token daarvan vernieuwen": {
+      "comment": "Wat Pullwatch bij het inloggen bij GitHub doet",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meldet sich mit der GitHub App an und erneuert deren Token"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signs in with the GitHub App and renews its token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecte avec la GitHub App et renouvelle son jeton"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inloggen met de GitHub App en het token daarvan vernieuwen"
+          }
+        }
+      }
+    },
+    "Kwetsbaarheden": {
+      "comment": "Groep van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherheitslücken"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilités"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kwetsbaarheden"
+          }
+        }
+      }
+    },
     "Netwerkfout: %@": {
       "localizations": {
         "de": {
@@ -709,6 +1167,202 @@
         }
       }
     },
+    "Nieuwste versie en gegevens van .NET-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von .NET-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of .NET packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets .NET"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van .NET-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Go-modules": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Go-Modulen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Go modules"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des modules Go"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Go-modules"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van PHP-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von PHP-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of PHP packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets PHP"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van PHP-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Python-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Python-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Python packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Python"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Python-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Ruby-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Ruby-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Ruby packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Ruby"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Ruby-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van Rust-packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von Rust-Paketen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of Rust packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets Rust"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van Rust-packages"
+          }
+        }
+      }
+    },
+    "Nieuwste versie en gegevens van npm-packages (JavaScript)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version und Details von npm-Paketen (JavaScript)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version and details of npm packages (JavaScript)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version et détails des paquets npm (JavaScript)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwste versie en gegevens van npm-packages (JavaScript)"
+          }
+        }
+      }
+    },
     "Onverwacht antwoord: %@": {
       "localizations": {
         "de": {
@@ -733,6 +1387,238 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onverwacht antwoord: %@"
+          }
+        }
+      }
+    },
+    "Overige verbindingen": {
+      "comment": "Groep: servers van accounts en de updatecheck",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Verbindungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other connections"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres connexions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overige verbindingen"
+          }
+        }
+      }
+    },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account"
+          }
+        }
+      }
+    },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de Azure CLI (az), die zelf login.microsoftonline.com kan aanroepen": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt, voor een account via de Azure CLI",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos; das Token kommt von der Azure CLI (az), die selbst login.microsoftonline.com aufrufen kann"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account; the token comes from the Azure CLI (az), which may itself call login.microsoftonline.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte ; le jeton vient d'Azure CLI (az), qui peut aussi appeler login.microsoftonline.com"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de Azure CLI (az), die zelf login.microsoftonline.com kan aanroepen"
+          }
+        }
+      }
+    },
+    "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen": {
+      "comment": "Wat Pullwatch bij de server van een account ophaalt, voor een account via de GitHub CLI",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, Tags, Repositorys, Manifeste und Lockfiles dieses Kontos; das Token kommt von der GitHub CLI (gh), die selbst api.github.com aufrufen kann"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, repositories, manifests and lockfiles of this account; the token comes from the GitHub CLI (gh), which may itself call api.github.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests, tags, dépôts, manifestes et fichiers de verrouillage de ce compte ; le jeton vient de GitHub CLI (gh), qui peut aussi appeler api.github.com"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen"
+          }
+        }
+      }
+    },
+    "Profielfoto's": {
+      "comment": "Verbinding in het overzicht van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilbilder"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile pictures"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos de profil"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielfoto's"
+          }
+        }
+      }
+    },
+    "Profielfoto's van je accounts en van de auteurs van PR's en tags": {
+      "comment": "Wat Pullwatch voor de profielfoto's ophaalt",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilbilder deiner Konten und der Autoren von Pull Requests und Tags"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile pictures of your accounts and of the authors of pull requests and tags"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos de profil de tes comptes et des auteurs des pull requests et des tags"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profielfoto's van je accounts en van de auteurs van PR's en tags"
+          }
+        }
+      }
+    },
+    "Pull requests": {
+      "comment": "Groep van bronnen",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests"
+          }
+        }
+      }
+    },
+    "Pullwatch %@: bronnen (%@)": {
+      "comment": "Kop van het gekopieerde overzicht van bronnen: versie, datum",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: Quellen (%2$@)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: sources (%2$@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@ : sources (%2$@)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch %1$@: bronnen (%2$@)"
           }
         }
       }
@@ -765,6 +1651,34 @@
         }
       }
     },
+    "Releasecycli en einddatum van ondersteuning van runtimes zoals Go, .NET en Node": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releasezyklen und Support-Ende von Laufzeiten wie Go, .NET und Node"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release cycles and end of support dates of runtimes such as Go, .NET and Node"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycles de publication et fin de support des environnements d'exécution comme Go, .NET et Node"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releasecycli en einddatum van ondersteuning van runtimes zoals Go, .NET en Node"
+          }
+        }
+      }
+    },
     "Serverfout (%lld)": {
       "localizations": {
         "de": {
@@ -789,6 +1703,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Serverfout (%lld)"
+          }
+        }
+      }
+    },
+    "Swift-releases; Swift heeft geen einddatum van ondersteuning": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift-Releases; Swift hat kein Support-Ende"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift releases; Swift has no end of support date"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions de Swift ; Swift n'a pas de date de fin de support"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swift-releases; Swift heeft geen einddatum van ondersteuning"
           }
         }
       }
@@ -901,6 +1843,93 @@
           "stringUnit": {
             "state": "translated",
             "value": "Typ project/repo, of plak de link van de repository."
+          }
+        }
+      }
+    },
+    "Updatecheck van Pullwatch": {
+      "comment": "Verbinding in het overzicht van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updateprüfung von Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch update check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche de mises à jour de Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updatecheck van Pullwatch"
+          }
+        }
+      }
+    },
+    "Versies": {
+      "comment": "Groep van bronnen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versies"
+          }
+        }
+      }
+    },
+    "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op": {
+      "comment": "Updatecheck: de releases op api.github.com, de appcast en downloads van de releases op github.com",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sucht nach einer neuen Version von Pullwatch und lädt die Updates"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looks for a new version of Pullwatch and downloads the updates"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche une nouvelle version de Pullwatch et télécharge les mises à jour"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoekt naar een nieuwe versie van Pullwatch en haalt de updates op"
           }
         }
       }

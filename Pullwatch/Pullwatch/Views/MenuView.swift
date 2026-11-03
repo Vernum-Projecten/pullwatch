@@ -20,14 +20,19 @@ struct MenuView: View {
             MenuHeader(
                 isPolling: polling.pollProgress != nil,
                 refresh: polling.refresh,
-                openSettings: { MenuPanel.close(); router.show(.settings) },
-                openAbout: { MenuPanel.close(); router.show(.about) }
+                openSettings: { router.show(.settings) },
+                openAbout: { router.show(.about) }
             )
             .padding(.horizontal, MenuMetrics.rowInset)
 
             if let update = updates.availableUpdate {
-                UpdateBanner(update: update) { MenuPanel.close(); updates.installUpdate() }
-                    .padding(.horizontal, MenuMetrics.rowInset)
+                UpdateBanner(update: update) {
+                    // Sparkle opent zijn eigen venster: pas daarna het paneel weg.
+                    let panel = MenuPanel.current()
+                    updates.installUpdate()
+                    panel?.orderOut(nil)
+                }
+                .padding(.horizontal, MenuMetrics.rowInset)
             }
             if !notifications.notificationsAllowed && !accounts.needsOnboarding {
                 NotificationsOffNotice()
@@ -41,16 +46,14 @@ struct MenuView: View {
             Divider()
 
             if accounts.config.pollableAccounts.isEmpty {
-                SetupPrompt { MenuPanel.close(); router.show(.onboarding) }
+                SetupPrompt { router.show(.onboarding) }
             } else {
                 RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
-                    MenuPanel.close()
                     app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                     router.show(.main)
                 }
                 if historyModel.hasTags {
                     RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
-                        MenuPanel.close()
                         app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         router.show(.main)
                     }
@@ -68,7 +71,7 @@ struct MenuView: View {
             MenuFooter(
                 unreadCount: historyModel.unreadCount,
                 markAllRead: historyModel.markAllRead,
-                openMain: { MenuPanel.close(); router.show(.main) }
+                openMain: { router.show(.main) }
             )
             .padding(.horizontal, MenuMetrics.rowInset)
         }
@@ -81,10 +84,22 @@ struct MenuView: View {
     }
 }
 
-/// Sluit het menupaneel, zodat een venster dat daarna opent er niet onder valt.
+/// Vindt het menupaneel en de vensters van de app, zodat `MenuBarLabel` een geopend venster naar
+/// voren kan halen en het paneel kan wegzetten (en `MenuView` dat bij Sparkle's venster doet).
 enum MenuPanel {
-    static func close() {
-        NSApp.keyWindow?.orderOut(nil)
+    /// Het menupaneel: de key window als dat een `NSPanel` is (gewone SwiftUI-vensters en
+    /// Sparkle's venster zijn `NSWindow`), anders het zichtbare MenuBarExtra-paneel.
+    static func current() -> NSWindow? {
+        if let key = NSApp.keyWindow, key is NSPanel { return key }
+        return NSApp.windows.first { $0.isVisible && $0 is NSPanel && String(describing: type(of: $0)).contains("MenuBarExtra") }
+    }
+
+    /// Het venster met deze id: SwiftUI geeft vensters de identifier `id` of `id-…`.
+    static func window(id: String) -> NSWindow? {
+        NSApp.windows.first { window in
+            guard let identifier = window.identifier?.rawValue else { return false }
+            return identifier == id || identifier.hasPrefix(id + "-")
+        }
     }
 }
 

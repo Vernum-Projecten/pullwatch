@@ -1,1 +1,0 @@
-- Opening Pullwatch while it runs shows the main window.

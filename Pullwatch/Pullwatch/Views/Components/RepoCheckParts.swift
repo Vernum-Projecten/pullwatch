@@ -103,12 +103,18 @@ private struct ComparedWithLabel: View {
 struct ComponentGrid: View {
     let components: [ComponentVersion]
     let release: ReleaseVersions?
+    /// De bronnen die bij de check uit stonden (`RepoVersions.skippedSources`).
+    var skippedSources: Set<DataSourceID> = []
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 190, maximum: 260), spacing: 24, alignment: .leading)],
                   alignment: .leading, spacing: 6) {
             ForEach(components, id: \.label) { component in
-                ComponentCell(component: component, inRelease: release?.components.first { $0.label == component.label }, tag: release?.tag)
+                let source = DataSourceID.releases(product: component.product)
+                ComponentCell(
+                    component: component, inRelease: release?.components.first { $0.label == component.label }, tag: release?.tag,
+                    skippedSource: skippedSources.contains(source) ? source : nil
+                )
             }
         }
     }
@@ -119,9 +125,12 @@ private struct ComponentCell: View {
     /// Hetzelfde onderdeel in de laatste release; nil zonder release of als het daar ontbreekt.
     let inRelease: ComponentVersion?
     let tag: String?
+    /// De releasebron (endoflife.date, swift.org) stond uit: geen status, wel de vaste zin.
+    var skippedSource: DataSourceID? = nil
 
     private var help: String {
         var lines = component.sources
+        if let skippedSource { lines.insert(SourceOff.notChecked(skippedSource), at: 0) }
         if let inRelease, let tag, inRelease.version != component.version {
             lines.append(String(localized: "\(inRelease.version) in \(tag)", comment: "Versie in de laatste release, tagnaam"))
         }
@@ -137,12 +146,14 @@ private struct ComponentCell: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-            Image(systemName: component.status.symbol)
-                .foregroundStyle(component.status.color)
+            // Met de releasebron uit geen status (die zou "onbekend" of oud zijn), wel het teken
+            // dat er niet gecontroleerd is; de zin staat in de tooltip.
+            Image(systemName: skippedSource == nil ? component.status.symbol : "slash.circle")
+                .foregroundStyle(skippedSource == nil ? component.status.color : Color.secondary)
         }
         .help(Text(verbatim: help))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(component.label) \(component.versionText), \(String(localized: component.status.label))",
+        .accessibilityLabel(Text("\(component.label) \(component.versionText), \(skippedSource.map(SourceOff.notChecked) ?? String(localized: component.status.label))",
                                  comment: "Taal of framework, versie, status"))
     }
 }
@@ -675,19 +686,26 @@ extension RepoVersions {
     /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace, kwetsbaarheden
     /// per advies (id met database en alle andere ids, ernst met CVSS en waar die vandaan komt,
     /// CWE's, de fix-links), met waar en hoe elke install erin komt, de ingetrokken adviezen, en
-    /// de beveiligingsmeldingen van de dienst.
-    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:], report: VersionReport? = nil) -> String {
+    /// de beveiligingsmeldingen van de dienst. Wat niet gecontroleerd is omdat een bron uit stond,
+    /// staat er met de vaste zin; `advisoryDetailsOff`: de GitHub Advisory Database staat uit, dus
+    /// er zijn geen details van GitHub.
+    func clipboardText(
+        advisories gitHub: [String: GitHubAdvisory] = [:], report: VersionReport? = nil, advisoryDetailsOff: Bool = false
+    ) -> String {
         let context = report?.updateContext(for: self) ?? .empty
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
         for component in components {
-            lines.append("\(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
+            let status = skippedReleaseSource(of: component).map(SourceOff.notChecked) ?? String(localized: component.status.label)
+            lines.append("\(component.label) \(component.versionText) (\(status))")
         }
         if let release {
             lines.append(String(localized: "Laatste tag \(release.tag):", comment: "Kop in de gekopieerde tekst; tagnaam"))
             if let error = release.error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
             for component in release.components {
-                lines.append("  \(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
+                let id = DataSourceID.releases(product: component.product)
+                let status = release.isUnchecked(id) ? SourceOff.notChecked(id) : String(localized: component.status.label)
+                lines.append("  \(component.label) \(component.versionText) (\(status))")
             }
         }
         // Alleen wat de repo zelf vraagt (met al zijn installs); de transitieve rest zou honderden regels zijn.
@@ -717,9 +735,14 @@ extension RepoVersions {
             }
         }
         if let vulnerabilityError { lines.append(vulnerabilityError) }
+        // Wat niet gecontroleerd is omdat een bron uit stond (een releasebron staat al bij het onderdeel).
+        for source in skippedInOrder where source != .endOfLife && source != .swiftOrg {
+            lines.append(SourceOff.isRegistry(source) ? SourceOff.versionNotChecked(source) : SourceOff.notChecked(source))
+        }
         let advisories = advisories
         if !advisories.isEmpty {
             lines.append(String(localized: "Kwetsbaarheden:"))
+            if advisoryDetailsOff { lines.append(SourceOff.detailsNotFetched(.gitHubAdvisoryDatabase)) }
             for advisory in advisories {
                 let v = advisory.first
                 let found = gitHub[v.id]
