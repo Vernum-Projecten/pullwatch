@@ -122,12 +122,13 @@ nonisolated enum PRStatus: CaseIterable, Hashable, Sendable {
         }
     }
 
-    var label: LocalizedStringResource {
+    /// Soort en status in woorden, voor de tooltip en VoiceOver waar alleen het icoon staat.
+    var spokenName: LocalizedStringResource {
         switch self {
-        case .open: PRState.open.label
-        case .draft: "Draft"
-        case .merged: PRState.merged.label
-        case .closed: PRState.closed.label
+        case .open: "Pull request, open"
+        case .draft: "Pull request, draft"
+        case .merged: "Pull request, gemerged"
+        case .closed: "Pull request, gesloten"
         }
     }
 }
@@ -147,6 +148,7 @@ nonisolated extension HistoryEntry {
     /// De kleur van dat icoon.
     var glyphColor: Color { prStatus?.color ?? kind.color }
 
-    /// Wat dat icoon voor VoiceOver betekent: de PR-status, of "Tag".
-    var glyphLabel: LocalizedStringResource { prStatus?.label ?? kind.pillText }
+    /// Wat dat icoon betekent, in woorden ("Pull request, gemerged" of "Tag"): de tooltip en
+    /// het VoiceOver-label waar het icoon zonder tekst staat.
+    var glyphLabel: LocalizedStringResource { prStatus?.spokenName ?? kind.pillText }
 }

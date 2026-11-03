@@ -65,6 +65,14 @@ import Testing
         #expect(HistoryEntry.pullRequest(pr(.open, draft: true)).glyph == PRStatus.draft.glyph)
     }
 
+    /// Waar alleen het icoon staat, zeggen tooltip en VoiceOver soort en status in woorden, per
+    /// status verschillend; de betekenis hangt dus niet aan kleur of vorm alleen.
+    @Test func everyIconHasItsOwnWords() {
+        let names = PRStatus.allCases.map { String(localized: $0.spokenName) } + [String(localized: ItemKind.tag.pillText)]
+        #expect(Set(names).count == names.count)
+        #expect(names.allSatisfy { !$0.isEmpty })
+    }
+
     @Test(arguments: [RepoHealth.problem, .behind, .ok, .unknown])
     func healthSymbolsExist(_ health: RepoHealth) {
         #expect(NSImage(systemSymbolName: health.symbol, accessibilityDescription: nil) != nil)
