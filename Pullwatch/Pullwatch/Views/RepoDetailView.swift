@@ -26,7 +26,9 @@ struct RepoDetailView: View {
         let webPage = account?.repoWebURL(summary.repo)
         VStack(spacing: 0) {
             RepoTabPicker(tab: $model.repoTab)
-            if let counts = page.summary {
+            // De tellers filteren de check en de packages; op Overzicht en Beveiliging zeggen ze
+            // niets over wat er staat, dus daar geen balk.
+            if tab.showsCheckSummary, let counts = page.summary {
                 RepoCheckSummaryBar(
                     summary: counts,
                     isActive: { page.isActive($0, tab: tab) },
