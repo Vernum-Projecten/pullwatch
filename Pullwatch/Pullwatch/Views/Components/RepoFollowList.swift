@@ -117,6 +117,11 @@ struct RepoFollowList: View {
             if let error {
                 Label(error, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red)
             }
+            if !account.followsAnything {
+                // Pullwatch haalt alleen op wat je kiest; zonder keuze gebeurt er niets.
+                Label("Je volgt nog niets. Vink hieronder aan wat Pullwatch moet ophalen.", systemImage: "info.circle")
+                    .foregroundStyle(.secondary)
+            }
         } header: {
             Text("Repositories")
         } footer: {

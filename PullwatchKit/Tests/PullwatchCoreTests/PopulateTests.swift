@@ -23,9 +23,15 @@ import PullwatchTestSupport
 
     // MARK: - Standaard volgen
 
-    @Test func newAccountFollowsPullRequestsAndTags() {
-        let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
-        #expect(account.newRepoDefault == .prsAndTags)
+    /// Een nieuw account haalt niets op tot je repo's kiest; wie "PR's en tags" als standaard
+    /// kiest, volgt elke repo met beide.
+    @Test func newAccountFollowsNothingUntilYouChoose() {
+        var account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
+        #expect(account.newRepoDefault == .none)
+        #expect(account.watch(for: "octo/any") == .none)
+        #expect(!account.followsTagsByDefault)
+
+        account.newRepoDefault = .prsAndTags
         #expect(account.watch(for: "octo/any") == .both)
         #expect(account.followsTagsByDefault)
     }
@@ -45,9 +51,11 @@ import PullwatchTestSupport
     }
 
     @Test func newDefaultRoundTrips() throws {
-        let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp)
-        let decoded = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(account))
-        #expect(decoded.newRepoDefault == .prsAndTags)
+        for choice in NewRepoDefault.allCases {
+            let account = Account(kind: .gitHub, organization: "octo", authMethod: .gitHubApp, newRepoDefault: choice)
+            let decoded = try JSONDecoder().decode(Account.self, from: JSONEncoder().encode(account))
+            #expect(decoded.newRepoDefault == choice)
+        }
     }
 
     @Test func tagReposComeFromTheProviderListWhenTagsAreTheDefault() {

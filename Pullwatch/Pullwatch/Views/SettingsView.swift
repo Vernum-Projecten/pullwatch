@@ -136,9 +136,15 @@ private struct AccountCard: View {
                         Text(verbatim: account.login.map { "@\($0)" } ?? account.organization)
                             .fontWeight(.medium)
                             .lineLimit(1)
-                        Text(verbatim: account.kind.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        if account.isPaused {
+                            Text("\(account.kind.name), uitgezet", comment: "Dienst (GitHub of Azure DevOps); het account wordt niet opgehaald")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(verbatim: account.kind.name)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     Spacer(minLength: 0)
                 }

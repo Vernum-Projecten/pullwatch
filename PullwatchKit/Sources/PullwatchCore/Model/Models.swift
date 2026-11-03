@@ -126,8 +126,9 @@ public enum WatchKind: String, CaseIterable, Identifiable, Sendable {
     public var id: Self { self }
 }
 
-/// Wat er gevolgd wordt voor repo's zonder eigen instelling. Een nieuw account volgt PR's en
-/// tags (`prsAndTags`); een config van vóór die keuze houdt `prs` (alleen PR's).
+/// Wat er gevolgd wordt voor repo's zonder eigen instelling. Een nieuw account volgt niets
+/// (`none`): je kiest zelf welke repo's, zodat Pullwatch niet een heel account ophaalt. Een
+/// config zonder het veld (van vóór die keuze) houdt `prs`.
 public enum NewRepoDefault: String, Codable, CaseIterable, Sendable {
     case none, prs, prsAndTags
 
@@ -193,6 +194,13 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     public var hideOwn: Bool
     /// GitHub CLI: welk `gh`-account (login) het token levert; nil = het actieve account.
     public var cliUser: String?
+    /// Uitgezet: Pullwatch haalt niets op en meldt niets voor dit account; de keuzes blijven bewaard.
+    public var isPaused: Bool
+
+    /// Volgt dit account iets: een repo met PR's, tags of gemerged, of nieuwe repo's.
+    public var followsAnything: Bool {
+        newRepoDefault != .none || repoWatch.values.contains { $0.prs || $0.tags || $0.completed }
+    }
 
     /// De eerste (of enige) eigenaar; voor Azure DevOps de organisatie. Zetten maakt er de enige van.
     public var organization: String {
@@ -236,10 +244,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         authMethod: AuthMethod,
         login: String? = nil,
         repoWatch: [String: WatchSet] = [:],
-        newRepoDefault: NewRepoDefault = .prsAndTags,
+        newRepoDefault: NewRepoDefault = .none,
         includeDrafts: Bool = false,
         hideOwn: Bool = true,
-        cliUser: String? = nil
+        cliUser: String? = nil,
+        isPaused: Bool = false
     ) {
         self.id = id
         self.kind = kind
@@ -252,10 +261,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.includeDrafts = includeDrafts
         self.hideOwn = hideOwn
         self.cliUser = cliUser
+        self.isPaused = isPaused
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused
     }
 
     public init(from decoder: any Decoder) throws {
@@ -276,6 +286,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         includeDrafts = try c.decode(Bool.self, forKey: .includeDrafts)
         hideOwn = try c.decode(Bool.self, forKey: .hideOwn)
         cliUser = try c.decodeIfPresent(String.self, forKey: .cliUser)
+        isPaused = try c.decodeIfPresent(Bool.self, forKey: .isPaused) ?? false
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -294,6 +305,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encode(includeDrafts, forKey: .includeDrafts)
         try c.encode(hideOwn, forKey: .hideOwn)
         try c.encodeIfPresent(cliUser, forKey: .cliUser)
+        if isPaused { try c.encode(isPaused, forKey: .isPaused) }
     }
 
     /// Wat er voor deze repo gevolgd wordt (hoofdletterongevoelig).
