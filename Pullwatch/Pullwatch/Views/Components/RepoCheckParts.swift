@@ -7,12 +7,18 @@ struct ComponentRow: View {
     let component: ComponentVersion
     /// Nieuwste tag en hetzelfde onderdeel daarin; nil als de repo geen tags heeft.
     let release: (tag: String, component: ComponentVersion?)?
+    /// De releasebron (endoflife.date, swift.org) stond uit: geen status, wel de vaste zin.
+    var skippedSource: DataSourceID? = nil
 
     var body: some View {
         HStack(spacing: 6) {
             Text(component.label)
             Text(verbatim: component.versionText).monospacedDigit().foregroundStyle(.secondary)
-            Pill(text: component.status.label, tint: component.status.color)
+            if let skippedSource {
+                Text(verbatim: SourceOff.notChecked(skippedSource)).foregroundStyle(.secondary)
+            } else {
+                Pill(text: component.status.label, tint: component.status.color)
+            }
             // Ter info, zonder status: wat op main al bijgewerkt is telt niet.
             if let release, let old = release.component, old.version != component.version {
                 Text("\(old.version) in \(release.tag)", comment: "Versie in de laatste release, tagnaam")
@@ -40,6 +46,8 @@ struct VulnerabilityList: View {
     var knownPackages: Set<String> = []
     /// GitHubs advies per `Vulnerability.id` (`RepoSummary.advisories`).
     var gitHubAdvisories: [String: GitHubAdvisory] = [:]
+    /// De GitHub Advisory Database staat uit: één regel boven de adviezen in plaats van de details.
+    var advisoryDetailsOff = false
 
     @State private var isExpanded = true
 
@@ -54,6 +62,11 @@ struct VulnerabilityList: View {
         // De workspace alleen noemen als de geraakte installs er meer dan één beslaan.
         let showsWorkspace = Set(repo.vulnerabilities.map(\.workspace)).count > 1
         DisclosureGroup(isExpanded: $isExpanded) {
+            if advisoryDetailsOff {
+                Text(verbatim: SourceOff.detailsNotFetched(.gitHubAdvisoryDatabase))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             ForEach(advisories) { advisory in
                 AdvisoryRow(
                     advisory: advisory,
@@ -357,11 +370,13 @@ extension RepoVersions {
     /// Platte tekst voor het klembord: repo, onderdelen, packages per workspace, kwetsbaarheden
     /// per advies (met GitHubs ernst, CVSS en CWE's), met waar en hoe elke install erin komt, en de
     /// beveiligingsmeldingen van de dienst.
-    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:]) -> String {
+    /// `advisoryDetailsOff`: de GitHub Advisory Database staat uit, dus er zijn geen details van GitHub.
+    func clipboardText(advisories gitHub: [String: GitHubAdvisory] = [:], advisoryDetailsOff: Bool = false) -> String {
         var lines = [repo]
         if let error { lines.append(String(localized: "Fout: \(error)", comment: "Foutmelding van de check")) }
         for component in components {
-            lines.append("\(component.label) \(component.versionText) (\(String(localized: component.status.label)))")
+            let status = skippedReleaseSource(of: component).map(SourceOff.notChecked) ?? String(localized: component.status.label)
+            lines.append("\(component.label) \(component.versionText) (\(status))")
         }
         if let release {
             lines.append(String(localized: "Laatste tag \(release.tag):", comment: "Kop in de gekopieerde tekst; tagnaam"))
@@ -384,9 +399,14 @@ extension RepoVersions {
             }
         }
         if let vulnerabilityError { lines.append(vulnerabilityError) }
+        // Wat niet gecontroleerd is omdat een bron uit stond (een releasebron staat al bij het onderdeel).
+        for source in skippedInOrder where source != .endOfLife && source != .swiftOrg {
+            lines.append(SourceOff.isRegistry(source) ? SourceOff.versionNotChecked(source) : SourceOff.notChecked(source))
+        }
         let advisories = advisories
         if !advisories.isEmpty {
             lines.append(String(localized: "Kwetsbaarheden:"))
+            if advisoryDetailsOff { lines.append(SourceOff.detailsNotFetched(.gitHubAdvisoryDatabase)) }
             for advisory in advisories {
                 let v = advisory.first
                 let found = gitHub[v.id]

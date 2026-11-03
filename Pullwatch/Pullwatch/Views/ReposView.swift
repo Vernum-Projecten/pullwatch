@@ -229,6 +229,8 @@ enum RepoFinding: Hashable, Identifiable {
     case endOfLife(label: String, version: String)
     case runtimeBehind(label: String, version: String)
     case packageUpdates(Int)
+    /// Een bron stond uit: over een deel van de repo zegt de check niets.
+    case notChecked
     case current
 
     var id: Self { self }
@@ -242,13 +244,14 @@ enum RepoFinding: Hashable, Identifiable {
         case .endOfLife(let label, let version): "\(label) \(version) EOL"
         case .runtimeBehind(let label, let version): "\(label) \(version) achter"
         case .packageUpdates(let count): "\(count) nieuwe versies"
+        case .notChecked: "niet alles gecontroleerd"
         case .current: "actueel"
         }
     }
 
     var tint: Color {
         switch self {
-        case .unchecked, .failed: .secondary
+        case .unchecked, .failed, .notChecked: .secondary
         case .vulnerabilities, .securityAlerts, .endOfLife: .red
         case .runtimeBehind, .packageUpdates: .orange
         case .current: .green
@@ -267,6 +270,7 @@ enum RepoFinding: Hashable, Identifiable {
                             : .runtimeBehind(label: worst.label, version: worst.version))
         }
         if !summary.packageUpdates.isEmpty { findings.append(.packageUpdates(summary.packageUpdates.count)) }
+        if !versions.skippedSources.isEmpty { findings.append(.notChecked) }
         return findings.isEmpty ? [.current] : findings
     }
 }
@@ -330,13 +334,21 @@ struct RepoDetailView: View {
             RepoControlSection(
                 versions: summary.versions,
                 gitHubAdvisories: summary.advisories,
+                advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase),
                 knownPackages: Set(model.packageSummaries.map(\.label)),
                 showPackage: { model.showPackage($0) }
             )
             if let security = summary.versions?.security {
                 RepoSecuritySection(scan: security, provider: account?.kind ?? .gitHub)
+            } else if let source = summary.versions?.skippedSecuritySource {
+                Section(source == .gitHubSecurity ? "Beveiliging op GitHub" : "Advanced Security") {
+                    SourceOffText(text: SourceOff.notChecked(source), isWarning: true)
+                }
             }
-            RepoPackageUpdatesSection(updates: summary.packageUpdates, repoId: summary.id, isChecked: summary.versions != nil)
+            RepoPackageUpdatesSection(
+                updates: summary.packageUpdates, repoId: summary.id, isChecked: summary.versions != nil,
+                skipped: summary.versions?.skippedVersionSources ?? []
+            )
             if let versions = summary.versions, versions.error == nil {
                 RepoPackagesSections(
                     versions: versions,
@@ -464,6 +476,8 @@ private struct PullRequestRow: View {
 private struct RepoControlSection: View {
     let versions: RepoVersions?
     let gitHubAdvisories: [String: GitHubAdvisory]
+    /// De GitHub Advisory Database staat uit: de details van GitHub zijn niet opgehaald.
+    let advisoryDetailsOff: Bool
     let knownPackages: Set<String>
     let showPackage: (String) -> Void
 
@@ -480,7 +494,8 @@ private struct RepoControlSection: View {
                             component: component,
                             release: versions.release.map { release in
                                 (release.tag, release.components.first { $0.label == component.label })
-                            }
+                            },
+                            skippedSource: versions.skippedReleaseSource(of: component)
                         )
                     }
                 }
@@ -490,9 +505,13 @@ private struct RepoControlSection: View {
                 if let vulnerabilityError = versions.vulnerabilityError {
                     Text(verbatim: vulnerabilityError).foregroundStyle(.orange)
                 }
+                if versions.isUnchecked(.osv) {
+                    SourceOffText(text: SourceOff.notChecked(.osv), isWarning: true)
+                }
                 if !versions.vulnerabilities.isEmpty {
                     VulnerabilityList(
-                        repo: versions, showPackage: showPackage, knownPackages: knownPackages, gitHubAdvisories: gitHubAdvisories
+                        repo: versions, showPackage: showPackage, knownPackages: knownPackages, gitHubAdvisories: gitHubAdvisories,
+                        advisoryDetailsOff: advisoryDetailsOff
                     )
                 }
             } else {
@@ -514,11 +533,16 @@ private struct RepoPackageUpdatesSection: View {
     let updates: [PackageSummary]
     let repoId: String
     let isChecked: Bool
+    /// Registers en releasebronnen die uit stonden: dan nooit "Alles actueel".
+    let skipped: [DataSourceID]
 
     var body: some View {
         Section("Packages met nieuwe versie") {
-            if updates.isEmpty {
+            if updates.isEmpty && skipped.isEmpty {
                 Text(isChecked ? "Alles actueel" : "Nog niet gecheckt").foregroundStyle(.secondary)
+            }
+            ForEach(skipped, id: \.self) { source in
+                SourceOffText(text: SourceOff.versionsText(source))
             }
             ForEach(updates) { update in
                 LabeledContent {
@@ -603,7 +627,9 @@ private struct RepoDetailToolbar: ToolbarContent {
             }
             .help("Open de statistieken van deze repo")
             if let versions = summary.versions {
-                CopyVersionsButton(text: versions.clipboardText(advisories: summary.advisories))
+                CopyVersionsButton(text: versions.clipboardText(
+                    advisories: summary.advisories, advisoryDetailsOff: !model.config.isEnabled(.gitHubAdvisoryDatabase)
+                ))
             }
         }
     }

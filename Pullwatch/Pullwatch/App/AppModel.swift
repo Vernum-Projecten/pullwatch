@@ -35,7 +35,14 @@ final class AppModel {
     static let shared = AppModel()
 
     private(set) var config: AppConfig {
-        didSet { recomputeRepoSummaries() }
+        didSet {
+            // Andere bronnen uit of een account erbij of eraf: het getoonde rapport verandert mee.
+            if oldValue.disabledSources != config.disabledSources || oldValue.accounts.map(\.id) != config.accounts.map(\.id) {
+                recomputeVisibleReport()
+            } else {
+                recomputeRepoSummaries()
+            }
+        }
     }
     private(set) var history: History {
         didSet {
@@ -53,12 +60,14 @@ final class AppModel {
     private(set) var notificationsAllowed = true
     /// Voortgang van "Opnieuw ophalen"; `nil` als er niets loopt.
     private(set) var refetch: RefetchProgress?
+    /// Het bewaarde rapport (versions.json), zoals de checks het opleverden. Dit gaat als
+    /// `previous` en `metadataCache` naar de volgende check; schermen tonen `visibleVersionReport`.
     private(set) var versionReport: VersionReport? {
-        didSet {
-            packageSummaries = versionReport?.packageSummaries() ?? []
-            recomputeRepoSummaries()
-        }
+        didSet { recomputeVisibleReport() }
     }
+    /// `versionReport` zonder wat van bronnen kwam die nu uit staan
+    /// (`VersionReport.visible(disabled:accountKinds:)`): wat de schermen en meldingen tonen.
+    private(set) var visibleVersionReport: VersionReport?
     /// Voortgang van "Afhankelijkheden checken" (gescande repo's, totaal); `nil` als er niets loopt.
     private(set) var versionCheck: (done: Int, total: Int)?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
@@ -180,9 +189,29 @@ final class AppModel {
         if unread != unreadCount { unreadCount = unread }
     }
 
+    private func recomputeVisibleReport() {
+        visibleVersionReport = versionReport.map { report in
+            report.visible(disabled: config.disabledSources, accountKinds: Self.accountKinds(of: report, accounts: config.accounts))
+        }
+        packageSummaries = visibleVersionReport?.packageSummaries() ?? []
+        recomputeRepoSummaries()
+    }
+
+    /// De dienst van elk account in `report`. Een account dat niet meer in de config staat, krijgt
+    /// de dienst van de beveiligingsgegevens die zijn repo's nog hebben; anders zou een uitgezette
+    /// beveiligingsbron daar oude meldingen laten staan.
+    nonisolated static func accountKinds(of report: VersionReport, accounts: [Account]) -> [UUID: ProviderKind] {
+        var kinds = Dictionary(accounts.map { ($0.id, $0.kind) }, uniquingKeysWith: { first, _ in first })
+        for repo in report.repos where kinds[repo.accountId] == nil {
+            guard let feeds = repo.security?.feeds, !feeds.isEmpty else { continue }
+            kinds[repo.accountId] = feeds.contains { $0.kind == .advancedSecurity } ? .azureDevOps : .gitHub
+        }
+        return kinds
+    }
+
     private func recomputeRepoSummaries() {
         repoSummaries = RepoOverview.summaries(
-            accounts: config.accounts, report: versionReport, history: history, packageSummaries: packageSummaries
+            accounts: config.accounts, report: visibleVersionReport, history: history, packageSummaries: packageSummaries
         )
         repoSummariesById = Dictionary(repoSummaries.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         recomputeSidebar()
@@ -397,8 +426,7 @@ final class AppModel {
             logger.error("versions.json onleesbaar, start leeg: \(error.localizedDescription)")
         }
         // didSet loopt niet in init.
-        packageSummaries = versionReport?.packageSummaries() ?? []
-        recomputeRepoSummaries()
+        recomputeVisibleReport()
     }
 
     /// Zet een onleesbaar bestand opzij als `<naam>.corrupt-<unix-tijd>`, zodat het niet overschreven wordt.
@@ -534,7 +562,7 @@ final class AppModel {
     private func runVersionCheck(automatic: Bool) async {
         let checker = VersionChecker(
             makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
-            metadataCache: versionReport?.packageMetadata ?? [:]
+            metadataCache: versionReport?.packageMetadata ?? [:], disabledSources: config.disabledSources
         )
         let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
@@ -566,7 +594,8 @@ final class AppModel {
         versionReport = report
         if automatic {
             let new = report.newVulnerabilities(since: previous)
-            if !new.isEmpty { notifier.deliverVulnerabilities(new, report: report) }
+            // De meldingen tonen wat de schermen tonen: geen details van een bron die uit staat.
+            if !new.isEmpty { notifier.deliverVulnerabilities(new, report: visibleVersionReport ?? report) }
             if config.notifySecurityAlerts {
                 let alerts = report.newSecurityAlerts(since: previous)
                 if !alerts.isEmpty { notifier.deliverSecurityAlerts(alerts) }
@@ -602,7 +631,7 @@ final class AppModel {
         refreshingRepos.insert(repo.id)
         let checker = VersionChecker(
             makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
-            metadataCache: versionReport?.packageMetadata ?? [:]
+            metadataCache: versionReport?.packageMetadata ?? [:], disabledSources: config.disabledSources
         )
         let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
         guard let report = versionReport else {
@@ -666,7 +695,7 @@ final class AppModel {
         let task = Task {
             let checker = VersionChecker(
                 makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
-                metadataCache: start.packageMetadata
+                metadataCache: start.packageMetadata, disabledSources: config.disabledSources
             )
             let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { done, total in
                 await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
@@ -886,6 +915,18 @@ final class AppModel {
         statuses[id] = nil
         saveConfig()
         saveHistory()
+    }
+
+    /// Zet een bron aan of uit (tabblad Bronnen). Er start geen check: de volgende check vraagt de
+    /// bron niet meer (of weer); wat eerder van de bron kwam, staat meteen niet meer als actueel.
+    func setSourceEnabled(_ id: DataSourceID, _ enabled: Bool) {
+        guard config.isEnabled(id) != enabled else { return }
+        if enabled {
+            config.disabledSources.remove(id)
+        } else {
+            config.disabledSources.insert(id)
+        }
+        saveConfig()
     }
 
     func completeOnboarding() {

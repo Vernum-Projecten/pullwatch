@@ -423,6 +423,34 @@
         }
       }
     },
+    "%@, niet gecontroleerd": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, nicht geprüft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, not checked"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, non vérifié"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, niet gecontroleerd"
+          }
+        }
+      }
+    },
     "%@, uitgezet": {
       "comment": "Dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server); het account wordt niet opgehaald",
       "localizations": {
@@ -2511,6 +2539,34 @@
         }
       }
     },
+    "Alle bronnen met hun stand en adres, om in een mail of bericht te plakken.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Quellen mit ihrer Einstellung und Adresse, zum Einfügen in eine E-Mail oder Nachricht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every source with its setting and address, to paste into an email or message."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toutes les sources avec leur réglage et leur adresse, à coller dans un e-mail ou un message."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle bronnen met hun stand en adres, om in een mail of bericht te plakken."
+          }
+        }
+      }
+    },
     "Alle gemergde PR's van %@ volgen": {
       "comment": "Gebruiker of organisatie",
       "localizations": {
@@ -3234,6 +3290,34 @@
         }
       }
     },
+    "Automatisch op updates controleren staat in het tabblad Algemeen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Automatisch nach Updates suchen“ steht im Tab „Allgemein“"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates automatically is in the General tab"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« Rechercher automatiquement les mises à jour » se trouve dans l’onglet Général"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch op updates controleren staat in het tabblad Algemeen"
+          }
+        }
+      }
+    },
     "Azure CLI (az login)": {
       "localizations": {
         "de": {
@@ -3424,6 +3508,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bots verbergen"
+          }
+        }
+      }
+    },
+    "Bronnen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sources"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bronnen"
           }
         }
       }
@@ -3785,6 +3897,34 @@
         }
       }
     },
+    "De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die einzige Quelle für Schwachstellen in Paketen von GitHub- und GitLab-Repos."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The only source for vulnerabilities in packages of GitHub and GitLab repos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La seule source de vulnérabilités dans les paquets des dépôts GitHub et GitLab."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's."
+          }
+        }
+      }
+    },
     "De menubalk, met het Pullwatch-icoon rechtsboven naast de klok": {
       "localizations": {
         "de": {
@@ -3803,6 +3943,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "La barre des menus, avec l’icône de Pullwatch en haut à droite près de l’horloge"
+          }
+        }
+      }
+    },
+    "Details niet opgehaald: bron %@ staat uit": {
+      "comment": "Naam van een bron die uitgezet is (Instellingen, Bronnen)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details nicht abgerufen: Quelle %@ ist aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details not fetched: source %@ is off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détails non récupérés : la source %@ est désactivée"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details niet opgehaald: bron %@ staat uit"
           }
         }
       }
@@ -3869,6 +4038,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ce dépôt n’est plus suivi ou n’a pas encore été vérifié."
+          }
+        }
+      }
+    },
+    "Deze verbindingen hebben geen eigen schakelaar: een account zet je uit in Accounts, de updatecheck in Algemeen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Verbindungen haben keinen eigenen Schalter: Ein Account wird unter „Accounts“ ausgeschaltet, die Update-Suche unter „Allgemein“."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These connections have no switch of their own: turn off an account in Accounts, the update check in General."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ces connexions n’ont pas d’interrupteur propre : désactivez un compte dans Comptes, la recherche de mises à jour dans Général."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze verbindingen hebben geen eigen schakelaar: een account zet je uit in Accounts, de updatecheck in Algemeen."
           }
         }
       }
@@ -4318,6 +4515,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un jeton d’accès personnel avec la portée read_api"
+          }
+        }
+      }
+    },
+    "Een schakelaar omzetten start geen check. Wat eerder van een bron kwam die nu uit staat, telt niet meer als actueel.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Schalter startet keine Prüfung. Was früher von einer Quelle kam, die jetzt aus ist, gilt nicht mehr als aktuell."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flipping a switch does not start a check. What came earlier from a source that is now off no longer counts as current."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basculer un interrupteur ne lance pas de vérification. Ce qui venait d’une source désormais désactivée n’est plus considéré comme à jour."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een schakelaar omzetten start geen check. Wat eerder van een bron kwam die nu uit staat, telt niet meer als actueel."
           }
         }
       }
@@ -4923,6 +5148,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "S’applique partout : dans le menu, l’historique et les notifications."
+          }
+        }
+      }
+    },
+    "Geldt vanaf de volgende check": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt ab der nächsten Prüfung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies from the next check"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S’applique dès la prochaine vérification"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geldt vanaf de volgende check"
           }
         }
       }
@@ -6291,6 +6544,34 @@
         }
       }
     },
+    "Kopieer overzicht": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersicht kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy overview"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier l’aperçu"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieer overzicht"
+          }
+        }
+      }
+    },
     "Kritiek": {
       "localizations": {
         "de": {
@@ -6309,6 +6590,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Critique"
+          }
+        }
+      }
+    },
+    "Kwetsbaarheden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwachstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnerabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vulnérabilités"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kwetsbaarheden"
           }
         }
       }
@@ -6967,6 +7276,34 @@
         }
       }
     },
+    "Naar Algemeen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu „Allgemein“"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to General"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller à Général"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naar Algemeen"
+          }
+        }
+      }
+    },
     "Niet beschikbaar op deze server": {
       "localizations": {
         "de": {
@@ -6985,6 +7322,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non disponible sur ce serveur"
+          }
+        }
+      }
+    },
+    "Niet gecontroleerd: bron %@ staat uit": {
+      "comment": "Naam van een bron die uitgezet is (Instellingen, Bronnen)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: Quelle %@ ist aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: source %@ is off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : la source %@ est désactivée"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gecontroleerd: bron %@ staat uit"
           }
         }
       }
@@ -7461,6 +7827,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nog niet gecheckt"
+          }
+        }
+      }
+    },
+    "Nu checken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check now"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier maintenant"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu checken"
           }
         }
       }
@@ -8327,6 +8721,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Over Pullwatch"
+          }
+        }
+      }
+    },
+    "Overige verbindingen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Verbindungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other connections"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres connexions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overige verbindingen"
+          }
+        }
+      }
+    },
+    "Overzicht als tekst": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersicht als Text"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview as text"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu en texte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overzicht als tekst"
           }
         }
       }
@@ -11201,6 +11651,63 @@
         }
       }
     },
+    "Versie niet gecontroleerd: bron %@ staat uit": {
+      "comment": "Naam van een register dat uitgezet is (Instellingen, Bronnen)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version nicht geprüft: Quelle %@ ist aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version not checked: source %@ is off"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version non vérifiée : la source %@ est désactivée"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versie niet gecontroleerd: bron %@ staat uit"
+          }
+        }
+      }
+    },
+    "Versies": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versies"
+          }
+        }
+      }
+    },
     "Versies van endoflife.date, kwetsbaarheden van OSV.dev.": {
       "localizations": {
         "de": {
@@ -11875,6 +12382,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ce que ce projet publie lui-même sur ses vulnérabilités"
+          }
+        }
+      }
+    },
+    "Website": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site web"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
           }
         }
       }
@@ -12656,6 +13191,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "mediane doorlooptijd"
+          }
+        }
+      }
+    },
+    "niet alles gecontroleerd": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht alles geprüft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not everything checked"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pas tout vérifié"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "niet alles gecontroleerd"
           }
         }
       }

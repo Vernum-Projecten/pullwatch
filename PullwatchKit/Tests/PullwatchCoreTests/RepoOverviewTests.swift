@@ -40,6 +40,18 @@ import PullwatchTestSupport
         #expect(summaries.map(\.health) == [.problem, .problem, .behind, .unknown, .ok])
     }
 
+    /// Een bron die uit stond zegt niets over de repo: dan niet "actueel", wel een probleem als dat er is.
+    @Test func skippedSourceIsNeverOk() {
+        let report = VersionReport(checkedAt: t0, repos: [
+            RepoVersions(accountId: fixedAccountId, repo: "P/off", components: [component(.current)], skippedSources: [.osv]),
+            RepoVersions(accountId: fixedAccountId, repo: "P/eol", components: [component(.eol)], skippedSources: [.npm]),
+        ])
+        let summaries = Dictionary(uniqueKeysWithValues: RepoOverview.summaries(accounts: [account()], report: report, history: History())
+            .map { ($0.repo, $0.health) })
+        #expect(summaries["P/off"] == .unknown)
+        #expect(summaries["P/eol"] == .problem)
+    }
+
     @Test func packageUpdatesMakeARepoBehind() {
         let report = VersionReport(checkedAt: t0, repos: [
             RepoVersions(accountId: fixedAccountId, repo: "P/web", components: [],

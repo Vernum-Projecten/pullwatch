@@ -2,7 +2,7 @@ import Foundation
 
 /// Hoe een repo ervoor staat: rood (CVE's, EOL of open critical- en high-meldingen van code
 /// scanning of Advanced Security), oranje (runtime achter of packages met een nieuwe
-/// versie), groen, of grijs (nog niet gecheckt of de check mislukte).
+/// versie), groen, of grijs (nog niet gecheckt, de check mislukte of een bron stond uit).
 public enum RepoHealth: Hashable, Sendable {
     case problem, behind, ok, unknown
 
@@ -38,7 +38,8 @@ public struct RepoSummary: Hashable, Sendable, Identifiable {
         guard let versions, versions.error == nil else { return .unknown }
         if !versions.vulnerabilities.isEmpty || versions.worstStatus == .eol || !seriousSecurityAlerts.isEmpty { return .problem }
         if versions.worstStatus == .behind || !packageUpdates.isEmpty { return .behind }
-        return .ok
+        // Een bron die uit stond heeft niets gecontroleerd: dan nooit "actueel".
+        return versions.skippedSources.isEmpty ? .ok : .unknown
     }
 }
 

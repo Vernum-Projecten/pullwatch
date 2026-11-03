@@ -1,12 +1,12 @@
 import PullwatchCore
 import SwiftUI
 
-/// Het Instellingen-venster (de Settings-scene): Accounts en Algemeen. Alles wordt meteen
+/// Het Instellingen-venster (de Settings-scene): Accounts, Algemeen en Bronnen. Alles wordt meteen
 /// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
     let model: AppModel
 
-    enum Pane: String { case accounts, general }
+    enum Pane: String { case accounts, general, sources }
 
     @State private var pane: Pane = {
         #if DEBUG
@@ -26,6 +26,12 @@ struct SettingsView: View {
                 GeneralSettingsView(model: model)
                     #if DEBUG
                     .onAppear { SnapshotCamera.shoot("settings-general", windowId: "com_apple_SwiftUI_Settings_window") }
+                    #endif
+            }
+            Tab("Bronnen", systemImage: "network", value: Pane.sources) {
+                SourcesSettingsView(model: model) { pane = .general }
+                    #if DEBUG
+                    .onAppear { SnapshotCamera.shoot("settings-sources", windowId: "com_apple_SwiftUI_Settings_window") }
                     #endif
             }
         }
