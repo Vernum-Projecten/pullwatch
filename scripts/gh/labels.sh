@@ -246,6 +246,7 @@ label ci            ededed "CI, build, and tooling. ci/ and ci:."
 echo "== workflow and meta labels =="
 label dependencies 0366d6 "Dependency updates (used by Dependabot)."
 label security     ee0701 "Security fix or hardening."
+label no-changelog ededed "No user-visible change; skips the changelog fragment check"
 
 # The labels the app puts on the pull requests it records; Activity lists
 # merged pull requests by them.

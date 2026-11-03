@@ -4,7 +4,8 @@
 # Het releaseplan, overgenomen van FerroLICENCE: de tag noemt de versie van
 # de app (MARKETING_VERSION in Pullwatch/App.xcconfig), het buildnummer
 # (CURRENT_PROJECT_VERSION) is een geheel getal, en CHANGELOG.md heeft een
-# uitgebrachte sectie voor de versie met tekst erin. Alles moet kloppen
+# uitgebrachte sectie voor de versie met tekst erin, en changelog.d/ heeft
+# geen fragmenten meer (changelog.sh --assemble). Alles moet kloppen
 # voordat er iets gebouwd wordt.
 
 set -euo pipefail
@@ -39,6 +40,15 @@ if ! grep -qE "^## \[${version//./\\.}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELO
 fi
 if [ -z "$(bash "$here/notes.sh" "$tag")" ]; then
   echo "the CHANGELOG.md section for $version is empty; it becomes the release notes" >&2
+  exit 1
+fi
+
+# De release-cut (changelog.sh --assemble) zet de fragmenten in CHANGELOG.md
+# en verwijdert ze; een fragment dat er nog staat, ontbreekt in de notes.
+left="$(find changelog.d -maxdepth 1 -type f -name '*.md' ! -name README.md | sort)"
+if [ -n "$left" ]; then
+  echo "changelog.d/ still holds fragments; run scripts/release/changelog.sh --assemble $version YYYY-MM-DD on the release branch first:" >&2
+  echo "$left" >&2
   exit 1
 fi
 
