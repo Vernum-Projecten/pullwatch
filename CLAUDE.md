@@ -59,6 +59,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (HTTP, processes, JSON store, Keychain, localisation).
   `Tests/PullwatchCoreTests/`: its Swift Testing suites; `Support/` has
   `MockHTTPClient` and `MockProcessRunner`.
+- `docs/setup.md`: everything the maintainer configures outside the code
+  (signing, the GitHub App, later the release secrets), each with its steps;
+  `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
+  in step with the code. `docs/superpowers/`: Alessandro's design specs and
+  plans (Dutch).
 - `scripts/release/release.sh [--unsigned]`: Release build (universal), DMG,
   and with a Developer ID also signing, notarisation and stapling.
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
