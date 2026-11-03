@@ -43,6 +43,17 @@ public struct RepositoryCheck: Equatable, Sendable {
     }
 }
 
+extension ProviderKind {
+    /// Kan een account van deze dienst losse repo's toevoegen (`Account.extraRepos`)? GitLab nog
+    /// niet: de provider heeft nog geen `checkRepository` en geen zoekopdracht per losse repo.
+    public var supportsExtraRepos: Bool {
+        switch self {
+        case .gitHub, .azureDevOps: true
+        case .gitLab: false
+        }
+    }
+}
+
 /// Leest wat iemand in het veld "Andere repositories" typt of plakt: `eigenaar/repo` (GitHub),
 /// `project/repo` (Azure DevOps), of een link van github.com of dev.azure.com. Geeft de repo in
 /// de vorm van `Account.repoWatch`. Een nieuwe dienst (zoals GitLab) krijgt hier zijn eigen tak.
@@ -82,6 +93,10 @@ public enum RepositoryReference {
             guard parts.allSatisfy({ !$0.hasPrefix("_") && $0.trimmingCharacters(in: .whitespaces) == $0 }) else {
                 throw .unrecognised(kind)
             }
+        case .gitLab:
+            // Nog niet: GitLab-paden kunnen geneste groepen hebben (`groep/sub/project`); de
+            // GitLab-provider krijgt hier zijn eigen tak samen met `checkRepository`.
+            throw .unsupported
         }
         return parts.joined(separator: "/")
     }

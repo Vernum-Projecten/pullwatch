@@ -2433,6 +2433,28 @@
         }
       }
     },
+    "Alle PR's van de andere repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle PRs der anderen Repositorys folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all PRs of the other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les PR des autres dépôts"
+          }
+        }
+      }
+    },
     "Alle PR's van deze repo": {
       "localizations": {
         "de": {
@@ -2508,6 +2530,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivre toutes les PR fusionnées de %@"
+          }
+        }
+      }
+    },
+    "Alle gemergde PR's van de andere repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allen gemergten PRs der anderen Repositorys folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all merged PRs of the other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les PR fusionnées des autres dépôts"
           }
         }
       }
@@ -2603,6 +2647,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivre tous les tags de %@"
+          }
+        }
+      }
+    },
+    "Alle tags van de andere repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allen Tags der anderen Repositorys folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all tags of the other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre tous les tags des autres dépôts"
           }
         }
       }
@@ -2958,6 +3024,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alles gelezen"
+          }
+        }
+      }
+    },
+    "Andere repositories": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres dépôts"
           }
         }
       }
@@ -3631,6 +3719,28 @@
         }
       }
     },
+    "Controleren…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification…"
+          }
+        }
+      }
+    },
     "De eigenaar moet het nieuwe recht van de Pullwatch-app goedkeuren bij de installatie op GitHub": {
       "localizations": {
         "de": {
@@ -4054,6 +4164,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un groupe ou un utilisateur sur gitlab.com ou sur votre propre serveur GitLab"
+          }
+        }
+      }
+    },
+    "Een losse repository volgen, ook een openbare van een andere organisatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einem einzelnen Repository folgen, auch einem öffentlichen einer anderen Organisation"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch a single repository, also a public one of another organisation"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre un dépôt isolé, y compris un dépôt public d'une autre organisation"
           }
         }
       }
@@ -4729,6 +4861,28 @@
         }
       }
     },
+    "Gelezen zonder inloggen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Anmeldung gelesen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read without signing in"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lu sans connexion"
+          }
+        }
+      }
+    },
     "Gemaakt door Alessandro Torrisi.": {
       "localizations": {
         "de": {
@@ -5193,6 +5347,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Groupes ou utilisateurs"
+          }
+        }
+      }
+    },
+    "Haal weg uit de lijst": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus der Liste entfernen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from the List"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer de la liste"
           }
         }
       }
@@ -6306,6 +6482,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "En retard"
+          }
+        }
+      }
+    },
+    "Losse repositories naast die van je eigenaren, zoals een openbare repository van een andere organisatie. Weghalen met een rechtermuisklik of de Delete-toets.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einzelne Repositorys neben denen deiner Besitzer, etwa ein öffentliches Repository einer anderen Organisation. Entfernen per Rechtsklick oder mit der Entf-Taste."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Single repositories next to those of your owners, such as a public repository of another organisation. Remove one with a right click or the Delete key."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des dépôts isolés en plus de ceux de vos propriétaires, comme un dépôt public d'une autre organisation. Retirez-en un avec un clic droit ou la touche Supprimer."
           }
         }
       }
@@ -7658,6 +7856,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open repo %@"
+          }
+        }
+      }
+    },
+    "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentliches Repository, auf das dein Konto keinen Zugriff hat; Pullwatch liest es ohne Token, mit dem niedrigeren Limit von GitHub"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A public repository your account can't access; Pullwatch reads it without a token, at GitHub's lower limit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôt public auquel votre compte n'a pas accès ; Pullwatch le lit sans jeton, avec la limite plus basse de GitHub"
           }
         }
       }
@@ -9481,6 +9701,50 @@
         }
       }
     },
+    "Repository": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôt"
+          }
+        }
+      }
+    },
+    "Repository toevoegen…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository hinzufügen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Repository…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un dépôt…"
+          }
+        }
+      }
+    },
     "Root": {
       "comment": "De hoofdmap van een repo, als workspace",
       "localizations": {
@@ -10455,6 +10719,51 @@
         }
       }
     },
+    "Typ eigenaar/repo, of plak de link van github.com. Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Besitzer/Repo ein oder füge den Link von github.com ein. Auch ein öffentliches Repository einer anderen Organisation geht; Pullwatch liest es bei Bedarf ohne Anmeldung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type owner/repo, or paste the link from github.com. A public repository of another organisation works too; Pullwatch reads it without signing in when it has to."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez propriétaire/dépôt, ou collez le lien de github.com. Un dépôt public d'une autre organisation fonctionne aussi ; Pullwatch le lit sans connexion si nécessaire."
+          }
+        }
+      }
+    },
+    "Typ project/repo, of plak de link van dev.azure.com. De repository moet in de organisatie %@ staan.": {
+      "comment": "Azure DevOps-organisatie",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Projekt/Repo ein oder füge den Link von dev.azure.com ein. Das Repository muss in der Organisation %@ liegen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type project/repo, or paste the link from dev.azure.com. The repository has to be in the organisation %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez projet/dépôt, ou collez le lien de dev.azure.com. Le dépôt doit se trouver dans l'organisation %@."
+          }
+        }
+      }
+    },
     "Uit: Pullwatch haalt niets op voor dit account en stuurt er geen meldingen over. Wat je volgt blijft bewaard.": {
       "localizations": {
         "de": {
@@ -10870,6 +11179,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suivre %@"
+          }
+        }
+      }
+    },
+    "Volg een repository": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einem Repository folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch a Repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre un dépôt"
+          }
+        }
+      }
+    },
+    "Volg een repository…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einem Repository folgen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch a Repository…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre un dépôt…"
           }
         }
       }

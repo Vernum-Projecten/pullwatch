@@ -856,7 +856,7 @@ final class AppModel {
 
     /// Accounts waar je een losse repo aan kunt toevoegen.
     var accountsForExtraRepos: [Account] {
-        config.accounts.filter(\.isComplete)
+        config.accounts.filter { $0.isComplete && $0.kind.supportsExtraRepos }
     }
 
     func watchRepository() {

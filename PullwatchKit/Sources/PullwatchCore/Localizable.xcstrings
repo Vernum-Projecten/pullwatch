@@ -52,6 +52,35 @@
         }
       }
     },
+    "%@ staat al in de lijst.": {
+      "comment": "Repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist schon in der Liste."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is already in the list."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ est déjà dans la liste."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ staat al in de lijst."
+          }
+        }
+      }
+    },
     "1 jaar": {
       "localizations": {
         "de": {
@@ -193,6 +222,34 @@
         }
       }
     },
+    "Bij deze dienst kun je nog geen losse repositories toevoegen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei diesem Dienst kannst du noch keine einzelnen Repositorys hinzufügen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This service can't add single repositories yet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce service ne permet pas encore d'ajouter des dépôts isolés."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bij deze dienst kun je nog geen losse repositories toevoegen."
+          }
+        }
+      }
+    },
     "CVE-check mislukt: %@": {
       "comment": "Foutmelding",
       "localizations": {
@@ -247,6 +304,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "CVE-check onvolledig, details ontbreken: %1$lld van %2$lld"
+          }
+        }
+      }
+    },
+    "Deze repository staat in de organisatie %@; dit account hoort bij %@.": {
+      "comment": "Organisatie van de link, organisatie van het account",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Repository liegt in der Organisation %1$@; dieses Konto gehört zu %2$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This repository is in the organisation %1$@; this account belongs to %2$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce dépôt se trouve dans l'organisation %1$@ ; ce compte appartient à %2$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze repository staat in de organisatie %1$@; dit account hoort bij %2$@."
+          }
+        }
+      }
+    },
+    "Dit is een link naar %@. Voeg hem toe bij een account van %@.": {
+      "comment": "Dienst, twee keer",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist ein Link zu %1$@. Füge ihn bei einem %2$@-Konto hinzu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a link to %1$@. Add it to a %2$@ account."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C'est un lien vers %1$@. Ajoutez-le à un compte %2$@."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit is een link naar %1$@. Voeg hem toe bij een account van %2$@."
           }
         }
       }
@@ -471,6 +586,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Token ongeldig of verlopen"
+          }
+        }
+      }
+    },
+    "Typ eigenaar/repo, of plak de link van de repository.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Besitzer/Repo ein oder füge den Link des Repositorys ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type owner/repo, or paste the repository's link."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez propriétaire/dépôt, ou collez le lien du dépôt."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ eigenaar/repo, of plak de link van de repository."
+          }
+        }
+      }
+    },
+    "Typ project/repo, of plak de link van de repository.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Projekt/Repo ein oder füge den Link des Repositorys ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type project/repo, or paste the repository's link."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez projet/dépôt, ou collez le lien du dépôt."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ project/repo, of plak de link van de repository."
           }
         }
       }

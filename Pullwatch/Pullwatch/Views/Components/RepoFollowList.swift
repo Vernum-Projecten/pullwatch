@@ -152,6 +152,13 @@ struct RepoFollowList: View {
             }
         }
 
+        if account.kind.supportsExtraRepos {
+            extraSection
+        }
+    }
+
+    /// "Andere repositories": de losse repo's van het account, met toevoegen en weghalen.
+    @ViewBuilder private var extraSection: some View {
         Section {
             ForEach(extras, id: \.self) { repo in
                 RepoWatchRow(

@@ -226,6 +226,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
               host != kind.defaultInstanceURL?.host() else { return kind.name }
         return host
     }
+
     /// Losse repo's die je zelf toevoegde, ook buiten de eigenaren (bv. een openbare repo van een
     /// andere organisatie), in dezelfde vorm als `repoWatch`. Wat er gevolgd wordt staat gewoon in
     /// `repoWatch`. Azure DevOps: "project/repo" binnen de organisatie van het account.

@@ -67,6 +67,12 @@ import PullwatchTestSupport
         #expect(parse("Website/_git", .azureDevOps) == .failure(.unrecognised(.azureDevOps)))
     }
 
+    @Test func gitLabHasNoExtraReposYet() {
+        #expect(parse("group/project", .gitLab) == .failure(.unsupported))
+        #expect(!ProviderKind.gitLab.supportsExtraRepos)
+        #expect(ProviderKind.gitHub.supportsExtraRepos && ProviderKind.azureDevOps.supportsExtraRepos)
+    }
+
     @Test func problemsReadAsPlainWords() {
         for problem: RepositoryProblem in [
             .unrecognised(.gitHub), .unrecognised(.azureDevOps), .otherService(.gitHub),
