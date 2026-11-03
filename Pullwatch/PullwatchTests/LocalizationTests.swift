@@ -35,8 +35,13 @@ import Testing
         }
         struct Localization: Decodable {
             struct Unit: Decodable { let state: String?; let value: String? }
+            /// Een deel van de tekst met eigen meervoudsvormen (`%#@naam@`), bij meer dan één argument.
+            struct Substitution: Decodable {
+                let variations: [String: [String: Localization]]?
+            }
             let stringUnit: Unit?
             let variations: [String: [String: Localization]]?
+            let substitutions: [String: Substitution]?
         }
         let sourceLanguage: String
         let strings: [String: Entry]
@@ -63,17 +68,32 @@ import Testing
 
     /// Een tekst met een aantal en meervoudsvormen heeft in elke taal minstens `one` en `other`,
     /// ook in het Nederlands: anders staat er "1 nieuwe PR's" of valt een taal terug op de sleutel.
+    /// Dat geldt voor de hele tekst en voor elke substitutie (`%#@naam@`) met meervoudsvormen.
     @Test(arguments: catalogs)
     func everyPluralHasOneAndOther(_ url: URL) throws {
         let catalog = try JSONDecoder().decode(Catalog.self, from: Data(contentsOf: url))
         var missing: [String] = []
         for (key, entry) in catalog.strings {
             let localizations = entry.localizations ?? [:]
-            guard localizations.values.contains(where: { $0.variations?["plural"] != nil }) else { continue }
-            for language in Self.languages {
-                let forms = Set(localizations[language]?.variations?["plural"]?.keys.map { $0 } ?? [])
-                let absent = ["one", "other"].filter { !forms.contains($0) }
-                if !absent.isEmpty { missing.append("\(language) \(absent.joined(separator: ", ")): \(key)") }
+            // nil = de hele tekst, anders de naam van de substitutie.
+            var plurals: Set<String?> = []
+            for localization in localizations.values {
+                if localization.variations?["plural"] != nil { plurals.insert(nil) }
+                for (name, substitution) in localization.substitutions ?? [:] where substitution.variations?["plural"] != nil {
+                    plurals.insert(name)
+                }
+            }
+            for plural in plurals {
+                for language in Self.languages {
+                    let localization = localizations[language]
+                    let variations = plural.map { localization?.substitutions?[$0]?.variations } ?? localization?.variations
+                    let forms = Set(variations?["plural"]?.keys.map { $0 } ?? [])
+                    let absent = ["one", "other"].filter { !forms.contains($0) }
+                    if !absent.isEmpty {
+                        let place = plural.map { "\(key) (%#@\($0)@)" } ?? key
+                        missing.append("\(language) \(absent.joined(separator: ", ")): \(place)")
+                    }
+                }
             }
         }
         #expect(missing.isEmpty, "\(url.lastPathComponent) mist meervoudsvormen:\n\(missing.sorted().joined(separator: "\n"))")

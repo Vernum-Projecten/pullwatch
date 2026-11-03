@@ -115,6 +115,14 @@ nonisolated private enum FakeWorld {
         PR(repo: "linguist", number: 7, title: "Add a heuristic for .h files", author: "mona", daysAgo: 150, state: "merged"),
     ]
 
+    /// Wie er per PR ("repo#nummer") meewerkte: login (nil = alleen een naam uit een trailer) en naam.
+    static let coAuthors: [String: [(login: String?, name: String)]] = [
+        "hello-world#40": [("amelie", "Amélie Laurent"), ("jdoe", "John Doe")],
+        "hello-world#38": [("mona", "Mona Lisa")],
+        "spoon-knife#21": [("amelie", "Amélie Laurent"), ("mona", "Mona Lisa"), (nil, "Jan de Vries")],
+        "linguist#12": [(nil, "Jan de Vries")],
+    ]
+
     static let tags: [String: [String]] = [
         "hello-world": ["v1.2.0", "v1.1.0"],
         "spoon-knife": ["v3.0.1"],
@@ -176,7 +184,10 @@ nonisolated private enum FakeWorld {
             break
         }
         if path == "/search/issues" { return search(query: url.query() ?? "") }
-        if path == "/graphql" { return datedTags(body: request.httpBody) }
+        if path == "/graphql" {
+            let isCoAuthorQuery = request.httpBody.map { String(decoding: $0, as: UTF8.self).contains("pullRequest(number") } ?? false
+            return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : datedTags(body: request.httpBody)
+        }
         let parts = url.pathComponents
         // /repos/octocat/<repo>/...
         guard parts.count >= 5, parts[1] == "repos", parts[2] == FakeGitHub.login else { return nil }
@@ -202,7 +213,7 @@ nonisolated private enum FakeWorld {
         let items = pullRequests.filter { !onlyOpen || $0.state == "open" }.map { pr -> String in
             let closed = pr.state == "open" ? "null" : #""\#(iso(pr.daysAgo - 0.5))""#
             let merged = pr.state == "merged" ? #""\#(iso(pr.daysAgo - 0.5))""# : "null"
-            return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","draft":false,"#
+            return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","updated_at":"\#(iso(pr.daysAgo))","draft":false,"#
                 + #""state":"\#(pr.state == "open" ? "open" : "closed")","closed_at":\#(closed),"pull_request":{"merged_at":\#(merged)},"#
                 + #""user":{"login":"\#(pr.author)"},"html_url":"https://github.com/octocat/\#(pr.repo)/pull/\#(pr.number)","#
                 + #""repository_url":"https://api.github.com/repos/octocat/\#(pr.repo)"}"#
@@ -225,6 +236,37 @@ nonisolated private enum FakeWorld {
             #"{"name":"\#(name)","target":{"committedDate":"\#(iso(3 + Double(index) * 30))"}}"#
         }
         return #"{"data":{"repository":{"refs":{"nodes":["# + nodes.joined(separator: ",") + "]}}}}"
+    }
+
+    /// De GraphQL-vraag naar commit-auteurs (`GitHubProvider.coAuthors`): per alias de auteur
+    /// van de PR en zijn co-auteurs uit `coAuthors`.
+    static func coAuthorCommits(body: Data?) -> String {
+        struct Query: Decodable {
+            enum Value: Decodable {
+                case text(String), number(Int)
+
+                init(from decoder: any Decoder) throws {
+                    let c = try decoder.singleValueContainer()
+                    if let number = try? c.decode(Int.self) { self = .number(number) } else { self = .text(try c.decode(String.self)) }
+                }
+            }
+            let variables: [String: Value]
+        }
+        let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
+        var fields: [String] = []
+        for index in 0... {
+            guard case .text(let repo) = variables["n\(index)"], case .number(let number) = variables["p\(index)"] else { break }
+            let author = pullRequests.first { $0.repo == repo && $0.number == number }?.author ?? FakeGitHub.login
+            let people: [(login: String?, name: String)] = [(author, author)] + (coAuthors["\(repo)#\(number)"] ?? [])
+            let nodes = people.map { person in
+                let user = person.login.map { #"{"login":"\#($0)","avatarUrl":"https://github.com/\#($0).png?size=40"}"# } ?? "null"
+                let email = (person.login ?? person.name.lowercased().replacingOccurrences(of: " ", with: ".")) + "@example.com"
+                return #"{"name":"\#(person.name)","email":"\#(email)","user":\#(user)}"#
+            }
+            fields.append(#""pr\#(index)":{"pullRequest":{"commits":{"nodes":[{"commit":{"authors":{"nodes":["#
+                + nodes.joined(separator: ",") + "]}}}]}}}")
+        }
+        return #"{"data":{"# + fields.joined(separator: ",") + "}}"
     }
 
     static func endOfLife(product: String) -> String? {

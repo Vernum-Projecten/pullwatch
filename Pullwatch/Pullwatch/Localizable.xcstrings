@@ -137,6 +137,123 @@
         }
       }
     },
+    "%@ en %lld anderen": {
+      "comment": "Auteur van de PR, aantal co-auteurs",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ und %#@others@"
+          },
+          "substitutions": {
+            "others": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg weitere Person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg weitere Personen"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and %#@others@"
+          },
+          "substitutions": {
+            "others": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg other"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg others"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ et %#@others@"
+          },
+          "substitutions": {
+            "others": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg autre"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg autres"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ en %#@others@"
+          },
+          "substitutions": {
+            "others": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ander"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg anderen"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%@ en de geschiedenis ervan verdwijnen uit Pullwatch. Op %@ verandert niets.": {
       "localizations": {
         "de": {
@@ -2296,6 +2413,34 @@
         }
       }
     },
+    "Auteurs en co-auteurs": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoren und Co-Autoren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authors and co-authors"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auteurs et coauteurs"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auteurs en co-auteurs"
+          }
+        }
+      }
+    },
     "Authenticatie": {
       "localizations": {
         "de": {
@@ -2686,6 +2831,34 @@
         }
       }
     },
+    "Co-auteurs meetellen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co-Autoren mitzählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Count co-authors"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compter les coauteurs"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co-auteurs meetellen"
+          }
+        }
+      }
+    },
     "Controle": {
       "localizations": {
         "de": {
@@ -3028,6 +3201,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "EOL"
+          }
+        }
+      }
+    },
+    "Een PR telt ook voor iedereen die eraan meewerkte, naast wie hem opende": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein PR zählt auch für alle, die daran mitgearbeitet haben, neben der Person, die ihn geöffnet hat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A PR also counts for everyone who worked on it, besides the person who opened it"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une PR compte aussi pour toutes les personnes qui y ont contribué, en plus de celle qui l’a ouverte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een PR telt ook voor iedereen die eraan meewerkte, naast wie hem opende"
           }
         }
       }

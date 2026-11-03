@@ -55,6 +55,10 @@ public actor PollEngine {
     public static let syncOverlap: TimeInterval = 3600
     /// Maximaal aantal bestaande tags per repo dat de eerste tag-poll in de geschiedenis zet.
     public static let tagBackfillLimit = 100
+    /// Maximaal aantal PR's per account per poll waarvan de co-auteurs opgehaald worden; nieuwe
+    /// open PR's eerst. Wat overblijft komt bij een volgende poll aan de beurt (open PR's) of
+    /// zodra de PR verandert.
+    public static let coAuthorLimit = 50
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -83,6 +87,8 @@ public actor PollEngine {
         let synced: [PullRequest]?
         /// Fout bij de geschiedenis-sync; laat het account nooit falen.
         let syncError: ProviderError?
+        /// Net opgehaalde co-auteurs per dedupKey, met de revisie waarbij ze horen.
+        let coAuthors: [String: (revision: String?, people: [Person])]
     }
 
     /// Waar een poll de tags van ophaalt: het account (eigen instellingen, standaard) en de repo's
@@ -209,6 +215,7 @@ public actor PollEngine {
                     account: account,
                     provider: provider(for: account),
                     userId: userIds[account.id],
+                    coAuthorRevisions: state.coAuthors.filter { $0.key.hasPrefix(prefix) }.mapValues(\.revision),
                     tagRepos: TagRepos(
                         account: account,
                         seeded: Set(state.tagSeeded.keys.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) })
@@ -234,6 +241,7 @@ public actor PollEngine {
                     (job.account.id, await Self.fetch(
                         job.provider,
                         knownUserId: job.userId,
+                        coAuthorRevisions: job.coAuthorRevisions,
                         tagRepos: job.tagRepos,
                         fetchTags: job.fetchTags,
                         sync: job.sync
@@ -285,6 +293,7 @@ public actor PollEngine {
     private static func fetch(
         _ provider: any PRProvider,
         knownUserId: String?,
+        coAuthorRevisions: [String: String?],
         tagRepos: TagRepos,
         fetchTags: Bool,
         sync: SyncRequest?
@@ -306,6 +315,14 @@ public actor PollEngine {
             if let sync {
                 (synced, syncError) = await Self.fetchSync(provider, since: sync.since)
             }
+            let coAuthors = await Self.fetchCoAuthors(
+                provider,
+                open: pullRequests,
+                synced: synced ?? [],
+                settings: tagRepos.account.filterSettings,
+                userId: userId,
+                known: coAuthorRevisions
+            )
             return .success(Fetched(
                 userId: userId,
                 pullRequests: pullRequests,
@@ -315,7 +332,8 @@ public actor PollEngine {
                 unavailableTagRepos: Set((tags.fetch?.unavailableRepos ?? []).map { $0.lowercased() }),
                 tagError: tags.error,
                 synced: synced,
-                syncError: syncError
+                syncError: syncError,
+                coAuthors: coAuthors
             ))
         } catch let error as ProviderError {
             return .failure(error)
@@ -370,6 +388,37 @@ public actor PollEngine {
         } catch {
             outcome.error = .network(error.localizedDescription)
             return outcome
+        }
+    }
+
+    /// Haalt de co-auteurs op van de zichtbare PR's die nieuw zijn of veranderden sinds de vorige
+    /// keer (`PullRequest.revision`), hooguit `coAuthorLimit`: open PR's eerst, dan de gesyncte,
+    /// elk nieuwste eerst. Een PR die niet veranderde kost geen verzoek. Fouten laten het account
+    /// niet falen; die PR's komen bij een volgende poll opnieuw aan de beurt.
+    private static func fetchCoAuthors(
+        _ provider: any PRProvider,
+        open: [PullRequest],
+        synced: [PullRequest],
+        settings: FilterSettings,
+        userId: String,
+        known: [String: String?]
+    ) async -> [String: (revision: String?, people: [Person])] {
+        var seen: Set<String> = []
+        let wanted = (open.sorted { $0.createdAt > $1.createdAt } + synced.sorted { $0.createdAt > $1.createdAt })
+            .filter { pr in
+                guard seen.insert(pr.dedupKey).inserted,
+                      PRFilter.passes(pr, settings: settings, currentUserId: userId) else { return false }
+                guard let revision = known[pr.dedupKey] else { return true }
+                return revision != pr.revision
+            }
+            .prefix(coAuthorLimit)
+        guard !wanted.isEmpty else { return [:] }
+        do {
+            let found = try await provider.coAuthors(of: Array(wanted))
+            return Dictionary(uniqueKeysWithValues: wanted.map { ($0.dedupKey, ($0.revision, found[$0.dedupKey] ?? [])) })
+        } catch {
+            logger.notice("co-auteurs ophalen mislukt: \(error.localizedDescription)")
+            return [:]
         }
     }
 
@@ -430,9 +479,16 @@ public actor PollEngine {
         let settings = account.filterSettings
         let key = account.id.uuidString
         let previous = state.lastSettings[key].flatMap { $0.sameSource(as: settings) ? $0 : nil }
+        for (dedupKey, found) in fetched.coAuthors {
+            state.coAuthors[dedupKey] = CoAuthorMark(revision: found.revision, people: found.people, at: t)
+        }
+        for pr in fetched.pullRequests + (fetched.synced ?? []) {
+            state.coAuthors[pr.dedupKey]?.at = t
+        }
 
         var fresh: [PullRequest] = []
-        for pr in fetched.pullRequests where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
+        for pr in fetched.pullRequests.map(withCoAuthors)
+        where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
             // Alleen melden als de PR onder de vorige settings ook zichtbaar was; anders is hij
             // pas zichtbaar door een instellingswijziging of eerste poll → stil seeden.
             if !state.contains(pr.dedupKey), let previous,
@@ -494,7 +550,18 @@ public actor PollEngine {
         state.syncMarks[account.id.uuidString] = SyncMark(at: t, settings: settings, retention: retention)
         resyncBackup[account.id.uuidString] = nil
         schedule.nextSyncDue = t + Self.tagInterval
-        return (synced.filter { PRFilter.passes($0, settings: settings, currentUserId: fetched.userId) }, newlyCompleted)
+        return (
+            synced.filter { PRFilter.passes($0, settings: settings, currentUserId: fetched.userId) }.map(withCoAuthors),
+            newlyCompleted.map(withCoAuthors)
+        )
+    }
+
+    /// De PR met de bewaarde co-auteurs erbij, als die er zijn.
+    private func withCoAuthors(_ pr: PullRequest) -> PullRequest {
+        guard let people = state.coAuthors[pr.dedupKey]?.people, !people.isEmpty else { return pr }
+        var pr = pr
+        pr.coAuthors = people
+        return pr
     }
 
     /// Gemergde PR's in repo's met "Completed" aan die gemeld moeten worden: de repo had het ook

@@ -68,7 +68,7 @@ Every full check also stores a compact snapshot (versions, statuses, CVE counts,
 
 ### Statistics
 
-**Statistieken** shows PR activity from the history: opened and merged PRs per week, month or year (12 weeks, 12 months or 5 years), the PRs opened and merged in the current period, the median time from opening to merge and the number of active authors, plus rankings of authors and of the busiest repositories. Filter on a project or an author (click a name in the ranking); bots (`[bot]` in the name) are hidden by default. A repository page shows the same chart per month for that repository. Activity only counts PRs, not commits, and goes back as far as the history does.
+**Statistieken** shows PR activity from the history: opened and merged PRs per week, month or year (12 weeks, 12 months or 5 years), the PRs opened and merged in the current period, the median time from opening to merge and the number of active authors, plus rankings of authors and of the busiest repositories. Filter on a project or an author (click a name in the ranking); bots (`[bot]` in the name) are hidden by default. **Co-auteurs meetellen** in the author menu counts a PR for each of its co-authors too. A repository page shows the same chart per month for that repository. Activity only counts PRs, not commits, and goes back as far as the history does.
 
 ### Versions
 

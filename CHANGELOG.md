@@ -24,6 +24,11 @@ becomes the notes of its GitHub release (`scripts/release/notes.sh`);
   marks repositories that only have a package transitively. New CVE
   notifications and the copied repository text say direct or via which
   package.
+- **Co-authors of a pull request.** The PR list shows the author with the
+  people who worked on it (commit authors and `Co-authored-by:` trailers),
+  as small avatars and "mona and 2 others"; hover for every name. GitHub
+  asks once per new or changed PR in one batched GraphQL request, Azure
+  DevOps reads the PR's commits. Statistics can count co-authors too.
 - **Mark as read or unread in the main window.** Right-click a PR or tag
   (or press ⇧⌘U, as in Mail), mark everything in the list as read with the
   toolbar button or ⌘K, and see unread items by their blue dot. The menu's

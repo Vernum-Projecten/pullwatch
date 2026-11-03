@@ -28,12 +28,24 @@ public struct ActivityFilter: Hashable, Sendable {
     /// `RepoSummary.id` ("<accountId>/<repo>") voor de grafiek op een repo-pagina.
     public var repoId: String?
     public var hideBots: Bool
+    /// Co-auteurs tellen mee als auteur: in de ranglijst, de actieve auteurs en het auteursfilter
+    /// telt een PR dan voor iedereen die eraan meewerkte.
+    public var countCoAuthors: Bool
 
-    public init(group: HistoryGroup.ID? = nil, author: String? = nil, repoId: String? = nil, hideBots: Bool = true) {
+    public init(
+        group: HistoryGroup.ID? = nil, author: String? = nil, repoId: String? = nil, hideBots: Bool = true,
+        countCoAuthors: Bool = false
+    ) {
         self.group = group
         self.author = author
         self.repoId = repoId
         self.hideBots = hideBots
+        self.countCoAuthors = countCoAuthors
+    }
+
+    /// Wie er voor deze PR meetelt: de auteur, en met `countCoAuthors` ook de co-auteurs.
+    func people(of pr: PullRequest) -> [String] {
+        countCoAuthors ? pr.contributorNames : [pr.authorName]
     }
 
     /// GitHub-bots heten "naam[bot]".
@@ -88,7 +100,7 @@ public struct ActivityStats: Sendable {
         let pullRequests: [PullRequest] = history.items.compactMap { item in
             guard case .pullRequest(let pr) = item.entry else { return nil }
             if filter.hideBots && ActivityFilter.isBot(pr.authorName) { return nil }
-            if let author = filter.author, pr.authorName != author { return nil }
+            if let author = filter.author, !filter.people(of: pr).contains(author) { return nil }
             if let group = filter.group, HistoryGroup.ID(accountId: pr.accountId, repo: pr.repo) != group { return nil }
             if let repoId = filter.repoId, "\(pr.accountId.uuidString)/\(pr.repo)" != repoId { return nil }
             return pr
@@ -107,9 +119,11 @@ public struct ActivityStats: Sendable {
         for pr in pullRequests {
             if let index = bucketIndex(pr.createdAt) {
                 opened[index] += 1
-                authors[pr.authorName, default: 0] += 1
+                for name in filter.people(of: pr) where !(filter.hideBots && ActivityFilter.isBot(name)) {
+                    authors[name, default: 0] += 1
+                    if index == starts.count - 1 { activeAuthors.insert(name) }
+                }
                 repos[pr.repo, default: 0] += 1
-                if index == starts.count - 1 { activeAuthors.insert(pr.authorName) }
             }
             if pr.state == .merged, let closedAt = pr.closedAt, let index = bucketIndex(closedAt) {
                 merged[index] += 1

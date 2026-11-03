@@ -10,6 +10,11 @@ public actor AzureDevOpsProvider: PRProvider {
     private let now: @Sendable () -> Date
     private let pageSize = 100
     private var projectCache: (names: [String], fetchedAt: Date)?
+    /// Het e-mailadres (`uniqueName`) van de auteur per PR (dedupKey), uit de laatste lijst, zodat
+    /// `coAuthors(of:)` de eigen commits van de auteur herkent.
+    private var authorEmails: [String: String] = [:]
+    /// Hooguit zoveel commits per PR waarvan het bericht afgekapt is en apart opgehaald wordt.
+    private let fullMessageLimit = 10
 
     public init(
         accountId: UUID,
@@ -213,6 +218,45 @@ public actor AzureDevOpsProvider: PRProvider {
         return Array(tags.sorted { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }.prefix(limit))
     }
 
+    /// Per PR de commits (`pullRequests/{id}/commits`): hun auteurs en de `Co-authored-by:`-trailers
+    /// in de berichten. Azure DevOps kent geen co-auteurs en geen foto's. Een afgekapt bericht
+    /// wordt los opgehaald (hooguit tien per PR). Een PR die niet (meer) bestaat geeft een lege lijst.
+    public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] {
+        var result: [String: [Person]] = [:]
+        for pr in pullRequests {
+            let parts = pr.repo.split(separator: "/", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else { continue }
+            let repoURL = baseURL.appending(path: parts[0]).appending(path: "_apis/git/repositories").appending(path: parts[1])
+            let commits: ValueList<PRCommitDTO>
+            do {
+                commits = try await get(
+                    repoURL.appending(path: "pullRequests").appending(path: String(pr.number)).appending(path: "commits"),
+                    query: [URLQueryItem(name: "$top", value: String(pageSize))]
+                )
+            } catch ProviderError.server(status: 404) {
+                result[pr.dedupKey] = []
+                continue
+            }
+            var candidates: [Person] = []
+            var fullMessages = 0
+            for commit in commits.value {
+                if let name = commit.author?.name, !name.isEmpty {
+                    candidates.append(Person(name: name, email: commit.author?.email))
+                }
+                var message = commit.comment ?? ""
+                if commit.commentTruncated == true, fullMessages < fullMessageLimit {
+                    fullMessages += 1
+                    let full: PRCommitDTO = try await get(repoURL.appending(path: "commits").appending(path: commit.commitId))
+                    message = full.comment ?? message
+                }
+                candidates += CoAuthorTrailer.people(in: message)
+            }
+            let author = [pr.authorId, pr.authorName] + (authorEmails[pr.dedupKey].map { [$0] } ?? [])
+            result[pr.dedupKey] = CoAuthorTrailer.coAuthors(from: candidates, author: author)
+        }
+        return result
+    }
+
     private func tagURL(project: String, repo: String, tag: String) -> URL {
         let base = baseURL.appending(path: project).appending(path: "_git").appending(path: repo)
         var components = URLComponents(url: base, resolvingAgainstBaseURL: false)!
@@ -294,7 +338,7 @@ public actor AzureDevOpsProvider: PRProvider {
             .appending(path: dto.repository.name)
             .appending(path: "pullrequest")
             .appending(path: String(dto.pullRequestId))
-        return PullRequest(
+        let pullRequest = PullRequest(
             accountId: accountId,
             repo: "\(project)/\(dto.repository.name)",
             number: dto.pullRequestId,
@@ -305,8 +349,11 @@ public actor AzureDevOpsProvider: PRProvider {
             createdAt: createdAt,
             webURL: webURL,
             state: state,
-            closedAt: dto.closedDate.flatMap(DateParsing.parse)
+            closedAt: dto.closedDate.flatMap(DateParsing.parse),
+            revision: dto.lastMergeSourceCommit?.commitId
         )
+        if let email = dto.createdBy.uniqueName { authorEmails[pullRequest.dedupKey] = email }
+        return pullRequest
     }
 
     private func authorizationHeader() async throws -> String {
@@ -372,7 +419,11 @@ private struct PullRequestDTO: Decodable {
     struct Identity: Decodable {
         let id: String
         let displayName: String
+        /// Meestal het e-mailadres.
+        let uniqueName: String?
     }
+
+    struct CommitRef: Decodable { let commitId: String }
 
     struct Repository: Decodable {
         struct Project: Decodable { let name: String }
@@ -388,6 +439,20 @@ private struct PullRequestDTO: Decodable {
     let creationDate: String
     let createdBy: Identity
     let repository: Repository
+    /// De laatste commit van de bronbranch; verandert bij elke push.
+    let lastMergeSourceCommit: CommitRef?
+}
+
+/// Een commit van een PR, of los opgehaald voor het volledige bericht.
+private struct PRCommitDTO: Decodable {
+    struct Person: Decodable {
+        let name: String?
+        let email: String?
+    }
+    let commitId: String
+    let author: Person?
+    let comment: String?
+    let commentTruncated: Bool?
 }
 
 private struct RefDTO: Decodable {

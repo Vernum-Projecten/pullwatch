@@ -20,6 +20,10 @@ actor MockProvider: PRProvider {
     private(set) var lastSyncSince: Date??
     private(set) var tagFetchCount = 0
     private(set) var invalidateCount = 0
+    private var coAuthorList: [String: [Person]] = [:]
+    private var coAuthorError: ProviderError?
+    /// Per aanroep van `coAuthors(of:)` de dedupKeys die gevraagd werden.
+    private(set) var coAuthorRequests: [[String]] = []
 
     func set(pullRequests: [PullRequest]) { self.pullRequests = pullRequests }
     func set(syncedPullRequests: [PullRequest]) { self.syncedPullRequests = syncedPullRequests }
@@ -32,6 +36,9 @@ actor MockProvider: PRProvider {
     /// Wat `listRepos()` geeft.
     func set(repos: [String]) { self.repos = repos }
     func set(error: ProviderError?) { self.error = error }
+    /// Wat `coAuthors(of:)` geeft, per dedupKey.
+    func set(coAuthors: [String: [Person]]) { coAuthorList = coAuthors }
+    func set(coAuthorError: ProviderError?) { self.coAuthorError = coAuthorError }
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
     /// Repo's die `tags(in:)` als onbereikbaar meldt (404/403).
@@ -80,6 +87,12 @@ actor MockProvider: PRProvider {
         datedTagRepos.append(repo)
         if let datedTagError { throw datedTagError }
         return Array(datedTagList.filter { $0.repo.lowercased() == repo.lowercased() }.prefix(limit))
+    }
+
+    func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] {
+        coAuthorRequests.append(pullRequests.map(\.dedupKey))
+        if let coAuthorError { throw coAuthorError }
+        return coAuthorList.filter { key, _ in pullRequests.contains { $0.dedupKey == key } }
     }
 
     func filePaths(in repo: String, ref: String?) async throws -> [String] { [] }
