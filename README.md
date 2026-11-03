@@ -1,6 +1,6 @@
 # Pullwatch
 
-A macOS menu bar app that notifies you about new pull requests in Azure DevOps and GitHub, plus new tags and GitHub releases (optional, per repository). It keeps a searchable history and can check your repositories for outdated languages, frameworks and known vulnerabilities.
+A macOS menu bar app that notifies you about new pull requests in Azure DevOps and GitHub and new merge requests in GitLab™ (gitlab.com or your own server), plus new tags and GitHub and GitLab releases (optional, per repository). It keeps a searchable history and can check your repositories for outdated languages, frameworks and known vulnerabilities.
 
 Available in English, Dutch, German and French: Pullwatch follows the macOS language, or pick one under Settings → General → Language.
 
@@ -13,7 +13,7 @@ The app is signed with a Developer ID and notarized by Apple. Universal (Apple s
 ## Build from source
 
 - Xcode 27 (Swift 6.4), macOS 26.6 or later
-- Optional: `az` (`az login`) and/or `gh` (`gh auth login`) for CLI authentication
+- Optional: `az` (`az login`), `gh` (`gh auth login`) and/or `glab` (`glab auth login`) for CLI authentication
 
 Open `Pullwatch/Pullwatch.xcodeproj` in Xcode and run the **Pullwatch** scheme (⌘R). From the command line:
 
@@ -28,12 +28,12 @@ scripts/release/release.sh                          # signed with Developer ID, 
 
 The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
 
-The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package, which the app links and which has the unit tests. Its modules: `PullwatchCore` (models, polling, history, version checks, updates), `PullwatchGitHub` and `PullwatchAzureDevOps` (one per provider), and `PullwatchProviders` (picks the provider for an account).
+The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package, which the app links and which has the unit tests. Its modules: `PullwatchCore` (models, polling, history, version checks, updates), `PullwatchGitHub`, `PullwatchAzureDevOps` and `PullwatchGitLab` (one per provider), and `PullwatchProviders` (picks the provider for an account).
 
 ## Usage
 
 1. Click the menu bar icon → **Instellingen…** (Settings), which opens the settings in the main window.
-2. Add an account (Azure DevOps or GitHub), choose PAT or CLI, and test the connection. With the GitHub CLI and several `gh` accounts, pick which one provides the token under **GitHub-account**.
+2. Add an account (Azure DevOps, GitHub or GitLab), choose PAT or CLI, and test the connection. With the GitHub CLI and several `gh` accounts, pick which one provides the token under **GitHub-account**. For GitLab, leave **Server** empty for gitlab.com or enter your own server (https only, for example `https://gitlab.example.com`), and list the groups or users to follow, separated by commas (`acme, acme/platform`); a group includes its subgroups, and repositories appear as `group/subgroup/project`.
 3. Per account, choose which repositories you follow: PR's, Tags and/or Completed (merged PRs).
 
 Tags are off by default. Next to each checkbox is a bell: turn it off to keep following the repository (menu and history) without getting notifications. The bell in the header toggles all visible repositories. Tags are polled every 15 minutes (separate from the PR interval; "Nu verversen" polls tags too). The first tag poll per repository is silent. On GitHub the Tags checkbox follows releases too: a release published for a tag Pullwatch already saw gives one notification ("new release" with its title) and updates the same history row.
@@ -44,7 +44,7 @@ While a window (settings, history, versions) is open, Pullwatch shows in the Doc
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags en releases**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags en releases**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub and GitLab), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
 
 ### Keyboard shortcuts and jumps
 
@@ -99,7 +99,7 @@ If a repository has tags, the newest version tag is checked too (pre-releases li
 
 Each vulnerability also shows its GitHub Advisory Database entry: the GHSA id next to the CVE, GitHub's severity with the CVSS score and vector, the CWE names and a link to `github.com/advisories`, on the repository page, in the copied text and in notifications. Pullwatch fetches each advisory once from the public advisories API (`api.github.com/advisories`, with a GitHub account's token when there is one) and keeps it with the check.
 
-The repository page also shows what the service itself knows, read with the same daily check and **Check**, never on every poll. On GitHub: the advisories the repository publishes about itself, open code scanning alerts (CodeQL and other tools, with file and line) and the number of open secret scanning alerts (never the secret). On Azure DevOps: open Advanced Security alerts (code and dependencies, and the number of secrets). Open critical and high alerts count in the repository's findings and health; a notification for a new one is off by default (Settings → General). When a kind is turned off for a repository, or the GitHub App or token may not read it, the page says **Off** or **Needs permission** with a link, and nothing fails.
+The repository page also shows what the service itself knows, read with the same daily check and **Check**, never on every poll. On GitHub: the advisories the repository publishes about itself, open code scanning alerts (CodeQL and other tools, with file and line) and the number of open secret scanning alerts (never the secret). On Azure DevOps: open Advanced Security alerts (code and dependencies, and the number of secrets). GitLab has no equivalent open to every plan (its vulnerability report is GitLab Ultimate), so a GitLab repository shows only the version and OSV check. Open critical and high alerts count in the repository's findings and health; a notification for a new one is off by default (Settings → General). When a kind is turned off for a repository, or the GitHub App or token may not read it, the page says **Off** or **Needs permission** with a link, and nothing fails.
 
 The check runs once a day (can be turned off under Settings → General) and on **Alles checken**; on a repository page, **Check** re-checks just that repository and the copy button puts its versions and vulnerabilities on the clipboard. New CVEs found by the daily check trigger a notification. From **PR's** or **Tags**, **Repo** (or right-click a row) opens the page of that repository.
 
@@ -116,6 +116,7 @@ The check runs once a day (can be turned off under Settings → General) and on 
 
 - Azure DevOps: **Code (Read)** (also covers tags) and **Project and Team (Read)** (the project list comes from `/_apis/projects`); optionally **Advanced Security (Read)** for its alerts.
 - GitHub (fine-grained): **Pull requests: Read** and **Metadata: Read** on the repositories you want, plus **Contents: Read** for the dependency check and **Repository security advisories: Read** for the repository's own advisories; optionally **Code scanning alerts: Read** and **Secret scanning alerts: Read**. Classic: `repo` (with `security_events` for the alerts).
+- GitLab: a personal access token with the **read_api** scope (merge requests, projects, tags, releases, commits and files). The **Token maken** link in the account editor opens your server's token page with the name and scope filled in. With the GitLab CLI, Pullwatch reads `glab config get token --host <server>`.
 
 ## Known quirks
 
@@ -136,3 +137,7 @@ Logs: `log stream --predicate 'subsystem == "nl.torrisi.pullwatch"'`
 ## Third-party
 
 - The pull request icons (open, draft, merged and closed), the menu bar icon and the glyph of the app icon are [GitHub Octicons](https://github.com/primer/octicons) (`git-pull-request`, `git-pull-request-draft`, `git-merge`, `git-pull-request-closed`), MIT License, Copyright (c) GitHub Inc. See [NOTICE](NOTICE).
+- GitHub and the Invertocat are trademarks of GitHub, Inc. The unmodified Invertocat from GitHub's [logo downloads](https://brand.github.com/foundations/logo) marks GitHub on the account choice, in the add-account menu and as the placeholder of a GitHub account; GitHub's guidelines allow a logo that shows an integration.
+- GITLAB is a trademark of GitLab Inc. in the United States and other countries and regions. GitLab's [Trademark Guidelines](https://handbook.gitlab.com/handbook/marketing/brand-and-product-marketing/brand/brand-activation/trademark-guidelines/) do not allow its logos in a product's interface, so Pullwatch shows the name GitLab™ with an SF Symbol.
+- Azure DevOps is a trademark of the Microsoft group of companies. Microsoft's [Azure icon terms](https://learn.microsoft.com/azure/architecture/icons/) cover diagrams and documentation only, so Pullwatch shows the name with an SF Symbol.
+- Pullwatch is not affiliated with, endorsed or sponsored by GitHub, GitLab or Microsoft.
