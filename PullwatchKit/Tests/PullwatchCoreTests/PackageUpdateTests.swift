@@ -56,7 +56,10 @@ import Testing
             PackageInstall(version: "3.10.1", workspace: "", scope: .transitive, via: ["legacy"], source: "package-lock.json", requested: "^3.10.0"),
         ])
         let updates = use.updates(latest: "4.17.21")
-        #expect(updates.map(\.update.status) == [.withinRange, .needsManifestChange])
+        // De transitieve install valt buiten het bereik van zijn ouder: die houdt hem tegen (#84).
+        #expect(updates.map(\.update.status) == [
+            .withinRange, .blockedByPackage(parent: "legacy", parentRange: "^3.10.0", minimumParentVersion: nil),
+        ])
         #expect(updates.map(\.update.step) == [.patch, .major])
         // De repo zelf: alleen de directe install.
         #expect(use.update(latest: "4.17.21")?.status == .withinRange)
@@ -76,7 +79,7 @@ import Testing
         #expect(summary.behind.map { $0.update?.status } == [.needsManifestChange, .needsManifestChange])
         #expect(summary.behind.first?.updates.map(\.install) == [install])
         #expect(summary.behind.first?.update?.step == .major)
-        #expect(summary.transitiveOnly.first?.update?.status == .needsManifestChange)
+        #expect(summary.transitiveOnly.first?.update?.status == .blockedByPackage(parent: "next", parentRange: "^18.2.0", minimumParentVersion: nil))
     }
 
     @Test func runtimesHaveNoUpdateStatus() {

@@ -527,7 +527,10 @@ final class AppModel {
     }
 
     private func runVersionCheck(automatic: Bool) async {
-        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
+        let checker = VersionChecker(
+            makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
+            metadataCache: versionReport?.packageMetadata ?? [:]
+        )
         let fresh = await checker.run(accounts: config.pollableAccounts) { done, total in
             await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
         }
@@ -537,8 +540,8 @@ final class AppModel {
             logger.notice("versiecheck gestopt na \(done.count) repo's")
             nextAutoVersionAttempt = Date() + VersionReport.autoRetryInterval
             guard !done.isEmpty else { return }
-            let report = versionReport?.replacing(done, latest: fresh.latestPackages)
-                ?? VersionReport(checkedAt: fresh.checkedAt, repos: done, latestPackages: fresh.latestPackages)
+            let report = versionReport?.replacing(done, latest: fresh.latestPackages, metadata: fresh.packageMetadata)
+                ?? VersionReport(checkedAt: fresh.checkedAt, repos: done, latestPackages: fresh.latestPackages, packageMetadata: fresh.packageMetadata)
             versionReport = report
             saveVersions(report)
             return
@@ -592,16 +595,21 @@ final class AppModel {
         guard versionCheck == nil, !refreshingRepos.contains(repo.id),
               let account = config.accounts.first(where: { $0.id == repo.accountId }) else { return }
         refreshingRepos.insert(repo.id)
-        let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
-        let (fresh, latest) = await checker.run(account: account, repo: repo.repo)
+        let checker = VersionChecker(
+            makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
+            metadataCache: versionReport?.packageMetadata ?? [:]
+        )
+        let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
         guard let report = versionReport else {
             refreshingRepos.remove(repo.id)
             return
         }
-        let updated = await checker.completingAdvisories(of: report.replacing(fresh, latest: latest), accounts: config.pollableAccounts)
+        let updated = await checker.completingAdvisories(
+            of: report.replacing(fresh, latest: latest, metadata: metadata), accounts: config.pollableAccounts
+        )
         refreshingRepos.remove(repo.id)
         // Tijdens het opzoeken kan een andere check het rapport vervangen hebben; dan alleen de repo.
-        versionReport = versionReport == report ? updated : versionReport?.replacing(fresh, latest: latest)
+        versionReport = versionReport == report ? updated : versionReport?.replacing(fresh, latest: latest, metadata: metadata)
         saveVersions(versionReport!)
     }
 
@@ -651,7 +659,10 @@ final class AppModel {
         isCheckingNewRepos = true
         defer { isCheckingNewRepos = false }
         let task = Task {
-            let checker = VersionChecker(makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking)
+            let checker = VersionChecker(
+                makeProvider: { ProviderFactory.make($0, http: AppModel.networking) }, http: AppModel.networking,
+                metadataCache: start.packageMetadata
+            )
             let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { done, total in
                 await MainActor.run { [weak self] in self?.versionCheck = (done, total) }
             }
@@ -660,9 +671,9 @@ final class AppModel {
             guard !repos.isEmpty, let report = versionReport else { return }
             logger.notice("\(repos.count) net gevolgde repo's gecheckt")
             let updated = await checker.completingAdvisories(
-                of: report.replacing(repos, latest: fresh.latest), accounts: config.pollableAccounts
+                of: report.replacing(repos, latest: fresh.latest, metadata: fresh.metadata), accounts: config.pollableAccounts
             )
-            versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest)
+            versionReport = versionReport == report ? updated : versionReport?.replacing(repos, latest: fresh.latest, metadata: fresh.metadata)
             saveVersions(versionReport!)
         }
         versionTask = task

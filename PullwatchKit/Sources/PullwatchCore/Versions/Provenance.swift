@@ -2,10 +2,17 @@ import Foundation
 
 /// Wat een kwetsbaarheid in één install oplost.
 public enum VulnerabilityFix: Hashable, Sendable {
-    /// Het package zelf bijwerken: het project vraagt het direct (of dat is niet te bepalen).
+    /// Het package zelf bijwerken; of dat binnen het gevraagde bereik valt is niet te bepalen.
     case update(package: String, to: String)
+    /// Binnen het gevraagde bereik: alleen de lockfile verandert (`npm update`, `composer update`).
+    case withinRange(package: String, to: String)
+    /// Buiten het bereik in het manifest: dat moet mee.
+    case needsManifestChange(package: String, to: String)
+    /// Een ouder, peer of runtime houdt de versie met de oplossing tegen; `blocker` zegt wat eerst moet.
+    case blocked(package: String, to: String, by: UpdateBlocker)
     /// Alleen via de ouder te bereiken: `parent` (het directe package bovenaan de keten) bijwerken,
-    /// zodat die `package` op `minimum` of nieuwer binnenhaalt.
+    /// zodat die `package` op `minimum` of nieuwer binnenhaalt. Voor een transitieve install
+    /// zonder bekend bereik.
     case updateParent(parent: String, package: String, minimum: String)
     /// Geen versie met een oplossing bekend.
     case none
@@ -21,9 +28,31 @@ extension Vulnerability {
         }
     }
 
-    /// Wat bijgewerkt moet worden om deze install te repareren.
-    public var fix: VulnerabilityFix {
+    /// Wat bijgewerkt moet worden om deze install te repareren, alleen uit het gevraagde bereik.
+    public var fix: VulnerabilityFix { fix(in: .empty) }
+
+    /// Wat bijgewerkt moet worden om deze install te repareren, met de blokkades uit `context`
+    /// (`VersionReport.updateContext(for:)`): binnen het bereik, het manifest mee, of eerst iets
+    /// anders bijwerken.
+    public func fix(in context: UpdateContext) -> VulnerabilityFix {
+        var needs = UpdateNeeds()
+        return fix(in: context, needs: &needs)
+    }
+
+    func fix(in context: UpdateContext, needs: inout UpdateNeeds) -> VulnerabilityFix {
         guard let fixedIn else { return .none }
+        if let target = Version(fixedIn) {
+            let install = PackageInstall(version: version, workspace: workspace, scope: scope, kind: kind, via: via, source: source, requested: requested)
+            if case .blocked(let blocker) = context.check(
+                ecosystem: ecosystem, name: package, install: install, target: target, findMinimum: true, needs: &needs
+            ) {
+                return .blocked(package: package, to: fixedIn, by: blocker)
+            }
+            if let requested, let range = VersionRange.parse(ecosystem: ecosystem, name: package, requested: requested) {
+                // Een transitieve install buiten het bereik van zijn ouder is hierboven al geblokkeerd.
+                return range.contains(target) ? .withinRange(package: package, to: fixedIn) : .needsManifestChange(package: package, to: fixedIn)
+            }
+        }
         if scope == .transitive, let parent = via.first {
             return .updateParent(parent: parent, package: package, minimum: fixedIn)
         }
