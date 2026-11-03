@@ -8,6 +8,8 @@ struct ContributorsLabel: View {
     let author: String
     let coAuthors: [Person]
     let kind: ProviderKind
+    /// De server van het account (GitHub Enterprise), voor de foto's; nil = github.com.
+    var web: URL? = nil
     var avatarURL: URL? = nil
 
     /// Hooguit zoveel foto's; de tekst noemt het aantal.
@@ -24,7 +26,7 @@ struct ContributorsLabel: View {
         } else {
             HStack(spacing: 5) {
                 HStack(spacing: -6) {
-                    PersonAvatar(url: kind == .gitHub ? Account.gitHubAvatarURL(author, size: 40) : nil)
+                    PersonAvatar(url: Account.gitHubAvatarURL(author, kind: kind, size: 40, web: web))
                     ForEach(Array(coAuthors.prefix(maxAvatars - 1).enumerated()), id: \.offset) { _, person in
                         PersonAvatar(url: avatarURL(person))
                     }
@@ -44,7 +46,7 @@ struct ContributorsLabel: View {
     }
 
     private func avatarURL(_ person: Person) -> URL? {
-        person.avatarURL ?? person.login.flatMap { kind == .gitHub ? Account.gitHubAvatarURL($0, size: 40) : nil }
+        person.avatarURL ?? person.login.flatMap { Account.gitHubAvatarURL($0, kind: kind, size: 40, web: web) }
     }
 }
 

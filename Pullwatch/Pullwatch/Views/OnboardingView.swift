@@ -24,6 +24,8 @@ struct OnboardingView: View {
     @State private var step = Step.welcome
     /// Het account dat nu wordt ingesteld; staat pas in de config na Toevoegen.
     @State private var draft: Account?
+    /// Het concept is een GitHub-account op GitHub Enterprise.
+    @State private var draftIsEnterprise = false
     /// De Toevoegen-knop van het concept, in de voetbalk.
     @State private var saveAction = AccountSaveAction()
     @Environment(\.dismissWindow) private var dismissWindow
@@ -34,7 +36,7 @@ struct OnboardingView: View {
                 switch step {
                 case .welcome: WelcomeStep()
                 case .account:
-                    AccountStep(model: model, draft: $draft, saveAction: saveAction) {
+                    AccountStep(model: model, draft: $draft, enterprise: $draftIsEnterprise, saveAction: saveAction) {
                         draft = nil
                         step = .finish
                     }
@@ -97,10 +99,11 @@ struct OnboardingView: View {
         try? await Task.sleep(for: pause)
         step = .account
         try? await Task.sleep(for: pause)
-        for kind in [ProviderKind.gitHub, .azureDevOps, .gitLab] {
-            draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+        for (kind, enterprise) in [(ProviderKind.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false)] {
+            draftIsEnterprise = enterprise
+            draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
             try? await Task.sleep(for: pause)
-            SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)", windowId: "onboarding")
+            SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)\(enterprise ? "-enterprise" : "")", windowId: "onboarding")
             try? await Task.sleep(for: pause)
             back()
             try? await Task.sleep(for: .milliseconds(300))
@@ -308,6 +311,7 @@ struct MenuBarHint: View {
 private struct AccountStep: View {
     let model: AppModel
     @Binding var draft: Account?
+    @Binding var enterprise: Bool
     let saveAction: AccountSaveAction
     let onAdded: () -> Void
 
@@ -321,13 +325,16 @@ private struct AccountStep: View {
             if let account = draft {
                 Text(account.authMethod == .gitHubApp
                      ? "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen."
+                     : enterprise
+                     ? "Vul je server, een token en je gebruiker of organisatie in, en klik op Toevoegen. Met de GitHub CLI heb je geen token nodig."
                      : account.kind == .gitLab
                      ? "Vul je server, een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
                      : "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig.")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
-                AccountEditor(model: model, original: account, saveAction: saveAction, onSaved: onAdded).id(account.id)
+                AccountEditor(model: model, original: account, enterprise: enterprise, saveAction: saveAction, onSaved: onAdded)
+                    .id(account.id)
             } else {
                 let added = model.config.pollableAccounts
                 if !added.isEmpty {
@@ -350,10 +357,10 @@ private struct AccountStep: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20)
                 HStack(spacing: 16) {
-                    ProviderChoice(kind: .gitHub, detail: "Een gebruiker of organisatie op github.com") {
-                        start(.gitHub)
-                    }
-                    .accessibilityIdentifier("onboarding.addGitHub")
+                    GitHubChoice(
+                        dotCom: { start(.gitHub) },
+                        enterprise: { start(.gitHub, enterprise: true) }
+                    )
                     ProviderChoice(kind: .azureDevOps, detail: "Een organisatie op dev.azure.com") {
                         start(.azureDevOps)
                     }
@@ -363,6 +370,8 @@ private struct AccountStep: View {
                     }
                     .accessibilityIdentifier("onboarding.addGitLab")
                 }
+                // Alle kaarten even hoog, ook als die van GitHub twee knoppen heeft.
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(20)
                 Spacer()
             }
@@ -372,8 +381,50 @@ private struct AccountStep: View {
         .accessibilityIdentifier("onboarding.account")
     }
 
-    private func start(_ kind: ProviderKind) {
-        draft = Account(kind: kind, organization: "", authMethod: model.defaultAuthMethod(for: kind))
+    private func start(_ kind: ProviderKind, enterprise: Bool = false) {
+        self.enterprise = enterprise
+        // Op GitHub Enterprise bestaat de Pullwatch-app niet: daar een token.
+        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : model.defaultAuthMethod(for: kind))
+    }
+}
+
+/// De kaart van GitHub, met twee knoppen: github.com of GitHub Enterprise (Server of GHE.com).
+private struct GitHubChoice: View {
+    let dotCom: () -> Void
+    let enterprise: () -> Void
+    @ScaledMetric(relativeTo: .largeTitle) private var symbolSize = 28.0
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ProviderMark(kind: .gitHub, size: symbolSize)
+                .frame(height: symbolSize)
+            Text(verbatim: ProviderKind.gitHub.name).font(.headline)
+            Text("Een gebruiker of organisatie")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            // De knoppen onderaan de kaart; logo, naam en uitleg staan bovenaan, net als bij de andere kaarten.
+            Spacer(minLength: 4)
+            VStack(spacing: 4) {
+                Button(action: dotCom) {
+                    Text(verbatim: "GitHub.com").frame(maxWidth: .infinity)
+                }
+                .help("Een gebruiker of organisatie op github.com")
+                .accessibilityIdentifier("onboarding.addGitHub")
+                Button(action: enterprise) {
+                    Text(verbatim: "GitHub Enterprise").frame(maxWidth: .infinity)
+                }
+                .help("GitHub Enterprise Server, of je eigen subdomein op ghe.com")
+                .accessibilityIdentifier("onboarding.addGitHubEnterprise")
+            }
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity, alignment: .top)
+        .padding(12)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator))
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -398,7 +449,8 @@ private struct ProviderChoice: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, minHeight: 120)
+            // Bovenaan uitgelijnd, zodat logo, naam en uitleg van alle kaarten op één lijn staan.
+            .frame(maxWidth: .infinity, minHeight: 120, maxHeight: .infinity, alignment: .top)
             .padding(12)
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }

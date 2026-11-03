@@ -58,11 +58,18 @@ extension ProviderKind {
 /// `project/repo` (Azure DevOps), of een link van github.com of dev.azure.com. Geeft de repo in
 /// de vorm van `Account.repoWatch`. Een nieuwe dienst (zoals GitLab) krijgt hier zijn eigen tak.
 public enum RepositoryReference {
-    public static func parse(_ input: String, kind: ProviderKind, organization: String) throws(RepositoryProblem) -> String {
+    /// `instanceURL`: de eigen server van een GitHub Enterprise-account; een link naar die server
+    /// telt dan als een GitHub-link.
+    public static func parse(
+        _ input: String, kind: ProviderKind, organization: String, instanceURL: URL? = nil
+    ) throws(RepositoryProblem) -> String {
         var text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         while text.hasSuffix("/") { text.removeLast() }
         if text.hasSuffix(".git") { text.removeLast(4) }
 
+        if kind == .gitHub, let instanceURL, let repo = instanceLink(text, instanceURL: instanceURL) {
+            return try plain(repo, kind: kind)
+        }
         if let link = link(text) {
             guard link.kind == kind else { throw .otherService(link.kind) }
             if kind == .azureDevOps, let found = link.organization,
@@ -99,6 +106,25 @@ public enum RepositoryReference {
             throw .unsupported
         }
         return parts.joined(separator: "/")
+    }
+
+    /// "https://github.example.com/eigenaar/repo[/…]" (ook zonder schema, of via SSH) op de
+    /// eigen server: "eigenaar/repo"; nil als de link niet naar die server wijst.
+    private static func instanceLink(_ text: String, instanceURL: URL) -> String? {
+        guard let host = instanceURL.host()?.lowercased() else { return nil }
+        var text = text
+        if text.lowercased().hasPrefix("git@\(host):") {
+            text = "https://\(host)/" + text.dropFirst("git@\(host):".count)
+        } else if !text.contains("://") {
+            text = "https://" + text
+        }
+        guard let url = URL(string: text), url.host()?.lowercased() == host else { return nil }
+        let base = instanceURL.pathComponents.filter { $0 != "/" }
+        var path = url.pathComponents.filter { $0 != "/" }
+        guard path.starts(with: base) else { return nil }
+        path.removeFirst(base.count)
+        guard path.count >= 2 else { return "" }
+        return "\(path[0])/\(path[1])"
     }
 
     /// Een link van een bekende dienst, met de repo erin en (Azure DevOps) de organisatie.
