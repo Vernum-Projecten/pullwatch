@@ -2,8 +2,8 @@ import PullwatchCore
 import SwiftUI
 
 /// De auteur van een PR met wie er meewerkte: kleine gestapelde foto's en "mona en 2 anderen".
-/// De tooltip en VoiceOver noemen iedereen bij naam. Zonder co-auteurs alleen de auteur, met
-/// `avatarURL` (de maker van een tag of release) met zijn foto ervoor.
+/// De tooltip en VoiceOver noemen iedereen bij naam. Zonder co-auteurs de auteur met zijn foto
+/// ervoor: `avatarURL` (de maker van een tag of release) of zijn GitHub-foto.
 struct ContributorsLabel: View {
     let author: String
     let coAuthors: [Person]
@@ -16,17 +16,18 @@ struct ContributorsLabel: View {
     private let maxAvatars = 3
 
     var body: some View {
-        if coAuthors.isEmpty, let avatarURL {
+        if coAuthors.isEmpty {
+            // Ook één auteur krijgt een foto, zoals bij tags: zo staan de namen in de kolom
+            // recht onder elkaar. Zonder foto (Azure DevOps, of een naam zonder GitHub-account)
+            // het persoonssymbool.
             HStack(spacing: 5) {
-                PersonAvatar(url: avatarURL)
+                PersonAvatar(url: avatarURL ?? authorAvatarURL)
                 Text(verbatim: author).lineLimit(1)
             }
-        } else if coAuthors.isEmpty {
-            Text(verbatim: author).lineLimit(1)
         } else {
             HStack(spacing: 5) {
                 HStack(spacing: -6) {
-                    PersonAvatar(url: Account.gitHubAvatarURL(author, kind: kind, size: 40, web: web))
+                    PersonAvatar(url: authorAvatarURL)
                     ForEach(Array(coAuthors.prefix(maxAvatars - 1).enumerated()), id: \.offset) { _, person in
                         PersonAvatar(url: avatarURL(person))
                     }
@@ -38,6 +39,14 @@ struct ContributorsLabel: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(verbatim: names))
         }
+    }
+
+    /// De foto van de auteur op GitHub, alleen voor iets dat een login kan zijn (geen spaties).
+    /// Een bot (`dependabot[bot]`) heeft zijn foto onder de naam zonder `[bot]`.
+    private var authorAvatarURL: URL? {
+        guard !author.contains(" ") else { return nil }
+        let login = author.hasSuffix("[bot]") ? String(author.dropLast("[bot]".count)) : author
+        return Account.gitHubAvatarURL(login, kind: kind, size: 40, web: web)
     }
 
     /// "ana, mona en Jan": iedereen, de auteur eerst.
