@@ -5,11 +5,21 @@ public protocol HTTPClient: Sendable {
 }
 
 public struct URLSessionHTTPClient: HTTPClient {
+    /// Zonder cache: GitHub stuurt `Cache-Control: max-age=60`, en met `URLSession.shared` gaf
+    /// een nieuwe vraag binnen die minuut het oude antwoord (een net toegevoegde installatie of
+    /// PR bleef dan weg). Pullwatch wil bij elke poll en elke knop de stand van nu.
+    private static let session: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.urlCache = nil
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSession(configuration: configuration)
+    }()
+
     public init() {}
 
     public func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await Self.session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
                 throw ProviderError.network("geen HTTP-response")
             }

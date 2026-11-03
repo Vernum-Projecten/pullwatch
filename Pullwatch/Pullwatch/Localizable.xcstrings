@@ -6222,6 +6222,28 @@
         }
       }
     },
+    "Repositories laden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading repositories"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repositorys werden geladen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des dépôts"
+          }
+        }
+      }
+    },
     "Repositories van": {
       "localizations": {
         "de": {

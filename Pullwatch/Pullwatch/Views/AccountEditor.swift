@@ -24,8 +24,9 @@ struct AccountEditor: View {
     @State private var draft: Account
     @State private var pat = ""
     @State private var connectionMessage: String?
-    /// De repositories van de dienst; nil zolang ze laden.
-    @State private var availableRepos: [String]?
+    /// De repositories van de dienst; de vorige lijst blijft staan zolang een nieuwe laadt.
+    @State private var availableRepos: [String] = []
+    @State private var isLoadingRepos = false
     @State private var repoError: String?
     /// Opnieuw laden met de knop.
     @State private var reloadCount = 0
@@ -146,7 +147,7 @@ struct AccountEditor: View {
             }
 
             if draft.isComplete {
-                RepoFollowList(account: $draft, available: availableRepos, error: repoError) { reloadCount += 1 }
+                RepoFollowList(account: $draft, available: availableRepos, isLoading: isLoadingRepos, error: repoError) { reloadCount += 1 }
             }
 
             if isNew && saveAction == nil {
@@ -301,9 +302,13 @@ struct AccountEditor: View {
 
     private func loadRepos() async {
         guard draft.isComplete, draft.authMethod != .gitHubApp || signIn?.isSignedIn == true,
-              draft.authMethod != .pat || storedPAT || !pat.isEmpty else { return }
-        availableRepos = nil
+              draft.authMethod != .pat || storedPAT || !pat.isEmpty else {
+            isLoadingRepos = false
+            return
+        }
+        isLoadingRepos = true
         repoError = nil
+        defer { if !Task.isCancelled { isLoadingRepos = false } }
         do {
             let repos = try await model.repositories(for: draft, pat: pat.isEmpty ? nil : pat)
             if Task.isCancelled { return }

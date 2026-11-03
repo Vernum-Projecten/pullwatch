@@ -25,8 +25,9 @@ extension Account {
 /// "Alle" in de kop, en per repo één vinkje Volgen. Hoort in een `Form`.
 struct RepoFollowList: View {
     @Binding var account: Account
-    /// Wat de dienst als repositories gaf; nil zolang ze laden.
-    let available: [String]?
+    /// Wat de dienst als repositories gaf; blijft staan tijdens opnieuw laden.
+    let available: [String]
+    let isLoading: Bool
     let error: String?
     let reload: () -> Void
     @State private var search = ""
@@ -36,12 +37,17 @@ struct RepoFollowList: View {
             Toggle("Ook nieuwe repositories volgen", isOn: $account.followsNewRepositories)
             LabeledContent {
                 HStack {
-                    if available == nil { ProgressView().controlSize(.small) }
+                    // Altijd op zijn plek, alleen zichtbaar tijdens het laden: zo verspringt de rij niet.
+                    ProgressView()
+                        .controlSize(.small)
+                        .opacity(isLoading ? 1 : 0)
+                        .accessibilityHidden(!isLoading)
+                        .accessibilityLabel(Text("Repositories laden"))
                     Button("Opnieuw laden", action: reload)
-                        .disabled(available == nil)
+                        .disabled(isLoading)
                 }
             } label: {
-                TextField("Zoek een repository", text: $search)
+                TextField("Zoek een repository", text: $search, prompt: Text("Zoek een repository"))
                     .textFieldStyle(.roundedBorder)
                     .labelsHidden()
             }
@@ -82,7 +88,7 @@ struct RepoFollowList: View {
     /// De repo's die er zijn en die al gevolgd werden, gezocht, per eigenaar in de volgorde van
     /// het account (eigen account eerst).
     private var groups: [(owner: String, repos: [String])] {
-        let names = Account.mergedRepoNames(available: available ?? [], configured: Array(account.repoWatch.keys))
+        let names = Account.mergedRepoNames(available: available, configured: Array(account.repoWatch.keys))
             .filter { search.isEmpty || $0.localizedCaseInsensitiveContains(search) }
         let byOwner = Dictionary(grouping: names) { $0.split(separator: "/", maxSplits: 1).first.map(String.init) ?? $0 }
         let order = account.owners
