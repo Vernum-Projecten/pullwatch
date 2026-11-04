@@ -8121,6 +8121,35 @@
         }
       }
     },
+    "Gepubliceerd door %@: de nieuwste versie komt uit je eigen register.": {
+      "comment": "Repository of project dat een eigen package publiceert",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@: Die neueste Version kommt aus deiner eigenen Registry."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@: the latest version comes from your own registry."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@ : la dernière version provient de votre propre registre."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@: de nieuwste versie komt uit je eigen register."
+          }
+        }
+      }
+    },
     "Geschiedenis": {
       "localizations": {
         "de": {
@@ -9203,6 +9232,63 @@
           "stringUnit": {
             "state": "translated",
             "value": "In wachtrij"
+          }
+        }
+      }
+    },
+    "In-house": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauseigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-house"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interne"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-house"
+          }
+        }
+      }
+    },
+    "In-house, gepubliceerd door %@": {
+      "comment": "Repository die een eigen package publiceert",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauseigen, veröffentlicht von %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-house, published by %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interne, publié par %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In-house, gepubliceerd door %@"
           }
         }
       }
@@ -11763,6 +11849,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niet gecontroleerd: bron %@ staat uit"
+          }
+        }
+      }
+    },
+    "Niet gecontroleerd: geen toegang tot het packageregister van dit account": {
+      "comment": "Een eigen package; het token van het account mist het recht om het register te lezen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: no access to this account's package registry"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : aucun accès au registre de paquets de ce compte"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gecontroleerd: geen toegang tot het packageregister van dit account"
           }
         }
       }

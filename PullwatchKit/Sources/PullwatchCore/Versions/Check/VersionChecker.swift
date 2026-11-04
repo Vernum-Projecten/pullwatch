@@ -11,19 +11,29 @@ public struct VersionChecker: Sendable {
     let metadataCache: [String: PackageMetadata]
     /// Bronnen die uit staan (`AppConfig.disabledSources`): daar gaat geen verzoek heen.
     let disabledSources: Set<DataSourceID>
+    /// `VersionReport.publishedPackages` van de vorige check: de eigen packages voor de check van
+    /// één repo of van net gevolgde repo's (die vragen de registers niet opnieuw), en voor een
+    /// account waarvan het register nu mislukt.
+    let previousPublished: [AccountPackages]
+    /// De accounts, voor de webpagina van de repository die een eigen package publiceert.
+    let knownAccounts: [Account]
 
     public init(
         makeProvider: @escaping @Sendable (Account) -> any PRProvider,
         http: any HTTPClient = URLSessionHTTPClient(),
         now: @escaping @Sendable () -> Date = { Date() },
         metadataCache: [String: PackageMetadata] = [:],
-        disabledSources: Set<DataSourceID> = []
+        disabledSources: Set<DataSourceID> = [],
+        publishedPackages: [AccountPackages] = [],
+        accounts: [Account] = []
     ) {
         self.makeProvider = makeProvider
         self.http = http
         self.now = now
         self.metadataCache = metadataCache
         self.disabledSources = disabledSources
+        self.previousPublished = publishedPackages
+        self.knownAccounts = accounts
     }
 
     func isEnabled(_ id: DataSourceID) -> Bool { !disabledSources.contains(id) }
@@ -67,13 +77,13 @@ public struct VersionChecker: Sendable {
             }
         }
 
-        // De eigen packages naast de scan: één lijst per account, niet per repo.
-        let accountTargets = targets
-        async let published = publishedPackages(accountTargets)
-        let checked = await check(targets, progress: progress)
+        // De eigen packages vóór de scan: één lijst per account, niet per repo. De check heeft ze
+        // nodig om een eigen package niet bij het publieke register op te zoeken.
+        let published = await publishedPackages(targets)
+        let checked = await check(targets, published: effectivePublished(published), progress: progress)
         return VersionReport(
             checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest, packageMetadata: checked.metadata,
-            publishedPackages: await published
+            publishedPackages: published
         )
     }
 
@@ -106,7 +116,7 @@ public struct VersionChecker: Sendable {
     public func run(
         account: Account, repo: String
     ) async -> (repo: RepoVersions, latest: [String: PackageLatest], metadata: [String: PackageMetadata]) {
-        let checked = await check([(account, makeProvider(account), [repo])], progress: { _, _ in })
+        let checked = await check([(account, makeProvider(account), [repo])], published: previousPublished, progress: { _, _ in })
         return (checked.repos.first ?? RepoVersions(accountId: account.id, repo: repo, components: []), checked.latest, checked.metadata)
     }
 
@@ -131,12 +141,13 @@ public struct VersionChecker: Sendable {
             if !repos.isEmpty { targets.append((account, provider, repos)) }
         }
         guard !targets.isEmpty else { return ([], [:], [:]) }
-        return await check(targets, progress: progress)
+        return await check(targets, published: previousPublished, progress: progress)
     }
 
-    /// Stap 2 t/m 6 voor de opgegeven repo's per account.
+    /// Stap 2 t/m 6 voor de opgegeven repo's per account; `published` zijn de eigen packages.
     private func check(
         _ targets: [(account: Account, provider: any PRProvider, repos: [String])],
+        published: [AccountPackages],
         progress: @escaping @Sendable (Int, Int) async -> Void
     ) async -> (repos: [RepoVersions], latest: [String: PackageLatest], metadata: [String: PackageMetadata]) {
         var results: [RepoVersions] = []
@@ -187,9 +198,16 @@ public struct VersionChecker: Sendable {
             return await group.reduce(into: [String: [EndOfLifeRelease]]()) { $0[$1.0] = $1.1 }
         }
 
+        // 3b. Eigen packages: wat een gevolgde repo zelf publiceert, krijgt zijn versies uit het
+        //     eigen register. Die namen gaan hierna naar geen publiek register en niet naar OSV.
+        let inHouse = inHouseMetadata(
+            keys: Set(scans.flatMap(\.dependencies).map { "\($0.ecosystem):\($0.name)" }), published: published,
+            accounts: targets.map(\.account) + knownAccounts
+        )
+
         // 4. Kwetsbaarheden: één batch voor alle unieke naam@versie, daarna details per id. Elke
         //    install krijgt daarna het resultaat van zijn naam@versie.
-        let dependencies = Set(scans.flatMap(\.dependencies).map(\.withoutSource))
+        let dependencies = Set(scans.flatMap(\.dependencies).filter { inHouse["\($0.ecosystem):\($0.name)"] == nil }.map(\.withoutSource))
             .sorted { ($0.ecosystem, $0.name, $0.version) < ($1.ecosystem, $1.name, $1.version) }
         var vulnerabilityIds: [Dependency: [String]] = [:]
         var osvError: String?
@@ -218,10 +236,14 @@ public struct VersionChecker: Sendable {
         let checkedAt = now()
         var latest: [String: PackageLatest] = [:]
         // Packages van een register dat uit staat krijgen geen nieuwste versie: daar zegt de check niets over.
-        let checkable = packages.keys.filter(isRegistryEnabled(key:))
-        var metadata = await fetchMetadata(checkable, floors: floors, date: checkedAt)
+        let checkable = packages.keys.filter { inHouse[$0] == nil && isRegistryEnabled(key: $0) }
+        var metadata = await fetchMetadata(checkable, floors: floors, date: checkedAt, excluding: Set(inHouse.keys))
         for key in checkable {
             latest[key] = PackageLatest(version: metadata[key]?.latest, seenAt: checkedAt)
+        }
+        metadata.merge(inHouse) { _, own in own }
+        for (key, own) in inHouse {
+            latest[key] = PackageLatest(version: own.latest, seenAt: checkedAt)
         }
 
         // 5. Per repo samenvoegen en beoordelen.
@@ -253,6 +275,10 @@ public struct VersionChecker: Sendable {
             // alleen als er een onderdeel van dat product is.
             for ecosystem in Set(scan.dependencies.map(\.ecosystem)) {
                 if let id = DataSourceID.registry(ecosystem: ecosystem), !isEnabled(id) { skipped.insert(id) }
+            }
+            // Een eigen package zonder eigen register: de bron Packageregisters van je accounts.
+            if scan.dependencies.contains(where: { inHouse["\($0.ecosystem):\($0.name)"]?.inHouse?.status == .sourceOff }) {
+                skipped.insert(.packageRegistries)
             }
             for product in Set(scan.versions.map(\.product)) {
                 let id = DataSourceID.releases(product: product)
@@ -306,7 +332,9 @@ public struct VersionChecker: Sendable {
         // 6. Wat de blokkades nog missen: ouders van transitieve installs, de dependencies van
         //    een paar versies (binair zoeken naar de laagste ouder die past), een go.mod of de
         //    versielijst van een Go-module. Per ronde alleen wat de vorige ronde vroeg.
-        metadata = await completingMetadata(metadata, repos: results, latest: latest, floors: floors, attempted: Set(packages.keys), date: checkedAt)
+        metadata = await completingMetadata(
+            metadata, repos: results, latest: latest, floors: floors, attempted: Set(packages.keys), inHouse: Set(inHouse.keys), date: checkedAt
+        )
         return (results, latest, metadata)
     }
 

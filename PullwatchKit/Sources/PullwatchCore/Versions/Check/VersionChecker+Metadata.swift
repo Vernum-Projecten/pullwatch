@@ -20,14 +20,15 @@ extension VersionChecker {
     }
 
     /// Haalt het document van elk package in `keys` ("ecosysteem:naam"), hooguit acht tegelijk;
-    /// packages van een register dat uit staat worden overgeslagen.
+    /// packages van een register dat uit staat en eigen packages (`excluding`) worden overgeslagen:
+    /// een eigen naam gaat nooit naar het publieke register.
     func fetchMetadata(
-        _ keys: [String], floors: [String: (floor: String, keep: Set<String>)], date: Date
+        _ keys: [String], floors: [String: (floor: String, keep: Set<String>)], date: Date, excluding: Set<String> = []
     ) async -> [String: PackageMetadata] {
         var result: [String: PackageMetadata] = [:]
         let cache = metadataCache
         await withTaskGroup(of: (String, PackageMetadata?).self) { group in
-            var pending = keys.filter(isRegistryEnabled(key:)).sorted().makeIterator()
+            var pending = keys.filter { !excluding.contains($0) && isRegistryEnabled(key: $0) }.sorted().makeIterator()
             func addNext() {
                 guard let key = pending.next(), case let (ecosystem, name)? = Self.split(key) else { return }
                 group.addTask {
@@ -56,7 +57,7 @@ extension VersionChecker {
     /// Stap 6: haalt in rondes op wat `VersionReport.updateNeeds()` nog mist, elk ding één keer.
     func completingMetadata(
         _ start: [String: PackageMetadata], repos: [RepoVersions], latest: [String: PackageLatest],
-        floors: [String: (floor: String, keep: Set<String>)], attempted: Set<String>, date: Date
+        floors: [String: (floor: String, keep: Set<String>)], attempted: Set<String>, inHouse: Set<String> = [], date: Date
     ) async -> [String: PackageMetadata] {
         var metadata = start
         var attemptedPackages = attempted
@@ -65,16 +66,18 @@ extension VersionChecker {
         let cache = metadataCache
         for _ in 0..<Self.metadataRounds {
             let needs = VersionReport(checkedAt: date, repos: repos, latestPackages: latest, packageMetadata: metadata).updateNeeds()
-            let packages = needs.packages.subtracting(attemptedPackages)
+            // Een eigen package krijgt ook hier geen verzoek aan het publieke register.
+            let packages = needs.packages.subtracting(attemptedPackages).subtracting(inHouse)
             // Een register dat uit staat krijgt ook hier geen verzoek (de packages zelf filtert `fetchMetadata`).
-            let lists = needs.versionLists.subtracting(attemptedLists).filter(isRegistryEnabled(key:))
-            let details = needs.details.subtracting(attemptedDetails).filter { isRegistryEnabled(ecosystem: $0.ecosystem) }
+            let lists = needs.versionLists.subtracting(attemptedLists).subtracting(inHouse).filter(isRegistryEnabled(key:))
+            let details = needs.details.subtracting(attemptedDetails)
+                .filter { !inHouse.contains($0.key) && isRegistryEnabled(ecosystem: $0.ecosystem) }
             guard !packages.isEmpty || !lists.isEmpty || !details.isEmpty else { break }
             attemptedPackages.formUnion(packages)
             attemptedLists.formUnion(lists)
             attemptedDetails.formUnion(details)
 
-            metadata.merge(await fetchMetadata(Array(packages), floors: floors, date: date)) { _, new in new }
+            metadata.merge(await fetchMetadata(Array(packages), floors: floors, date: date, excluding: inHouse)) { _, new in new }
 
             for key in lists.sorted() {
                 guard case let (_, name)? = Self.split(key), var package = metadata[key],

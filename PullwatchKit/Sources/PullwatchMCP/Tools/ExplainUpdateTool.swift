@@ -45,6 +45,8 @@ enum ExplainUpdateTool {
         let package: String
         let ecosystem: String
         let latest: String?
+        /// Gezet als een gevolgde repository het package zelf publiceert.
+        let inHouse: MCPInHouse?
         let installs: [Install]
         let vulnerabilities: [Fix]
         let notChecked: [MCPSourceOff]
@@ -78,7 +80,10 @@ enum ExplainUpdateTool {
             output: .object(
                 [
                     "repository": .string(), "account_id": .string(), "package": .string(), "ecosystem": .string(),
-                    "latest": .string("The latest version in the registry; absent when unknown or the registry source is off."),
+                    "latest": .string(
+                        "The latest version in the registry (your own registry for an in-house package); absent when unknown or the registry source is off."
+                    ),
+                    "in_house": MCPInHouse.schema,
                     "installs": .array(of: .object(
                         [
                             "workspace": .string("Empty for the repository root."), "version": .string(),
@@ -149,14 +154,23 @@ enum ExplainUpdateTool {
         }
 
         var notChecked: [MCPSourceOff] = []
-        let registry = DataSourceID.registry(ecosystem: use.ecosystem)
-        let registryOff = registry.map(versions.isUnchecked) ?? false
-        if let registry, registryOff { notChecked.append(MCPSourceOff(registry, repository: match.repo)) }
+        let context = await source.updateContext(for: versions)
+        // Een eigen package: de nieuwste versie komt uit het eigen register, en alleen die bron telt.
+        let inHouse = context.metadata[use.key]?.inHouse.map(MCPInHouse.init)
+        let registryOff: Bool
+        if let inHouse {
+            let off = inHouse.notChecked(repository: match.repo)
+            registryOff = off != nil
+            if let off { notChecked.append(off) }
+        } else {
+            let registry = DataSourceID.registry(ecosystem: use.ecosystem)
+            registryOff = registry.map(versions.isUnchecked) ?? false
+            if let registry, registryOff { notChecked.append(MCPSourceOff(registry, repository: match.repo)) }
+        }
         if versions.isUnchecked(.osv) { notChecked.append(MCPSourceOff(.osv, repository: match.repo)) }
         let latest = registryOff ? nil : report?.latestPackages[use.key]?.version
-        let context = await source.updateContext(for: versions)
         let installs = use.installs.map { item in
-            install(use, item, latest: latest, registryOff: registryOff, context: context, versions: versions)
+            install(use, item, latest: latest, registryOff: registryOff, inHouse: inHouse, context: context, versions: versions)
         }
         let vulnerabilities = versions.vulnerabilityRows(gitHub: summary.advisories, context: context)
             .filter { $0.package.caseInsensitiveCompare(use.name) == .orderedSame && $0.first.ecosystem == use.ecosystem }
@@ -166,16 +180,18 @@ enum ExplainUpdateTool {
             }
         let output = Output(
             repository: match.repo, accountId: match.account.id, package: use.name, ecosystem: PackageVersions.kind(ofEcosystem: use.ecosystem),
-            latest: latest, installs: installs, vulnerabilities: vulnerabilities, notChecked: notChecked
+            latest: latest, inHouse: inHouse, installs: installs, vulnerabilities: vulnerabilities, notChecked: notChecked
         )
+        let own = inHouse.map { "\(use.name) is in-house: \($0.source) publishes it, so its latest version comes from your own registry. " } ?? ""
         let summaryText = registryOff
-            ? "\(use.name) in \(match.repo): \(notChecked[0].message)"
-            : installs.map(\.explanation).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: " ")
+            ? "\(own)\(use.name) in \(match.repo): \(notChecked[0].message)"
+            : own + installs.map(\.explanation).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: " ")
         return try MCPToolOutput.result(output, summary: summaryText)
     }
 
     private static func install(
-        _ use: PackageUse, _ install: PackageInstall, latest: String?, registryOff: Bool, context: UpdateContext, versions: RepoVersions
+        _ use: PackageUse, _ install: PackageInstall, latest: String?, registryOff: Bool, inHouse: MCPInHouse?, context: UpdateContext,
+        versions: RepoVersions
     ) -> Install {
         let scope = install.scope.rawValue
         let place = install.workspace.isEmpty ? "the root" : install.workspace
@@ -186,7 +202,11 @@ enum ExplainUpdateTool {
                 workspace: install.workspace, version: install.version, scope: scope, use: install.kind.rawValue, via: install.via,
                 requested: requested, declaredIn: install.source, update: "not_checked", unknownReason: nil, step: nil, usableVersion: nil,
                 blocker: nil,
-                explanation: "\(use.name) \(install.version) in \(place): the latest version is not checked because its registry source is off."
+                explanation: inHouse?.status == "needs_permission"
+                    ? "\(use.name) \(install.version) in \(place): the latest version is not checked because Pullwatch may not read the package registry that publishes it."
+                    : inHouse != nil
+                        ? "\(use.name) \(install.version) in \(place): the latest version is not checked because the source Package registries of your accounts is off."
+                        : "\(use.name) \(install.version) in \(place): the latest version is not checked because its registry source is off."
             )
         }
         let update = PackageUpdate(ecosystem: use.ecosystem, name: use.name, install: install, latest: latest, context: context)

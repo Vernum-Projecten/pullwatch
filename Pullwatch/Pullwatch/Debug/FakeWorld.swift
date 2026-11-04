@@ -92,13 +92,15 @@ nonisolated enum FakeWorld {
         // te werken), via express en body-parser (4.17.15, vastgehouden door body-parser) en in
         // packages/web (4.17.21), een kwetsbare qs alleen transitief en een dev-only lek. express 5
         // en vite 5 vragen een nieuwere Node; in packages/web houdt react-dom 18 react 19 tegen, en
-        // react-dom 19 vraagt react 19 als peer.
+        // react-dom 19 vraagt react 19 als peer. @octocat/greeting publiceert linguist zelf in GitHub
+        // Packages: een eigen package, met de nieuwste versie uit dat register (`publishedPackages`).
         "hello-world": [
             ".nvmrc": "16\n",
-            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}}"#,
+            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0","@octocat/greeting":"^1.2.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}}"#,
             "packages/web/package.json": #"{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}}"#,
             "package-lock.json": #"{"lockfileVersion":3,"packages":{"#
-                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}},"#
+                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0","@octocat/greeting":"^1.2.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}},"#
+                + #""node_modules/@octocat/greeting":{"version":"1.2.0"},"#
                 + #""packages/web":{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}},"#
                 + #""node_modules/web":{"resolved":"packages/web","link":true},"#
                 + #""node_modules/lodash":{"version":"4.17.20"},"#
@@ -166,6 +168,22 @@ nonisolated enum FakeWorld {
         ]
     }()
 
+    /// Wat octocat in GitHub Packages publiceert: één npm-package van linguist, met drie versies.
+    /// GitHub noemt een npm-package zonder scope; de scope is de eigenaar.
+    static func publishedPackages(path: String, query: String) -> String? {
+        let base = "/users/\(FakeGitHub.login)/packages"
+        if path == base {
+            guard query.contains("package_type=npm") else { return "[]" }
+            return #"[{"name":"greeting","package_type":"npm","visibility":"private","#
+                + #""html_url":"https://github.com/users/\#(FakeGitHub.login)/packages/npm/package/greeting","#
+                + #""updated_at":"\#(iso(2))","repository":{"full_name":"\#(FakeGitHub.login)/linguist"}}]"#
+        }
+        guard path == "\(base)/npm/greeting/versions" else { return nil }
+        return "[" + [("1.4.0", 2.0), ("1.3.0", 20.0), ("1.2.0", 60.0)].map { version, daysAgo in
+            #"{"name":"\#(version)","created_at":"\#(iso(daysAgo))","html_url":"https://github.com/users/\#(FakeGitHub.login)/packages/npm/greeting/\#(version)"}"#
+        }.joined(separator: ",") + "]"
+    }
+
     static func iso(_ daysAgo: Double) -> String {
         Date(timeIntervalSinceNow: -daysAgo * 86_400).formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
     }
@@ -190,6 +208,7 @@ nonisolated enum FakeWorld {
         default:
             break
         }
+        if let published = publishedPackages(path: path, query: url.query() ?? "") { return published }
         if path == "/search/issues" { return search(query: url.query() ?? "") }
         if path.hasPrefix("/advisories/") { return advisory(ghsaId: url.lastPathComponent) }
         if path == "/graphql" {

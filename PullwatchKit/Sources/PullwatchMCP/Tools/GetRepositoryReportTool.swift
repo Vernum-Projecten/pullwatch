@@ -31,6 +31,8 @@ enum GetRepositoryReportTool {
         let requested: [String]
         /// Transitief: de keten vanaf het directe package.
         let via: [String]?
+        /// Gezet als een gevolgde repository het package zelf publiceert.
+        let inHouse: MCPInHouse?
     }
 
     struct Release: Encodable {
@@ -113,6 +115,7 @@ enum GetRepositoryReportTool {
                             "usable_version": .string("The newest version that works now, when it differs from latest."),
                             "blocker": .string("What holds the update back, as a sentence."),
                             "declared_in": .array(of: .string()), "requested": .array(of: .string("A requested range from the manifest.")),
+                            "in_house": MCPInHouse.schema,
                         ],
                         required: ["name", "ecosystem", "workspace", "group", "installed", "update", "declared_in", "requested"]
                     )),
@@ -159,7 +162,7 @@ enum GetRepositoryReportTool {
             checked: true, checkedAt: report?.checkedAt, checkError: versions.error, runtimes: runtimes,
             latestRelease: versions.release.map { Release(tag: $0.tag, error: $0.error) },
             packages: page.items, total: packages.count, nextCursor: page.nextCursor,
-            notChecked: MCPSourceOff.skipped(versions)
+            notChecked: MCPSourceOff.skipped(versions) + permissionsMissing(packages, repository: match.repo)
         )
         if let error = versions.error {
             return try MCPToolOutput.result(output, summary: "The check of \(match.repo) failed: \(error)")
@@ -172,6 +175,13 @@ enum GetRepositoryReportTool {
                 ? " This check was made by an older version of Pullwatch, which kept only the direct packages; Pullwatch checks again by itself."
                 : "")
         return try MCPToolOutput.result(output, summary: summary)
+    }
+
+    /// Eigen packages die het account niet mocht lezen, één regel per reden.
+    private static func permissionsMissing(_ packages: [Package], repository: String) -> [MCPSourceOff] {
+        packages.compactMap(\.inHouse).filter { $0.status == "needs_permission" }
+            .compactMap { $0.notChecked(repository: repository) }
+            .reduce(into: [MCPSourceOff]()) { if !$0.contains($1) { $0.append($1) } }
     }
 
     private static func runtime(_ component: ComponentVersion, versions: RepoVersions) -> Runtime {
@@ -191,7 +201,10 @@ enum GetRepositoryReportTool {
     private static func package(
         _ package: WorkspacePackage, workspace: String, group: String, versions: RepoVersions, report: VersionReport?, context: UpdateContext
     ) -> Package {
-        let registryOff = DataSourceID.registry(ecosystem: package.ecosystem).map(versions.isUnchecked) ?? false
+        // Een eigen package hangt aan het eigen register, niet aan het publieke van zijn ecosysteem.
+        let inHouse = context.metadata[package.id]?.inHouse
+        let registryOff = inHouse.map { !$0.isChecked }
+            ?? DataSourceID.registry(ecosystem: package.ecosystem).map(versions.isUnchecked) ?? false
         let latest = registryOff ? nil : report?.latestPackages[package.id]?.version
         let installs = package.installs
         let installed = installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
@@ -215,7 +228,8 @@ enum GetRepositoryReportTool {
             name: package.name, ecosystem: PackageVersions.kind(ofEcosystem: package.ecosystem), workspace: workspace, group: group,
             installed: installed, latest: latest, update: updateText, unknownReason: reason, usableVersion: usable, blocker: blocker,
             declaredIn: declaredIn, requested: requested,
-            via: group == "transitive" ? installs.first { $0.scope == .transitive }?.via : nil
+            via: group == "transitive" ? installs.first { $0.scope == .transitive }?.via : nil,
+            inHouse: inHouse.map(MCPInHouse.init)
         )
     }
 }

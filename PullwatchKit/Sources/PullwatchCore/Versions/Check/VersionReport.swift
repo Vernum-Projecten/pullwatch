@@ -137,9 +137,14 @@ extension VersionReport {
     /// houdt zijn beveiliging.
     public func visible(disabled: Set<DataSourceID>, accountKinds: [UUID: ProviderKind]) -> VersionReport {
         guard !disabled.isEmpty else { return self }
+        let registriesOff = disabled.contains(.packageRegistries)
+        /// Een eigen package hangt aan de bron Packageregisters van je accounts, niet aan het
+        /// publieke register van zijn ecosysteem.
         func isOff(key: String) -> Bool {
-            VersionChecker.split(key).flatMap { DataSourceID.registry(ecosystem: $0.0) }.map(disabled.contains) ?? false
+            if packageMetadata[key]?.inHouse != nil { return registriesOff }
+            return VersionChecker.split(key).flatMap { DataSourceID.registry(ecosystem: $0.0) }.map(disabled.contains) ?? false
         }
+        let inHouseKeys = Set(packageMetadata.filter { $0.value.inHouse != nil }.keys)
         /// Onderdelen waarvan de releasebron uit staat: geen nieuwste versie en geen status.
         func components(_ components: [ComponentVersion]) -> (components: [ComponentVersion], skipped: Set<DataSourceID>) {
             var skipped: Set<DataSourceID> = []
@@ -168,6 +173,7 @@ extension VersionReport {
             let uses = repo.packages + repo.otherPackages
             let ecosystems = Set(uses.map(\.ecosystem))
             var skipped = repo.skippedSources.union(packageSources(hasPackages: !uses.isEmpty, ecosystems: ecosystems))
+            if registriesOff, uses.contains(where: { inHouseKeys.contains($0.key) }) { skipped.insert(.packageRegistries) }
             let shown = components(repo.components)
             skipped.formUnion(shown.skipped)
             var security = repo.security
@@ -208,7 +214,11 @@ extension VersionReport {
             latestPackages: latestPackages.filter { !isOff(key: $0.key) },
             advisories: disabled.contains(.gitHubAdvisoryDatabase) ? [:] : advisories,
             advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }, format: format,
+            packageMetadata: packageMetadata.compactMapValues { metadata in
+                // Een eigen package met de bron uit: wel bekend als eigen, maar zonder versies.
+                guard let own = metadata.inHouse else { return metadata }
+                return registriesOff ? PackageMetadata(latest: nil, versions: [:], inHouse: own.with(status: .sourceOff)) : metadata
+            }.filter { $0.value.inHouse != nil || !isOff(key: $0.key) }, format: format,
             publishedPackages: disabled.contains(.packageRegistries) ? [] : publishedPackages
         )
     }

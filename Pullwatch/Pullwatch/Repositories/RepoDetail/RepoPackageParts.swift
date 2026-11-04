@@ -11,8 +11,10 @@ struct RepoPackageTable: View {
     /// geen nieuwste versie, en de status zegt waarom.
     var skippedSources: Set<DataSourceID> = []
 
+    /// Een eigen package hangt niet aan het publieke register van zijn ecosysteem.
     private func skippedRegistry(of row: RepoPackageTableRow) -> DataSourceID? {
-        DataSourceID.registry(ecosystem: row.row.package.ecosystem).flatMap { skippedSources.contains($0) ? $0 : nil }
+        guard row.row.inHouse == nil else { return nil }
+        return DataSourceID.registry(ecosystem: row.row.package.ecosystem).flatMap { skippedSources.contains($0) ? $0 : nil }
     }
 
     private func isExpanded(_ id: String) -> Binding<Bool> {
@@ -134,8 +136,13 @@ private struct PackageNameCell: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             } else {
-                Text(verbatim: row.row.name)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(verbatim: row.row.name)
+                        .lineLimit(1)
+                    if let inHouse = row.row.inHouse {
+                        InHouseBadge(inHouse: inHouse)
+                    }
+                }
                 if let detail = row.row.detailText {
                     Text(verbatim: detail)
                         .foregroundStyle(.secondary)
@@ -158,6 +165,11 @@ private struct PackageStatusCell: View {
         if let status = row.status {
             UpdateStatusLabel(status: status)
                 .accessibilityHidden(true)
+        } else if row.install == nil, let inHouse = row.row.inHouse, let text = SourceOff.inHouseNotChecked(inHouse) {
+            Text(verbatim: text)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .help(Text(verbatim: SourceOff.inHouseHelp(inHouse) ?? text))
         } else if let skippedRegistry, row.install == nil {
             Text(verbatim: SourceOff.versionNotChecked(skippedRegistry))
                 .foregroundStyle(.secondary)
@@ -187,7 +199,13 @@ struct PackageInspector: View {
                         .textSelection(.enabled)
                     Text(verbatim: row.row.package.ecosystem)
                         .foregroundStyle(.secondary)
-                    if let skippedRegistry {
+                    if let inHouse = row.row.inHouse {
+                        InHouseBadge(inHouse: inHouse)
+                        if let text = SourceOff.inHouseNotChecked(inHouse) {
+                            SourceOffText(text: SourceOff.inHouseHelp(inHouse) ?? text)
+                        }
+                    }
+                    if let skippedRegistry, row.row.inHouse == nil {
                         SourceOffText(text: SourceOff.versionNotChecked(skippedRegistry))
                     }
                     if let status = row.status {
@@ -208,7 +226,8 @@ struct PackageInspector: View {
                     LabeledContent("Nu mogelijk") { Text(verbatim: usable).monospacedDigit() }
                 }
                 LabeledContent("Nieuwste") {
-                    Text(verbatim: row.row.latest ?? (skippedRegistry == nil ? String(localized: "Onbekend") : String(localized: "Niet gecontroleerd")))
+                    Text(verbatim: row.row.latest ?? (skippedRegistry == nil && row.row.inHouse?.isChecked != false
+                                                       ? String(localized: "Onbekend") : String(localized: "Niet gecontroleerd")))
                         .monospacedDigit()
                 }
                 if showsWorkspace {

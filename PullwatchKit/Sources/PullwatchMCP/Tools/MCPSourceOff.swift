@@ -16,6 +16,14 @@ struct MCPSourceOff: Encodable, Hashable {
         self.repository = repository
     }
 
+    /// Een eigen package dat het account niet mag lezen: de bron staat aan, maar het token mist het recht.
+    init(permission reason: String?, repository: String? = nil) {
+        source = DataSourceID.packageRegistries.rawValue
+        message = "Not checked: Pullwatch has no permission to read this account's package registry"
+            + (reason.map { " (\($0))" } ?? "") + "."
+        self.repository = repository
+    }
+
     /// De Engelse naam van de bron ("OSV.dev", "GitHub security").
     static func name(_ id: DataSourceID) -> String {
         AgentBrief.englishName(id)
