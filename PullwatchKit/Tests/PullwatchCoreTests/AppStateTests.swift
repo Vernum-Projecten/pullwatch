@@ -4,7 +4,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct AppStateTests {
-    let t0 = Date(timeIntervalSince1970: 1_760_000_000)
+    let t0 = Date.testStart
 
     @Test func configDefaults() {
         let config = AppConfig()

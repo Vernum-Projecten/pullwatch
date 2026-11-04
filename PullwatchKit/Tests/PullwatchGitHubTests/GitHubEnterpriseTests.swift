@@ -94,14 +94,11 @@ import PullwatchTestSupport
         // github.com stuurt een profielfoto door naar avatars.githubusercontent.com, en daar staan
         // ook de foto's die de API zelf noemt; die host ziet de mock niet, dus hier met de hand.
         let called = Set(http.requests.compactMap { $0.url?.host() } + ["avatars.githubusercontent.com"])
-        for host in ["github.com", "api.github.com", "github.example.com", "api.acme.ghe.com", "acme.ghe.com"] {
-            #expect(called.contains(host), "\(host) werd niet aangeroepen")
-        }
         let listed = Set(DataSource.all.flatMap(\.endpoints).compactMap { $0.host() })
             .union(SourcesOverview.otherConnections(config: AppConfig(accounts: accounts, checkForUpdates: false)).flatMap(\.urls).compactMap { $0.host() })
-        for host in called.sorted() {
-            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
-        }
+        expectCalledHostsAreListed(
+            called: called, expected: ["github.com", "api.github.com", "github.example.com", "api.acme.ghe.com", "acme.ghe.com"], listed: listed
+        )
     }
 
     @Test func gitHubDotComRequestsAreUnchanged() async throws {

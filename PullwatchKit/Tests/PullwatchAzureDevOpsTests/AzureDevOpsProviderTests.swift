@@ -16,16 +16,6 @@ import PullwatchTestSupport
         """#
     }
 
-    func makeProvider(_ http: MockHTTPClient, auth: AuthMethod = .pat, token: String = "secret") -> AzureDevOpsProvider {
-        AzureDevOpsProvider(
-            accountId: fixedAccountId,
-            organization: "acme",
-            tokenSource: StaticTokenSource(token: token),
-            authMethod: auth,
-            http: http
-        )
-    }
-
     /// Auto-complete aan (`autoCompleteSetBy`): de PR voltooit vanzelf en staat dus in de rij.
     @Test func `Auto-complete shows as queued`() async throws {
         let http = MockHTTPClient()
@@ -104,7 +94,7 @@ import PullwatchTestSupport
     }
 
     @Test func testConnectionReportsNoAccessWhenOrganizationRejectsToken() async {
-        // connectionData is not organization-scoped: it succeeds for any org name.
+        // connectionData hoort niet bij een organisatie: het lukt bij elke naam.
         let http = MockHTTPClient()
         http.on("connectionData", body: #"{"authenticatedUser":{"id":"me-guid","providerDisplayName":"Alessandro Torrisi"}}"#)
         http.on("_apis/projects", status: 401, body: "")
@@ -113,7 +103,7 @@ import PullwatchTestSupport
     }
 
     @Test func anonymousIdentityMeansUnauthorized() async {
-        // Azure DevOps answers connectionData with an anonymous user when the token is not accepted.
+        // Azure DevOps geeft bij connectionData een anonieme gebruiker als het token niet geaccepteerd wordt.
         let http = MockHTTPClient()
         http.on("connectionData", body: #"{"authenticatedUser":{"id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","providerDisplayName":"Anonymous"}}"#)
         let provider = makeProvider(http)
@@ -340,7 +330,7 @@ import PullwatchTestSupport
         http.on("queryTimeRangeType=created", body: #"{"value":[\#(syncPR(id: 1, status: "active")),\#(syncPR(id: 2, status: "active"))]}"#)
         http.on("queryTimeRangeType=closed", body: #"{"value":[\#(syncPR(id: 2, status: "completed")),\#(syncPR(id: 3, status: "abandoned"))]}"#)
 
-        let prs = try await makeProvider(http).pullRequests(updatedSince: Date(timeIntervalSince1970: 1_760_000_000), limit: 1000)
+        let prs = try await makeProvider(http).pullRequests(updatedSince: Date.testStart, limit: 1000)
 
         #expect(prs.map(\.number).sorted() == [1, 2, 3])
         let prRequests = http.requests.map(\.url!.absoluteString).filter { $0.contains("_apis/git/pullrequests") }
@@ -369,7 +359,7 @@ import PullwatchTestSupport
         let fullPage = (1...100).map { syncPR(id: $0, status: "active") }.joined(separator: ",")
         http.on("_apis/git/pullrequests", body: #"{"value":[\#(fullPage)]}"#)
 
-        _ = try await makeProvider(http).pullRequests(updatedSince: Date(timeIntervalSince1970: 1_760_000_000), limit: 250)
+        _ = try await makeProvider(http).pullRequests(updatedSince: Date.testStart, limit: 250)
 
         let prRequests = http.requests.map(\.url!.absoluteString).filter { $0.contains("_apis/git/pullrequests") }
         // Per reeks drie volle pagina's (300 ≥ 250), daarna stopt die reeks, ook voor project B.

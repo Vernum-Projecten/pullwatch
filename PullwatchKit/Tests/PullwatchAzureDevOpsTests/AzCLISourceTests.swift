@@ -5,8 +5,8 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct AzCLISourceTests {
-    let homebrew = CLILocator(isExecutable: { $0.hasPrefix("/opt/homebrew/bin/") })
-    let nothing = CLILocator(isExecutable: { _ in false })
+    let homebrew = CLILocator.homebrew
+    let nothing = CLILocator.nothing
 
     @Test func azParsesTokenAndCallsCorrectCommand() async throws {
         let clock = TestClock()

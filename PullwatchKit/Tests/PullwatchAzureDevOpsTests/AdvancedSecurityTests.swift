@@ -5,12 +5,6 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct AdvancedSecurityTests {
-    func makeProvider(_ http: MockHTTPClient) -> AzureDevOpsProvider {
-        AzureDevOpsProvider(
-            accountId: fixedAccountId, organization: "acme", tokenSource: StaticTokenSource(token: "secret"), authMethod: .pat, http: http
-        )
-    }
-
     let alerts = #"""
         {"count":3,"value":[
           {"alertId":11,"alertType":"code","severity":"high","state":"active","title":"SQL injection",

@@ -13,16 +13,6 @@ import PullwatchTestSupport
      "repository":{"name":"api","project":{"name":"My Project"}}}]}
     """#
 
-    func makeProvider(_ http: MockHTTPClient) -> AzureDevOpsProvider {
-        AzureDevOpsProvider(
-            accountId: fixedAccountId,
-            organization: "acme",
-            tokenSource: StaticTokenSource(token: "secret"),
-            authMethod: .pat,
-            http: http
-        )
-    }
-
     @Test func lastSourceCommitIsTheRevision() async throws {
         let http = MockHTTPClient()
         http.on("_apis/projects", body: projects)

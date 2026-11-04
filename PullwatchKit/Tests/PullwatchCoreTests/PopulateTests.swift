@@ -138,7 +138,7 @@ import PullwatchTestSupport
 
     @Test func historyAddsSyncedTagsAsRead() {
         let account = Account.fixture()
-        let now = Date(timeIntervalSince1970: 1_760_000_000)
+        let now = Date.testStart
         let older = datedTag(account, name: "v1", at: now - 5 * day)
         let newer = datedTag(account, name: "v2", at: now - day)
         let ancient = datedTag(account, name: "v0", at: now - 100 * day)

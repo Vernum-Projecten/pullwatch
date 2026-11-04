@@ -5,7 +5,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct GhCLISourceTests {
-    let homebrew = CLILocator(isExecutable: { $0.hasPrefix("/opt/homebrew/bin/") })
+    let homebrew = CLILocator.homebrew
 
     @Test func ghTrimsTokenAndCaches() async throws {
         let runner = MockProcessRunner()

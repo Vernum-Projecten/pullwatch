@@ -8,9 +8,7 @@ import Synchronization
 @Suite struct GitHubChecksTests {
     let http = MockHTTPClient()
 
-    var provider: GitHubProvider {
-        GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "ghtok"), http: http)
-    }
+    var provider: GitHubProvider { makeProvider(http) }
 
     func pr(_ number: Int, repo: String = "acme/web") -> PullRequest {
         .fixture(repo: repo, number: number, authorId: "octocat", authorName: "octocat")

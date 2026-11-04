@@ -4,7 +4,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct SeenStateTests {
-    let t0 = Date(timeIntervalSince1970: 1_760_000_000)
+    let t0 = Date.testStart
     let day: TimeInterval = 24 * 3600
 
     @Test func markThenContains() {

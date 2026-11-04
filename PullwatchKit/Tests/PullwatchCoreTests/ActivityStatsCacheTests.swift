@@ -4,7 +4,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct ActivityStatsCacheTests {
-    let now = Date(timeIntervalSince1970: 1_760_000_000)
+    let now = Date.testStart
 
     private func history(_ count: Int) -> History {
         var history = History()

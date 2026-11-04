@@ -5,10 +5,6 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct GitHubSecurityTests {
-    func makeProvider(_ http: MockHTTPClient) -> GitHubProvider {
-        GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "ghtok"), http: http)
-    }
-
     func codeAlert(_ number: Int, level: String? = "high", severity: String = "error") -> String {
         let levelField = level.map { #""\#($0)""# } ?? "null"
         return #"""

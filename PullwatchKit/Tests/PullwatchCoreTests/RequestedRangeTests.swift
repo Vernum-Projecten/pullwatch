@@ -13,10 +13,6 @@ import Testing
         }
     }
 
-    private func installs(_ files: [String: String]) -> [Dependency] {
-        DependencyDetector.installs(files.sorted { $0.key < $1.key }.map { ($0.key, $0.value) }).dependencies
-    }
-
     @Test func npmLockKeepsTheImporterAndParentRanges() {
         let lock = """
         {"lockfileVersion": 3, "packages": {

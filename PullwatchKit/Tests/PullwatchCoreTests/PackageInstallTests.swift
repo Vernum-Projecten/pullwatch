@@ -4,19 +4,6 @@ import Testing
 
 /// Installs met workspace, scope, soort en via, per lockfile.
 @Suite struct PackageInstallTests {
-    /// "naam@versie workspace scope soort via" per install, gesorteerd.
-    private func describe(_ dependencies: [Dependency]) -> [String] {
-        dependencies.map { d in
-            let workspace = d.workspace.isEmpty ? "." : d.workspace
-            return "\(d.name)@\(d.version) \(workspace) \(d.scope.rawValue) \(d.kind.rawValue) \(d.via.joined(separator: ">"))"
-                .trimmingCharacters(in: .whitespaces)
-        }.sorted()
-    }
-
-    private func installs(_ files: [String: String]) -> [Dependency] {
-        DependencyDetector.installs(files.sorted { $0.key < $1.key }.map { ($0.key, $0.value) }).dependencies
-    }
-
     // MARK: npm
 
     static let npmMonorepo = """

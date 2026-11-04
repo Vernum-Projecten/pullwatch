@@ -4,7 +4,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct HistoryTests {
-    let t0 = Date(timeIntervalSince1970: 1_760_000_000)
+    let t0 = Date.testStart
     let day: TimeInterval = 86_400
 
     @Test func addsNewestFirstAcrossKinds() {

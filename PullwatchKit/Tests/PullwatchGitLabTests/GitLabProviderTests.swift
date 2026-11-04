@@ -11,7 +11,7 @@ import PullwatchTestSupport
         _ http: MockHTTPClient,
         owners: [String] = ["acme"],
         instance: URL? = nil,
-        now: @escaping @Sendable () -> Date = { Date(timeIntervalSince1970: 1_760_000_000) }
+        now: @escaping @Sendable () -> Date = { Date.testStart }
     ) -> GitLabProvider {
         GitLabProvider(
             accountId: fixedAccountId, owners: owners, instanceURL: instance,
@@ -87,7 +87,7 @@ import PullwatchTestSupport
     @Test func rateLimitUsesRetryAfter() async throws {
         let http = MockHTTPClient()
         http.on("\(api)user", status: 429, headers: ["Retry-After": "30", "RateLimit-Remaining": "0"], body: "Retry later")
-        let now = Date(timeIntervalSince1970: 1_760_000_000)
+        let now = Date.testStart
         await #expect(throws: ProviderError.rateLimited(until: now + 30)) {
             try await makeProvider(http, now: { now }).currentUserId()
         }
@@ -192,7 +192,7 @@ import PullwatchTestSupport
             GitLabFixtures.mergeRequest(iid: 2, state: "closed", closedAt: "2025-10-16T08:00:00.000Z"),
             GitLabFixtures.mergeRequest(iid: 3, state: "locked"),
         ].joined(separator: ",") + "]")
-        let since = Date(timeIntervalSince1970: 1_760_000_000)
+        let since = Date.testStart
         let prs = try await makeProvider(http).pullRequests(updatedSince: since, limit: 50)
         #expect(prs.map(\.number) == [1, 2, 3])
         #expect(prs.map(\.state) == [.merged, .closed, .open])
@@ -306,13 +306,8 @@ import PullwatchTestSupport
         }
 
         let called = Set(http.requests.compactMap { $0.url?.host() })
-        for host in ["gitlab.com", "git.example.com", "secure.gravatar.com"] {
-            #expect(called.contains(host), "\(host) werd niet aangeroepen")
-        }
         let listed = Set(SourcesOverview.otherConnections(config: AppConfig(accounts: accounts, checkForUpdates: false)).flatMap(\.urls).compactMap { $0.host() })
-        for host in called.sorted() {
-            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
-        }
+        expectCalledHostsAreListed(called: called, expected: ["gitlab.com", "git.example.com", "secure.gravatar.com"], listed: listed)
     }
 
     @Test func noReleaseRequestWithoutReleases() async throws {
