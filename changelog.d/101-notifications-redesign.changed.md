@@ -1,4 +1,0 @@
-- Notifications are redesigned. The title says what happened ("New Pull Request", "Pull Request Merged", "New Release v1.2.0", "Critical Vulnerability"), the subtitle names the repository, and the body gives the title with its author and co-authors. macOS stacks them per repository, and above 20 items in one poll each repository gets one summary.
-  Notifications have buttons: Mark as Read, Open Repository Page and Mute Repository (with Undo in the menu), and Show in Pullwatch and Copy Advisory ID on a vulnerability. A GitHub author's avatar is attached.
-  New pull requests, releases and vulnerabilities come with a banner; tags, merged pull requests and new versions arrive quietly in Notification Center. Reading an item in Pullwatch removes its notification.
-  The new Settings > Notifications pane has a switch per kind with a preview, quiet hours, and options for the Dock badge and the unread dot in the menu bar. The notification switches under General moved there.
