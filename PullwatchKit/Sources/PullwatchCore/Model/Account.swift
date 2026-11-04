@@ -26,16 +26,30 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// Bitbucket: het e-mailadres van het Atlassian-account bij het API-token (Basic auth
     /// `e-mail:token`). Geen geheim, dus in de config; het token zelf staat in de Keychain.
     public var email: String?
+    /// Bij Gitea (`ProviderKind.gitea`): Codeberg, Forgejo of Gitea. Bepaalt de naam, het logo en
+    /// het adres zonder eigen server; bij de andere diensten zonder betekenis.
+    public var giteaFlavour: GiteaFlavour
+
+    /// Het adres van de dienst zonder eigen server: bij Gitea dat van de smaak (codeberg.org,
+    /// gitea.com), anders `ProviderKind.defaultInstanceURL`.
+    public var defaultInstanceURL: URL? {
+        kind == .gitea ? giteaFlavour.defaultInstanceURL : kind.defaultInstanceURL
+    }
 
     /// Waar de repo's van dit account staan: de eigen server, anders de standaard van de dienst.
     public var effectiveInstanceURL: URL? {
-        kind.supportsInstanceURL ? (instanceURL ?? kind.defaultInstanceURL) : kind.defaultInstanceURL
+        kind.supportsInstanceURL ? (instanceURL ?? defaultInstanceURL) : defaultInstanceURL
+    }
+
+    /// De productnaam: bij Gitea die van de smaak ("Codeberg"), anders die van de dienst.
+    public var productName: String {
+        kind == .gitea ? giteaFlavour.name : kind.name
     }
 
     /// De dienst in namen: de host van een eigen server ("gitlab.example.com"), anders de productnaam.
     public var serviceName: String {
         guard kind.supportsInstanceURL, let host = instanceURL?.host(),
-              host != kind.defaultInstanceURL?.host() else { return kind.name }
+              host != defaultInstanceURL?.host() else { return productName }
         return host
     }
 
@@ -109,7 +123,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
             return String(localized: "@\(login) op \(serviceName)", bundle: .localizedCore, comment: "GitHub-login, dienst")
         }
         let named = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-        guard !named.isEmpty else { return kind.name }
+        guard !named.isEmpty else { return productName }
         let list = named.formatted(.list(type: .and))
         return String(localized: "\(list) op \(serviceName)", bundle: .localizedCore, comment: "Organisatie(s), groep(en) of gebruiker(s), dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server)")
     }
@@ -157,7 +171,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         isPaused: Bool = false,
         instanceURL: URL? = nil,
         extraRepos: [String] = [],
-        email: String? = nil
+        email: String? = nil,
+        giteaFlavour: GiteaFlavour = .gitea
     ) {
         self.id = id
         self.kind = kind
@@ -174,10 +189,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.instanceURL = instanceURL
         self.extraRepos = extraRepos
         self.email = email
+        self.giteaFlavour = giteaFlavour
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos, email
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos, email, giteaFlavour
     }
 
     public init(from decoder: any Decoder) throws {
@@ -204,6 +220,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         // Van vóór de losse repo's: geen.
         extraRepos = try c.decodeIfPresent([String].self, forKey: .extraRepos) ?? []
         email = try c.decodeIfPresent(String.self, forKey: .email)
+        // Alleen bij Gitea geschreven; zonder veld de smaak Gitea.
+        giteaFlavour = try c.decodeIfPresent(GiteaFlavour.self, forKey: .giteaFlavour) ?? .gitea
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -226,6 +244,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encodeIfPresent(instanceURL, forKey: .instanceURL)
         if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
         try c.encodeIfPresent(email, forKey: .email)
+        if kind == .gitea { try c.encode(giteaFlavour, forKey: .giteaFlavour) }
     }
 
     /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `<server>/<eigenaar>/<repo>`.
@@ -236,9 +255,10 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
             guard parts.count == 2 else { return nil }
             return URL(string: "https://dev.azure.com")?
                 .appending(path: organization).appending(path: parts[0]).appending(path: "_git").appending(path: parts[1])
-        case .gitHub, .gitLab, .bitbucket:
-            // "eigenaar/repo" (GitHub), "groep/subgroep/project" (GitLab) of "workspace/repo"
-            // (Bitbucket) onder de eigen server, anders github.com, gitlab.com of bitbucket.org.
+        case .gitHub, .gitLab, .bitbucket, .gitea:
+            // "eigenaar/repo" (GitHub, Gitea), "groep/subgroep/project" (GitLab) of "workspace/repo"
+            // (Bitbucket) onder de eigen server, anders github.com, gitlab.com, bitbucket.org,
+            // codeberg.org of gitea.com.
             return effectiveInstanceURL?.appending(path: repo)
         }
     }

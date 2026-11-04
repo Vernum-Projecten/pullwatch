@@ -99,11 +99,11 @@ private struct AccountsSettingsView: View {
             choosesKind = true
         }
         .confirmationDialog("Welk account voeg je toe?", isPresented: $choosesKind) {
-            ForEach(Array(AccountListButtons.choices.enumerated()), id: \.offset) { _, choice in
+            ForEach(AccountChoice.all) { choice in
                 Button {
-                    add(choice.kind, enterprise: choice.enterprise)
+                    add(choice)
                 } label: {
-                    Text(verbatim: AccountListButtons.title(of: choice))
+                    Text(verbatim: choice.title)
                 }
             }
         }
@@ -121,10 +121,10 @@ private struct AccountsSettingsView: View {
         }
     }
 
-    /// `enterprise`: een eigen server. Op GitHub Enterprise bestaat de Pullwatch-app niet; daar eerst een token.
-    private func add(_ kind: ProviderKind, enterprise: Bool) {
-        draftIsEnterprise = enterprise
-        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
+    /// Een eigen server staat in `choice.enterprise`, bij Gitea in de smaak van het concept.
+    private func add(_ choice: AccountChoice) {
+        draftIsEnterprise = choice.enterprise
+        draft = accounts.draft(for: choice)
     }
 }
 
@@ -210,40 +210,26 @@ private struct AccountCard: View {
     }
 }
 
-/// + met een pijltje (het opent een keuze: GitHub, Azure DevOps, GitLab of Bitbucket) en − onder de lijst, zoals
+/// + met een pijltje (het opent een keuze: GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo of Gitea) en − onder de lijst, zoals
 /// in de Mac-instellingen.
 private struct AccountListButtons: View {
     let canRemove: Bool
-    let add: (_ kind: ProviderKind, _ enterprise: Bool) -> Void
+    /// Dezelfde keuzes als op de kaarten van het welkomstvenster (`AccountChoice.all`): GitHub en
+    /// GitLab twee keer (ook een eigen server), en Codeberg, Forgejo en Gitea elk apart.
+    let add: (_ choice: AccountChoice) -> Void
     let remove: () -> Void
-
-    /// GitHub en GitLab twee keer: github.com en GitHub Enterprise, gitlab.com en een eigen
-    /// GitLab-server; dezelfde keuzes als op de kaarten van het welkomstvenster.
-    static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
-        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true), (.bitbucket, false),
-    ]
-
-    /// De productnaam van de keuze, in elke taal hetzelfde.
-    static func title(of choice: (kind: ProviderKind, enterprise: Bool)) -> String {
-        switch (choice.kind, choice.enterprise) {
-        case (.gitHub, true): "GitHub Enterprise"
-        case (.gitLab, true): "GitLab Self-Managed"
-        case (.bitbucket, _): "Bitbucket Cloud"
-        default: choice.kind.name
-        }
-    }
 
     var body: some View {
         HStack(spacing: 0) {
             Menu {
-                ForEach(Array(Self.choices.enumerated()), id: \.offset) { _, choice in
+                ForEach(AccountChoice.all) { choice in
                     Button {
-                        add(choice.kind, choice.enterprise)
+                        add(choice)
                     } label: {
                         Label {
-                            Text(verbatim: Self.title(of: choice))
+                            Text(verbatim: choice.title)
                         } icon: {
-                            ProviderMark.menuIcon(for: choice.kind)
+                            choice.menuIcon
                         }
                     }
                 }

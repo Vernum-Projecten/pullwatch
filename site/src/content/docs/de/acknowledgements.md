@@ -13,7 +13,9 @@ Pullwatch ist kostenlos und Open Source unter der [Apache License 2.0](https://g
 | [Swift System](https://github.com/apple/swift-system) | 1.8.1 | Apache 2.0 with the Runtime Library Exception | Systemaufrufe im MCP Swift SDK |
 | [EventSource](https://github.com/mattt/eventsource) | 1.6.0 | MIT | Server-Sent Events im MCP Swift SDK |
 | [GitHub Octicons](https://github.com/primer/octicons) | 19.41.0 | MIT | Die Symbole für Pull Requests und Checks, das Symbol in der Menüleiste und das Zeichen im App-Symbol |
+| [Codeberg-Logo](https://codeberg.org/Codeberg/Design) | 9f8c699 | CC0 1.0 | Das Zeichen eines Codeberg-Kontos |
+| [Forgejo-Logo](https://codeberg.org/forgejo/meta/src/branch/readme/branding) von Caesar Schinas | e34fea4 | CC BY-SA 4.0 | Das Zeichen eines Forgejo-Kontos |
 
 Das MCP Swift SDK bringt für seine eigenen Testwerkzeuge auch SwiftNIO, Swift Atomics und Swift Collections mit. Pullwatch linkt sie nicht, sie sind also nicht Teil der App.
 
-GitHub, GitLab, Bitbucket und Azure DevOps sind Marken ihrer Inhaber. Pullwatch nennt ihre Namen nur, um zu sagen, dass es mit ihnen funktioniert, und ist mit keinem von ihnen verbunden oder von ihnen empfohlen. Die Einzelheiten stehen in der [NOTICE-Datei](https://github.com/alessandro823/pullwatch/blob/main/NOTICE).
+GitHub, GitLab, Bitbucket, Azure DevOps, Codeberg, Forgejo und Gitea sind Marken ihrer Inhaber. Pullwatch nennt ihre Namen nur, um zu sagen, dass es mit ihnen funktioniert, und ist mit keinem von ihnen verbunden oder von ihnen empfohlen. Die Einzelheiten stehen in der [NOTICE-Datei](https://github.com/alessandro823/pullwatch/blob/main/NOTICE).

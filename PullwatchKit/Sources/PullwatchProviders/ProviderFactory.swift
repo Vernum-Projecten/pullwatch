@@ -3,6 +3,7 @@ import PullwatchAzureDevOps
 import PullwatchBitbucket
 public import PullwatchCore
 public import PullwatchGitHub
+import PullwatchGitea
 import PullwatchGitLab
 
 /// Maakt bij een account de provider van zijn dienst, met de juiste tokenbron; de enige plek die
@@ -37,6 +38,9 @@ public enum ProviderFactory {
             case .bitbucket:
                 // Bitbucket heeft geen officiële CLI die een token leesbaar bewaart: dan geen token.
                 tokens = KeychainPATSource(store: secrets, accountId: account.id)
+            // `tea` heeft geen commando dat een token geeft; een Gitea-account logt altijd met een
+            // token in (de editor biedt de CLI niet aan). Een config met `cli` faalt dan duidelijk.
+            case .gitea: tokens = KeychainPATSource(store: secrets, accountId: account.id)
             }
         case .gitHubApp:
             tokens = GitHubAppTokenSource(
@@ -79,6 +83,18 @@ public enum ProviderFactory {
                 workspaces: account.owners,
                 email: account.email,
                 extraRepos: account.extraRepos,
+                tokenSource: tokens,
+                http: http
+            )
+        case .gitea:
+            // Forgejo heeft geen standaardserver; zonder adres (een onvolledige config) codeberg.org,
+            // nooit een andere host met het token.
+            return GiteaProvider(
+                accountId: account.id,
+                owners: account.owners,
+                extraRepos: account.extraRepos,
+                instanceURL: account.effectiveInstanceURL ?? URL(string: "https://codeberg.org")!,
+                serviceName: account.productName,
                 tokenSource: tokens,
                 http: http
             )

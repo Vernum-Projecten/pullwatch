@@ -45,7 +45,7 @@ public struct VersionChecker: Sendable {
         switch kind {
         case .gitHub: .gitHubSecurity
         case .azureDevOps: .azureDevOpsAdvancedSecurity
-        case .gitLab, .bitbucket: nil
+        case .gitLab, .bitbucket, .gitea: nil
         }
     }
 

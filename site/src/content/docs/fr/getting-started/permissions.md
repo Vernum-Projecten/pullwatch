@@ -1,6 +1,6 @@
 ---
 title: Autorisations des jetons
-description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps, GitLab et Bitbucket."
+description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea."
 ---
 
 Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-dessous, et rien de plus. Quand il manque une autorisation pour une partie facultative, cette partie indique **Autorisation requise** avec un lien, et le reste continue de fonctionner.
@@ -55,6 +55,19 @@ Un **jeton d’API avec scopes** d’Atlassian pour l’app Bitbucket, avec l’
 | `read:pullrequest:bitbucket` | les pull requests et leurs commits (les co-auteurs) |
 
 Pullwatch ne demande rien de plus. `read:workspace:bitbucket` n’est pas nécessaire : Pullwatch vérifie un workspace par ses dépôts. Les mots de passe d’application de Bitbucket ne fonctionnent plus depuis juillet 2026.
+
+## Codeberg, Forgejo et Gitea
+
+Créez un jeton sous Paramètres, Applications sur le serveur, avec ces portées, toutes en Lecture :
+
+| Portée | Utilisée pour |
+|---|---|
+| `read:user` | qui vous êtes, et les dépôts des utilisateurs que vous suivez |
+| `read:organization` | les organisations que vous suivez et leurs dépôts |
+| `read:repository` | pull requests, tags, versions publiées, statuts de commit (checks), commits et fichiers |
+| `read:issue` | la liste des pull requests, qui vient de la recherche d’issues (`/repos/issues/search`) |
+
+S’il en manque une, **Tester la connexion** nomme la portée manquante. Un jeton limité aux dépôts publics ne fonctionne que pour les dépôts publics. Il n’y a pas de connexion en ligne de commande : `tea` n’a aucune commande qui fournit son jeton.
 
 ## Connexion avec un outil en ligne de commande
 

@@ -27,8 +27,8 @@
 </picture>
 
 Pullwatch is a menu bar app for macOS. It tells you about new pull requests,
-tags and releases on GitHub, Azure DevOps, GitLab™ and Bitbucket, keeps a searchable
-history, and checks your repositories for outdated runtimes, packages and
+tags and releases on GitHub, Azure DevOps, GitLab™, Bitbucket, Codeberg,
+Forgejo and Gitea, keeps a searchable history, and checks your repositories for outdated runtimes, packages and
 known vulnerabilities. It speaks English, Dutch, German and French.
 
 ## What it does
@@ -36,8 +36,8 @@ known vulnerabilities. It speaks English, Dutch, German and French.
 - **Pull requests**: a notification for each new or merged pull request (or
   merge request), with its CI checks as `4/8` and whether it waits in a merge
   queue or merge train.
-- **Tags and releases**: new tags and GitHub and GitLab releases, per
-  repository, with who made them.
+- **Tags and releases**: new tags and the releases of GitHub, GitLab,
+  Codeberg, Forgejo and Gitea, per repository, with who made them.
 - **History and statistics**: every pull request and tag in a searchable
   list, and charts of opened and merged pull requests per author and
   repository.
@@ -63,6 +63,7 @@ known vulnerabilities. It speaks English, Dutch, German and French.
 | Azure DevOps | Yes | Yes | No | Yes | Advanced Security alerts |
 | GitLab (gitlab.com and self-managed) | Yes | Yes | Yes | Yes | None; packages are checked with OSV.dev |
 | Bitbucket Cloud (bitbucket.org) | Yes | Yes | No (Bitbucket has none) | Yes (build statuses) | None; packages are checked with OSV.dev |
+| Codeberg, Forgejo and Gitea (codeberg.org, gitea.com and your own server) | Yes | Yes | Yes | Yes (commit statuses) | None; packages are checked with OSV.dev |
 
 The dependency and vulnerability check works on every service. See
 [Add your accounts](https://pullwatch.net/getting-started/accounts/) for the
@@ -162,10 +163,18 @@ Pullwatch is licensed under the [Apache License 2.0](LICENSE).
   unmodified Bitbucket icon from Atlassian's
   [logo component](https://atlassian.design/components/logo/) where an
   account connects to Bitbucket.
+- The Codeberg logo is from [Codeberg/Design](https://codeberg.org/Codeberg/Design), CC0; Codeberg is
+  a trademark of Codeberg e.V. The Forgejo logo is by Caesar Schinas, from
+  [forgejo/meta](https://codeberg.org/forgejo/meta/src/branch/readme/branding),
+  CC BY-SA 4.0. Gitea and its logo are trademarks of their owners; Pullwatch
+  shows the unmodified logo from the
+  [Gitea repository](https://github.com/go-gitea/gitea/blob/main/assets/logo.svg)
+  where an account connects to Gitea.
 - Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
   shows only the name, with an SF Symbol (a cloud).
 - Pullwatch is not affiliated with, endorsed, sponsored or approved by
-  GitHub, GitLab Inc., Atlassian or Microsoft.
+  GitHub, GitLab Inc., Atlassian, Microsoft, Codeberg e.V., the Forgejo
+  project, CommitGo, Inc. or the Gitea project.
 
 [NOTICE](NOTICE) holds the full notices, including the MCP Swift SDK and its
 dependencies.

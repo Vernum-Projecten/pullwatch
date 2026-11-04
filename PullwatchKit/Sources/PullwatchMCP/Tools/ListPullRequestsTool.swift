@@ -19,7 +19,7 @@ enum ListPullRequestsTool {
             name: name,
             title: "List pull requests",
             description: """
-                Lists the pull requests Pullwatch has seen in the repositories it follows (GitHub, Azure DevOps and GitLab), \
+                Lists the pull requests Pullwatch has seen in the repositories it follows (GitHub, Azure DevOps, GitLab, Gitea, Forgejo and Codeberg), \
                 newest first, with their state, CI checks, merge queue and read state. Use it to answer questions like \
                 "which of my pull requests have failing checks?" or "what is open in acme/web?". Reads only what Pullwatch \
                 already fetched; it never calls the services. Filters: repo, account_id, state (default open), author, mine, \

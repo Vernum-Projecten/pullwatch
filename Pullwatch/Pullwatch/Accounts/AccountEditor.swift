@@ -76,6 +76,8 @@ struct AccountEditor: View {
         isEnterprise = switch original.kind {
         case .gitHub: enterprise || original.isGitHubEnterprise
         case .gitLab: enterprise || original.instanceURL != nil
+        // Forgejo en Gitea: een eigen server (bij Gitea mag het veld leeg: gitea.com); Codeberg niet.
+        case .gitea: original.giteaFlavour.allowsOwnServer
         case .azureDevOps, .bitbucket: false
         }
         _ownersText = State(initialValue: original.owners.joined(separator: ", "))
@@ -97,7 +99,8 @@ struct AccountEditor: View {
     /// die een token leesbaar bewaart, dus daar nooit.
     private var offersCLI: Bool {
         switch draft.kind {
-        case .bitbucket: false
+        // Gitea, Forgejo en Codeberg: `tea` heeft geen commando dat zijn token geeft.
+        case .bitbucket, .gitea: false
         case .gitHub: isEnterprise || originalAuthMethod == .cli || !accounts.gitHubApp.isConfigured
         case .azureDevOps, .gitLab: true
         }
@@ -133,6 +136,8 @@ struct AccountEditor: View {
         case .gitHub: "GitHub CLI (gh auth login)"
         case .gitLab: "GitLab CLI (glab auth login)"
         case .bitbucket: "API-token met scopes"
+        // Nooit getoond (`offersCLI`); een oud account met `cli` leest het token uit de Keychain.
+        case .gitea: "Personal Access Token"
         }
     }
 
@@ -142,9 +147,10 @@ struct AccountEditor: View {
             && InstanceURL.parse(instanceText, for: draft.kind) == nil
     }
 
-    /// Een eigen server zonder (geldig) adres: github.com en gitlab.com tellen hier niet.
+    /// Een eigen server zonder (geldig) adres: github.com en gitlab.com tellen hier niet. Bij
+    /// Gitea is een leeg veld gitea.com; alleen Forgejo eist een server.
     private var lacksEnterpriseServer: Bool {
-        isEnterprise && draft.instanceURL == nil
+        isEnterprise && draft.instanceURL == nil && draft.defaultInstanceURL == nil
     }
 
     /// Waar je een token maakt, met de naam en de scopes al ingevuld: bij GitLab, en op een GitHub
@@ -157,6 +163,9 @@ struct AccountEditor: View {
         case .bitbucket:
             // Atlassian kan de scopes niet vooraf invullen; de hint noemt ze.
             return URL(string: "https://id.atlassian.com/manage-profile/security/api-tokens")
+        case .gitea:
+            // Gitea en Forgejo vullen geen naam of scopes in vanuit de link; de pagina met tokens.
+            return URL(string: base.absoluteString + "/user/settings/applications")
         case .gitHub where draft.isGitHubEnterprise:
             return URL(string: base.absoluteString + "/settings/tokens/new?description=Pullwatch&scopes=repo,read:org")
         default:
@@ -168,7 +177,50 @@ struct AccountEditor: View {
         switch draft.kind {
         case .gitLab: "Een personal access token met de scope read_api"
         case .bitbucket: "Kies Create API token with scopes, dan Bitbucket, met read:user:bitbucket, read:repository:bitbucket en read:pullrequest:bitbucket"
+        case .gitea: "Een token met de scopes read:user, read:organization, read:repository en read:issue"
         default: "Een classic token met de scopes repo en read:org, of een fine-grained token met leestoegang"
+        }
+    }
+
+    /// Het veld met eigenaren (GitLab, Bitbucket, Gitea): label, voorbeeld en hulp per dienst.
+    private var ownersLabel: String {
+        switch draft.kind {
+        case .bitbucket: String(localized: "Workspaces")
+        case .gitea: String(localized: "Organisaties of gebruikers")
+        default: String(localized: "Groepen of gebruikers")
+        }
+    }
+
+    private var ownersPrompt: String {
+        switch draft.kind {
+        case .bitbucket: "acme, acme-labs"
+        case .gitea: "acme, jdoe"
+        default: "acme, acme/platform"
+        }
+    }
+
+    private var ownersHelp: LocalizedStringKey {
+        switch draft.kind {
+        case .bitbucket: "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo."
+        case .gitea: "Scheid meerdere met een komma."
+        default: "Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen."
+        }
+    }
+
+    /// Een voorbeeld van een eigen server in het veld.
+    private var serverPrompt: String {
+        switch draft.kind {
+        case .gitLab: "https://gitlab.example.com"
+        case .gitea: draft.giteaFlavour == .forgejo ? "https://forgejo.example.com" : "https://gitea.com"
+        default: "https://github.example.com"
+        }
+    }
+
+    private var invalidServerHint: LocalizedStringKey {
+        switch draft.kind {
+        case .gitLab: "Alleen een https-adres, bijvoorbeeld https://gitlab.example.com"
+        case .gitea: "Alleen een https-adres met een geldig certificaat, bijvoorbeeld https://git.example.com"
+        default: "Alleen een https-adres, bijvoorbeeld https://github.example.com of https://acme.ghe.com"
         }
     }
 
@@ -199,7 +251,7 @@ struct AccountEditor: View {
                     // Een eigen server alleen via https (het token gaat erheen).
                     TextField(
                         String(localized: "Server"), text: $instanceText,
-                        prompt: Text(verbatim: draft.kind == .gitLab ? "https://gitlab.example.com" : "https://github.example.com")
+                        prompt: Text(verbatim: serverPrompt)
                     )
                     .autocorrectionDisabled()
                     .accessibilityIdentifier("account.instanceURL")
@@ -207,32 +259,34 @@ struct AccountEditor: View {
                         if text.trimmingCharacters(in: .whitespaces).isEmpty {
                             draft.instanceURL = nil
                         } else if let url = InstanceURL.parse(text, for: draft.kind) {
-                            draft.instanceURL = url == draft.kind.defaultInstanceURL ? nil : url
+                            draft.instanceURL = url == draft.defaultInstanceURL ? nil : url
                         }
                     }
                     if instanceTextIsInvalid {
-                        Text(draft.kind == .gitLab
-                             ? "Alleen een https-adres, bijvoorbeeld https://gitlab.example.com"
-                             : "Alleen een https-adres, bijvoorbeeld https://github.example.com of https://acme.ghe.com")
+                        Text(invalidServerHint)
                             .font(.caption)
                             .foregroundStyle(.red)
+                    } else if draft.kind == .gitea {
+                        Text(draft.giteaFlavour == .forgejo
+                             ? "Je eigen Forgejo-server, via https"
+                             : "Leeg is gitea.com; anders je eigen Gitea-server, via https")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     } else if draft.kind == .gitHub {
                         Text("GitHub Enterprise Server, of je eigen subdomein op ghe.com")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
-                if draft.kind == .gitLab || draft.kind == .bitbucket {
+                if draft.kind == .gitLab || draft.kind == .bitbucket || draft.kind == .gitea {
                     TextField(
-                        draft.kind == .bitbucket ? String(localized: "Workspaces") : String(localized: "Groepen of gebruikers"),
+                        ownersLabel,
                         text: $ownersText,
-                        prompt: Text(verbatim: draft.kind == .bitbucket ? "acme, acme-labs" : "acme, acme/platform")
+                        prompt: Text(verbatim: ownersPrompt)
                     )
                     .autocorrectionDisabled()
                     .accessibilityIdentifier("account.organization")
-                    .help(draft.kind == .bitbucket
-                          ? "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo."
-                          : "Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.")
+                    .help(ownersHelp)
                     .onChange(of: ownersText) { _, text in
                         let owners = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
                         if owners != draft.owners { draft.owners = owners }
@@ -489,7 +543,11 @@ struct AccountEditor: View {
         if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Volg minstens één plek" }
         if instanceTextIsInvalid { return "Vul een https-adres in voor de server" }
         if lacksEnterpriseServer {
-            return draft.kind == .gitLab ? "Vul het adres van je GitLab-server in" : "Vul het adres van je GitHub Enterprise-server in"
+            switch draft.kind {
+            case .gitLab: return "Vul het adres van je GitLab-server in"
+            case .gitea: return "Vul het adres van je Forgejo-server in"
+            default: return "Vul het adres van je GitHub Enterprise-server in"
+            }
         }
         if !hasRequiredFields {
             switch draft.kind {
@@ -497,6 +555,7 @@ struct AccountEditor: View {
             case .gitHub: return "Vul de owner in"
             case .gitLab: return "Vul een groep of gebruiker in"
             case .bitbucket: return "Vul een workspace in"
+            case .gitea: return "Vul een organisatie of gebruiker in"
             }
         }
         if lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }

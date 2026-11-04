@@ -57,7 +57,7 @@ extension ProviderKind {
     /// die Pullwatch nu kent kan het; een nieuwe pas als zijn provider `checkRepository` heeft.
     public var supportsExtraRepos: Bool {
         switch self {
-        case .gitHub, .azureDevOps, .gitLab, .bitbucket: true
+        case .gitHub, .azureDevOps, .gitLab, .bitbucket, .gitea: true
         }
     }
 }
@@ -71,7 +71,8 @@ public enum RepositoryReference {
     /// GitLab kent een groep met hooguit twintig niveaus subgroepen, plus het project zelf.
     static let gitLabMaxDepth = 22
 
-    /// `instanceURL`: de eigen server van het account. Bij GitHub alleen voor GitHub Enterprise
+    /// `instanceURL`: de eigen server van het account. Bij Gitea altijd de server van het account
+    /// (codeberg.org, gitea.com of een eigen); een link moet daarop staan. Bij GitHub alleen voor GitHub Enterprise
     /// (een link naar die server telt dan als een GitHub-link); bij GitLab de server (nil is
     /// gitlab.com), en een link moet op die server staan.
     public static func parse(
@@ -86,7 +87,7 @@ public enum RepositoryReference {
         let instance = kind == .gitLab ? (instanceURL ?? kind.defaultInstanceURL) : nil
         let isLink = text.contains("://") || text.hasPrefix("git@")
 
-        if kind == .gitHub, let instanceURL, let repo = instanceLink(text, instanceURL: instanceURL) {
+        if kind == .gitHub || kind == .gitea, let instanceURL, let repo = instanceLink(text, instanceURL: instanceURL) {
             return try plain(repo, kind: kind)
         }
         if let link = link(text, gitLabInstance: instance) {
@@ -103,6 +104,10 @@ public enum RepositoryReference {
         }
         // Een link naar een onbekende host kan bij GitLab een andere GitLab-server zijn.
         if isLink, kind == .gitLab, let found = host(of: text), let expected = instance?.host()?.lowercased() {
+            throw .otherServer(found: found, expected: expected)
+        }
+        // Bij Gitea is elke andere host een andere server (Codeberg, gitea.com of een eigen).
+        if isLink, kind == .gitea, let found = host(of: text), let expected = instanceURL?.host()?.lowercased(), found != expected {
             throw .otherServer(found: found, expected: expected)
         }
         if isLink { throw .unrecognised(kind) }
@@ -126,6 +131,14 @@ public enum RepositoryReference {
         case .azureDevOps:
             // Azure DevOps staat spaties toe; een deel dat met "_" begint is een pagina (`_git`).
             guard parts.allSatisfy({ !$0.hasPrefix("_") && $0.trimmingCharacters(in: .whitespaces) == $0 }) else {
+                throw .unrecognised(kind)
+            }
+        case .gitea:
+            // Gitea en Forgejo: letters, cijfers, "_", "-" en "."; niet alleen punten.
+            let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-."))
+            guard parts.allSatisfy({ part in
+                part.unicodeScalars.allSatisfy(allowed.contains) && part != "." && part != ".."
+            }) else {
                 throw .unrecognised(kind)
             }
         case .gitLab:

@@ -103,7 +103,10 @@ public struct DataSource: Sendable, Identifiable {
         DataSource(
             id: .ciChecks, group: .pullRequests, name: "CI-checks", localizedName: LocalizedStringResource("CI-checks", bundle: .localizedCore),
             summary: LocalizedStringResource("De checks (CI) van pull requests: hoeveel er geslaagd, mislukt of nog bezig zijn, en de melding als die van je eigen PR mislukken", bundle: .localizedCore),
-            endpoints: ["https://api.github.com", "https://dev.azure.com", "https://gitlab.com/api/v4"],
+            endpoints: [
+                "https://api.github.com", "https://dev.azure.com", "https://gitlab.com/api/v4", "https://codeberg.org/api/v1",
+                "https://gitea.com/api/v1",
+            ],
             site: "https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks"),
     ]
 

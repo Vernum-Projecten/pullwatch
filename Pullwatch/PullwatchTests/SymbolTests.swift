@@ -60,6 +60,25 @@ import Testing
         #expect(ProviderKind.bitbucket.glyphKeepsItsColours)
     }
 
+    /// Codeberg, Forgejo en Gitea: elk zijn eigen logo, onveranderd en in zijn eigen kleuren.
+    @Test(arguments: [(GiteaFlavour.codeberg, "CodebergMark"), (.forgejo, "ForgejoMark"), (.gitea, "GiteaMark")])
+    func `Each Gitea flavour has its own mark in its own colours`(_ flavour: GiteaFlavour, name: String) throws {
+        #expect(flavour.glyph == .asset(name))
+        let logo = try #require(NSImage(named: name))
+        #expect(!logo.isTemplate)
+        #expect(logo.size.width > 0 && logo.size.height > 0)
+        #expect(flavour.glyph.keepsItsColours)
+        let account = Account(kind: .gitea, organization: "acme", authMethod: .pat, giteaFlavour: flavour)
+        #expect(account.glyph == flavour.glyph)
+    }
+
+    /// Elke keuze bij een nieuw account heeft een eigen id (de camera en `ForEach`) en een naam.
+    @Test func `Account choices are unique and named`() {
+        #expect(Set(AccountChoice.all.map(\.id)).count == AccountChoice.all.count)
+        #expect(AccountChoice.all.allSatisfy { !$0.title.isEmpty })
+        #expect(AccountChoice.all.filter { $0.kind == .gitea }.map(\.title) == ["Codeberg", "Forgejo", "Gitea"])
+    }
+
     @Test(arguments: NotificationGlyph.allCases)
     func notificationGlyphsExist(_ glyph: NotificationGlyph) {
         #expect(exists(glyph.glyph))

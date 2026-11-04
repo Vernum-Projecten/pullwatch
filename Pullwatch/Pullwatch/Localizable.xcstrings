@@ -2775,16 +2775,16 @@
     },
     "API-token": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "API token"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "API-Token"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API token"
           }
         },
         "fr": {
@@ -2797,16 +2797,16 @@
     },
     "API-token met scopes": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "API token with scopes"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "API-Token mit Scopes"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API token with scopes"
           }
         },
         "fr": {
@@ -2929,6 +2929,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajouter un compte"
+          }
+        }
+      }
+    },
+    "Account toevoegen op je eigen Forgejo-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto auf deinem eigenen Forgejo-Server hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add an account on your own Forgejo server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte sur votre propre serveur Forgejo"
           }
         }
       }
@@ -3913,6 +3935,28 @@
         }
       }
     },
+    "Alleen een https-adres met een geldig certificaat, bijvoorbeeld https://git.example.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur eine https-Adresse mit gültigem Zertifikat, zum Beispiel https://git.example.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only an https address with a valid certificate, for example https://git.example.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement une adresse https avec un certificat valide, par exemple https://git.example.com"
+          }
+        }
+      }
+    },
     "Alleen een https-adres, bijvoorbeeld https://github.example.com of https://acme.ghe.com": {
       "localizations": {
         "de": {
@@ -4752,24 +4796,24 @@
         }
       }
     },
-    "Bij GitHub Enterprise en een eigen GitLab-server vraagt Pullwatch de checks aan die server.": {
+    "Bij GitHub Enterprise en een eigen GitLab-, Gitea- of Forgejo-server vraagt Pullwatch de checks aan die server.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bei GitHub Enterprise und einem eigenen GitLab-Server fragt Pullwatch die Checks bei diesem Server ab."
+            "value": "Bei GitHub Enterprise und einem eigenen GitLab-, Gitea- oder Forgejo-Server fragt Pullwatch die Checks bei diesem Server ab."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "For GitHub Enterprise and your own GitLab server, Pullwatch asks that server for the checks."
+            "value": "For GitHub Enterprise and your own GitLab, Gitea or Forgejo server, Pullwatch asks that server for the checks."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pour GitHub Enterprise et votre propre serveur GitLab, Pullwatch demande les checks à ce serveur."
+            "value": "Pour GitHub Enterprise et votre propre serveur GitLab, Gitea ou Forgejo, Pullwatch demande les checks à ce serveur."
           }
         }
       }
@@ -4820,16 +4864,16 @@
     },
     "Bitbucket kent geen releases: bij Tags en releases staan voor dit account alleen tags.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bitbucket has no releases: Tags and Releases shows only tags for this account."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Bitbucket kennt keine Releases: Unter Tags und Releases stehen für dieses Konto nur Tags."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitbucket has no releases: Tags and Releases shows only tags for this account."
           }
         },
         "fr": {
@@ -4842,16 +4886,16 @@
     },
     "Bitbucket-account toevoegen op bitbucket.org": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add a Bitbucket account on bitbucket.org"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Bitbucket-Konto auf bitbucket.org hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a Bitbucket account on bitbucket.org"
           }
         },
         "fr": {
@@ -5441,6 +5485,28 @@
         }
       }
     },
+    "Codeberg-account toevoegen op codeberg.org": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codeberg-Konto auf codeberg.org hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a Codeberg account on codeberg.org"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte Codeberg sur codeberg.org"
+          }
+        }
+      }
+    },
     "Controle": {
       "localizations": {
         "de": {
@@ -5653,30 +5719,24 @@
         }
       }
     },
-    "De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's.": {
+    "De enige bron voor kwetsbaarheden in packages bij repo's op GitHub, GitLab, Bitbucket, Gitea, Forgejo en Codeberg.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die einzige Quelle für Schwachstellen in Paketen von GitHub- und GitLab-Repos."
+            "value": "Die einzige Quelle für Schwachstellen in Paketen von Repos auf GitHub, GitLab, Bitbucket, Gitea, Forgejo und Codeberg."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The only source for vulnerabilities in packages of GitHub and GitLab repos."
+            "value": "The only source for vulnerabilities in packages of repos on GitHub, GitLab, Bitbucket, Gitea, Forgejo and Codeberg."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La seule source de vulnérabilités dans les paquets des dépôts GitHub et GitLab."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's."
+            "value": "La seule source de vulnérabilités dans les paquets des dépôts sur GitHub, GitLab, Bitbucket, Gitea, Forgejo et Codeberg."
           }
         }
       }
@@ -6205,16 +6265,16 @@
     },
     "E-mailadres": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Email address"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "E-Mail-Adresse"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email address"
           }
         },
         "fr": {
@@ -6567,6 +6627,94 @@
         }
       }
     },
+    "Een organisatie of gebruiker": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation oder ein Benutzer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization or user"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation ou un utilisateur"
+          }
+        }
+      }
+    },
+    "Een organisatie of gebruiker op codeberg.org": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation oder ein Benutzer auf codeberg.org"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization or user on codeberg.org"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation ou un utilisateur sur codeberg.org"
+          }
+        }
+      }
+    },
+    "Een organisatie of gebruiker op gitea.com of je eigen Gitea-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation oder ein Benutzer auf gitea.com oder deinem eigenen Gitea-Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization or user on gitea.com or your own Gitea server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation ou un utilisateur sur gitea.com ou votre propre serveur Gitea"
+          }
+        }
+      }
+    },
+    "Een organisatie of gebruiker op je eigen Forgejo-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation oder ein Benutzer auf deinem eigenen Forgejo-Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization or user on your own Forgejo server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation ou un utilisateur sur votre propre serveur Forgejo"
+          }
+        }
+      }
+    },
     "Een organisatie op dev.azure.com": {
       "localizations": {
         "de": {
@@ -6639,18 +6787,40 @@
         }
       }
     },
-    "Een workspace": {
+    "Een token met de scopes read:user, read:organization, read:repository en read:issue": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Token mit den Scopes read:user, read:organization, read:repository und read:issue"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A workspace"
+            "value": "A token with the scopes read:user, read:organization, read:repository and read:issue"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un jeton avec les portées read:user, read:organization, read:repository et read:issue"
+          }
+        }
+      }
+    },
+    "Een workspace": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ein Workspace"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workspace"
           }
         },
         "fr": {
@@ -6663,16 +6833,16 @@
     },
     "Een workspace op bitbucket.org (Bitbucket Cloud)": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A workspace on bitbucket.org (Bitbucket Cloud)"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ein Workspace auf bitbucket.org (Bitbucket Cloud)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workspace on bitbucket.org (Bitbucket Cloud)"
           }
         },
         "fr": {
@@ -8343,6 +8513,28 @@
         }
       }
     },
+    "Gitea-account toevoegen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gitea-Konto hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a Gitea account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte Gitea"
+          }
+        }
+      }
+    },
     "Goedkeuren": {
       "localizations": {
         "de": {
@@ -8527,16 +8719,16 @@
     },
     "Het e-mailadres van je Atlassian-account; Bitbucket wil het samen met het API-token.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The email address of your Atlassian account; Bitbucket needs it together with the API token."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die E-Mail-Adresse deines Atlassian-Kontos; Bitbucket braucht sie zusammen mit dem API-Token."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email address of your Atlassian account; Bitbucket needs it together with the API token."
           }
         },
         "fr": {
@@ -9268,6 +9460,28 @@
         }
       }
     },
+    "Je eigen Forgejo-server, via https": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein eigener Forgejo-Server, über https"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your own Forgejo server, over https"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre propre serveur Forgejo, en https"
+          }
+        }
+      }
+    },
     "Je hebt de nieuwste versie (%@)": {
       "comment": "Huidig versienummer",
       "localizations": {
@@ -9453,16 +9667,16 @@
     },
     "Kies Create API token with scopes, dan Bitbucket, met read:user:bitbucket, read:repository:bitbucket en read:pullrequest:bitbucket": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose Create API token with scopes, then Bitbucket, with read:user:bitbucket, read:repository:bitbucket and read:pullrequest:bitbucket"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wähle Create API token with scopes, dann Bitbucket, mit read:user:bitbucket, read:repository:bitbucket und read:pullrequest:bitbucket"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Create API token with scopes, then Bitbucket, with read:user:bitbucket, read:repository:bitbucket and read:pullrequest:bitbucket"
           }
         },
         "fr": {
@@ -10351,6 +10565,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Configurer plus tard"
+          }
+        }
+      }
+    },
+    "Leeg is gitea.com; anders je eigen Gitea-server, via https": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leer ist gitea.com; sonst dein eigener Gitea-Server, über https"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty is gitea.com; otherwise your own Gitea server, over https"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vide signifie gitea.com ; sinon votre propre serveur Gitea, en https"
           }
         }
       }
@@ -13226,18 +13462,41 @@
         }
       }
     },
-    "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van Bitbucket": {
+    "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met de lagere limiet van %@": {
+      "comment": "Codeberg, Gitea of de host van een eigen server",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentliches Repository, auf das dein Konto keinen Zugriff hat; Pullwatch liest es ohne Token, mit dem niedrigeren Limit von %@"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public repository your account cannot access; Pullwatch reads it without a token, with a lower limit from Bitbucket"
+            "value": "Public repository your account cannot access; Pullwatch reads it without a token, with the lower limit of %@"
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôt public auquel votre compte n’a pas accès ; Pullwatch le lit sans jeton, avec la limite plus basse de %@"
+          }
+        }
+      }
+    },
+    "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van Bitbucket": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Öffentliches Repository, auf das dein Konto keinen Zugriff hat; Pullwatch liest es ohne Token, mit einem niedrigeren Limit von Bitbucket"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public repository your account cannot access; Pullwatch reads it without a token, with a lower limit from Bitbucket"
           }
         },
         "fr": {
@@ -13627,6 +13886,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Organisatie"
+          }
+        }
+      }
+    },
+    "Organisaties of gebruikers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organisationen oder Benutzer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizations or users"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organisations ou utilisateurs"
           }
         }
       }
@@ -15703,18 +15984,40 @@
         }
       }
     },
-    "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo.": {
+    "Scheid meerdere met een komma.": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trenne mehrere mit einem Komma."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Separate several with a comma. The workspace is in the link: bitbucket.org/workspace/repo."
+            "value": "Separate several with a comma."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séparez-en plusieurs par une virgule."
+          }
+        }
+      }
+    },
+    "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo.": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Trenne mehrere mit einem Komma. Der Workspace steht im Link: bitbucket.org/workspace/repo."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate several with a comma. The workspace is in the link: bitbucket.org/workspace/repo."
           }
         },
         "fr": {
@@ -17088,6 +17391,29 @@
         }
       }
     },
+    "Typ eigenaar/repo, of plak de link van %@. Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen, als de server dat toestaat.": {
+      "comment": "Host van de server, bv. codeberg.org",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib Besitzer/Repo ein oder füge den Link von %@ ein. Auch ein öffentliches Repository einer anderen Organisation geht; Pullwatch liest es bei Bedarf ohne Anmeldung, wenn der Server das erlaubt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type owner/repo, or paste the link from %@. A public repository of another organization works too; Pullwatch reads it without signing in if needed, when the server allows it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez propriétaire/dépôt, ou collez le lien de %@. Un dépôt public d’une autre organisation fonctionne aussi ; Pullwatch le lit sans connexion si nécessaire, lorsque le serveur le permet."
+          }
+        }
+      }
+    },
     "Typ eigenaar/repo, of plak de link van github.com. Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen.": {
       "localizations": {
         "de": {
@@ -17158,16 +17484,16 @@
     },
     "Typ workspace/repo, of plak de link van bitbucket.org. Ook een openbare repository van een andere workspace kan; Pullwatch leest die zo nodig zonder inloggen.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type workspace/repo, or paste the link from bitbucket.org. A public repository from another workspace works too; Pullwatch reads it without signing in if needed."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Gib workspace/repo ein oder füge den Link von bitbucket.org ein. Auch ein öffentliches Repository eines anderen Workspace geht; Pullwatch liest es bei Bedarf ohne Anmeldung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type workspace/repo, or paste the link from bitbucket.org. A public repository from another workspace works too; Pullwatch reads it without signing in if needed."
           }
         },
         "fr": {
@@ -18266,6 +18592,28 @@
         }
       }
     },
+    "Vul een organisatie of gebruiker in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib eine Organisation oder einen Benutzer ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an organization or user"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez une organisation ou un utilisateur"
+          }
+        }
+      }
+    },
     "Vul een token in": {
       "localizations": {
         "de": {
@@ -18310,24 +18658,68 @@
         }
       }
     },
-    "Vul een workspace in": {
+    "Vul een token van Codeberg met de scopes read:user, read:organization, read:repository en read:issue en je organisaties in, en klik op Toevoegen.": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib ein Codeberg-Token mit den Scopes read:user, read:organization, read:repository und read:issue und deine Organisationen ein und klicke auf Hinzufügen."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter a workspace"
+            "value": "Enter a Codeberg token with the scopes read:user, read:organization, read:repository and read:issue and your organizations, and click Add."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez un jeton Codeberg avec les portées read:user, read:organization, read:repository et read:issue et vos organisations, puis cliquez sur Ajouter."
+          }
+        }
+      }
+    },
+    "Vul een workspace in": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Gib einen Workspace ein"
           }
         },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a workspace"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez un workspace"
+          }
+        }
+      }
+    },
+    "Vul het adres van je Forgejo-server in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die Adresse deines Forgejo-Servers ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the address of your Forgejo server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez l’adresse de votre serveur Forgejo"
           }
         }
       }
@@ -18378,16 +18770,16 @@
     },
     "Vul het e-mailadres van je Atlassian-account in": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter the email address of your Atlassian account"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Gib die E-Mail-Adresse deines Atlassian-Kontos ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the email address of your Atlassian account"
           }
         },
         "fr": {
@@ -18442,18 +18834,40 @@
         }
       }
     },
-    "Vul je workspaces, het e-mailadres van je Atlassian-account en een API-token met leesrechten in, en klik op Toevoegen.": {
+    "Vul je server, een token met de scopes read:user, read:organization, read:repository en read:issue en je organisaties in, en klik op Toevoegen.": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deinen Server, ein Token mit den Scopes read:user, read:organization, read:repository und read:issue und deine Organisationen ein und klicke auf Hinzufügen."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter your workspaces, the email address of your Atlassian account and an API token with read scopes, then click Add."
+            "value": "Enter your server, a token with the scopes read:user, read:organization, read:repository and read:issue and your organizations, and click Add."
           }
         },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez votre serveur, un jeton avec les portées read:user, read:organization, read:repository et read:issue et vos organisations, puis cliquez sur Ajouter."
+          }
+        }
+      }
+    },
+    "Vul je workspaces, het e-mailadres van je Atlassian-account en een API-token met leesrechten in, en klik op Toevoegen.": {
+      "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Gib deine Workspaces, die E-Mail-Adresse deines Atlassian-Kontos und ein API-Token mit Leserechten ein und klicke auf Hinzufügen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your workspaces, the email address of your Atlassian account and an API token with read scopes, then click Add."
           }
         },
         "fr": {
@@ -19020,13 +19434,13 @@
     },
     "Workspaces": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Workspaces"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Workspaces"

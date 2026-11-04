@@ -100,11 +100,11 @@ struct OnboardingView: View {
         try? await Task.sleep(for: pause)
         step = .account
         try? await Task.sleep(for: pause)
-        for (kind, enterprise) in [(ProviderKind.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true), (.bitbucket, false)] {
-            draftIsEnterprise = enterprise
-            draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
+        for choice in AccountChoice.all {
+            draftIsEnterprise = choice.enterprise
+            draft = accounts.draft(for: choice)
             try? await Task.sleep(for: pause)
-            SnapshotCamera.shoot("onboarding-draft-\(kind.rawValue)\(enterprise ? "-enterprise" : "")", windowId: "onboarding")
+            SnapshotCamera.shoot("onboarding-draft-\(choice.id)", windowId: "onboarding")
             try? await Task.sleep(for: pause)
             back()
             try? await Task.sleep(for: .milliseconds(300))
