@@ -37,7 +37,8 @@ struct AcknowledgementsDetail: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(20)
             }
-            .navigationTitle(Text(verbatim: component.name))
+            // Geen eigen titel: het venster heet Erkenningen, zoals in Apple's eigen apps, en de
+            // naam van het onderdeel staat al als kop bovenaan.
         } else if isMissing {
             ContentUnavailableView("De erkenningen ontbreken in deze build", systemImage: "exclamationmark.triangle")
         } else {
