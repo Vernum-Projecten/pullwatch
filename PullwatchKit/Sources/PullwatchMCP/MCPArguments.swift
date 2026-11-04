@@ -40,14 +40,14 @@ public struct MCPArguments: Sendable, Hashable {
 
     // MARK: - In één keer
 
-    /// Alle argumenten als `T`. Past het niet, dan krijgt de client de fout `-32602` (invalid
-    /// params), net als bij een fout tegen het schema.
-    public func decode<T: Decodable>(as type: T.Type = T.self) throws(MCPError) -> T {
+    /// Alle argumenten als `T`. Past het niet, dan krijgt het model een resultaat met `isError`,
+    /// net als bij een fout tegen het schema, zodat het de aanroep kan verbeteren.
+    public func decode<T: Decodable>(as type: T.Type = T.self) throws(MCPToolError) -> T {
         do {
             let data = try JSONEncoder().encode(values)
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
-            throw MCPError.invalidParams("The arguments do not fit: \(error.localizedDescription)")
+            throw MCPToolError("The arguments do not fit: \(error.localizedDescription)")
         }
     }
 }

@@ -140,23 +140,31 @@ struct PullwatchMCPServerTests {
         #expect(result.structuredContent == ["repo": "acme/web", "state": "open", "limit": 20])
     }
 
+    /// MCP 2025-11-25: ongeldige argumenten zijn een fout van de tool (`isError`), geen
+    /// protocolfout, zodat het model de melding leest en de aanroep verbetert.
     @Test(arguments: [
-        [String: Value](),
-        ["repo": 42],
-        ["repo": "acme/web", "state": "merged"],
-        ["repo": "acme/web", "limit": 0],
-        ["repo": "acme/web", "limit": 51],
-        ["repo": "acme/web", "limit": 2.5],
-        ["repo": "acme/web", "labels": ["a", "b", "c", "d"]],
-        ["repo": "acme/web", "labels": [1]],
-        ["repo": .string(String(repeating: "a", count: 101))],
-        ["repo": "acme/web", "unknown": true],
-    ])
-    func `Invalid arguments are refused with invalid params`(arguments: [String: Value]) async throws {
+        ([String: Value](), "`repo` is required"),
+        (["repo": 42], "`repo` must be a string"),
+        (["repo": "acme/web", "state": "merged"], "`state` must be one of open, closed"),
+        (["repo": "acme/web", "limit": 0], "`limit` must be at least 1"),
+        (["repo": "acme/web", "limit": 51], "`limit` must be at most 50"),
+        (["repo": "acme/web", "limit": 2.5], "`limit` must be an integer"),
+        (["repo": "acme/web", "labels": ["a", "b", "c", "d"]], "`labels` must have at most 3 items"),
+        (["repo": "acme/web", "labels": [1]], "`labels[0]` must be a string"),
+        (["repo": .string(String(repeating: "a", count: 101))], "`repo` must be at most 100 characters"),
+        (["repo": "acme/web", "unknown": true], "`unknown` is not a known field (known: labels, limit, repo, state)"),
+    ] as [([String: Value], String)])
+    func `Invalid arguments come back as a tool error the model can act on`(arguments: [String: Value], problem: String) async throws {
         let (client, server, _) = try await connect()
         defer { await client.disconnect(); await server.stop() }
 
-        #expect(try await errorCode(client, "describe_repo", arguments) == -32602)
+        let result = try await call(client, "describe_repo", arguments)
+
+        #expect(result.isError == true)
+        #expect(result.content == [.text(text: "Invalid arguments for describe_repo: \(problem).", annotations: nil, _meta: nil)])
+        #expect(result.structuredContent == nil)
+        // De sessie gaat door: een verbeterde aanroep slaagt.
+        #expect(try await call(client, "describe_repo", ["repo": "acme/web"]).isError == false)
     }
 
     @Test func `An unknown tool is refused with invalid params`() async throws {

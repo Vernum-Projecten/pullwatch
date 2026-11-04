@@ -872,4 +872,14 @@ private struct Harness {
         await h.provider(account).set(syncedPullRequests: [mine, theirs])
         #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).completedPullRequests == [theirs])
     }
+
+    @Test func `Knows who each polled account is`() async {
+        let account = Account.fixture()
+        let h = Harness(accounts: [account])
+        #expect(await h.engine.currentUserIds().isEmpty)
+
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        #expect(await h.engine.currentUserIds() == [account.id: "me"])
+    }
 }

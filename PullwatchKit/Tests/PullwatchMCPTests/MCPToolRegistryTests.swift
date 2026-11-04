@@ -43,9 +43,12 @@ import Testing
             [Self.tool("a", input: .dictionary(of: .array(of: .array(of: .integer()))))],
             limits: MCPLimits(maxMessageBytes: 1024, maxDepth: 2)
         )
-        await #expect(throws: MCPError.invalidParams("The arguments are nested deeper than 2 levels")) {
-            _ = try await registry.call("a", arguments: ["x": [[1]]])
-        }
+
+        let result = try await registry.call("a", arguments: ["x": [[1]]])
+
+        #expect(result.isError == true)
+        #expect(result.content == [.text(text: "Invalid arguments for a: they are nested deeper than 2 levels.", annotations: nil, _meta: nil)])
+        #expect(result.structuredContent == nil)
     }
 
     @Test func `A tool can decode its arguments into a type`() throws {
@@ -55,9 +58,10 @@ import Testing
         }
         let arguments = MCPArguments(["repo": "acme/web", "limit": 3])
         #expect(try arguments.decode(as: Filters.self) == Filters(repo: "acme/web", limit: 3))
-        #expect(throws: MCPError.self) {
+        let error = #expect(throws: MCPToolError.self) {
             try MCPArguments(["limit": 3]).decode(as: Filters.self)
         }
+        #expect(error?.message.hasPrefix("The arguments do not fit: ") == true)
     }
 
     @Test func `Output from an Encodable value is a JSON object with ISO dates`() throws {

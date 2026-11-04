@@ -114,7 +114,7 @@ public enum PackageVersions {
         summaries.filter { $0.state == .updateAvailable && seen[$0.id] != $0.latest }
     }
 
-    static func kind(ofEcosystem ecosystem: String) -> String {
+    package static func kind(ofEcosystem ecosystem: String) -> String {
         switch ecosystem {
         case "Go": "go"
         case "Packagist": "composer"

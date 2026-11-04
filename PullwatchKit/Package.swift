@@ -46,7 +46,7 @@ let package = Package(
             name: "PullwatchProvidersTests",
             dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchTestSupport"]
         ),
-        .testTarget(name: "PullwatchMCPTests", dependencies: ["PullwatchMCP", .product(name: "MCP", package: "swift-sdk")]),
+        .testTarget(name: "PullwatchMCPTests", dependencies: ["PullwatchMCP", "PullwatchCore", .product(name: "MCP", package: "swift-sdk")]),
     ]
 )
 

@@ -55,9 +55,10 @@ public struct MCPToolRegistry: Sendable {
         tools.map(\.definition)
     }
 
-    /// Roept tool `name` aan. Een onbekende tool, argumenten die niet bij het schema passen of te
-    /// diep genest zijn geven `MCPError.invalidParams` (-32602); een fout in de tool geeft een
-    /// resultaat met `isError`.
+    /// Roept tool `name` aan. Een onbekende tool geeft `MCPError.invalidParams` (-32602), een
+    /// protocolfout. Argumenten die niet bij het schema passen of te diep genest zijn geven, zoals
+    /// MCP 2025-11-25 aanraadt, een resultaat met `isError` en een melding die het veld noemt,
+    /// zodat het model de aanroep kan verbeteren; een fout in de tool ook.
     public func call(_ name: String, arguments: [String: Value]?) async throws -> CallTool.Result {
         guard let tool = byName[name] else {
             throw MCPError.invalidParams("Unknown tool: \(name)")
@@ -65,12 +66,12 @@ public struct MCPToolRegistry: Sendable {
         let arguments = arguments ?? [:]
         let value = Value.object(arguments)
         guard value.isNested(within: limits.maxDepth) else {
-            throw MCPError.invalidParams("The arguments are nested deeper than \(limits.maxDepth) levels")
+            return MCPToolError.callResult("Invalid arguments for \(name): they are nested deeper than \(limits.maxDepth) levels.")
         }
         do {
             try tool.inputSchema.validate(value)
         } catch {
-            throw MCPError.invalidParams("Invalid arguments for \(name): \(error.message)")
+            return MCPToolError.callResult("Invalid arguments for \(name): \(error.message).")
         }
 
         let result: MCPToolResult

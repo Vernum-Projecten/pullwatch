@@ -148,6 +148,14 @@ public actor PollEngine {
         }
     }
 
+    /// Wie elk account bij zijn dienst is (`PRProvider.currentUserId()`), zoals de laatste poll het
+    /// vroeg: om eigen PR's te herkennen (`PullRequest.authorId`). Een account dat nog niet gepold
+    /// is, of waarvan de provider net opnieuw gemaakt is, staat er niet in. Geen geheim: een id of
+    /// login.
+    public func currentUserIds() -> [UUID: String] {
+        userIds
+    }
+
     /// Tijdstip van de laatste geslaagde sync per account (alleen accounts met een sync).
     public func lastHistorySync(for ids: [UUID]) -> [UUID: Date] {
         var result: [UUID: Date] = [:]

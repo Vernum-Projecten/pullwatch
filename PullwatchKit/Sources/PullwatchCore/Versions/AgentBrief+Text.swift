@@ -15,7 +15,7 @@ extension AgentBrief {
 
     /// Waarom de nieuwste versie niet zomaar kan; nil als niets tegenhoudt (binnen het bereik,
     /// actueel of onbekend).
-    static func blockerSentence(package: String, installed: String, requested: String?, update: PackageUpdate) -> String? {
+    package static func blockerSentence(package: String, installed: String, requested: String?, update: PackageUpdate) -> String? {
         let latest = update.latest ?? "the latest version"
         let sentence: String
         switch update.status {
@@ -41,7 +41,7 @@ extension AgentBrief {
     }
 
     /// Wat bijgewerkt moet worden, als zin (zoals `VulnerabilityFix.text` in de app, in het Engels).
-    static func fixText(_ fix: VulnerabilityFix) -> String {
+    package static func fixText(_ fix: VulnerabilityFix) -> String {
         switch fix {
         case .update(let package, let version): "Update \(package) to \(version)."
         case .withinRange(let package, let version): "Update \(package) to \(version) (within the requested range)."
@@ -76,7 +76,7 @@ extension AgentBrief {
     }
 
     /// "critical", "high", "moderate", "low" of "unknown".
-    static func severityName(_ severity: String?) -> String {
+    package static func severityName(_ severity: String?) -> String {
         switch severity {
         case "CRITICAL": "critical"
         case "HIGH": "high"
@@ -161,7 +161,7 @@ extension AgentBrief {
     }
 
     /// De Engelse naam van een bron (de vertaalde naam van een omschrijving, zoals "GitHub security").
-    static func englishName(_ id: DataSourceID) -> String {
+    package static func englishName(_ id: DataSourceID) -> String {
         DataSource.source(id).name(bundle: SourcesOverview.bundle(for: Locale(identifier: "en")))
     }
 
