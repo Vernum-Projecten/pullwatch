@@ -357,8 +357,8 @@ private struct AccountStatusRow: View {
             switch state {
             case _ where account.isPaused:
                 Text("Uitgezet").font(.caption).foregroundStyle(.secondary)
-            case _ where account.serverProblemMessage != nil:
-                Text(verbatim: account.serverProblemMessage ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            case _ where account.setupProblemMessage != nil:
+                Text(verbatim: account.setupProblemMessage ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(2)
             case .idle where !account.isComplete || !account.followsAnything:
                 Text("Volgt nog niets").font(.caption).foregroundStyle(.secondary)
             case .idle:

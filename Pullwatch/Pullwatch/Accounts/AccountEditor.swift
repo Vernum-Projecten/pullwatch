@@ -119,10 +119,6 @@ struct AccountEditor: View {
         draft.kind == .bitbucket
     }
 
-    private var lacksEmail: Bool {
-        needsEmail && (draft.email ?? "").isEmpty
-    }
-
     /// Of er een veld voor het adres van de server staat.
     private var showsServerField: Bool {
         isEnterprise
@@ -568,7 +564,8 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    private var hasRequiredFields: Bool { draft.isComplete && !lacksEmail }
+    /// Eigenaar, server en bij Bitbucket het e-mailadres (`Account.isComplete`).
+    private var hasRequiredFields: Bool { draft.isComplete }
 
     private var validationMessage: LocalizedStringKey? {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
@@ -582,7 +579,7 @@ struct AccountEditor: View {
             }
         }
         if draft.serverProblem != nil { return "Vul een https-adres in voor de server" }
-        if !hasRequiredFields {
+        if !draft.hasOwner {
             switch draft.kind {
             case .azureDevOps: return "Vul de organisatie in"
             case .gitHub: return "Vul de owner in"
@@ -591,7 +588,7 @@ struct AccountEditor: View {
             case .gitea: return "Vul een organisatie of gebruiker in"
             }
         }
-        if lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }
+        if draft.lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }

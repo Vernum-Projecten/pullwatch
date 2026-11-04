@@ -1,11 +1,12 @@
 import Foundation
 import PullwatchCore
 
-/// De provider van een account zonder bruikbaar adres voor zijn eigen server
-/// (`Account.serverProblem`): elk verzoek faalt meteen met `ProviderError.unusableServer`, zonder
-/// netwerk en zonder token. Zo gaat een token nooit naar de standaard van de dienst of naar een
-/// http-adres, ook niet als iemand het account toch probeert op te halen of te testen.
-struct UnusableServerProvider: PRProvider {
+/// De provider van een account dat niet kan inloggen: zonder bruikbaar adres voor zijn eigen server
+/// (`Account.serverProblem`, `ProviderError.unusableServer`) of, bij Bitbucket, zonder e-mailadres
+/// (`Account.lacksEmail`, `ProviderError.missingEmail`). Elk verzoek faalt meteen met die fout,
+/// zonder netwerk en zonder token. Zo gaat een token nooit naar de standaard van de dienst of naar
+/// een http-adres, ook niet als iemand het account toch probeert op te halen of te testen.
+struct UnusableAccountProvider: PRProvider {
     let error: ProviderError
 
     func currentUserId() async throws -> String { throw error }

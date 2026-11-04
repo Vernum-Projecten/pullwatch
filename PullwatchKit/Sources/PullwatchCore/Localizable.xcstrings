@@ -1168,6 +1168,35 @@
         }
       }
     },
+    "Het e-mailadres van het Atlassian-account ontbreekt": {
+      "comment": "Bitbucket wil het e-mailadres samen met het API-token; het account wordt niet opgehaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die E-Mail-Adresse des Atlassian-Kontos fehlt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email address of the Atlassian account is missing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’adresse e-mail du compte Atlassian est manquante"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het e-mailadres van het Atlassian-account ontbreekt"
+          }
+        }
+      }
+    },
     "Het register van GitLab is alleen te lezen met de scope read_api: gebruik een persoonlijk token met read_api, of log opnieuw in met de GitLab CLI (glab auth login).": {
       "comment": "Reden waarom de packages van een GitLab-account niet te lezen zijn; read_api en de glab-opdracht niet vertalen",
       "localizations": {

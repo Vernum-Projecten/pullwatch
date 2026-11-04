@@ -68,7 +68,8 @@ extension BitbucketProvider {
         "Basic " + Data("\(email):\(token)".utf8).base64EncodedString()
     }
 
-    /// Een GET met Basic auth. 429 met `Retry-After` wordt `rateLimited`. Met `anonymous` zonder
+    /// Een GET met Basic auth. 429 met `Retry-After` wordt `rateLimited`; 403 voor een token zonder
+    /// de juiste scope wordt `missingScope` met de scope die Bitbucket noemt. Met `anonymous` zonder
     /// inloggen, voor een openbare losse repo; is die limiet op, dan gaan er tot de reset geen
     /// verzoeken zonder inloggen meer uit. Met `checked: false` zonder de status te controleren.
     func send(
@@ -80,13 +81,16 @@ extension BitbucketProvider {
         if anonymous, let until = anonymousPausedUntil, until > now() { throw ProviderError.rateLimited(until: until) }
         var request = URLRequest(url: Self.withQuery(url, query))
         if !anonymous {
-            guard let email, !email.isEmpty else { throw ProviderError.missingToken }
+            guard let email, !email.isEmpty else { throw ProviderError.missingEmail }
             let token = try await tokenSource.token()
             request.setValue(Self.basicAuthorization(email: email, token: token), forHTTPHeaderField: "Authorization")
         }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await http.send(request)
         if checked {
+            if response.statusCode == 403, let scope = Self.missingScope(in: data) {
+                throw ProviderError.missingScope(scope)
+            }
             do {
                 try HTTPStatus.check(response, now: now())
             } catch ProviderError.rateLimited(let until) where anonymous {
@@ -95,5 +99,14 @@ extension BitbucketProvider {
             }
         }
         return (data, response)
+    }
+
+    /// De scope uit een 403 van een token zonder die scope: `error.detail.required`, bv.
+    /// `{"type": "error", "error": {"message": "Your credentials lack one or more required privilege
+    /// scopes.", "detail": {"required": ["read:pullrequest:bitbucket"], "granted": [...]}}}`.
+    /// Bij meer scopes de eerste; een 403 zonder die lijst blijft wat hij was.
+    static func missingScope(in data: Data) -> String? {
+        let required = (try? JSONDecoder().decode(ErrorDTO.self, from: data))?.error?.detail?.required ?? []
+        return required.lazy.map { $0.trimmingCharacters(in: .whitespaces) }.first { !$0.isEmpty }
     }
 }

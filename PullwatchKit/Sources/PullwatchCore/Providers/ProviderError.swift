@@ -25,6 +25,9 @@ public enum ProviderError: Error, Equatable, Sendable {
     /// Het account heeft geen bruikbaar adres voor zijn eigen server (`Account.serverProblem`):
     /// er ging geen verzoek uit. De productnaam ("Forgejo") en wat er schort.
     case unusableServer(service: String, problem: Account.ServerProblem)
+    /// Een Bitbucket-account zonder het e-mailadres van het Atlassian-account (`Account.lacksEmail`):
+    /// er ging geen verzoek uit.
+    case missingEmail
 
     public var userMessage: String {
         userMessage(bundle: .localizedCore)
@@ -68,6 +71,8 @@ public enum ProviderError: Error, Equatable, Sendable {
             return String(localized: "Het adres van de \(service)-server ontbreekt", bundle: bundle, comment: "Dienst (Forgejo, Gitea, GitLab, GitHub); het account wordt niet opgehaald")
         case .unusableServer(_, .invalid(let text)):
             return String(localized: "Het serveradres \(text) is geen geldig https-adres", bundle: bundle, comment: "Het adres zoals het in de instellingen staat; het account wordt niet opgehaald")
+        case .missingEmail:
+            return String(localized: "Het e-mailadres van het Atlassian-account ontbreekt", bundle: bundle, comment: "Bitbucket wil het e-mailadres samen met het API-token; het account wordt niet opgehaald")
         }
     }
 }

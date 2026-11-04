@@ -23,7 +23,11 @@ public enum ProviderFactory {
         // Een eigen server zonder bruikbaar adres (Forgejo zonder server, een http-adres in de
         // config): geen provider die het token ergens heen stuurt.
         if let problem = account.serverProblem {
-            return UnusableServerProvider(error: .unusableServer(service: account.productName, problem: problem))
+            return UnusableAccountProvider(error: .unusableServer(service: account.productName, problem: problem))
+        }
+        // Bitbucket zonder e-mailadres: het token werkt niet zonder, dus geen verzoek.
+        if account.lacksEmail {
+            return UnusableAccountProvider(error: .missingEmail)
         }
         let tokens: any TokenSource
         switch account.authMethod {
@@ -103,7 +107,7 @@ public enum ProviderFactory {
         case .gitea:
             // Zonder adres (Forgejo zonder server) heeft `serverProblem` hierboven al gestopt.
             guard let instanceURL = account.effectiveInstanceURL else {
-                return UnusableServerProvider(error: .unusableServer(service: account.productName, problem: .missing))
+                return UnusableAccountProvider(error: .unusableServer(service: account.productName, problem: .missing))
             }
             return GiteaProvider(
                 accountId: account.id,

@@ -100,3 +100,29 @@ struct TreeEntryDTO: Decodable {
     let path: String
     let type: String
 }
+
+/// Het foutantwoord van API 2.0 (`{"type": "error", "error": {"message": …, "detail": …}}`). Bij
+/// een token zonder de juiste scope is `detail` geen zin maar een object met de scopes die het
+/// verzoek nodig heeft en die het token heeft:
+/// `"detail": {"required": ["read:pullrequest:bitbucket"], "granted": [...]}`.
+struct ErrorDTO: Decodable {
+    struct Body: Decodable {
+        let message: String?
+        let detail: Detail?
+
+        private enum CodingKeys: String, CodingKey { case message, detail }
+
+        init(from decoder: any Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            message = try c.decodeIfPresent(String.self, forKey: .message)
+            // Meestal is `detail` een zin; dan staan er geen scopes in.
+            detail = try? c.decodeIfPresent(Detail.self, forKey: .detail)
+        }
+    }
+
+    struct Detail: Decodable {
+        let required: [String]?
+    }
+
+    let error: Body?
+}

@@ -146,9 +146,22 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// Volgt dit account minstens één eigenaar?
     public var hasOwner: Bool { owners.contains { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
 
-    /// Een account dat minstens één eigenaar volgt en weet naar welke server het moet: alleen zo'n
-    /// account wordt gepold. Een nieuw account wordt pas dan bewaard.
-    public var isComplete: Bool { hasOwner && serverProblem == nil }
+    /// Een account dat minstens één eigenaar volgt, weet naar welke server het moet en alles heeft
+    /// om in te loggen: alleen zo'n account wordt gepold. Een nieuw account wordt pas dan bewaard.
+    public var isComplete: Bool { hasOwner && serverProblem == nil && !lacksEmail }
+
+    /// Bitbucket zonder het e-mailadres van het Atlassian-account: het API-token werkt alleen samen
+    /// met dat adres (Basic auth `e-mail:token`), dus het account is niet af en gaat er geen
+    /// verzoek uit. De andere diensten hebben geen e-mailadres nodig.
+    public var lacksEmail: Bool {
+        kind == .bitbucket && (email ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Waarom een account met een eigenaar toch niet opgehaald wordt (de server, of bij Bitbucket
+    /// het e-mailadres), als zin voor de kaart van het account en het menu; nil als er niets ontbreekt.
+    public var setupProblemMessage: String? {
+        serverProblemMessage ?? (lacksEmail ? ProviderError.missingEmail.userMessage : nil)
+    }
 
     /// Wat er aan de server van een account op een eigen server schort.
     public enum ServerProblem: Hashable, Sendable {
