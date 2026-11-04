@@ -156,7 +156,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   with `-PullwatchFakeGitHub YES -PullwatchFakeData YES
   -PullwatchSnapshotTour YES` and a `config.json` with a GitHub account in
   the data folder it walks every screen of the main window
-  (`Debug/SnapshotTour.swift`), and `-PullwatchOnboardingTour YES` every step of
+  (`Debug/SnapshotTour.swift`; it writes each step's name to stderr, with
+  `-PullwatchSnapshotTourInteract YES` it also sorts every column of each
+  table both ways, scrolls and selects a row, and
+  `-PullwatchSnapshotTourOnly a,b -PullwatchSnapshotTourRepeat <n>` repeats
+  only those steps), and `-PullwatchOnboardingTour YES` every step of
   the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
   refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
