@@ -98,7 +98,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
   refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
-  without a window, in five modules under `Sources/`. The names start with
+  without a window, in six modules under `Sources/`. The names start with
   `Pullwatch` so a module never shares its name with a type in it.
   `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
   `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
@@ -122,7 +122,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   one file of DTOs, and a `+Area` file per further area (co-authors, files,
   checks, security, extra repositories, merge queues and trains).
   `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
-  provider. Every provider also reads the repositories a person adds by
+  provider. `PullwatchMCP/`: the MCP server for coding agents, on the
+  official MCP Swift SDK (`modelcontextprotocol/swift-sdk`, pinned to an
+  exact release in `Package.swift`): `MCPToolRegistry` holds the `MCPTool`s
+  (an `MCPSchema` for input and output, a handler returning an
+  `MCPToolResult`), `PullwatchMCPServer.start` serves them as an SDK `Server`
+  named Pullwatch on any SDK `Transport`, wrapped in `MCPBoundedTransport`
+  (`MCPLimits`: message size and nesting). The app does not link it yet.
+  `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
+  the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
   anonymous fallback for public repositories on github.com and gitlab.com
   only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
@@ -132,7 +140,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Bundle.localized…` helper (`Support/Localization.swift`).
   `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
-  `PullwatchGitLabTests`, `PullwatchProvidersTests`), and `PullwatchTestSupport` with the shared
+  `PullwatchGitLabTests`, `PullwatchProvidersTests`, `PullwatchMCPTests`),
+  and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
   (starting at `Date.testStart`), `CLILocator.homebrew` and `.nothing`,
   `expectCalledHostsAreListed` and fixtures; a helper only one target needs

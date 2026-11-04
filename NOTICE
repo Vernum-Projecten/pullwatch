@@ -36,6 +36,69 @@ licensed under the MIT License:
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
+This product includes the MCP Swift SDK
+(https://github.com/modelcontextprotocol/swift-sdk, version 0.12.1), used by
+the MCP server in PullwatchKit/Sources/PullwatchMCP. The MCP project is moving
+from the MIT License to the Apache License, Version 2.0: new contributions are
+licensed under the Apache License, Version 2.0 (see LICENSE), and earlier
+contributions whose authors have not yet agreed to relicense remain under the
+MIT License:
+
+  MIT License
+
+  Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+The MCP Swift SDK brings in, and this product therefore includes:
+
+- SwiftLog (https://github.com/apple/swift-log), Copyright 2018, 2019 The
+  SwiftLog Project, licensed under the Apache License, Version 2.0 (see
+  LICENSE). It contains a derivation of the lock implementation and various
+  scripts from SwiftNIO (https://github.com/apple/swift-nio), also licensed
+  under the Apache License, Version 2.0.
+- Swift System (https://github.com/apple/swift-system), Copyright Apple Inc.
+  and the Swift System project authors, licensed under the Apache License,
+  Version 2.0 (see LICENSE).
+- EventSource (https://github.com/mattt/eventsource), licensed under the MIT
+  License:
+
+  Copyright 2025 Mattt (https://mat.tt)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
 Trademarks
 
 GitHub and the Invertocat are trademarks of GitHub, Inc. Pullwatch shows the
