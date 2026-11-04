@@ -5,10 +5,6 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct GitHubCoAuthorTests {
-    func makeProvider(_ http: MockHTTPClient) -> GitHubProvider {
-        GitHubProvider(accountId: fixedAccountId, owner: "acme", tokenSource: StaticTokenSource(token: "ghtok"), http: http)
-    }
-
     func pr(_ number: Int, repo: String = "acme/web", author: String = "octocat") -> PullRequest {
         .fixture(repo: repo, number: number, authorId: author, authorName: author)
     }

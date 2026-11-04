@@ -5,7 +5,7 @@ import Testing
 import PullwatchTestSupport
 
 @Suite struct GlabCLISourceTests {
-    let homebrew = CLILocator(isExecutable: { $0.hasPrefix("/opt/homebrew/bin/") })
+    let homebrew = CLILocator.homebrew
 
     @Test func asksTheTokenForTheHostAndCaches() async throws {
         let runner = MockProcessRunner()
@@ -27,7 +27,7 @@ import PullwatchTestSupport
     }
 
     @Test func missingGlabIsReported() async {
-        let source = GlabCLISource(runner: MockProcessRunner(), locator: CLILocator(isExecutable: { _ in false }))
+        let source = GlabCLISource(runner: MockProcessRunner(), locator: .nothing)
         await #expect(throws: ProviderError.cliNotFound("glab")) { try await source.token() }
     }
 

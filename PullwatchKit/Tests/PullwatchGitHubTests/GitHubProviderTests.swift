@@ -15,10 +15,6 @@ import PullwatchTestSupport
         """#
     }
 
-    func makeProvider(_ http: MockHTTPClient, owner: String = "acme") -> GitHubProvider {
-        GitHubProvider(accountId: fixedAccountId, owner: owner, tokenSource: StaticTokenSource(token: "ghtok"), http: http)
-    }
-
     @Test func followsSeveralOwnersWithOneSearchEach() async throws {
         let http = MockHTTPClient()
         http.on("org:acme", body: #"{"total_count":1,"items":[\#(item(number: 1, repo: "acme/web"))]}"#)
@@ -452,7 +448,7 @@ import PullwatchTestSupport
         http.on("users/acme", body: #"{"type":"Organization"}"#)
         let provider = makeProvider(http)
 
-        _ = try await provider.pullRequests(updatedSince: Date(timeIntervalSince1970: 1_760_000_000), limit: 1000)
+        _ = try await provider.pullRequests(updatedSince: Date.testStart, limit: 1000)
         let withSince = try #require(http.requests.last)
         #expect(searchQuery(withSince, "q") == "is:pr org:acme updated:>=2025-10-09T08:53:20Z")
         #expect(searchQuery(withSince, "sort") == "updated")

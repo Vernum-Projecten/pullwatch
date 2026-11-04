@@ -12,7 +12,7 @@ extension PullRequest {
         authorId: String = "someone",
         authorName: String = "Someone",
         isDraft: Bool = false,
-        createdAt: Date = Date(timeIntervalSince1970: 1_760_000_000),
+        createdAt: Date = .testStart,
         state: PRState = .open,
         closedAt: Date? = nil,
         coAuthors: [Person] = [],

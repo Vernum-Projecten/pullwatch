@@ -9,7 +9,7 @@ import PullwatchTestSupport
 @Suite struct MergeTrainTests {
     let api = "https://gitlab.com/api/v4/"
 
-    func makeProvider(_ http: MockHTTPClient, now: Date = Date(timeIntervalSince1970: 1_760_000_000)) -> GitLabProvider {
+    func makeProvider(_ http: MockHTTPClient, now: Date = Date.testStart) -> GitLabProvider {
         GitLabProvider(
             accountId: fixedAccountId, owners: ["acme"], tokenSource: StaticTokenSource(token: "glpat-secret"), http: http,
             now: { now }

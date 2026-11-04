@@ -8,7 +8,7 @@ import PullwatchTestSupport
 /// token als het token er niet bij mag, en per poll één vraag naar de merge requests per project.
 @Suite struct GitLabExtraProjectTests {
     let api = "https://gitlab.com/api/v4/"
-    let now = Date(timeIntervalSince1970: 1_760_000_000)
+    let now = Date.testStart
     /// Een openbaar project in de vorm die gitlab.com zonder token geeft (minder velden).
     let cli = #"""
     {"id":34675721,"description":"GitLab CLI","name":"cli","name_with_namespace":"GitLab.org / cli",

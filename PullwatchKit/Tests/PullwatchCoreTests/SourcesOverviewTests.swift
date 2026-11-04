@@ -220,14 +220,13 @@ import PullwatchTestSupport
         _ = await checker.completingAdvisories(of: report, accounts: config.accounts)
 
         let called = Set(http.requests.compactMap { $0.url?.host() })
-        // Zonder deze hosts toetst de test niets: ze horen bij de check zelf.
-        for host in ["api.osv.dev", "registry.npmjs.org", "pypi.org", "proxy.golang.org", "endoflife.date", "api.github.com"] {
-            #expect(called.contains(host), "\(host) werd niet aangeroepen")
-        }
         let listed = Set(DataSource.all.flatMap(\.endpoints).compactMap { $0.host() })
             .union(SourcesOverview.otherConnections(config: config, locale: dutch).flatMap(\.urls).compactMap { $0.host() })
-        for host in called.sorted() {
-            #expect(listed.contains(host), "\(host) wordt aangeroepen maar staat niet in het overzicht")
-        }
+        // Zonder deze hosts toetst de test niets: ze horen bij de check zelf.
+        expectCalledHostsAreListed(
+            called: called,
+            expected: ["api.osv.dev", "registry.npmjs.org", "pypi.org", "proxy.golang.org", "endoflife.date", "api.github.com"],
+            listed: listed
+        )
     }
 }
