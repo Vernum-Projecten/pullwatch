@@ -57,8 +57,7 @@ extension AzureDevOpsProvider {
 
     /// Een lijst van Azure DevOps staat meestal in `{"count": …, "value": [...]}`; ook een kale lijst mag.
     static func decodeAlerts(_ data: Data) throws -> [AdvancedSecurityAlertDTO] {
-        struct Wrapped: Decodable { let value: [AdvancedSecurityAlertDTO] }
-        if let wrapped = try? JSONDecoder().decode(Wrapped.self, from: data) { return wrapped.value }
+        if let wrapped = try? JSONDecoder().decode(ValueList<AdvancedSecurityAlertDTO>.self, from: data) { return wrapped.value }
         return try JSONDecoding.decode([AdvancedSecurityAlertDTO].self, from: data)
     }
 }
