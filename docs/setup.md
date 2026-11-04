@@ -113,11 +113,10 @@ checks it. Set `repo=alessandro823/pullwatch` first.
   before merging, and the required checks of CI (`shell scripts and
   workflows`, `PullwatchKit tests`, `app build, unit and UI tests`, `String
   Catalogs in step with the code`, `unsigned release build and disk image`)
-  and Changelog (`changelog fragment`), all from GitHub Actions. The Website
-  check (`build and check links`) only runs when a pull request touches
-  `site/`, and GitHub waits forever for a required check that never runs,
-  so add it once `site.yml` runs on every pull request; until then it
-  still has to pass on every pull request that changes the website.
+  and Changelog (`changelog fragment`) and Website (`build and check
+  links`), all from GitHub Actions. The Website workflow runs on every pull
+  request and skips its build when nothing under `site/` changed; a skipped
+  job counts as passed, so requiring it never blocks a pull request.
   `.github/CODEOWNERS` asks Alessandro and the fork's owner
   (`rubentalstra`) to review every change.
 
@@ -154,7 +153,8 @@ checks it. Set `repo=alessandro823/pullwatch` first.
             { "context": "app build, unit and UI tests", "integration_id": 15368 },
             { "context": "String Catalogs in step with the code", "integration_id": 15368 },
             { "context": "unsigned release build and disk image", "integration_id": 15368 },
-            { "context": "changelog fragment", "integration_id": 15368 }
+            { "context": "changelog fragment", "integration_id": 15368 },
+            { "context": "build and check links", "integration_id": 15368 }
           ] } }
     ]
   }
