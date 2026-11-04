@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Categories for GitHub's generated release notes. The body of a Pullwatch
+# release is its CHANGELOG.md section (scripts/release/notes.sh); this only
+# shapes the list of pull requests GitHub generates. Bugs and features carry
+# no label (the issue type says what they are), so they land in the last
+# category. Pull requests with no-changelog are left out.
+changelog:
+  exclude:
+    labels:
+      - no-changelog
+  categories:
+    - title: Security
+      labels:
+        - security
+    - title: Dependencies
+      labels:
+        - dependencies
+    - title: Documentation
+      labels:
+        - documentation
+    - title: CI and tooling
+      labels:
+        - ci
+        - chore
+        - refactor
+        - perf
+        - test
+    - title: Features and fixes
+      labels:
+        - "*"

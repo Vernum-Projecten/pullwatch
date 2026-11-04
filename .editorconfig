@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Describes the files as they are; it never asks for a reformat.
+# https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Swift and Python: 4 spaces (Xcode's indentation, Ctrl-I).
+[*.{swift,py}]
+indent_style = space
+indent_size = 4
+
+# Shell, YAML, the String Catalogs and the JSON Xcode and npm write: 2 spaces.
+[*.{sh,yml,yaml,xcstrings,json,resolved}]
+indent_style = space
+indent_size = 2
+
+[.githooks/*]
+indent_style = space
+indent_size = 2
+
+# Xcode writes the project file with tabs.
+[*.pbxproj]
+indent_style = tab
+
+# The website's code is formatted the way Astro sets it up: tabs. Its
+# package.json and package-lock.json are written by npm with 2 spaces.
+[site/**.{astro,mjs,ts,css,mdx}]
+indent_style = tab
+indent_size = 2
+
+[site/src/content/i18n/*.json]
+indent_style = tab
+indent_size = 2
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+# Licence texts and test fixtures are copied verbatim.
+[{LICENSE,NOTICE,Pullwatch/Pullwatch/Acknowledgements/Resources/Acknowledgements/**,PullwatchKit/Tests/**/Fixtures/**,**.svg}]
+insert_final_newline = unset
+trim_trailing_whitespace = unset

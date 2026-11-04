@@ -76,6 +76,117 @@ an enterprise account are read with its token on that server only; the
 fallback without a token that github.com accounts have is off there, because
 GitHub Enterprise Server and GHE.com rarely allow reading without signing in.
 
+## Repository settings
+
+Settings of `alessandro823/pullwatch` that no file in the repository can
+make. Each needs admin rights on the repository; the command under each
+checks it. Set `repo=alessandro823/pullwatch` first.
+
+- [ ] **Private vulnerability reporting** on (Settings, Advanced Security),
+  so [SECURITY.md](../SECURITY.md) works. Turning it on also adds "Report a
+  vulnerability" to the issue chooser; `.github/ISSUE_TEMPLATE/config.yml`
+  therefore has no link of its own for it. Turn on with
+  `gh api -X PUT repos/$repo/private-vulnerability-reporting`.
+
+  ```bash
+  gh api repos/$repo/private-vulnerability-reporting --jq .enabled   # true
+  ```
+
+- [ ] **Dependabot alerts** and **Dependabot security updates** on
+  (Settings, Advanced Security). Version updates come from
+  `.github/dependabot.yml` and need nothing here.
+
+  ```bash
+  gh api repos/$repo/vulnerability-alerts --silent && echo alerts on    # 404 when off
+  gh api repos/$repo/automated-security-fixes --jq .enabled             # true
+  ```
+
+- [ ] **Secret scanning** and **push protection** on (Settings, Advanced
+  Security).
+
+  ```bash
+  gh api repos/$repo --jq '.security_and_analysis | {secret_scanning, secret_scanning_push_protection}'
+  # both "status": "enabled"
+  ```
+
+- [ ] **A ruleset for `main`** (Settings, Rules, Rulesets): a pull request
+  before merging, and the required checks of CI (`shell scripts and
+  workflows`, `PullwatchKit tests`, `app build, unit and UI tests`, `String
+  Catalogs in step with the code`, `unsigned release build and disk image`)
+  and Changelog (`changelog fragment`), all from GitHub Actions. The Website
+  check (`build and check links`) only runs when a pull request touches
+  `site/`, and GitHub waits forever for a required check that never runs,
+  so add it once `site.yml` runs on every pull request; until then it
+  still has to pass on every pull request that changes the website.
+  `.github/CODEOWNERS` asks Alessandro and the fork's owner
+  (`rubentalstra`) to review every change.
+
+  ```bash
+  gh api repos/$repo/rules/branches/main --jq '.[].type'
+  # includes pull_request and required_status_checks
+  gh api repos/$repo/rules/branches/main \
+    --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
+  ```
+
+  To create it from the command line:
+
+  ```bash
+  gh api --method POST repos/$repo/rulesets --input - <<'JSON'
+  {
+    "name": "main",
+    "target": "branch",
+    "enforcement": "active",
+    "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+    "rules": [
+      { "type": "deletion" },
+      { "type": "non_fast_forward" },
+      { "type": "pull_request", "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": false } },
+      { "type": "required_status_checks", "parameters": {
+          "strict_required_status_checks_policy": false,
+          "required_status_checks": [
+            { "context": "shell scripts and workflows", "integration_id": 15368 },
+            { "context": "PullwatchKit tests", "integration_id": 15368 },
+            { "context": "app build, unit and UI tests", "integration_id": 15368 },
+            { "context": "String Catalogs in step with the code", "integration_id": 15368 },
+            { "context": "unsigned release build and disk image", "integration_id": 15368 },
+            { "context": "changelog fragment", "integration_id": 15368 }
+          ] } }
+    ]
+  }
+  JSON
+  ```
+
+  (`15368` is the app id of GitHub Actions.)
+
+- [ ] **Discussions** off: questions go to the
+  [FAQ](https://pullwatch.net/faq/) and to Issues, as
+  `.github/ISSUE_TEMPLATE/config.yml` and [SUPPORT.md](../SUPPORT.md) say.
+
+  ```bash
+  gh api repos/$repo --jq .has_discussions   # false
+  ```
+
+- [ ] **Reported content** from all users (Settings, Moderation options,
+  Reported content), so the reports [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
+  points to reach the maintainer. There is no REST API for this setting;
+  check it on that page.
+
+- [ ] **Description, website and topics** (the About box on the
+  repository's front page).
+
+  ```bash
+  gh api repos/$repo --jq '{description, homepage, topics}'
+  gh repo edit $repo \
+    --description "Pull requests, tags and outdated dependencies, watched from your Mac's menu bar." \
+    --homepage https://pullwatch.net \
+    --add-topic macos,swiftui,menu-bar-app,github,gitlab,azure-devops,pull-requests,mcp
+  ```
+
 ## Time Sensitive notifications (not used)
 
 Pullwatch could let a new critical or high vulnerability break through Focus
