@@ -31,6 +31,7 @@ struct RepoOverviewTab: View {
             RepoPullRequestsSection(
                 items: pullRequests,
                 openCount: summary.openPullRequests,
+                showsChecks: accounts.config.isEnabled(.ciChecks),
                 open: { historyModel.open($0) },
                 showAll: { router.showHistory($0, repo: historyRepo) },
                 brief: { briefs.pullRequests() }

@@ -42,6 +42,8 @@ struct RepoOverviewSection: View {
 struct RepoPullRequestsSection: View {
     let items: [HistoryItem]
     let openCount: Int
+    /// De bron CI-checks staat aan.
+    let showsChecks: Bool
     let open: (HistoryItem) -> Void
     let showAll: (ItemKind) -> Void
     /// Kopieert de lijst als opdracht voor een AI-agent (`AgentBrief.pullRequests`).
@@ -56,7 +58,7 @@ struct RepoPullRequestsSection: View {
                 Button {
                     open(item)
                 } label: {
-                    PullRequestRow(item: item)
+                    PullRequestRow(item: item, showsChecks: showsChecks)
                 }
                 .buttonStyle(.plain)
                 .help(Text("Open in browser"))
@@ -73,7 +75,7 @@ struct RepoPullRequestsSection: View {
         } footer: {
             VStack(alignment: .trailing, spacing: 6) {
                 if items.contains(where: { $0.entry.checks == .needsPermission }) {
-                    ChecksPermissionNote()
+                    ChecksPermissionNote(isEnabled: showsChecks)
                 }
                 HStack(spacing: 12) {
                     Button("Alle PR's van deze repo") { showAll(.pullRequest) }
@@ -89,11 +91,11 @@ struct RepoPullRequestsSection: View {
 /// De checks van PR's in deze repo mag Pullwatch niet lezen: dan staat er geen cel, en hier
 /// waarom, met wat er nodig is.
 private struct ChecksPermissionNote: View {
-    @Environment(AccountsModel.self) private var accounts
+    /// De bron CI-checks staat aan; anders vraagt Pullwatch geen checks, dus ook geen toestemming.
+    let isEnabled: Bool
 
     var body: some View {
-        // Met de bron CI-checks uit vraagt Pullwatch geen checks, dus ook geen toestemming.
-        if accounts.config.isEnabled(.ciChecks) {
+        if isEnabled {
             HStack(spacing: 4) {
                 Text("Checks")
                 Text("Toestemming nodig").foregroundStyle(.secondary)
@@ -105,8 +107,11 @@ private struct ChecksPermissionNote: View {
     }
 }
 
+/// Eén PR in een lijst. Leest zelf geen model uit de environment (zie `ChecksBadge`).
 struct PullRequestRow: View {
     let item: HistoryItem
+    /// De bron CI-checks staat aan.
+    let showsChecks: Bool
 
     var body: some View {
         HStack(spacing: 6) {
@@ -116,7 +121,7 @@ struct PullRequestRow: View {
             Text(verbatim: item.entry.title)
                 .fontWeight(item.isRead ? .regular : .semibold)
                 .lineLimit(1)
-            ChecksBadge(checks: item.entry.checks)
+            ChecksBadge(checks: item.entry.checks, isEnabled: showsChecks)
             Spacer(minLength: 8)
             if let author = item.entry.author {
                 Text(verbatim: author).foregroundStyle(.secondary).lineLimit(1)
