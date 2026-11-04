@@ -1,11 +1,12 @@
 name: CI
 
 # Every pull request and every push to main: the shell scripts and the
-# workflows are linted, a pull request that changes the app carries a
-# changelog fragment (changelog.d/README.md), PullwatchKit's tests run, the app is built and its
+# workflows are linted, PullwatchKit's tests run, the app is built and its
 # unit and UI tests run, the String Catalogs are checked against the code,
 # and an unsigned universal release is packaged the way
 # scripts/release/release.sh packages a real one. No job needs a secret.
+# The changelog fragment check is changelog.yml: it also runs when a label
+# changes, which must not restart (and cancel) this whole workflow.
 
 on:
   push:
@@ -48,39 +49,6 @@ jobs:
           echo "$ACTIONLINT_SHA256  $archive" | sha256sum --check --strict
           tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
           "$RUNNER_TEMP/actionlint" -color
-
-  changelog:
-    name: changelog fragment
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: the changelog scripts prove themselves
-        run: |
-          bash scripts/release/changelog.sh --self-test
-          bash scripts/checks/changelog-guard.sh --self-test
-      # The label waives the fragment, never the fragments' form.
-      - name: every fragment is well formed
-        run: bash scripts/release/changelog.sh --check
-      # The label comes from the event, so setting it needs a new push or a
-      # reopened pull request; a re-run replays the old event.
-      - name: a fragment for a change to the app, no line under [Unreleased]
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-          WAIVED: ${{ contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
-        run: |
-          if [ "$WAIVED" = "true" ]; then
-            bash scripts/checks/changelog-guard.sh --waived "$BASE" "$HEAD"
-          else
-            bash scripts/checks/changelog-guard.sh "$BASE" "$HEAD"
-          fi
 
   kit:
     name: PullwatchKit tests
