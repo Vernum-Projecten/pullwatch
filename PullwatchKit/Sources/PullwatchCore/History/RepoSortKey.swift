@@ -1,8 +1,7 @@
 import Foundation
 
-/// Sorteert de kolom Repo: op de naam die de kolom toont (bij een PR de korte naam, bij een tag de
-/// repo voluit), dan op de repo voluit zodat twee repo's met dezelfde korte naam niet door elkaar
-/// lopen, en binnen een repo op nummer. Zo staan de PR's van één repo bij elkaar, `#9` voor `#10`.
+/// Sorteert de kolom Repo: op de repo voluit, zoals de kolom hem toont (`FerroHEALTH/FerroFED`),
+/// en binnen een repo op nummer. Zo staan de PR's van één repo bij elkaar, `#9` voor `#10`.
 public struct RepoSortKey: Comparable, Sendable {
     public let name: String
     public let repo: String
@@ -13,7 +12,7 @@ public struct RepoSortKey: Comparable, Sendable {
         repo = entry.repo
         switch entry {
         case .pullRequest(let pr):
-            name = PullRequest.shortName(of: pr.repo)
+            name = pr.repo
             number = pr.number
         case .tag:
             name = entry.repo
