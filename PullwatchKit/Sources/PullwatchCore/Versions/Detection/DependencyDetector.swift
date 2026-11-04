@@ -189,7 +189,7 @@ enum DependencyDetector {
             // Het bereik hoort bij wat wint: de directe install, anders de eerste die er een heeft.
             let requested = rank(dependency.scope) > rank(current.scope)
                 ? dependency.requested ?? current.requested : current.requested ?? dependency.requested
-            byKey[key] = current.with(scope: scope, kind: kind, via: via, requested: requested)
+            byKey[key] = current.with(scope: scope, kind: kind, via: via, requested: requested, registry: .some(current.registry ?? dependency.registry))
         }
         return order.compactMap { byKey[$0] }
     }

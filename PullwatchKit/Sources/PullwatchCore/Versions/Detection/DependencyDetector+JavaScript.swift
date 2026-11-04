@@ -90,6 +90,8 @@ extension DependencyDetector {
         var isLocal: Bool
         /// Map van een Berry-workspace relatief aan de lockfile; "" is de root.
         var workspace: String?
+        /// v1: `resolved`, de tarball-URL in het register. Berry schrijft geen URL.
+        var registry: String?
     }
 
     /// yarn.lock v1 (classic) en Berry (`__metadata`). Een entry heeft één of meer descriptors
@@ -124,7 +126,7 @@ extension DependencyDetector {
             let dependencies = ["dependencies", "optionalDependencies"].flatMap { node[$0]?.children ?? [] }
                 .map { (name: $0.key, range: $0.value ?? "") }
             entries.append(YarnEntry(descriptors: descriptors, name: name, version: version, dependencies: dependencies,
-                                     isLocal: isLocal, workspace: workspace))
+                                     isLocal: isLocal, workspace: workspace, registry: berry ? nil : registry(node["resolved"]?.value)))
         }
         var byDescriptor: [String: Int] = [:]
         for (index, entry) in entries.enumerated() {
@@ -173,7 +175,8 @@ extension DependencyDetector {
                 } ?? rootRanges[id]
                 read.dependencies.append(Dependency(
                     ecosystem: "npm", name: entry.name, version: entry.version, source: path, workspace: join(base, importer),
-                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via, requested: requested
+                    scope: reach.via.isEmpty ? .direct : .transitive, kind: reach.kind, via: reach.via, requested: requested,
+                    registry: entry.registry
                 ))
             }
         }
@@ -181,7 +184,7 @@ extension DependencyDetector {
         for (index, entry) in entries.enumerated() where !entry.isLocal && !reached.contains(String(index)) && isExactVersion(entry.version) {
             read.dependencies.append(Dependency(
                 ecosystem: "npm", name: entry.name, version: entry.version, source: path, workspace: base,
-                scope: importers.isEmpty ? .unknown : .transitive
+                scope: importers.isEmpty ? .unknown : .transitive, registry: entry.registry
             ))
         }
         read.dependencies = merged(read.dependencies).sorted { ($0.name, $0.version, $0.workspace) < ($1.name, $1.version, $1.workspace) }

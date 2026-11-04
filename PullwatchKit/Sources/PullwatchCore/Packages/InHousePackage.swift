@@ -1,9 +1,12 @@
 public import Foundation
 
-/// Een dependency die een gevolgde repository (of een Azure-project) zelf publiceert: de versiecheck
-/// neemt de nieuwste versie uit dat eigen register in plaats van het publieke, en vraagt het
-/// publieke register niets over deze naam. Bewaard op de metadata van het package
-/// (`PackageMetadata.inHouse`), zodat de app en de MCP-tools het zonder extra pad lezen.
+/// Een dependency die een gevolgde repository (of een Azure-project) zelf publiceert, met bewijs
+/// uit de lockfile (`InHouseEvidence`): de versiecheck neemt de nieuwste versie uit dat eigen
+/// register in plaats van het publieke, en vraagt het publieke register niets over deze naam. OSV
+/// hoort de naam alleen als het publieke register hem ook kent (`isPublicName`). Bewaard op de
+/// metadata van het package (`PackageMetadata.inHouse`), zodat de app en de MCP-tools het zonder
+/// extra pad lezen. Hetzelfde type staat in `PackageMetadata.alsoPublishedBy` voor een publiek
+/// package waarvan een account een package met dezelfde naam publiceert.
 public struct InHousePackage: Codable, Hashable, Sendable {
     /// Of de check de versies uit het eigen register kon lezen.
     public enum Status: Hashable, Sendable {
@@ -30,10 +33,13 @@ public struct InHousePackage: Codable, Hashable, Sendable {
     /// De pagina van het package bij het register.
     public let registryURL: URL?
     public let status: Status
+    /// Het publieke register kent deze naam ook: een eerdere check vond hem daar. Dan lekt OSV
+    /// vragen niets, dus de check zoekt er de CVE's van de naam (#214); anders hoort OSV hem niet.
+    public let isPublicName: Bool
 
     public init(
         accountId: UUID, name: String, type: PublishedPackageType, owner: String, repository: String?,
-        repositoryURL: URL? = nil, registryURL: URL? = nil, status: Status = .checked
+        repositoryURL: URL? = nil, registryURL: URL? = nil, status: Status = .checked, isPublicName: Bool = false
     ) {
         self.accountId = accountId
         self.name = name
@@ -43,6 +49,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         self.repositoryURL = repositoryURL
         self.registryURL = registryURL
         self.status = status
+        self.isPublicName = isPublicName
     }
 
     /// Wat het package publiceert: de repository, anders de eigenaar (het Azure-project).
@@ -58,14 +65,22 @@ public struct InHousePackage: Codable, Hashable, Sendable {
     public func with(status: Status) -> InHousePackage {
         InHousePackage(
             accountId: accountId, name: name, type: type, owner: owner, repository: repository,
-            repositoryURL: repositoryURL, registryURL: registryURL, status: status
+            repositoryURL: repositoryURL, registryURL: registryURL, status: status, isPublicName: isPublicName
+        )
+    }
+
+    /// Dezelfde herkomst met `isPublicName`.
+    func with(isPublicName: Bool) -> InHousePackage {
+        InHousePackage(
+            accountId: accountId, name: name, type: type, owner: owner, repository: repository,
+            repositoryURL: repositoryURL, registryURL: registryURL, status: status, isPublicName: isPublicName
         )
     }
 
     // MARK: - Lezen en schrijven
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, name, type, owner, repository, repositoryURL, registryURL, status, reason
+        case accountId, name, type, owner, repository, repositoryURL, registryURL, status, reason, isPublicName
     }
 
     private enum StatusKey: String, Codable {
@@ -89,6 +104,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         case .needsPermission?: status = .needsPermission(reason: (try? c.decodeIfPresent(String.self, forKey: .reason)) ?? "")
         case .sourceOff?, nil: status = .sourceOff
         }
+        isPublicName = (try? c.decodeIfPresent(Bool.self, forKey: .isPublicName)) ?? false
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -109,5 +125,6 @@ public struct InHousePackage: Codable, Hashable, Sendable {
             try c.encode(StatusKey.needsPermission, forKey: .status)
             try c.encode(reason, forKey: .reason)
         }
+        if isPublicName { try c.encode(true, forKey: .isPublicName) }
     }
 }

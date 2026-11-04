@@ -3,47 +3,67 @@ import Foundation
 // MARK: - Eigen packages
 
 extension VersionChecker {
-    /// De metadata van elke dependency in `keys` ("ecosysteem:naam") die een gevolgde repo zelf
-    /// publiceert, uit de eigen registers in `published`. Deze namen gaan nooit naar het publieke
-    /// register (npmjs.com, nuget.org, pypi.org, rubygems.org) of naar OSV: een private naam lekt
-    /// zo niet, en een publiek package met dezelfde naam wordt niet voor het eigen aangezien.
+    /// Welke dependencies eigen packages zijn (#214). Een sleutel is eigen als een actief account
+    /// (bekend en niet gepauzeerd) een package met die naam publiceert en elke install ervan in
+    /// deze check aantoonbaar uit dat register komt (`InHouseEvidence`): een scope van de
+    /// eigenaar, of het register in de lockfile. Eén install zonder bewijs (een andere repo die
+    /// het publieke package gebruikt) maakt de sleutel publiek: die install moet de publieke
+    /// nieuwste versie en de CVE's van OSV krijgen, en de naam gaat dan toch al naar buiten.
     ///
     /// - Bron Packageregisters van je accounts uit: geen eigen register, dus ook geen nieuwste
-    ///   versie. Wat de vorige check als eigen package kende (`metadataCache`), blijft eigen en
-    ///   staat als "niet gecontroleerd: bron staat uit", nooit als actueel.
+    ///   versie. Wat de vorige check als eigen package kende (`metadataCache`), blijft eigen (met
+    ///   bewijs en een actief account) en staat als "niet gecontroleerd: bron staat uit".
     /// - Het account mag het register niet (meer) lezen: wat het vorige keer publiceerde staat
     ///   als "niet gecontroleerd" met de reden.
-    /// - Het register mislukte (netwerk) of het account zat niet in deze check: de metadata van
-    ///   de vorige check blijft.
-    /// - Een naam die geen gevolgde repo publiceert: nil, de check doet wat hij altijd deed.
-    func inHouseMetadata(keys: Set<String>, published: [AccountPackages], accounts: [Account]) -> [String: PackageMetadata] {
+    /// - Het register mislukte (netwerk) of het actieve account zat niet in deze check: de
+    ///   metadata van de vorige check blijft.
+    /// - Het account is weg of gepauzeerd, of noemt het package niet meer: niet meer eigen, de
+    ///   check doet wat hij voor elk publiek package doet.
+    func inHouseCheck(dependencies: [Dependency], published: [AccountPackages], accounts: [Account]) -> InHouseCheck {
+        let byId = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        func isActive(_ id: UUID) -> Bool { byId[id].map { !$0.isPaused } ?? false }
+        let installs = Dictionary(grouping: dependencies, by: { "\($0.ecosystem):\($0.name)" })
+        func isProven(_ key: String, owner: String, accountId: UUID) -> Bool {
+            let found = installs[key] ?? []
+            return !found.isEmpty && found.allSatisfy { InHouseEvidence.proves($0, owner: owner, account: byId[accountId]) }
+        }
+        /// Een eerdere check vond de naam in het publieke register, of wist dat al.
+        func isPublicName(_ key: String) -> Bool {
+            guard let old = metadataCache[key] else { return false }
+            return old.inHouse?.isPublicName ?? (old.latest != nil)
+        }
         let cached = metadataCache.filter { $0.value.inHouse != nil }
+        var result = InHouseCheck()
         guard isEnabled(.packageRegistries) else {
-            var result: [String: PackageMetadata] = [:]
-            for key in keys {
-                guard let old = cached[key]?.inHouse else { continue }
-                result[key] = PackageMetadata(latest: nil, versions: [:], inHouse: old.with(status: .sourceOff))
+            for key in installs.keys {
+                guard let old = cached[key]?.inHouse, isActive(old.accountId), isProven(key, owner: old.owner, accountId: old.accountId) else { continue }
+                result.metadata[key] = PackageMetadata(latest: nil, versions: [:], inHouse: old.with(status: .sourceOff))
             }
             return result
         }
-        let results = Dictionary(published.map { ($0.accountId, $0.result) }, uniquingKeysWith: { first, _ in first })
-        let webPages = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let index = InHouseIndex(published.flatMap(\.result.packages), kinds: webPages.mapValues(\.kind))
-        var result: [String: PackageMetadata] = [:]
-        for key in keys {
+        let active = published.filter { isActive($0.accountId) }
+        let results = Dictionary(active.map { ($0.accountId, $0.result) }, uniquingKeysWith: { first, _ in first })
+        let index = InHouseIndex(active.flatMap(\.result.packages), kinds: byId.mapValues(\.kind))
+        for key in installs.keys {
             if let package = index.match(key: key) {
-                let account = webPages[package.accountId]
+                let account = byId[package.accountId]
                 let page = (package.repository.flatMap { account?.repoWebURL($0) } ?? account.flatMap { Self.projectURL(package, account: $0) })
                     .map(Self.withoutCredentials)
-                result[key] = Self.metadata(of: package, repositoryURL: page)
+                let own = Self.metadata(of: package, repositoryURL: page)
+                if isProven(key, owner: package.owner, accountId: package.accountId) {
+                    result.metadata[key] = own.withInHouse(own.inHouse?.with(isPublicName: isPublicName(key)))
+                } else if let namesake = own.inHouse {
+                    result.namesakes[key] = namesake
+                }
                 continue
             }
-            guard let old = cached[key], let inHouse = old.inHouse else { continue }
+            guard let old = cached[key], let inHouse = old.inHouse, isActive(inHouse.accountId),
+                  isProven(key, owner: inHouse.owner, accountId: inHouse.accountId) else { continue }
             switch results[inHouse.accountId] {
             case .needsPermission(let reason)?:
-                result[key] = PackageMetadata(latest: nil, versions: [:], inHouse: inHouse.with(status: .needsPermission(reason: reason)))
+                result.metadata[key] = PackageMetadata(latest: nil, versions: [:], inHouse: inHouse.with(status: .needsPermission(reason: reason)))
             case .failed?, nil:
-                result[key] = old
+                result.metadata[key] = old
             case .packages?, .notSupported?:
                 // Het account zegt nu wat het publiceert, en dit package hoort er niet meer bij.
                 continue
@@ -96,5 +116,14 @@ extension VersionChecker {
             guard current.isFailed, let old = before[current.accountId], !old.isFailed else { return current }
             return old
         }
+    }
+}
+
+extension PackageMetadata {
+    /// Dezelfde metadata met een andere herkomst.
+    func withInHouse(_ inHouse: InHousePackage?) -> PackageMetadata {
+        var copy = self
+        copy.inHouse = inHouse
+        return copy
     }
 }

@@ -44,11 +44,17 @@ public struct Dependency: Hashable, Sendable {
     /// Het gevraagde bereik zoals geschreven: uit het manifest voor een directe install, uit de
     /// ouder in `via` voor een transitieve (als de lockfile dat bewaart); nil als onbekend.
     public let requested: String?
+    /// Het register waar de lockfile of het manifest deze install vandaan haalt, zonder
+    /// inloggegevens en query (`DependencyDetector.registry(_:)`): de npm-`resolved`, de Cargo-
+    /// `source`, de composer `dist.url`, de Bundler-`remote`, de pip-index. nil bij het publieke
+    /// standaardregister en als het bestand het niet zegt. Het bewijs voor een eigen package
+    /// (`InHouseEvidence`).
+    public let registry: String?
 
     public init(
         ecosystem: String, name: String, version: String, source: String,
         workspace: String?, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = [],
-        requested: String? = nil
+        requested: String? = nil, registry: String? = nil
     ) {
         self.ecosystem = ecosystem
         self.name = name
@@ -59,12 +65,16 @@ public struct Dependency: Hashable, Sendable {
         self.kind = kind
         self.via = via
         self.requested = requested
+        self.registry = registry
     }
 
     /// Oude vorm: `isDirect` true, false of nil (onbekend); workspace volgt uit `source`.
-    public init(ecosystem: String, name: String, version: String, source: String, isDirect: Bool? = nil, requested: String? = nil) {
+    public init(
+        ecosystem: String, name: String, version: String, source: String, isDirect: Bool? = nil, requested: String? = nil,
+        registry: String? = nil
+    ) {
         self.init(ecosystem: ecosystem, name: name, version: version, source: source, workspace: nil, scope: DependencyScope(isDirect: isDirect),
-                  requested: requested)
+                  requested: requested, registry: registry)
     }
 
     /// Rechtstreeks gevraagd (true), alleen via een ander package (false) of onbekend (nil).
@@ -84,15 +94,20 @@ public struct Dependency: Hashable, Sendable {
     /// Eén install per package, versie en workspace; een tweede bestand in dezelfde map telt niet apart.
     var installKey: String { "\(ecosystem)|\(name)|\(version)|\(workspace)" }
 
-    func with(scope: DependencyScope? = nil, kind: DependencyKind? = nil, via: [String]? = nil, requested: String?? = nil) -> Dependency {
+    func with(
+        scope: DependencyScope? = nil, kind: DependencyKind? = nil, via: [String]? = nil, requested: String?? = nil, registry: String?? = nil
+    ) -> Dependency {
         Dependency(
             ecosystem: ecosystem, name: name, version: version, source: source, workspace: workspace,
-            scope: scope ?? self.scope, kind: kind ?? self.kind, via: via ?? self.via, requested: requested ?? self.requested
+            scope: scope ?? self.scope, kind: kind ?? self.kind, via: via ?? self.via, requested: requested ?? self.requested,
+            registry: registry ?? self.registry
         )
     }
 
     var install: PackageInstall {
-        PackageInstall(version: version, workspace: workspace, scope: scope, kind: kind, via: via, source: source, requested: requested)
+        PackageInstall(
+            version: version, workspace: workspace, scope: scope, kind: kind, via: via, source: source, requested: requested, registry: registry
+        )
     }
 }
 
@@ -108,7 +123,7 @@ extension DependencyScope {
 
 extension Dependency: Codable {
     private enum CodingKeys: String, CodingKey {
-        case ecosystem, name, version, source, workspace, scope, kind, via, requested
+        case ecosystem, name, version, source, workspace, scope, kind, via, requested, registry
         /// Alleen lezen: oude bestanden hadden `isDirect` in plaats van `scope`.
         case isDirect
     }
@@ -127,7 +142,8 @@ extension Dependency: Codable {
             scope: scope,
             kind: try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime,
             via: try c.decodeIfPresent([String].self, forKey: .via) ?? [],
-            requested: try c.decodeIfPresent(String.self, forKey: .requested)
+            requested: try c.decodeIfPresent(String.self, forKey: .requested),
+            registry: try? c.decodeIfPresent(String.self, forKey: .registry)
         )
     }
 
@@ -142,6 +158,7 @@ extension Dependency: Codable {
         try c.encode(kind, forKey: .kind)
         try c.encode(via, forKey: .via)
         try c.encodeIfPresent(requested, forKey: .requested)
+        try c.encodeIfPresent(registry, forKey: .registry)
     }
 }
 
@@ -158,10 +175,13 @@ public struct PackageInstall: Codable, Hashable, Sendable {
     /// Het gevraagde bereik (`Dependency.requested`); nil als onbekend en in versions.json van
     /// vóór de bereiken.
     public let requested: String?
+    /// Het register waar deze install vandaan komt (`Dependency.registry`); nil bij het publieke
+    /// standaardregister, als het bestand het niet zegt, en in versions.json van vóór #214.
+    public let registry: String?
 
     public init(
         version: String, workspace: String, scope: DependencyScope, kind: DependencyKind = .runtime, via: [String] = [], source: String,
-        requested: String? = nil
+        requested: String? = nil, registry: String? = nil
     ) {
         self.version = version
         self.workspace = workspace
@@ -170,10 +190,11 @@ public struct PackageInstall: Codable, Hashable, Sendable {
         self.via = via
         self.source = source
         self.requested = requested
+        self.registry = registry
     }
 
     private enum CodingKeys: String, CodingKey {
-        case version, workspace, scope, kind, via, source, requested
+        case version, workspace, scope, kind, via, source, requested, registry
     }
 
     public init(from decoder: any Decoder) throws {
@@ -185,6 +206,7 @@ public struct PackageInstall: Codable, Hashable, Sendable {
         kind = try c.decodeIfPresent(DependencyKind.self, forKey: .kind) ?? .runtime
         via = try c.decodeIfPresent([String].self, forKey: .via) ?? []
         requested = try c.decodeIfPresent(String.self, forKey: .requested)
+        registry = try? c.decodeIfPresent(String.self, forKey: .registry)
     }
 }
 

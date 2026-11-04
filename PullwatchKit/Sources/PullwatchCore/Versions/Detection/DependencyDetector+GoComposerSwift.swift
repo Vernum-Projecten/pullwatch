@@ -29,16 +29,22 @@ extension DependencyDetector {
     /// tellen niet. `require` van elk package is de graaf; direct volgt uit composer.json.
     static func composerLock(_ content: String, path: String) -> LockfileRead {
         struct Package: Decodable {
+            struct Dist: Decodable { let url: String? }
             let name: String
             let version: String
             let require: [String: String]
-            enum CodingKeys: String, CodingKey { case name, version, require }
+            /// Waar Composer het archief haalt; bij een eigen register (GitLab) de URL daarvan.
+            let dist: Dist?
+            let notificationURL: String?
+            enum CodingKeys: String, CodingKey { case name, version, require, dist, notificationURL = "notification-url" }
             init(from decoder: any Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 name = try c.decode(String.self, forKey: .name)
                 version = try c.decode(String.self, forKey: .version)
                 // Een lege `require` schrijft PHP soms als [] in plaats van {}.
                 require = (try? c.decodeIfPresent([String: String].self, forKey: .require)) ?? [:]
+                dist = try? c.decodeIfPresent(Dist.self, forKey: .dist)
+                notificationURL = try? c.decodeIfPresent(String.self, forKey: .notificationURL)
             }
         }
         struct Lock: Decodable {
@@ -56,7 +62,8 @@ extension DependencyDetector {
             guard !package.version.hasPrefix("dev-") else { return nil }
             let version = package.version.droppingVersionPrefix
             guard StackDetector.version(from: version) != nil else { return nil }
-            return Dependency(ecosystem: "Packagist", name: package.name, version: version, source: path, workspace: nil, scope: .unknown, kind: kind)
+            return Dependency(ecosystem: "Packagist", name: package.name, version: version, source: path, workspace: nil, scope: .unknown, kind: kind,
+                              registry: registry(package.dist?.url) ?? registry(package.notificationURL))
         }
         read.graph = graph
         return read

@@ -14198,6 +14198,35 @@
         }
       }
     },
+    "Ook gepubliceerd door %@ (hier niet gebruikt)": {
+      "comment": "Repository of project dat een package met dezelfde naam publiceert; deze repo gebruikt het publieke package",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch veröffentlicht von %@ (hier nicht verwendet)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also published by %@ (not used here)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Également publié par %@ (non utilisé ici)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ook gepubliceerd door %@ (hier niet gebruikt)"
+          }
+        }
+      }
+    },
     "Ook in %@": {
       "comment": "Tagnaam",
       "localizations": {

@@ -159,7 +159,7 @@ extension DependencyDetector {
             let found = reach[id]
             let scope: DependencyScope = found.map { $0.via.isEmpty ? .direct : .transitive } ?? (locals.isEmpty ? .unknown : .transitive)
             return Dependency(ecosystem: "crates.io", name: package.name, version: package.version, source: path,
-                              workspace: nil, scope: scope, via: found?.via ?? [])
+                              workspace: nil, scope: scope, via: found?.via ?? [], registry: registry(package.source))
         }
     }
 
@@ -188,7 +188,10 @@ extension DependencyDetector {
             } else {
                 .runtime
             }
-            read.dependencies.append(Dependency(ecosystem: "PyPI", name: name, version: version, source: path, workspace: nil, scope: .unknown, kind: kind))
+            // `[package.source]` met `url` bij een eigen index (`type = "legacy"`).
+            let index = package.tables["source"]?.first { $0.key == "url" }.flatMap { TomlPackage.string($0.value) }
+            read.dependencies.append(Dependency(ecosystem: "PyPI", name: name, version: version, source: path, workspace: nil, scope: .unknown, kind: kind,
+                                                registry: registry(index)))
         }
         read.graph = graph
         return read
@@ -203,6 +206,8 @@ extension DependencyDetector {
             let name: String
             let version: String
             let local: String?
+            /// `source = { registry = "…" }`.
+            let registry: String?
             let edges: [(name: String, version: String?, kind: DependencyKind)]
         }
         let packages = tomlPackages(content).compactMap { package -> Package? in
@@ -213,7 +218,8 @@ extension DependencyDetector {
             edges += (package.tables["optional-dependencies"] ?? []).flatMap { TomlPackage.references($0.value).map { ($0.name, $0.version, DependencyKind.optional) } }
             edges += (package.tables["dev-dependencies"] ?? []).flatMap { TomlPackage.references($0.value).map { ($0.name, $0.version, DependencyKind.dev) } }
             // Het project zelf heeft soms geen versie (dynamic); als knoop telt het toch.
-            return Package(name: name, version: package.version ?? "", local: local, edges: edges)
+            let index = source.firstMatch(of: /\bregistry\s*=\s*"([^"]+)"/).map { String($0.output.1) }
+            return Package(name: name, version: package.version ?? "", local: local, registry: registry(index), edges: edges)
         }
         let index = TomlIndex(packages.map { ($0.name, $0.version) }, normalize: normalizedPyPIName)
         var byId: [String: Package] = [:]
@@ -233,7 +239,7 @@ extension DependencyDetector {
         func install(_ id: String, workspace: String, scope: DependencyScope, kind: DependencyKind, via: [String]) {
             guard let package = byId[id], package.local == nil, !package.version.isEmpty else { return }
             result.append(Dependency(ecosystem: "PyPI", name: package.name, version: package.version, source: path,
-                                     workspace: workspace, scope: scope, kind: kind, via: via))
+                                     workspace: workspace, scope: scope, kind: kind, via: via, registry: package.registry))
         }
         for local in locals.sorted() {
             let workspace = join(base, byId[local]?.local ?? "")

@@ -78,12 +78,17 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
     public let transitiveOnly: [PackageUser]
     /// Gezet als een gevolgde repository dit package zelf publiceert (`PackageMetadata.inHouse`).
     public let inHouse: InHousePackage?
+    /// Een account publiceert een package met dezelfde naam, maar dit is het publieke
+    /// (`PackageMetadata.alsoPublishedBy`).
+    public let alsoPublishedBy: InHousePackage?
 
     public init(
         id: String, label: String, kind: String, latest: String?, since: Date?,
-        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser], inHouse: InHousePackage? = nil
+        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser], inHouse: InHousePackage? = nil,
+        alsoPublishedBy: InHousePackage? = nil
     ) {
         self.inHouse = inHouse
+        self.alsoPublishedBy = alsoPublishedBy
         self.id = id
         self.label = label
         self.kind = kind
@@ -211,7 +216,7 @@ extension VersionReport {
             return PackageSummary(
                 id: id, label: group.label, kind: group.kind, latest: group.latest, since: group.since,
                 behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly,
-                inHouse: packageMetadata[id]?.inHouse
+                inHouse: packageMetadata[id]?.inHouse, alsoPublishedBy: packageMetadata[id]?.alsoPublishedBy
             )
         }
         func rank(_ state: PackageSummary.State) -> Int {

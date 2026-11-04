@@ -206,6 +206,7 @@ private struct PackageNameCell: View {
                     InHouseBadge(inHouse: inHouse)
                 }
             }
+            .help(InHouseBadge.alsoPublishedHelp(row.summary.alsoPublishedBy))
         case .user(let row):
             Text(verbatim: row.user.repo)
                 .lineLimit(1)

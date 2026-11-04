@@ -59,18 +59,30 @@ Ein Paket, das kein Repository selbst verlangt und das nur über ein anderes Pak
 
 ## Hauseigene Pakete
 
-Eine Abhängigkeit, die eines der Repositories, denen du folgst, in der Registry seines eigenen Dienstes veröffentlicht (GitHub Packages, eine Registry von GitLab oder ein Feed von Azure Artifacts), ist ein hauseigenes Paket. npmjs.com oder nuget.org kennen ein privates `@acme/ui` nicht, deshalb nimmt Pullwatch seine neueste Version aus deiner Registry, die [Pakete](/de/using/packages/) auflistet. Die Zeile sagt **Hauseigen**, mit einem Link zum Repository, das es veröffentlicht, und ihr Tooltip sagt „Veröffentlicht von octocat/linguist: Die neueste Version kommt aus deiner eigenen Registry.“ Bereiche, die Update-Gruppen und was ein Update aufhält funktionieren wie bei jedem anderen Paket.
+Eine Abhängigkeit, die eines der Repositories, denen du folgst, in der Registry seines eigenen Dienstes veröffentlicht (GitHub Packages, eine Registry von GitLab oder ein Feed von Azure Artifacts), und die dein Repository nachweislich von dort bezieht, ist ein hauseigenes Paket. npmjs.com oder nuget.org kennen ein privates `@acme/ui` nicht, deshalb nimmt Pullwatch seine neueste Version aus deiner Registry, die [Pakete](/de/using/packages/) auflistet. Die Zeile sagt **Hauseigen**, mit einem Link zum Repository, das es veröffentlicht, und ihr Tooltip sagt „Veröffentlicht von octocat/linguist: Die neueste Version kommt aus deiner eigenen Registry.“ Bereiche, die Update-Gruppen und was ein Update aufhält funktionieren wie bei jedem anderen Paket.
 
-Deine privaten Namen bleiben privat. Pullwatch liest zuerst deine Registries, bevor es irgendetwas nachschlägt, und lässt jeden hauseigenen Namen aus jeder öffentlichen Abfrage heraus: registry.npmjs.org und die anderen öffentlichen Registries sehen ihn nie, OSV.dev ebenso wenig. Schlägt das Lesen deiner Registry fehl, behält Pullwatch, was die vorige Prüfung gefunden hat, damit ein schlechter Tag nie einen privaten Namen nach draußen schickt.
+### Nachweis statt Name
+
+Ein Name allein macht ein Paket nicht zu deinem. Eine Organisation kann einen gepatchten Fork eines öffentlichen Pakets unter demselben Namen veröffentlichen, etwa `Newtonsoft.Json`, und ein Repository, das das öffentliche Paket verwendet, muss dessen öffentliche neueste Version und dessen bekannte Schwachstellen behalten. Deshalb zählt Pullwatch eine Abhängigkeit nur mit Nachweis als hauseigen:
+
+- npm: ein Name mit dem Scope des Owners (`@acme/ui`, veröffentlicht von `acme`; bei GitLab die oberste Gruppe, bei Azure DevOps auch die Organisation).
+- Go: der Modulpfad, der seinen eigenen Host und Owner nennt.
+- Jedes Ökosystem: Die Registry, die die Lockfile oder das Manifest nennt, ist die eigene Registry des Kontos für dieses Ökosystem. Pullwatch liest sie aus `resolved` in `package-lock.json` und einer klassischen `yarn.lock`, `remote:` in `Gemfile.lock`, `dist.url` in `composer.lock`, `--index-url` oder `--extra-index-url` in einer `requirements`-Datei, der Quelle eines Pakets in `poetry.lock` und `uv.lock` und `source` in `Cargo.lock`. Eigene Registries sind `npm.pkg.github.com`, `nuget.pkg.github.com` und `rubygems.pkg.github.com` mit dem Owner im Pfad (bei GitHub Enterprise `npm.<host>` oder `<host>/_registry/npm/`), `/api/v4/…/packages/…` auf dem GitLab-Server des Kontos und `pkgs.dev.azure.com/<organisation>/…/_packaging/…` für Azure Artifacts.
+
+`packages.lock.json`, `pnpm-lock.yaml` und die `yarn.lock` von Yarn 2 und neuer nennen keine Registry pro Paket, also ist ein NuGet-Paket, und ein npm-Paket ohne den Scope des Owners, das mit pnpm oder einem neueren Yarn installiert wurde, nie hauseigen. Verwendet ein Repository den Namen ohne Nachweis, ist der Name für jedes Repository öffentlich. Ein öffentliches Paket, dessen Namen eines deiner Konten ebenfalls veröffentlicht, sagt das im Tooltip: „Auch veröffentlicht von acme/lib (hier nicht verwendet)“.
+
+Eine Abhängigkeit ohne Nachweis ist ein öffentliches Paket: Pullwatch schlägt ihre neueste Version in der öffentlichen Registry und ihre Schwachstellen bei OSV.dev nach, wie bei jedem anderen Paket. Wird das Konto, das ein Paket veröffentlicht, entfernt oder pausiert, oder nennt es das Paket nicht mehr, behandelt die nächste Prüfung es wieder als öffentlich.
+
+Pullwatch liest zuerst deine Registries, bevor es irgendetwas nachschlägt, und lässt jeden hauseigenen Namen aus jeder öffentlichen Registry heraus: registry.npmjs.org und die anderen sehen ihn nie. OSV.dev sieht einen hauseigenen Namen nur, wenn eine frühere Prüfung diesen Namen auch in der öffentlichen Registry gefunden hat, damit ein Fork eines öffentlichen Pakets trotzdem die bekannten Schwachstellen dieses Namens bekommt; ein Name, den nur deine Registry kennt, erreicht OSV.dev nie. Schlägt das Lesen deiner Registry fehl, behält Pullwatch, was die vorige Prüfung gefunden hat.
 
 Kann Pullwatch die neueste Version nicht lesen, sagt die Zeile das, statt sie als aktuell zu zeigen:
 
-- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt hauseigen und wird nicht öffentlich nachgeschlagen.
+- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt mit demselben Nachweis hauseigen und wird nicht öffentlich nachgeschlagen.
 - „Nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos“: Das Konto darf seine Registry nicht lesen. Der Tooltip sagt, was du freigeben musst; siehe [Welche Berechtigung nötig ist](/de/using/packages/#welche-berechtigung-nötig-ist).
 
 Schaltest du eine öffentliche Registry aus, etwa npm, betrifft das kein hauseigenes Paket.
 
-Was abgeglichen wird, nach dem Ökosystem der Abhängigkeit und ihrem Namen:
+Mit welchem veröffentlichten Paket eine Abhängigkeit verglichen wird, nach ihrem Ökosystem und ihrem Namen (danach entscheidet der Nachweis oben):
 
 | Ökosystem | Abgeglichen über |
 |---|---|
