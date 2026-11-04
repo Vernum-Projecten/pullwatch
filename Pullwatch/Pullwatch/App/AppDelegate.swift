@@ -30,5 +30,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.router.show(model.accounts.needsOnboarding ? .onboarding : .main)
         return false
     }
-}
 
+    /// Het menu van het Dock-icoon (zolang dat er is), zoals Mail Haal nieuwe post op biedt:
+    /// opnieuw laden en alle repo's checken. AppKit vraagt het bij elke klik opnieuw, dus de
+    /// toestand klopt altijd.
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let versions = AppModel.shared.versions
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        let reload = NSMenuItem(title: String(localized: "Laad opnieuw"), action: #selector(reloadFromDock), keyEquivalent: "")
+        reload.target = self
+        menu.addItem(reload)
+        let checkAll = NSMenuItem(title: String(localized: "Alle repo's checken"), action: #selector(checkAllFromDock), keyEquivalent: "")
+        checkAll.target = self
+        checkAll.isEnabled = versions.versionCheck == nil && versions.refreshingRepos.isEmpty
+        menu.addItem(checkAll)
+        return menu
+    }
+
+    @objc private func reloadFromDock() {
+        AppModel.shared.polling.refresh()
+    }
+
+    @objc private func checkAllFromDock() {
+        AppModel.shared.versions.startCheck()
+    }
+}

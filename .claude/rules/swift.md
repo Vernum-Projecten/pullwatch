@@ -273,8 +273,10 @@ examples.
   by their real names. `Form` with `.formStyle(.grouped)` for settings,
   `ContentUnavailableView` for empty states. Liquid Glass comes from the
   system: `.glassEffect` only on a custom floating control, never behind
-  content. Every menu command has a keyboard shortcut (`Shortcuts.swift`),
-  every icon-only button a `.help` and an accessibility label.
+  content. Every command is in the menu bar (`AppCommands`, one type per
+  menu in `Navigation/`), always present and disabled when it does not
+  apply; a frequent one has a keyboard shortcut that clashes with no
+  system one. Every icon-only button a `.help` and an accessibility label.
 
 ## Text and languages
 

@@ -13,6 +13,8 @@ final class UpdatesModel {
     /// Uitkomst van "Nu controleren" onder Instellingen; nil als er niet handmatig gekeken is.
     private(set) var manualCheckResult: ManualCheckResult?
     private(set) var isCheckingForUpdates = false
+    /// Sparkle kan nu een check beginnen; nee zonder Sparkle, voor het starten en zolang er een loopt.
+    private(set) var sparkleCanCheck = false
     /// Updates vanzelf downloaden en bij het afsluiten installeren; Sparkle bewaart de keuze.
     /// Zetten gaat via Sparkle, als binding voor de schakelaar in Instellingen (`@Bindable`).
     var installsUpdatesAutomatically: Bool {
@@ -26,6 +28,8 @@ final class UpdatesModel {
     @ObservationIgnored private var nextUpdateCheck: Date?
     /// De check die nu loopt (vanzelf of met "Nu controleren"); één tegelijk.
     @ObservationIgnored private var checkTask: Task<Void, Never>?
+    /// Volgt `Updater.canCheckForUpdatesChanges()` zolang de app draait.
+    @ObservationIgnored private var sparkleStateTask: Task<Void, Never>?
     @ObservationIgnored private let services: AppServices
     @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private let notifications: NotificationsModel
@@ -43,6 +47,26 @@ final class UpdatesModel {
         updater.includeTestVersions = config.includeTestVersions
         updater.start()
         installsAutomatically = updater.installsAutomatically
+        guard sparkleStateTask == nil else { return }
+        let changes = updater.canCheckForUpdatesChanges()
+        sparkleStateTask = Task {
+            defer { sparkleStateTask = nil }
+            for await canCheck in changes { sparkleCanCheck = canCheck }
+        }
+    }
+
+    /// "Zoek naar updates…" in het app-menu kan: Sparkle draait en er loopt geen check.
+    var canCheckFromMenu: Bool { sparkleCanCheck && !isCheckingForUpdates }
+
+    /// "Zoek naar updates…" in het app-menu: dezelfde check als "Nu controleren", maar altijd met
+    /// Sparkle's venster, ook als deze versie de nieuwste is.
+    func startCheckFromMenu() {
+        guard canCheckFromMenu, checkTask == nil else { return }
+        checkTask = Task {
+            defer { checkTask = nil }
+            await checkForUpdates(manual: true)
+            if availableUpdate == nil { updater.installNow() }
+        }
     }
 
     /// Updates installeren in de app kan (Sparkle met een openbare sleutel in de build).

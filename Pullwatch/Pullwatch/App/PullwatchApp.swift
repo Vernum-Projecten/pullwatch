@@ -42,15 +42,7 @@ struct PullwatchApp: App {
                 .appModels(model)
                 .countsAsOpenWindow(WindowID.main.rawValue)
         }
-        .commands {
-            ShortcutCommands(model: model)
-            CommandGroup(replacing: .appInfo) {
-                Button("Over Pullwatch") { model.router.show(.about) }
-            }
-            CommandGroup(after: .help) {
-                Button("Erkenningen") { model.router.show(.acknowledgements) }
-            }
-        }
+        .commands { AppCommands(model: model) }
         .windowResizability(.contentMinSize)
         .defaultLaunchBehavior(.suppressed)
 
@@ -64,6 +56,8 @@ struct PullwatchApp: App {
         // Eerste start: meteen het welkomstvenster, anders lijkt de app niet te starten.
         .defaultLaunchBehavior(model.opensOnboardingAtLaunch ? .presented : .suppressed)
         .restorationBehavior(.disabled)
+        // Geen eigen onderdeel in het menu Venster: daar staat alleen Pullwatch (⌘0, `WindowCommands`).
+        .commandsRemoved()
 
         Settings {
             SettingsView()
@@ -81,6 +75,7 @@ struct PullwatchApp: App {
         .defaultPosition(.center)
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
+        .commandsRemoved()
 
         Window("Erkenningen", id: WindowID.acknowledgements.rawValue) {
             AcknowledgementsView()
@@ -91,6 +86,7 @@ struct PullwatchApp: App {
         .defaultPosition(.center)
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
+        .commandsRemoved()
 
         #if DEBUG
         // Alleen voor schermafbeeldingen (`-PullwatchMenuPreview YES`): het menupaneel als gewoon
@@ -102,6 +98,7 @@ struct PullwatchApp: App {
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(UserDefaults.standard.bool(forKey: "PullwatchMenuPreview") ? .presented : .suppressed)
+        .commandsRemoved()
 
         // Alleen voor schermafbeeldingen (`-PullwatchNotificationPreview YES`, met
         // `-PullwatchSkipNotificationRequest YES`): elke soort melding zoals de builder hem maakt,
@@ -112,6 +109,7 @@ struct PullwatchApp: App {
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(UserDefaults.standard.bool(forKey: "PullwatchNotificationPreview") ? .presented : .suppressed)
+        .commandsRemoved()
         #endif
     }
 }

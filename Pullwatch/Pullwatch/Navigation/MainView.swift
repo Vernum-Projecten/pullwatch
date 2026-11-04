@@ -35,7 +35,7 @@ struct MainView: View {
         .onChange(of: router.mainSection) { _, section in
             storedSection = section
         }
-        // "Volg een repository…" uit het menu Ga of de knoppenbalk van Repo's.
+        // "Volg een repository…" uit het menu Archief of de knoppenbalk van Repo's.
         .sheet(isPresented: Bindable(router).isWatchingRepository) {
             WatchRepositorySheet(accounts: accounts.accountsForExtraRepos) { accountId, check in
                 app.addExtraRepository(check, to: accountId)

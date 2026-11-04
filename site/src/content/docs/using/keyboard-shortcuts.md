@@ -1,32 +1,91 @@
 ---
 title: Keyboard shortcuts
-description: Every shortcut in the Pullwatch menu panel and the Go menu of the main window.
+description: Every shortcut in the menu bar of the Pullwatch windows and in the menu panel.
 ---
 
-## Main window: the Go menu
+The menu bar follows Apple's order: Pullwatch, File, Edit, View, Go, Item, Repository, Window and Help. Every command is always there; one that does not apply to what is selected is dimmed.
+
+## Pullwatch
 
 | Shortcut | What it does |
 |---|---|
+| | Check for Updates… |
+| ⌘, | Settings |
+| ⌘H | Hide Pullwatch |
+| ⌘Q | Quit Pullwatch |
+
+## File
+
+| Shortcut | What it does |
+|---|---|
+| ⌘N | New Account…: Settings, Accounts, with the choice of service |
+| ⇧⌘N | Watch a Repository… |
+| ⌘O | Open the selection (or the open repository) in the browser |
+| ⌘W | Close the window |
+
+## Edit
+
+| Shortcut | What it does |
+|---|---|
+| ⌘F | Find: search the current section |
+
+## View
+
+| Shortcut | What it does |
+|---|---|
+| ⌃⌘S | Show or hide the sidebar |
+| ⌥⌘T | Show or hide the toolbar |
+| ⌘R | Reload: the open repository, otherwise poll or check everything |
+| ⌃⌘F | Enter or exit full screen |
+
+## Go
+
+| Shortcut | What it does |
+|---|---|
+| ⌘[ | Back from a repository page |
 | ⌘1 | PRs |
 | ⌘2 | Tags and Releases |
 | ⌘3 | Statistics |
 | ⌘4 | Repositories |
 | ⌘5 | Dependencies |
-| ⌘F | Search the current section |
-| ⌘R | Refresh: the open repository, otherwise poll or check everything |
-| ⌘[ | Back from a repository page |
-| ⌘O | Open the selection (or the open repository) in the browser |
-| ⇧⌘U | Mark the selection as read or unread |
+| ⌘↓ | The selected repository's page |
+
+## Item
+
+The selected pull request, tag or release.
+
+| Shortcut | What it does |
+|---|---|
+| ⇧⌘U | Mark as read or unread |
 | ⌘K | Mark all as read |
-| ⌘↓ | Open the selected repository's page |
-| ⌥⌘S | Repository statistics |
-| ⇧⌘C | Copy the repository's dependencies |
-| ⇧⌘N | Watch a repository |
-| ⇧⌘R | Fetch the history again |
+| ⇧⌘L | Copy the link |
+
+## Repository
+
+The selected repository, or the open repository page.
+
+| Shortcut | What it does |
+|---|---|
+| | Check the repository again |
 | ⌥⌘R | Check all repositories |
+| ⌥⌘S | Repository statistics |
+| ⇧⌘C | Copy the repository's dependencies for an agent |
+| ⇧⌘R | Fetch the history again |
 | ⌘. | Stop fetching |
-| ⌥⌘I | Show or hide the inspector on a repository page |
-| ⌘, | Settings |
+| ⌥⌘I | Show or hide the inspector on a repository page (toolbar) |
+
+## Window and Help
+
+| Shortcut | What it does |
+|---|---|
+| ⌘M | Minimize |
+| ⌘0 | Pullwatch: open the main window or bring it to the front |
+
+Help leads to this documentation, this page, the release notes of your version, a new issue on GitHub, and the acknowledgements.
+
+## Dock
+
+While the Dock icon shows, its menu offers **Reload** and **Check All Repositories**.
 
 ## Menu panel
 
