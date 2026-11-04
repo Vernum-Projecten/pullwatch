@@ -1,0 +1,138 @@
+---
+// The end of the landing page: what Pullwatch does with your data, then the download.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const points = [
+	{
+		title: 'Tokens stay in your Keychain',
+		text: 'Personal access tokens and the GitHub sign-in live in the macOS Keychain. Settings and history are plain files in your Library folder.',
+	},
+	{
+		title: 'No server in between',
+		text: 'Pullwatch talks straight to your GitHub, Azure DevOps and GitLab servers. It has no account, no server of its own and no analytics.',
+	},
+	{
+		title: 'Every connection listed',
+		text: 'Settings, Sources shows each outside service with the address it calls. Switch off any data source and Pullwatch says what it could not check.',
+	},
+];
+---
+
+<section class="closing" aria-labelledby="privacy">
+	<p class="kicker">Privacy</p>
+	<h2 id="privacy">Your code stays between you and your servers</h2>
+	<ul class="points">
+		{
+			points.map((point) => (
+				<li>
+					<h3>{point.title}</h3>
+					<p>{point.text}</p>
+				</li>
+			))
+		}
+	</ul>
+	<a class="more" href={`${base}/privacy/`}>Read about privacy and sources<span aria-hidden="true"> ›</span></a>
+</section>
+
+<section class="download" aria-labelledby="get">
+	<h2 id="get">Get Pullwatch</h2>
+	<p>Free and open source under the Apache 2.0 license. For macOS 26.6 or later, on Apple silicon and Intel. Signed with a Developer ID and notarized by Apple.</p>
+	<div class="actions">
+		<a class="button primary" href="https://github.com/alessandro823/pullwatch/releases/latest">Download the latest release</a>
+		<a class="button" href={`${base}/getting-started/install/`}>Installation guide</a>
+	</div>
+</section>
+
+<style>
+	.closing,
+	.download {
+		padding-block: clamp(3rem, 7vw, 5.5rem);
+		border-top: 1px solid var(--pw-hairline);
+	}
+	.kicker {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+	}
+	h2 {
+		margin: 0.35rem 0 0;
+		font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+		line-height: 1.12;
+		letter-spacing: -0.025em;
+		font-weight: 700;
+		color: var(--sl-color-white);
+	}
+	.points {
+		display: grid;
+		gap: 1rem;
+		margin: 2rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	@media (min-width: 50rem) {
+		.points {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+	.points li {
+		margin: 0;
+		padding: 1.25rem 1.35rem;
+		border-radius: 0.9rem;
+		background: var(--pw-surface);
+		border: 1px solid var(--pw-hairline);
+	}
+	.points h3 {
+		margin: 0;
+		font-size: var(--sl-text-lg);
+		color: var(--sl-color-white);
+	}
+	.points p {
+		margin: 0.5rem 0 0;
+		color: var(--sl-color-gray-2);
+		line-height: 1.55;
+	}
+	.more {
+		display: inline-block;
+		margin-top: 1.25rem;
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--sl-color-text-accent);
+	}
+	.more:hover {
+		text-decoration: underline;
+	}
+	.download {
+		text-align: center;
+	}
+	.download p {
+		max-width: 36rem;
+		margin: 0.9rem auto 0;
+		font-size: var(--sl-text-lg);
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 1.75rem;
+	}
+	.button {
+		display: inline-block;
+		padding: 0.7rem 1.35rem;
+		border-radius: 999px;
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--sl-color-white);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+	.button.primary {
+		background: var(--sl-color-text-accent);
+		border-color: transparent;
+		color: var(--sl-color-black);
+	}
+	.button:hover {
+		filter: brightness(1.08);
+	}
+</style>

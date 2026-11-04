@@ -1,0 +1,95 @@
+name: Website
+
+# The website in site/ (Astro Starlight, site/README.md). Every pull request
+# that touches it builds it twice, for the project page and for a custom
+# domain, with the Pagefind index, and checks every internal link, so a
+# broken site fails in the fork too. A push to main in alessandro823/pullwatch
+# deploys it to GitHub Pages; the fork builds and never deploys. The address
+# is the repository variable PAGES_DOMAIN (docs/website.md): empty, the site
+# is https://alessandro823.github.io/pullwatch/; set, https://<domain>/. After
+# changing the variable, run this workflow by hand to deploy again.
+
+on:
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/site.yml"
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/site.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+# A new push to a pull request cancels its older build; a run on main is never
+# cancelled half way through a deploy.
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  build:
+    name: build and check links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: site/.nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+      # The other address first, so both builds are checked whatever the
+      # variable holds; the build that is deployed comes last.
+      - name: build for a custom domain and check its links
+        env:
+          PAGES_DOMAIN: pullwatch.net
+        run: |
+          npm run build
+          npm run check-links
+      - name: build for the configured address and check its links
+        env:
+          PAGES_DOMAIN: ${{ vars.PAGES_DOMAIN }}
+        run: |
+          rm -rf dist
+          npm run build
+          npm run check-links
+          test -f dist/pagefind/pagefind.js
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.repository == 'alessandro823/pullwatch' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy to GitHub Pages
+    needs: build
+    if: github.repository == 'alessandro823/pullwatch' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

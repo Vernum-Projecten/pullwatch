@@ -10,3 +10,5 @@ dist/
 .claude/skills/*
 .claude/worktrees/
 Pullwatch/Local.xcconfig
+site/node_modules/
+site/.astro/

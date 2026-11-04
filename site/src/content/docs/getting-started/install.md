@@ -1,0 +1,48 @@
+---
+title: Install and first launch
+description: Download Pullwatch, move it to Applications and walk through the welcome window.
+sidebar:
+  label: Install and first launch
+---
+
+## What you need
+
+- A Mac with macOS 26.6 or later. Pullwatch is a universal app, so it runs natively on Apple silicon and on Intel.
+- An account on at least one of github.com, a GitHub Enterprise server (Server or GHE.com), Azure DevOps or GitLab (gitlab.com or your own server).
+
+## Install
+
+1. Download the latest `Pullwatch-x.y.z.dmg` from the [releases page](https://github.com/alessandro823/pullwatch/releases/latest).
+2. Open the disk image and drag **Pullwatch** onto **Applications**.
+3. Open Pullwatch from Applications, Spotlight or Launchpad.
+
+Every release is signed with a Developer ID and notarized by Apple, so macOS opens it without a warning.
+
+## The welcome window
+
+On the first launch Pullwatch opens a welcome window that walks you through the setup:
+
+1. **Where Pullwatch lives.** It runs in the menu bar; the welcome window points out the icon.
+2. **Your first account.** Pick GitHub, GitHub Enterprise, Azure DevOps or GitLab. See [Add your accounts](/getting-started/accounts/) for each one.
+3. **Notifications.** macOS asks once whether Pullwatch may send notifications. Allow it to hear about new pull requests and tags as soon as they appear.
+4. **Launch at login**, so Pullwatch is there after a restart.
+
+After that Pullwatch polls your accounts in the background. The first time it also fetches your existing pull requests, so the history is not empty. Those do not notify you and arrive marked as read.
+
+## Where to find it
+
+- **The menu bar icon** opens the [menu panel](/using/menu/) with the newest pull requests and tags.
+- **Open…** in the menu panel opens the main window with PRs, Tags and Releases, Statistics, Repositories and Dependencies.
+- **Settings** is the gear button in the menu panel, or ⌘, while Pullwatch is in front.
+
+While one of its windows is open, Pullwatch shows in the Dock. Close the last window and it runs from the menu bar only. Opening Pullwatch again while it runs brings up the main window (or the welcome window while no account is set up).
+
+## Updates
+
+Pullwatch looks for a new release once a day (Settings, General, where **Check now** looks right away). When there is one you get a notification and a banner in the menu panel. **Install** shows the release notes, downloads the update, checks its signatures and restarts Pullwatch.
+
+Under Settings, General, **Install updates automatically** downloads an update in the background and installs it when you quit Pullwatch, and **Include test versions** also offers pre-releases.
+
+## Language
+
+Pullwatch speaks English, Dutch, German and French. It follows the language of macOS, or you pick one under Settings, General, **Language**.
