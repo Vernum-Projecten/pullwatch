@@ -192,15 +192,30 @@ of each part is in `docs/superpowers/specs/` and its plan in
 - `docs/setup.md`: everything the maintainer configures outside the code
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
-  in step with the code. `docs/superpowers/`: Alessandro's design specs and
-  plans (Dutch).
+  in step with the code. `docs/website.md`: the website on GitHub Pages, the
+  `PAGES_DOMAIN` variable and the DNS of `pullwatch.net`.
+  `docs/superpowers/`: Alessandro's design specs and plans (Dutch).
+- `site/`: the website, an Astro Starlight project (`site/README.md`): the
+  landing page (`src/content/docs/index.mdx` with the components in
+  `src/components/`) and the user documentation in English
+  (`src/content/docs/`), with screenshots from the camera tour in
+  `src/assets/screenshots/` (light and dark, fake data only). Versions pinned
+  exactly with a committed `package-lock.json`; Node from `site/.nvmrc`.
+  `astro.config.mjs` takes `site` and `base` from `PAGES_DOMAIN`; a Markdown
+  link is written from the site root (`/using/menu/`) and gets the base from
+  `src/plugins/base-links.mjs`. `npm run build` also makes the Pagefind index
+  and validates the Markdown links; `npm run check-links` follows every link
+  in `dist/`. Keep its pages in step with the app, as the README.
 - `.github/workflows/`: `ci.yml` (every pull request and push to `main`:
   shellcheck and actionlint, `swift test`, `xcodebuild test` with the unit
   and UI tests, `release.sh --unsigned` with a universal check of the app
   and `pullwatch-mcp`, and the helper in the DMG and zip; no secrets),
   `changelog.yml` (the changelog fragment guard on every pull request, also
   when a label is added or removed, so `no-changelog` set after opening
-  counts without a new push) and `release.yml` (a `v*` tag: check, sign, notarise, package, draft
+  counts without a new push), `site.yml` (a pull request or push that
+  touches `site/`: both builds of the website and their links; on `main` in
+  `alessandro823/pullwatch` only, also the deploy to GitHub Pages) and
+  `release.yml` (a `v*` tag: check, sign, notarise, package, draft
   release). `.github/actionlint.yaml` names the `xcode-27` runner label.
   `CHANGELOG.md` (Keep a Changelog) gives each release its notes, assembled
   from the fragments in `changelog.d/`.
