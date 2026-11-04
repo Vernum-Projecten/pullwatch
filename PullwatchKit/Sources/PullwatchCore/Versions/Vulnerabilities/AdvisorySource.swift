@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// De database die een OSV-record publiceert (de "home database" uit het OSV-schema). OSV.dev
 /// verzamelt ze; het voorvoegsel van de id zegt waar het record vandaan komt

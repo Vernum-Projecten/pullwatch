@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Hoe lang de geschiedenis bewaard blijft.
 public enum HistoryRetention: String, Codable, CaseIterable, Sendable {

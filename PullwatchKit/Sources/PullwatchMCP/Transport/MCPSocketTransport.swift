@@ -1,6 +1,6 @@
-import Foundation
-import Logging
-import MCP
+public import Foundation
+public import Logging
+public import MCP
 
 /// Een `Transport` van de SDK over één verbonden Unix-socket: JSON-RPC-berichten als regels,
 /// afgesloten met `\n`, zoals de stdio-transport van MCP (de helper geeft stdin en stdout

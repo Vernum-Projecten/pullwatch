@@ -1,5 +1,5 @@
 import CryptoKit
-import Foundation
+public import Foundation
 import Synchronization
 
 /// Waar deze run zijn tokens bewaart. De echte app: de login-Keychain onder

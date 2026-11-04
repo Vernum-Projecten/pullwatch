@@ -1,5 +1,5 @@
 import Darwin
-import Foundation
+public import Foundation
 import PullwatchCore
 
 /// De Unix-domain-socket tussen `pullwatch-mcp` en de app: het pad en de systeemaanroepen om er

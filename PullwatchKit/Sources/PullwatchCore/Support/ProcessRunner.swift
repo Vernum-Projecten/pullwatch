@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 import Synchronization
 
 public struct ProcessOutput: Sendable, Equatable {

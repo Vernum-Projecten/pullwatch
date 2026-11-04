@@ -1,5 +1,5 @@
 import Foundation
-import MCP
+public import MCP
 
 /// Het JSON Schema (2020-12) van de invoer of uitvoer van een tool, als Swift-waarde. Eén
 /// beschrijving levert het schema dat de agent in `tools/list` ziet en de controle die de server

@@ -1,4 +1,4 @@
-import Foundation
+package import Foundation
 import Synchronization
 
 package extension Date {

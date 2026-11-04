@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Waar de app zijn Sparkle-appcast vindt, en of updates in de app aan kunnen.
 ///

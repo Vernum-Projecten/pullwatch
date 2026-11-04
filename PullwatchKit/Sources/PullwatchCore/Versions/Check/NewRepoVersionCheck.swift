@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Of de repo's die na een poll gevolgd worden een eigen versiecheck nodig hebben, zonder op de
 /// dagelijkse te wachten: net gevolgd, of nieuw bij de dienst. De app beslist met dit oordeel en

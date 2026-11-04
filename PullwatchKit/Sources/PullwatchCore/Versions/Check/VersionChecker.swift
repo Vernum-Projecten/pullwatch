@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Leest per gevolgde repo de projectbestanden, vergelijkt de gevonden versies met endoflife.date
 /// en zoekt bekende kwetsbaarheden in de packages via OSV.dev.

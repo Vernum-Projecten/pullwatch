@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// Azure DevOps via de REST API: de pull requests, tags en bestanden van de repo's in de projecten
 /// van één organisatie, met een PAT of het token van `az`.

@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// Wat de MCP-tools van Pullwatch lezen: alleen wat de app al heeft opgehaald, als waarden uit
 /// PullwatchCore. De app levert dit uit zijn modellen (op de main actor, dus `async`); de tests

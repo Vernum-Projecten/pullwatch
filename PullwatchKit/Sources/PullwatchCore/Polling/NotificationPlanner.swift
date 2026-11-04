@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén repo van één account: de groep waarin macOS de meldingen stapelt (`threadIdentifier`).
 public struct RepositoryKey: Hashable, Sendable {

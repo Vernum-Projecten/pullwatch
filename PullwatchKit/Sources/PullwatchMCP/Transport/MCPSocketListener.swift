@@ -1,5 +1,5 @@
 import Darwin
-import Foundation
+package import Foundation
 
 /// De luisterende socket van de app op `mcp.sock`. De map wordt 0700 en de socket 0600, zodat
 /// alleen de gebruiker zelf kan verbinden; een achtergebleven socket van een vorige run (een crash,

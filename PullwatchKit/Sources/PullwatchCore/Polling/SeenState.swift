@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Persistente dedup-state. `seen` bevat dedupKeys van PR's die gemeld of stil geseed zijn,
 /// met de laatste keer dat ze open gezien zijn. `lastSettings` bevat per account de

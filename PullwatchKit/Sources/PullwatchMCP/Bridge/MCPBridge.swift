@@ -1,7 +1,7 @@
 import Darwin
-import Foundation
+public import Foundation
 import MCP
-import PullwatchCore
+public import PullwatchCore
 
 /// De logica van de helper `pullwatch-mcp`: een agent start hem met stdio, hij geeft elk bericht
 /// door aan de socket van de app en elk antwoord terug, zoals `xcrun mcpbridge` voor Xcode. Wat

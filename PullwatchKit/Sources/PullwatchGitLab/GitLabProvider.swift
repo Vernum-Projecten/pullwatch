@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// GitLab (gitlab.com of een eigen server) via de REST API v4. Eigenaren zijn groepen (met hun
 /// subgroepen) of gebruikers; een repo heet zoals GitLab hem noemt, `groep/subgroep/project`

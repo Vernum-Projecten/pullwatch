@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een advies uit de GitHub Advisory Database (`GET /advisories/{ghsa_id}`) of een eigen advies
 /// van een repository (`GET /repos/{owner}/{repo}/security-advisories`): GitHubs eigen ernst,

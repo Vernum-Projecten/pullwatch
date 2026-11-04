@@ -1,4 +1,4 @@
-import MCP
+public import MCP
 
 /// Bouwt de MCP-server van Pullwatch: een `Server` van de SDK met Pullwatch als naam, alleen de
 /// capability tools, en `tools/list` en `tools/call` uit een `MCPToolRegistry`. De SDK doet

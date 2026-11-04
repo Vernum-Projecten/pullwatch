@@ -86,9 +86,19 @@ A file is found by its name, a type by its module and area.
 
 Both targets build with strict concurrency, approachable concurrency
 (`SWIFT_APPROACHABLE_CONCURRENCY`) and the upcoming features
-`ExistentialAny`, `MemberImportVisibility`, `NonisolatedNonsendingByDefault`
-and `InferIsolatedConformances` (project build settings and `Package.swift`).
+`ExistentialAny`, `MemberImportVisibility`, `NonisolatedNonsendingByDefault`,
+`InferIsolatedConformances`, `InternalImportsByDefault` and
+`ImmutableWeakCaptures`, which are every Swift 7 default (project build
+settings and `Package.swift`; Xcode has no setting for
+`ImmutableWeakCaptures`, so the project passes it in `OTHER_SWIFT_FLAGS`).
 CI treats warnings as errors.
+
+- **A plain `import` is internal.** Write `public import X` only when a
+  `public` declaration's signature, conformance, default argument or
+  inlinable body uses a type from X, and `package import X` when only
+  `package` declarations need it, so a module's public interface shows
+  exactly which modules it exposes. Never `@_exported` or
+  `@_implementationOnly`.
 
 - **The app target is `@MainActor` by default**
   (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` in `App.xcconfig`). Views,

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Nieuwste versie van een package in zijn register; `version` nil als die niet op te halen was.
 public struct PackageLatest: Codable, Hashable, Sendable {

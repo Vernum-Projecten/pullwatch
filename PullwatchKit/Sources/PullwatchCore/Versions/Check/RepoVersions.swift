@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén onderdeel (taal, runtime, framework of Docker-image) van een repo met zijn status.
 public struct ComponentVersion: Codable, Hashable, Sendable {

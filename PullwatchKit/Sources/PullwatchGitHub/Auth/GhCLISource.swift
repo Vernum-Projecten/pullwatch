@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// Het token van de GitHub CLI (`gh auth token`), voor github.com of een eigen server.
 public actor GhCLISource: TokenSource {

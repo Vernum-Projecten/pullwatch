@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Waarom een zelf ingetypte of geplakte repository niet toe te voegen is, in gewone woorden.
 public enum RepositoryProblem: Error, Equatable, Sendable {

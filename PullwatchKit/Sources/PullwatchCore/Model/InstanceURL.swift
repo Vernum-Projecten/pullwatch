@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Het adres van een eigen server (GitLab self-managed, GitHub Enterprise), zoals iemand
 /// het intypt: met of zonder `https://`, eventueel met een pad ("https://example.com/gitlab").

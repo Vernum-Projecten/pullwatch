@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// De soorten meldingen die Pullwatch geeft. Elke soort heeft een eigen schakelaar onder
 /// Instellingen > Meldingen (behalve de update van Pullwatch en een account dat niet meer inlogt).

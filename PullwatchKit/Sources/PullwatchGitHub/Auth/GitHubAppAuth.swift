@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 // Inloggen bij GitHub via de Pullwatch GitHub App met de device flow (RFC 8628), overgenomen uit
 // FerroLICENCE (`GitHubKit/Auth.swift`). Geen client secret: de client id is openbaar.

@@ -1,4 +1,4 @@
-import Darwin
+public import Darwin
 
 /// Wat de app weet van het proces aan de andere kant van een verbinding, voordat er één byte van
 /// gelezen is: de gebruiker (`getpeereid`) en de codehandtekening (via het audit token).

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// De uitkomst van een hele versiecheck, zoals die in versions.json staat.
 public struct VersionReport: Codable, Equatable, Sendable {

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 public struct RecentItem: Codable, Equatable, Sendable, Identifiable {
     public var pullRequest: PullRequest

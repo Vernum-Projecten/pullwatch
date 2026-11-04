@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// De dienst achter een account.
 public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {

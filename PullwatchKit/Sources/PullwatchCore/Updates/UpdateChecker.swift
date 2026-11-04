@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een nieuwere Pullwatch op GitHub.
 public struct AvailableUpdate: Equatable, Sendable {

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén kopje van de repo-pagina als Markdown-opdracht voor een AI-agent: een kop (repo, link,
 /// branch als bekend, datum), de gegevens in een tabel, wat niet gecontroleerd is omdat een bron

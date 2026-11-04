@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 import os
 
 private let logger = Log(category: "engine")

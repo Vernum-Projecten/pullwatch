@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Compacte stand van één repo bij een versiecheck, voor statistieken door de tijd.
 public struct RepoSnapshot: Codable, Equatable, Sendable {

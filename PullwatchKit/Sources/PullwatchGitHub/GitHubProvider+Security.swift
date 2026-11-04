@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 /// Beveiligingsgegevens van GitHub zelf: code scanning, het aantal open geheimen en de eigen
 /// gepubliceerde adviezen van de repository. Eén verzoek per soort (100 per pagina, `Link`-header

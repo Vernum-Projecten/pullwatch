@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 /// Co-auteurs en checks van PR's via GraphQL, twintig PR's per verzoek (aliassen `pr0`, `pr1`,
 /// …). Per PR alleen wat nodig is: de auteurs van de laatste vijftig commits (GitHub zet de

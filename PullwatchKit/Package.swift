@@ -52,13 +52,17 @@ let package = Package(
 
 // Swift 6-taalmodus met de upcoming features die de app ook aan heeft: `any` voor elk
 // existential, imports zichtbaar per bestand, async functies erven de actor van de aanroeper
-// (nonisolated(nonsending)), en conformances op een actor afgeleid. PullwatchKit blijft
+// (nonisolated(nonsending)), conformances op een actor afgeleid, een gewone `import` is internal
+// (`public import` alleen waar publieke API een type uit die module gebruikt) en `[weak x]`
+// captures zijn onveranderlijk. Dat zijn alle standaarden van Swift 7. PullwatchKit blijft
 // standaard nonisolated; alleen het app-target is standaard @MainActor.
 let upcomingFeatures: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
     .enableUpcomingFeature("MemberImportVisibility"),
     .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
     .enableUpcomingFeature("InferIsolatedConformances"),
+    .enableUpcomingFeature("InternalImportsByDefault"),
+    .enableUpcomingFeature("ImmutableWeakCaptures"),
 ]
 for target in package.targets {
     target.swiftSettings = (target.swiftSettings ?? []) + upcomingFeatures

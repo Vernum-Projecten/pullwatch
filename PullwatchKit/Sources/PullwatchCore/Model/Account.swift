@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een gevolgd account bij een dienst, met wat er per repo gevolgd wordt; staat in `AppConfig`.
 public struct Account: Codable, Identifiable, Hashable, Sendable {

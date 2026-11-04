@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Statistieken per periode en filter, bewaard tot de geschiedenis verandert (`removeAll()`) of
 /// tot ze `lifetime` oud zijn: de periode schuift op, dus na een tijd klopt de grafiek niet meer.
