@@ -29,6 +29,35 @@
         }
       }
     },
+    "GitHub Packages is alleen te lezen met het recht read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages. De GitHub App kan dat recht niet krijgen.": {
+      "comment": "Reden waarom de packages van een GitHub-account niet te lezen zijn; read:packages en de gh-opdracht niet vertalen",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Packages is alleen te lezen met het recht read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages. De GitHub App kan dat recht niet krijgen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Packages can only be read with the read:packages permission: use the GitHub CLI (gh auth refresh -s read:packages) or a personal access token (classic) with read:packages. The GitHub App cannot get that permission."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Packages lässt sich nur mit der Berechtigung read:packages lesen: Verwende die GitHub CLI (gh auth refresh -s read:packages) oder ein persönliches Zugriffstoken (classic) mit read:packages. Die GitHub App kann diese Berechtigung nicht erhalten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Packages ne peut être lu qu'avec l'autorisation read:packages : utilisez la GitHub CLI (gh auth refresh -s read:packages) ou un jeton d'accès personnel (classic) avec read:packages. La GitHub App ne peut pas obtenir cette autorisation."
+          }
+        }
+      }
+    },
     "GitHub antwoordde: %@": {
       "localizations": {
         "de": {

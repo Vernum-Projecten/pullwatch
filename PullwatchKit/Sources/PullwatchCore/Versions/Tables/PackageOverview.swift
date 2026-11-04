@@ -236,7 +236,7 @@ extension VersionReport {
         }
         return VersionReport(
             checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata, format: format
+            packageMetadata: packageMetadata, format: format, publishedPackages: publishedPackages
         )
     }
 

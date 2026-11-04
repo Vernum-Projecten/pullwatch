@@ -67,8 +67,38 @@ public struct VersionChecker: Sendable {
             }
         }
 
+        // De eigen packages naast de scan: één lijst per account, niet per repo.
+        let accountTargets = targets
+        async let published = publishedPackages(accountTargets)
         let checked = await check(targets, progress: progress)
-        return VersionReport(checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest, packageMetadata: checked.metadata)
+        return VersionReport(
+            checkedAt: now(), repos: results + checked.repos, latestPackages: checked.latest, packageMetadata: checked.metadata,
+            publishedPackages: await published
+        )
+    }
+
+    /// Wat elk account in het register van zijn dienst publiceert, voor zijn gevolgde repo's. Met de
+    /// bron Packageregisters van je accounts uit gaat er geen verzoek de deur uit. Een dienst zonder
+    /// register staat er als `.notSupported`; een fout wordt `.failed`, nooit een mislukte check.
+    func publishedPackages(_ targets: [(account: Account, provider: any PRProvider, repos: [String])]) async -> [AccountPackages] {
+        guard isEnabled(.packageRegistries) else { return [] }
+        return await withTaskGroup(of: AccountPackages.self) { group in
+            for target in targets {
+                group.addTask {
+                    let result: PublishedPackages
+                    do {
+                        result = try await target.provider.publishedPackages(followedRepos: target.repos)
+                    } catch {
+                        result = .failed(message: Self.message(error))
+                    }
+                    return AccountPackages(accountId: target.account.id, result: result, checkedAt: now())
+                }
+            }
+            let all = await group.reduce(into: [AccountPackages]()) { $0.append($1) }
+            // In de volgorde van de accounts, niet in die waarin ze klaar waren.
+            let order = Dictionary(targets.enumerated().map { ($1.account.id, $0) }, uniquingKeysWith: { first, _ in first })
+            return all.sorted { (order[$0.accountId] ?? 0) < (order[$1.accountId] ?? 0) }
+        }
     }
 
     /// Checkt één repo opnieuw, bv. na een fix; het resultaat vervangt de regel in het rapport

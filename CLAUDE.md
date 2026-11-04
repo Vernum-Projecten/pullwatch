@@ -171,7 +171,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Vulnerabilities/` (OSV, the GitHub Advisory Database, CVSS, the
   service's own alerts), `Check/` (`VersionChecker`, `VersionReport`,
   `VersionHistory`) and `Tables/` (the rows and tables of the repository
-  page)), `DataSources/` (`DataSource` is the catalogue of data sources
+  page)), `Packages/` (what the accounts publish to their own registry:
+  `PublishedPackage`, `PublishedVersion`, `PublishedPackageType`, the result
+  per account `PublishedPackages` (`.packages`, `.needsPermission(reason:)`,
+  `.notSupported`, `.failed`) and `AccountPackages`, filled by the daily
+  version check through `PRProvider.publishedPackages(followedRepos:)` into
+  `VersionReport.publishedPackages`), `DataSources/` (`DataSource` is the catalogue of data sources
   that can be switched off, vulnerability and version sources and the CI
   checks of pull requests; `SourcesOverview` lists every connection for the
   Sources tab and its copied overview), `AgentBrief/` (turns a section of
@@ -186,7 +191,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   and the `glab` token source. Each provider has the same layout: the
   provider itself (accounts, repositories, pull requests), `+Tags`, `+HTTP`,
   one file of DTOs, and a `+Area` file per further area (co-authors, files,
-  checks, security, extra repositories, merge queues and trains).
+  checks, security, extra repositories, merge queues and trains,
+  published packages).
   `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
   provider. `PullwatchMCP/`: the MCP server for coding agents, on the
   official MCP Swift SDK (`modelcontextprotocol/swift-sdk`, pinned to an

@@ -19,6 +19,10 @@ public struct VersionReport: Codable, Equatable, Sendable {
     /// mist wat de check sindsdien leest (transitieve packages, gevraagde bereiken, de Cargo.toml's
     /// van workspace-leden); de app checkt dan opnieuw (`isOutdatedFormat`).
     public let format: Int
+    /// Wat de accounts in het register van hun dienst publiceren, één per account met de uitkomst
+    /// (`PRProvider.publishedPackages`). Alleen de dagelijkse check vult het; leeg als de bron
+    /// Packageregisters van je accounts uit stond.
+    public let publishedPackages: [AccountPackages]
 
     /// 1: zonder `format`. 2: transitieve installs met hun ouder, de eisen uit elke Cargo.toml en
     /// de eis van de ouder uit het register.
@@ -27,9 +31,11 @@ public struct VersionReport: Codable, Equatable, Sendable {
     public init(
         checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:],
         advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:],
-        packageMetadata: [String: PackageMetadata] = [:], format: Int = VersionReport.currentFormat
+        packageMetadata: [String: PackageMetadata] = [:], format: Int = VersionReport.currentFormat,
+        publishedPackages: [AccountPackages] = []
     ) {
         self.format = format
+        self.publishedPackages = publishedPackages
         self.checkedAt = checkedAt
         self.latestPackages = latestPackages
         self.advisories = advisories
@@ -43,11 +49,12 @@ public struct VersionReport: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata, format
+        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata, format, publishedPackages
     }
 
     /// versions.json van vóór het package-overzicht heeft geen `latestPackages`, van vóór de
-    /// blokkades geen `packageMetadata`.
+    /// blokkades geen `packageMetadata`, van vóór de eigen packages geen `publishedPackages` (en
+    /// wat daarvan niet te lezen is, valt weg in plaats van het hele rapport).
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         checkedAt = try c.decode(Date.self, forKey: .checkedAt)
@@ -57,6 +64,7 @@ public struct VersionReport: Codable, Equatable, Sendable {
         advisoryMisses = try c.decodeIfPresent([String: Date].self, forKey: .advisoryMisses) ?? [:]
         packageMetadata = try c.decodeIfPresent([String: PackageMetadata].self, forKey: .packageMetadata) ?? [:]
         format = try c.decodeIfPresent(Int.self, forKey: .format) ?? 1
+        publishedPackages = ((try? c.decodeIfPresent([Lossy<AccountPackages>].self, forKey: .publishedPackages)) ?? []).compactMap(\.value)
     }
 
     /// Gemaakt door een oudere versie van de check: het zegt minder dan een nieuwe check zou zeggen.
@@ -75,7 +83,8 @@ extension VersionReport {
         let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
         return VersionReport(
             checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.merging(metadata) { _, new in new }, format: format
+            packageMetadata: packageMetadata.merging(metadata) { _, new in new }, format: format,
+            publishedPackages: publishedPackages
         )
     }
 
@@ -199,7 +208,8 @@ extension VersionReport {
             latestPackages: latestPackages.filter { !isOff(key: $0.key) },
             advisories: disabled.contains(.gitHubAdvisoryDatabase) ? [:] : advisories,
             advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }, format: format
+            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }, format: format,
+            publishedPackages: disabled.contains(.packageRegistries) ? [] : publishedPackages
         )
     }
 }

@@ -57,6 +57,12 @@ public protocol PRProvider: Sendable {
     /// lezen. Gooit `ProviderError.noAccess` als hij er niet is of niet te lezen is, en
     /// `RepositoryProblem.unsupported` bij een dienst die geen losse repo's kent.
     func checkRepository(_ repo: String) async throws -> RepositoryCheck
+    /// De packages die de gevolgde eigenaren in het register van de dienst publiceren, gekoppeld
+    /// aan `followedRepos` (in de vorm van `Account.repoWatch`); een package van een repository
+    /// die niet gevolgd wordt valt weg. Alleen voor de dagelijkse versiecheck, nooit bij een poll.
+    /// Weigert de dienst het register (rechten), dan `.needsPermission` met de reden, geen fout;
+    /// een dienst zonder register geeft `.notSupported` (de standaard).
+    func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages
 }
 
 extension PRProvider {
@@ -74,6 +80,9 @@ extension PRProvider {
     }
 
     public func datedTags(in repo: String, limit: Int) async throws -> [Tag] { [] }
+
+    /// Een dienst waarvan Pullwatch het register (nog) niet leest.
+    public func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages { .notSupported }
 
     public func coAuthors(of pullRequests: [PullRequest]) async throws -> [String: [Person]] { [:] }
 
