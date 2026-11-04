@@ -9,6 +9,95 @@ release wait as fragments in `changelog.d/` until the cut writes them here.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-04
+
+### Thank you again, Ruben
+
+Once more nearly everything in this release was built by **Ruben Talstra** (@rubentalstra) in [Vernum-Projecten/pullwatch](https://github.com/Vernum-Projecten/pullwatch): CI checks and the merge queue on every pull request, redesigned notifications, a cleaner repository page, where each vulnerability comes from, what blocks a package update, and a thorough tidy-up of the code underneath. Thank you, Ruben! 🙏
+
+### Added
+
+- Dependencies and the repository page show whether each package can be updated: a Status
+  column with Up to date, Update within range (patch or minor), Major update or Blocked, and
+  groups for Can update now, Needs a manifest change and Blocked. The repository page shows the
+  newest version you can use now next to the newest version, and for a blocked package what holds
+  it back and what to update first, such as "Held at 18.3.1 by react-dom, which asks for ^18.3.1.
+  Update react-dom to 19.1.0 first." or "6.0.0 needs Node ^18.0.0 || >=20.0.0; the repository
+  uses Node 16." (Vernum-Projecten/pullwatch#85)
+- The fix line of a vulnerability says whether the fix is within range, needs a manifest change,
+  or is blocked, and what to update first. Copied repository text and notifications say the same (Vernum-Projecten/pullwatch#85).
+- The sidebar badge of Dependencies counts only updates you can take now and security fixes (Vernum-Projecten/pullwatch#85).
+- New setting in Settings, General: new-version notifications only for updates you can take now
+  (on by default) (Vernum-Projecten/pullwatch#85).
+- **Watch single GitLab projects you add yourself.** Under "Other
+  Repositories" in a GitLab account's repository list, or with "Watch a
+  Repository…", type `group/subgroup/project` or paste a link from
+  gitlab.com or your own GitLab server. A public project your token can't
+  read is read without signing in, when the server allows that. Each added
+  project costs one request for its merge requests per poll (Vernum-Projecten/pullwatch#94).
+- Every vulnerability shows where it comes from: the database that published it (RustSec,
+  GitHub, PyPA, Go, NVD and more) next to its id, and an info button with all its ids as links
+  (GHSA, CVE, RUSTSEC, GO, PYSEC), related ids, the references with the fix first, and the
+  published and modified dates. The severity now comes from the best source: the CVSS 3.1 or
+  4.0 vector in the advisory (Pullwatch computes the score), then the database's own rating,
+  then GitHub's advisory, and the row says which one it was. Withdrawn advisories are left out
+  and counted separately. The copied text and notifications read "RUSTSEC-2023-0071 (RustSec),
+  also GHSA-… and CVE-…" (Vernum-Projecten/pullwatch#96).
+- Rows and buttons in the menu-bar panel light up under the pointer, like
+  macOS's own menu-bar panels, and the highlight fades in smoothly (Vernum-Projecten/pullwatch#106).
+- Settings, Sources also lists the CI checks of pull requests, with a switch.
+  When it is off, Pullwatch asks no server for the checks, hides the checks it
+  fetched before and sends no notification about failed checks (Vernum-Projecten/pullwatch#114).
+- Each pull request shows its checks (CI) like GitHub's list: an icon in the
+  colour of the state (a green check, a red cross, an amber dot while checks
+  run) and how many passed out of all of them, such as 4/8, in the PR list,
+  the menu and a repository's pull requests. The tooltip and VoiceOver say it
+  in words. Works for GitHub, Azure DevOps and GitLab; on GitHub the app's
+  Checks and Commit statuses permissions (read) are needed, otherwise the
+  repository page says Needs permission (Vernum-Projecten/pullwatch#114).
+- An optional notification when the checks of one of your own open pull
+  requests fail, off by default, under Settings, Notifications (Vernum-Projecten/pullwatch#114).
+- Pull requests waiting to merge by themselves show as Queued, with GitHub's merge
+  queue icon in GitHub's amber, in the pull request list, the menu bar, a repository's
+  pull requests and the statistics (counted as open). On GitHub that is a pull request
+  in the merge queue, with its position in the tooltip; on GitLab a merge request set to
+  auto-merge or in a merge train; on Azure DevOps a pull request with auto-complete set.
+  Entering the queue sends no notification (Vernum-Projecten/pullwatch#124).
+
+### Changed
+
+- Every PR author has a profile picture in the list, also without
+  co-authors, as tags already did; bots show their own picture (Vernum-Projecten/pullwatch#49).
+- The repository page is cleaner: tabs for Overview, Check, Packages and
+  Security, and on Check and Packages counts at the top (vulnerabilities,
+  outdated runtimes, packages you can update, blocked) that filter the tab.
+  Runtimes and frameworks sit in a compact grid; vulnerabilities, packages and
+  the service's own security findings are sortable tables with search and
+  filters, one row per advisory with its installs underneath. Selecting a row
+  opens an inspector with the summary, the severity and where it comes from,
+  every id and link, the fix, the affected installs and buttons to open or
+  copy the advisory. Space opens and closes the inspector (Vernum-Projecten/pullwatch#97).
+- Dependencies fits the smallest window without scrolling sideways, and its
+  status column says "Up to Date" instead of "Current" (Vernum-Projecten/pullwatch#97).
+- Notifications are redesigned. The title says what happened ("New Pull Request", "Pull Request Merged", "New Release v1.2.0", "Critical Vulnerability"), the subtitle names the repository, and the body gives the title with its author and co-authors. macOS stacks them per repository, and above 20 items in one poll each repository gets one summary.
+  Notifications have buttons: Mark as Read, Open Repository Page and Mute Repository (with Undo in the menu), and Show in Pullwatch and Copy Advisory ID on a vulnerability. A GitHub author's avatar is attached.
+  New pull requests, releases and vulnerabilities come with a banner; tags, merged pull requests and new versions arrive quietly in Notification Center. Reading an item in Pullwatch removes its notification.
+  The new Settings > Notifications pane has a switch per kind with a preview, quiet hours, and options for the Dock badge and the unread dot in the menu bar. The notification switches under General moved there (Vernum-Projecten/pullwatch#101).
+
+### Fixed
+
+- Statistics use GitHub's pull request colours and show all four states: opened
+  (green), draft (gray), merged (purple, "completed" for Azure DevOps) and closed
+  without merging (red), as stacked bars per period and as tiles. Hovering an
+  author or repository shows how its pull requests are split over those states (Vernum-Projecten/pullwatch#105).
+- An account signed in with GitHub no longer has to sign in again when a check is
+  stopped while its GitHub token is being renewed, or when two checks renew it at the
+  same time (Vernum-Projecten/pullwatch#117).
+- When `gh`, `az`, `glab` or a server does not answer in time, the account
+  status now says so in your language ("gh did not answer in time") instead of
+  a Dutch timeout text. A few other error details (a missing HTTP response, an
+  incomplete answer from GitHub or OSV) are translated as well (Vernum-Projecten/pullwatch#122).
+
 ## [0.6.0] - 2026-11-03
 
 ### Thank you, Ruben
@@ -224,6 +313,7 @@ before this changelog existed. The fork starts from this version.
 - The repository overview is calculated once instead of on every screen
   update.
 
-[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/alessandro823/pullwatch/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/alessandro823/pullwatch/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/alessandro823/pullwatch/releases/tag/v0.5.0
