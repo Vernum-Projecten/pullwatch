@@ -139,6 +139,8 @@ explains what changed and why, passes the checks in [CLAUDE.md](CLAUDE.md)
 (the project's working notes: layout, gates and rules), and adds a changelog
 fragment as [changelog.d/README.md](changelog.d/README.md) describes.
 
+[Contributing](CONTRIBUTING.md) &nbsp;&nbsp;&nbsp; [Security](SECURITY.md) &nbsp;&nbsp;&nbsp; [Support](SUPPORT.md) &nbsp;&nbsp;&nbsp; [AI policy](AI_POLICY.md) &nbsp;&nbsp;&nbsp; [Code of conduct](CODE_OF_CONDUCT.md)
+
 ## License
 
 Pullwatch is licensed under the [Apache License 2.0](LICENSE).

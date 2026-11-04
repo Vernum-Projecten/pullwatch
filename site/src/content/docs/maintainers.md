@@ -12,6 +12,8 @@ The maintainer documentation lives in the repository, next to the code it descri
 | [docs/github-app.md](https://github.com/alessandro823/pullwatch/blob/main/docs/github-app.md) | The GitHub App behind **Sign In with GitHub** |
 | [docs/website.md](https://github.com/alessandro823/pullwatch/blob/main/docs/website.md) | This website: GitHub Pages, the custom domain and its DNS records |
 | [site/README.md](https://github.com/alessandro823/pullwatch/blob/main/site/README.md) | Running and building this website, and adding a page |
+| [CONTRIBUTING.md](https://github.com/alessandro823/pullwatch/blob/main/CONTRIBUTING.md) | How to build, test and send a change, and what a pull request needs |
+| [SECURITY.md](https://github.com/alessandro823/pullwatch/blob/main/SECURITY.md) | How to report a vulnerability privately, and what is in scope |
 | [CHANGELOG.md](https://github.com/alessandro823/pullwatch/blob/main/CHANGELOG.md) | The release notes of every version |
 
 ## Build from source
