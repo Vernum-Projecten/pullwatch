@@ -1,10 +1,11 @@
 import PullwatchCore
 import SwiftUI
 
-/// Welke groepen in Afhankelijkheden open staan: wat je kunt bijwerken, wat een manifest vraagt
-/// en wat geblokkeerd is standaard wel, de rest niet.
+/// Welke groepen in Afhankelijkheden open staan: wat je kunt bijwerken, wat een manifest vraagt,
+/// wat geblokkeerd is en kwetsbare packages die alleen transitief binnenkomen standaard wel, de
+/// rest niet.
 struct PackageSectionExpansion {
-    private var expanded: Set<PackageSection.Kind> = [.canUpdateNow, .needsManifestChange, .blocked]
+    private var expanded: Set<PackageSection.Kind> = [.canUpdateNow, .needsManifestChange, .blocked, .transitiveOnly]
 
     subscript(kind: PackageSection.Kind) -> Bool {
         get { expanded.contains(kind) }
@@ -17,9 +18,13 @@ struct PackageSectionExpansion {
 /// Een groep packages in de tabel: naar wat je met de nieuwe versie kunt, dan wat niet te checken is.
 struct PackageSection: Identifiable {
     enum Kind: CaseIterable, Hashable {
-        case canUpdateNow, needsManifestChange, blocked, unknown, upToDate, unchecked
+        case canUpdateNow, needsManifestChange, blocked, transitiveOnly, unknown, upToDate, unchecked
 
         init(_ summary: PackageSummary) {
+            guard !summary.isTransitiveOnly else {
+                self = .transitiveOnly
+                return
+            }
             guard summary.state != .unchecked else {
                 self = .unchecked
                 return
@@ -46,6 +51,7 @@ struct PackageSection: Identifiable {
         case .blocked: UpdateCategory.blocked.title
         case .unknown: UpdateCategory.unknown.title
         case .upToDate: UpdateCategory.upToDate.title
+        case .transitiveOnly: "Alleen transitief, met een kwetsbaarheid"
         case .unchecked: "Niet te checken"
         }
     }

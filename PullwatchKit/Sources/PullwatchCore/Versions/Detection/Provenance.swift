@@ -48,7 +48,8 @@ extension Vulnerability {
             ) {
                 return .blocked(package: package, to: fixedIn, by: blocker)
             }
-            if let requested, let range = VersionRange.parse(ecosystem: ecosystem, name: package, requested: requested) {
+            if let requested = context.requirement(ecosystem: ecosystem, name: package, install: install, needs: &needs),
+               let range = VersionRange.parse(ecosystem: ecosystem, name: package, requested: requested) {
                 // Een transitieve install buiten het bereik van zijn ouder is hierboven al geblokkeerd.
                 return range.contains(target) ? .withinRange(package: package, to: fixedIn) : .needsManifestChange(package: package, to: fixedIn)
             }

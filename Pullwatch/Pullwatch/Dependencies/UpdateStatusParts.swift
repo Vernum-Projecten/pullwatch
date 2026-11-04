@@ -57,7 +57,9 @@ struct UpdateStatus: Hashable {
 
     /// Waarom, en wat eerst moet, in één zin; nil als er niets te zeggen is.
     var reason: LocalizedStringResource? {
-        guard let update, category != .upToDate, let latest = update.latest else { return nil }
+        guard let update, category != .upToDate else { return nil }
+        if let unknown = update.unknownReason { return Self.text(unknown) }
+        guard let latest = update.latest else { return nil }
         switch update.status {
         case .withinRange:
             guard let requested else { return nil }
@@ -76,6 +78,17 @@ struct UpdateStatus: Hashable {
             return "\(latest) vraagt \(name) \(needs); de repo gebruikt \(name) \(installedRuntime)."
         case .upToDate, .unknown:
             return nil
+        }
+    }
+
+    /// Waarom de status onbekend is, in één zin.
+    static func text(_ reason: PackageUpdate.UnknownReason) -> LocalizedStringResource {
+        switch reason {
+        case .noLatestVersion: "Het register gaf geen nieuwste versie."
+        case .latestNotLookedUp: "Pullwatch zoekt de nieuwste versie alleen op voor packages die de repo zelf vraagt."
+        case .unreadableVersion: "De versie is geen versienummer dat Pullwatch kan vergelijken."
+        case .noRequirement: "Geen gevraagd bereik gevonden in het manifest of bij de ouder."
+        case .unreadableRequirement(let requested): "Het gevraagde bereik \(requested) is niet te lezen."
         }
     }
 

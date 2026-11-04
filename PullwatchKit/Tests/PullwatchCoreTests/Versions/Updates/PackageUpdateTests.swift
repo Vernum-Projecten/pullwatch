@@ -24,7 +24,7 @@ import Testing
         #expect(status("npm", "5.0.0", "^5", latest: "4.17.21").status == .upToDate)
         #expect(status("npm", "4.17.21", "^4.17.0", latest: "4.17.21").step == nil)
         #expect(status("npm", "4.17.15", "^4.17.0", latest: nil).status == .unknown)
-        #expect(status("npm", "4.17.15", nil, latest: "4.18.0") == PackageUpdate(status: .unknown, step: .minor, latest: "4.18.0"))
+        #expect(status("npm", "4.17.15", nil, latest: "4.18.0") == PackageUpdate(status: .unknown, step: .minor, latest: "4.18.0", unknownReason: .noRequirement))
         #expect(status("npm", "4.17.15", "latest", latest: "4.18.0").status == .unknown)
         #expect(status("npm", "nightly", "^1", latest: "4.18.0").status == .unknown)
     }

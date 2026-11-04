@@ -55,6 +55,8 @@ Packages voor alleen ontwikkeling komen uit `devDependencies`, `require-dev`, de
 
 De groepen zeggen wat een update vraagt: **Kan nu bijwerken** past binnen het bereik in je manifest, dus alleen de lockfile verandert; **Manifest aanpassen nodig** valt buiten dat bereik, zoals een nieuwe major-versie; **Geblokkeerd** betekent dat een ander package hem tegenhoudt, en de rij zegt welk.
 
+Een package dat geen repo zelf vraagt en dat alleen via een ander package binnenkomt, staat onder **Alleen transitief, met een kwetsbaarheid** als het een bekende kwetsbaarheid heeft, met de keten die het binnenhaalt. Pullwatch zoekt de nieuwste versie alleen op voor packages die een repo zelf vraagt. Voor Rust komen de gevraagde bereiken uit elke `Cargo.toml` van een workspace, ook uit `[workspace.dependencies]` dat leden overnemen met `workspace = true`.
+
 ## Per repository
 
 Het tabblad **Packages** van de pagina van een repository toont hetzelfde per workspace: de geïnstalleerde versie, de nieuwste versie die nu kan, de allernieuwste versie, en of het package direct is, via een ander package binnenkomt (met de kortste keten) of alleen voor ontwikkeling is.

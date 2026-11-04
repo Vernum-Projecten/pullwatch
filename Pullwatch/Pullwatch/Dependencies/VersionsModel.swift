@@ -143,12 +143,14 @@ final class VersionsModel {
         checkTask?.cancel()
     }
 
-    /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat.
+    /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat; meteen
+    /// als het bewaarde rapport door een oudere versie van de check gemaakt is, want dat mist wat
+    /// de check nu leest (transitieve packages, gevraagde bereiken).
     func startAutoVersionCheckIfDue() {
         guard config.autoVersionCheck, versionCheck == nil, !config.pollableAccounts.isEmpty else { return }
         let now = Date()
         if let nextAutoVersionAttempt, now < nextAutoVersionAttempt { return }
-        if let last = storedReport?.checkedAt, now.timeIntervalSince(last) < VersionReport.autoInterval { return }
+        if let stored = storedReport, !stored.isOutdatedFormat, now.timeIntervalSince(stored.checkedAt) < VersionReport.autoInterval { return }
         nextAutoVersionAttempt = now + VersionReport.autoRetryInterval
         startCheck(automatic: true)
     }

@@ -55,6 +55,8 @@ Pakete nur für die Entwicklung kommen aus `devDependencies`, `require-dev`, Dev
 
 Die Gruppen sagen dir, was ein Update braucht: **Jetzt aktualisierbar** passt in den Bereich in deinem Manifest, also ändert sich nur die Lockfile; **Manifest muss geändert werden** liegt außerhalb dieses Bereichs, etwa eine neue Major-Version; **Blockiert** heißt, dass ein anderes Paket es zurückhält, und die Zeile sagt, welches.
 
+Ein Paket, das kein Repository selbst verlangt und das nur über ein anderes Paket hereinkommt, steht unter **Nur transitiv, mit einer Schwachstelle**, wenn es eine bekannte Schwachstelle hat, mit der Kette, die es hereinholt. Pullwatch sucht die neueste Version nur für Pakete, die ein Repository selbst verlangt. Für Rust kommen die verlangten Bereiche aus jeder `Cargo.toml` eines Workspace, auch aus `[workspace.dependencies]`, das Mitglieder mit `workspace = true` übernehmen.
+
 ## Pro Repository
 
 Der Tab **Pakete** auf der Seite eines Repositorys zeigt dasselbe pro Workspace: die installierte Version, die neueste Version, die jetzt nutzbar ist, die allerneueste Version und ob das Paket direkt ist, über ein anderes Paket kommt (mit der kürzesten Kette) oder nur für die Entwicklung ist.

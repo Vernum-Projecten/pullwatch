@@ -53,7 +53,25 @@ public struct PackageUpdate: Hashable, Sendable {
         }
     }
 
+    /// Waarom de status onbekend is.
+    public enum UnknownReason: Hashable, Sendable {
+        /// Het register gaf geen nieuwste versie (of de bron stond uit).
+        case noLatestVersion
+        /// Een transitieve install: Pullwatch zoekt de nieuwste versie alleen op voor packages die
+        /// de repo zelf vraagt.
+        case latestNotLookedUp
+        /// De geïnstalleerde of de nieuwste versie is geen versienummer.
+        case unreadableVersion
+        /// Geen gevraagd bereik gevonden: niet in het manifest, en voor een transitieve install
+        /// niet bij de ouder.
+        case noRequirement
+        /// Het gevraagde bereik is er, maar niet te lezen.
+        case unreadableRequirement(String)
+    }
+
     public let status: Status
+    /// Gezet als `status` `.unknown` is.
+    public let unknownReason: UnknownReason?
     /// Grootte van de stap naar `latest`; nil als er geen stap is of de versies niet te lezen zijn.
     public let step: UpdateStep?
     public let latest: String?
@@ -61,8 +79,9 @@ public struct PackageUpdate: Hashable, Sendable {
     /// geïnstalleerde versie als geen nieuwere dat doet, nil zonder metadata uit het register.
     public let usable: String?
 
-    public init(status: Status, step: UpdateStep?, latest: String?, usable: String? = nil) {
+    public init(status: Status, step: UpdateStep?, latest: String?, usable: String? = nil, unknownReason: UnknownReason? = nil) {
         self.status = status
+        self.unknownReason = status == .unknown ? unknownReason : nil
         self.step = step
         self.latest = latest
         self.usable = usable
@@ -87,6 +106,7 @@ public struct PackageUpdate: Hashable, Sendable {
         self.latest = latest
         guard let latest, let target = Version(latest), let current = Version(install.version) else {
             self.status = .unknown
+            self.unknownReason = latest == nil ? (install.scope == .transitive ? .latestNotLookedUp : .noLatestVersion) : .unreadableVersion
             self.step = nil
             self.usable = nil
             return
@@ -94,16 +114,21 @@ public struct PackageUpdate: Hashable, Sendable {
         self.step = UpdateStep(from: current, to: target)
         guard target > current else {
             self.status = .upToDate
+            self.unknownReason = nil
             self.usable = context.metadata["\(ecosystem):\(name)"] == nil ? nil : install.version
             return
         }
         let check = context.check(ecosystem: ecosystem, name: name, install: install, target: target, findMinimum: true, needs: &needs)
+        let requested = context.requirement(ecosystem: ecosystem, name: name, install: install, needs: &needs)
         if case .blocked(let blocker) = check {
             self.status = Status(blocker)
-        } else if let requested = install.requested, let range = VersionRange.parse(ecosystem: ecosystem, name: name, requested: requested) {
+            self.unknownReason = nil
+        } else if let requested, let range = VersionRange.parse(ecosystem: ecosystem, name: name, requested: requested) {
             self.status = range.contains(target) ? .withinRange : .needsManifestChange
+            self.unknownReason = nil
         } else {
             self.status = .unknown
+            self.unknownReason = requested.map(UnknownReason.unreadableRequirement) ?? .noRequirement
         }
         self.usable = check == .passes ? latest : context.newestUsable(ecosystem: ecosystem, name: name, install: install, needs: &needs)
     }
@@ -114,7 +139,8 @@ public struct PackageUpdate: Hashable, Sendable {
         guard let first = updates.first else { return nil }
         let status = updates.map(\.status).max { $0.weight < $1.weight } ?? first.status
         let usable = updates.compactMap(\.usable).min { VersionChecker.isOlder($0, than: $1) }
-        return PackageUpdate(status: status, step: updates.compactMap(\.step).max(), latest: first.latest, usable: usable)
+        let reason = updates.first { $0.status == status }?.unknownReason
+        return PackageUpdate(status: status, step: updates.compactMap(\.step).max(), latest: first.latest, usable: usable, unknownReason: reason)
     }
 }
 
@@ -130,6 +156,11 @@ public struct InstallUpdate: Hashable, Sendable {
 }
 
 extension PackageInstall {
+    /// Of het gevraagde bereik `version` toelaat; nil zonder (leesbaar) bereik.
+    package func requestedAllows(_ version: String, ecosystem: String, name: String) -> Bool? {
+        requested.flatMap { VersionRange.parse(ecosystem: ecosystem, name: name, requested: $0) }?.contains(version)
+    }
+
     public func update(ecosystem: String, name: String, latest: String?, context: UpdateContext = .empty) -> PackageUpdate {
         PackageUpdate(ecosystem: ecosystem, name: name, install: self, latest: latest, context: context)
     }
