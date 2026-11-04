@@ -19,9 +19,9 @@ Pullwatch only reads. Give a token the read permissions below and nothing more. 
 | Secret scanning alerts: Read | optional, the number of open secret scanning alerts |
 | Checks: Read and Commit statuses: Read | optional, the checks of each pull request |
 
-**Classic token**: `repo`, plus `security_events` for the code scanning and secret scanning alerts.
+**Classic token**: `repo`, plus `security_events` for the code scanning and secret scanning alerts, and optionally `read:packages` for the packages your repositories publish to GitHub Packages. With the GitHub CLI, add that scope with `gh auth refresh -s read:packages`.
 
-**Sign In with GitHub** uses the Pullwatch GitHub App, which asks for the same read permissions. The owner of each installation accepts them; when the app gains a new permission, GitHub asks the owner to accept it once more.
+**Sign In with GitHub** uses the Pullwatch GitHub App, which asks for the same read permissions, plus the optional Packages: Read for the packages your repositories publish; without it, those packages say a permission is missing. The owner of each installation accepts them; when the app gains a new permission, GitHub asks the owner to accept it once more.
 
 ## GitHub Enterprise
 

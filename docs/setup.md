@@ -11,14 +11,14 @@ repository.
 | Developer ID Application certificate (team Code24 BV) | the maintainer's login Keychain | Apple Developer, Certificates; already in place for `scripts/release/release.sh` | signed, notarised releases |
 | notarytool profile `pullwatch` | the maintainer's Keychain | `xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`; already in place | notarising releases |
 | Automation permission: the terminal may control Finder | the Mac that runs `scripts/release/release.sh` | System Settings, Privacy & Security, Automation; macOS asks on the first run of `scripts/release/package.sh` | laying out the install window of the disk image |
-| **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md); read-only permissions Pull requests, Contents, Metadata and Repository security advisories, optional Code scanning alerts, Secret scanning alerts, Checks and Commit statuses; each installation's owner accepts a new permission ([github-app.md](github-app.md), section 6) | **Sign in with GitHub** (device flow), the repository's own advisories, code scanning and the secret count, each pull request's checks |
+| **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md); read-only permissions Pull requests, Contents, Metadata and Repository security advisories, optional Code scanning alerts, Secret scanning alerts, Checks, Commit statuses and Packages; each installation's owner accepts a new permission ([github-app.md](github-app.md), section 6) | **Sign in with GitHub** (device flow), the repository's own advisories, code scanning and the secret count, each pull request's checks, the packages the repositories publish |
 | `PW_GITHUB_CLIENT_ID`, `PW_GITHUB_APP_SLUG` | `Pullwatch/Release.xcconfig` (public values) | [github-app.md](github-app.md), step 2 | release builds find the GitHub App |
 | Actions secrets `DEVELOPER_ID_P12`, `DEVELOPER_ID_P12_PASSWORD` (secret) | the repository's Actions secrets | [releasing.md](releasing.md), "Secrets, once", step 1 | the release workflow signs with the Developer ID |
 | Actions secrets `NOTARY_KEY`, `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID` (secret) | the repository's Actions secrets; the key is an App Store Connect API key of Code24 BV | [releasing.md](releasing.md), "Secrets, once", step 2 | the release workflow notarises |
 | Sparkle's EdDSA key pair: Actions secret `SPARKLE_PRIVATE_KEY` (secret) | the private half in the maintainer's login Keychain (made by `generate_keys`) and in the repository's Actions secrets; never in a file | [releasing.md](releasing.md), "Secrets, once", step 3 | the release workflow signs the update and its `appcast.xml`; without it the lane stops in its first job |
 | `SPARKLE_PUBLIC_ED_KEY` | `Pullwatch/Release.xcconfig` (public value) | [releasing.md](releasing.md), "Secrets, once", step 3 | release builds install updates in the app; empty, they only show a download button, and `check-version.sh` refuses a release |
 | `PW_RELEASES_OWNER` | `Pullwatch/App.xcconfig` (public value, `alessandro823`) | change it only in a fork that makes its own releases | where the update check and Sparkle find the releases |
-| Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app"; give it the same permissions as the release app (it has Repository security advisories; code and secret scanning, Checks and Commit statuses are not granted, so those show **Needs permission**) | Xcode's Run and the tests; replace with your own if you prefer |
+| Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app"; give it the same permissions as the release app (it has Repository security advisories and Packages; code and secret scanning, Checks and Commit statuses are not granted, so those show **Needs permission**) | Xcode's Run and the tests; replace with your own if you prefer |
 | GitHub Pages, the repository variable `PAGES_DOMAIN` and the DNS of `pullwatch.net` | the repository's Pages settings and Actions variables; the zone at the registrar | [website.md](website.md) | the website at `https://pullwatch.net` (until then `https://alessandro823.github.io/pullwatch/`) |
 
 The MCP server for coding agents needs nothing here either. Its helper,
@@ -50,7 +50,8 @@ which must be reachable over https:
   settings, Personal access tokens; the account editor's **Token maken** link
   opens the classic token page with the name and the scopes filled in).
   Classic: `repo` and `read:org`, plus `security_events` for code scanning
-  and secret scanning alerts. Fine-grained (where the server has them):
+  and secret scanning alerts, and `read:packages` for the packages the
+  repositories publish. Fine-grained (where the server has them):
   **Pull requests**, **Contents** and **Metadata** read-only on the
   repositories to follow, optionally **Code scanning alerts**, **Secret
   scanning alerts**, **Checks** and **Commit statuses** read-only (the last

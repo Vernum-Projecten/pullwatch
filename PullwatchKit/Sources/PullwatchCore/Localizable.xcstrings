@@ -679,6 +679,34 @@
         }
       }
     },
+    "De packages en container-images die je gevolgde repo's in het register van hun dienst publiceren, met hun recente versies": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De packages en container-images die je gevolgde repo's in het register van hun dienst publiceren, met hun recente versies"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The packages and container images your followed repositories publish to their service's registry, with their recent versions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Pakete und Container-Images, die deine gefolgten Repositorys in der Registry ihres Dienstes veröffentlichen, mit ihren neuesten Versionen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les paquets et images de conteneur que vos dépôts suivis publient dans le registre de leur service, avec leurs versions récentes"
+          }
+        }
+      }
+    },
     "Deze repository staat in de organisatie %@; dit account hoort bij %@.": {
       "comment": "Organisatie van de link, organisatie van het account",
       "localizations": {
@@ -1560,6 +1588,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "PR's, tags, repo's, manifesten en lockfiles van dit account; het token komt van de GitHub CLI (gh), die zelf api.github.com kan aanroepen"
+          }
+        }
+      }
+    },
+    "Packageregisters van je accounts": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Packageregisters van je accounts"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package registries of your accounts"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paket-Registrys deiner Konten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registres de paquets de vos comptes"
           }
         }
       }

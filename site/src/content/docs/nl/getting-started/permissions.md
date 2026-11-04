@@ -19,9 +19,9 @@ Pullwatch leest alleen. Geef een token de leesrechten hieronder en niets meer. O
 | Secret scanning alerts: Read | optioneel, het aantal open meldingen van secret scanning |
 | Checks: Read en Commit statuses: Read | optioneel, de checks van elke pull request |
 
-**Classic token**: `repo`, plus `security_events` voor de meldingen van code scanning en secret scanning.
+**Classic token**: `repo`, plus `security_events` voor de meldingen van code scanning en secret scanning, en optioneel `read:packages` voor de packages die je repositories in GitHub Packages publiceren. Met de GitHub CLI voeg je die scope toe met `gh auth refresh -s read:packages`.
 
-**Inloggen met GitHub** gebruikt de GitHub-app van Pullwatch, die om dezelfde leesrechten vraagt. De eigenaar van elke installatie keurt ze goed; krijgt de app een nieuw recht, dan vraagt GitHub de eigenaar om dat nog een keer goed te keuren.
+**Inloggen met GitHub** gebruikt de GitHub-app van Pullwatch, die om dezelfde leesrechten vraagt, plus het optionele Packages: Read voor de packages die je repositories publiceren; zonder dat recht staat bij die packages dat er een recht ontbreekt. De eigenaar van elke installatie keurt ze goed; krijgt de app een nieuw recht, dan vraagt GitHub de eigenaar om dat nog een keer goed te keuren.
 
 ## GitHub Enterprise
 

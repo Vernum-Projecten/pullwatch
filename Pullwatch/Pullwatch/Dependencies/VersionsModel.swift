@@ -194,8 +194,9 @@ final class VersionsModel {
         }
         let previous = storedReport
         // GitHubs adviezen: wat de vorige check al had blijft, alleen nieuwe GHSA-ids gaan de deur uit.
+        // Eigen packages van een account waarvan het register nu niet lukte, blijven van de vorige check.
         let report = await checker.completingAdvisories(
-            of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous),
+            of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous).carryingPublishedPackages(from: previous),
             accounts: config.pollableAccounts
         )
         // Een volledige check dekt alles wat nu gevolgd wordt.

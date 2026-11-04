@@ -8,7 +8,7 @@ public actor GitHubProvider: PRProvider {
 
     let accountId: UUID
     /// De gevolgde eigenaren: het eigen account en/of organisaties.
-    private let owners: [String]
+    let owners: [String]
     let tokenSource: any TokenSource
     let http: any HTTPClient
     let now: @Sendable () -> Date
@@ -37,17 +37,22 @@ public actor GitHubProvider: PRProvider {
     /// De PR's (dedupKey) die bij de vorige vraag in de merge queue stonden, voor als een
     /// volgende vraag mislukt: dan blijven ze staan in plaats van even uit de rij te vallen.
     var knownMergeQueues: [String: MergeQueueEntry] = [:]
+    /// Hoe het account inlogt: bepaalt welk recht er ontbreekt als GitHub iets weigert (een recht
+    /// van de GitHub App, of een scope van het token).
+    let authMethod: AuthMethod
 
     public init(
         accountId: UUID,
         owners: [String],
         extraRepos: [String] = [],
         instanceURL: URL? = nil,
+        authMethod: AuthMethod = .pat,
         tokenSource: any TokenSource,
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.accountId = accountId
+        self.authMethod = authMethod
         self.endpoints = GitHubEndpoints(instanceURL: instanceURL)
         self.owners = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         self.extraRepos = Account.reposOutside(owners: self.owners, extraRepos)
