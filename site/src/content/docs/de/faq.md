@@ -13,7 +13,7 @@ macOS 26.6 oder neuer, auf Apple Silicon und auf Intel. Es ist eine einzige univ
 
 ## Welche Dienste werden unterstützt?
 
-GitHub (github.com, GitHub Enterprise Server und GHE.com), Azure DevOps und GitLab (gitlab.com und dein eigener Server). Siehe [Konten hinzufügen](/de/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server und GHE.com), Azure DevOps, GitLab (gitlab.com und dein eigener Server) und Bitbucket Cloud (bitbucket.org). Siehe [Konten hinzufügen](/de/getting-started/accounts/).
 
 ## Kann Pullwatch etwas in meinen Repositories ändern?
 
@@ -33,7 +33,7 @@ Tags ohne Release, gemergte Pull Requests und neue Versionen kommen absichtlich 
 
 ## Kann ich einem Repository folgen, das nicht mir gehört?
 
-Ja. Füge es unter **Andere Repositorys** in seinem Konto hinzu, oder mit **Einem Repository folgen…** (⇧⌘N). Ein öffentliches Repository auf github.com oder gitlab.com funktioniert auch dann, wenn dein Token es nicht lesen darf.
+Ja. Füge es unter **Andere Repositorys** in seinem Konto hinzu, oder mit **Einem Repository folgen…** (⇧⌘N). Ein öffentliches Repository auf github.com, gitlab.com oder bitbucket.org funktioniert auch dann, wenn dein Token es nicht lesen darf.
 
 ## Welche Sprachen spricht Pullwatch?
 
@@ -43,6 +43,6 @@ Englisch, Niederländisch, Deutsch und Französisch. Es folgt macOS, oder du wä
 
 Pullwatch sucht einmal am Tag nach Updates und installiert sie für dich. Siehe [Updates](/de/getting-started/install/#updates).
 
-## Gehört Pullwatch zu GitHub, GitLab oder Microsoft?
+## Gehört Pullwatch zu GitHub, GitLab, Atlassian oder Microsoft?
 
-Nein. GitHub ist eine Marke von GitHub, Inc., GITLAB ist eine Marke von GitLab Inc., und Azure DevOps ist eine Marke der Microsoft-Unternehmensgruppe.
+Nein. GitHub ist eine Marke von GitHub, Inc., GITLAB ist eine Marke von GitLab Inc., Bitbucket ist eine Marke von Atlassian, und Azure DevOps ist eine Marke der Microsoft-Unternehmensgruppe.

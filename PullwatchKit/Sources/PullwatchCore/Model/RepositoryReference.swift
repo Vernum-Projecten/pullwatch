@@ -20,6 +20,8 @@ public enum RepositoryProblem: Error, Equatable, Sendable {
         switch self {
         case .unrecognised(.azureDevOps):
             return String(localized: "Typ project/repo, of plak de link van de repository.", bundle: .localizedCore)
+        case .unrecognised(.bitbucket):
+            return String(localized: "Typ workspace/repo, of plak de link van de repository.", bundle: .localizedCore)
         case .unrecognised(.gitLab):
             return String(localized: "Typ groep/project (ook met subgroepen), of plak de link van het project.", bundle: .localizedCore)
         case .unrecognised:
@@ -55,14 +57,15 @@ extension ProviderKind {
     /// die Pullwatch nu kent kan het; een nieuwe pas als zijn provider `checkRepository` heeft.
     public var supportsExtraRepos: Bool {
         switch self {
-        case .gitHub, .azureDevOps, .gitLab: true
+        case .gitHub, .azureDevOps, .gitLab, .bitbucket: true
         }
     }
 }
 
 /// Leest wat iemand in het veld "Andere repositories" typt of plakt: `eigenaar/repo` (GitHub),
-/// `project/repo` (Azure DevOps), `groep/subgroep/project` (GitLab), of een link van github.com,
-/// dev.azure.com, gitlab.com of de eigen GitLab-server van het account (`instanceURL`). Geeft de
+/// `project/repo` (Azure DevOps), `groep/subgroep/project` (GitLab), `workspace/repo` (Bitbucket),
+/// of een link van github.com, dev.azure.com, gitlab.com, bitbucket.org of de eigen GitLab-server
+/// van het account (`instanceURL`). Geeft de
 /// repo in de vorm van `Account.repoWatch`.
 public enum RepositoryReference {
     /// GitLab kent een groep met hooguit twintig niveaus subgroepen, plus het project zelf.
@@ -134,6 +137,13 @@ public enum RepositoryReference {
             }) else {
                 throw .unrecognised(kind)
             }
+        case .bitbucket:
+            // Bitbucket: workspace en repo-slug in letters, cijfers, "_", "-" en "."; niet beginnen
+            // met "." (de slug van een repo is zo, ook als de naam spaties heeft).
+            let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-."))
+            guard parts.allSatisfy({ part in part.unicodeScalars.allSatisfy(allowed.contains) && !part.hasPrefix(".") }) else {
+                throw .unrecognised(kind)
+            }
         }
         return parts.joined(separator: "/")
     }
@@ -190,6 +200,10 @@ public enum RepositoryReference {
         case "github.com", "www.github.com":
             guard path.count >= 2 else { return (.gitHub, "", nil) }
             return (.gitHub, "\(path[0])/\(path[1])", nil)
+        case "bitbucket.org", "www.bitbucket.org":
+            // https://bitbucket.org/workspace/repo[/pull-requests/1], ook via SSH.
+            guard path.count >= 2 else { return (.bitbucket, "", nil) }
+            return (.bitbucket, "\(path[0])/\(path[1])", nil)
         case "gitlab.com", "www.gitlab.com":
             return (.gitLab, gitLabPath(path), "gitlab.com")
         case "dev.azure.com":

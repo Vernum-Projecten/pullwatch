@@ -27,7 +27,7 @@
 </picture>
 
 Pullwatch is a menu bar app for macOS. It tells you about new pull requests,
-tags and releases on GitHub, Azure DevOps and GitLab™, keeps a searchable
+tags and releases on GitHub, Azure DevOps, GitLab™ and Bitbucket, keeps a searchable
 history, and checks your repositories for outdated runtimes, packages and
 known vulnerabilities. It speaks English, Dutch, German and French.
 
@@ -62,6 +62,7 @@ known vulnerabilities. It speaks English, Dutch, German and French.
 | GitHub Enterprise Server and GHE.com | Yes | Yes | Yes | Yes | Code scanning, secret scanning; advisories where the server has them |
 | Azure DevOps | Yes | Yes | No | Yes | Advanced Security alerts |
 | GitLab (gitlab.com and self-managed) | Yes | Yes | Yes | Yes | None; packages are checked with OSV.dev |
+| Bitbucket Cloud (bitbucket.org) | Yes | Yes | No (Bitbucket has none) | Yes (build statuses) | None; packages are checked with OSV.dev |
 
 The dependency and vulnerability check works on every service. See
 [Add your accounts](https://pullwatch.net/getting-started/accounts/) for the
@@ -157,10 +158,14 @@ Pullwatch is licensed under the [Apache License 2.0](LICENSE).
   countries and regions. Pullwatch shows GitLab's logomark, unmodified, from
   GitLab's [press kit](https://about.gitlab.com/press/press-kit/)
   (`gitlab-logo-500-rgb.svg`) where an account connects to GitLab.
+- Bitbucket and Atlassian are trademarks of Atlassian. Pullwatch shows the
+  unmodified Bitbucket icon from Atlassian's
+  [logo component](https://atlassian.design/components/logo/) where an
+  account connects to Bitbucket.
 - Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
   shows only the name, with an SF Symbol (a cloud).
 - Pullwatch is not affiliated with, endorsed, sponsored or approved by
-  GitHub, GitLab Inc. or Microsoft.
+  GitHub, GitLab Inc., Atlassian or Microsoft.
 
 [NOTICE](NOTICE) holds the full notices, including the MCP Swift SDK and its
 dependencies.

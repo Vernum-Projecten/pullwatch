@@ -1,6 +1,6 @@
 ---
 title: Autorisations des jetons
-description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps et GitLab."
+description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps, GitLab et Bitbucket."
 ---
 
 Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-dessous, et rien de plus. Quand il manque une autorisation pour une partie facultative, cette partie indique **Autorisation requise** avec un lien, et le reste continue de fonctionner.
@@ -42,6 +42,18 @@ Avec Azure CLI, connectez-vous avec `az login` ; Pullwatch demande un jeton à `
 ## GitLab
 
 Un jeton d’accès personnel avec la portée **read_api** couvre les merge requests, les projets, les tags, les versions publiées, les commits et les fichiers. `api` fonctionne aussi, mais donne plus que ce dont Pullwatch a besoin. Avec la GitLab CLI, Pullwatch lit `glab config get token --host <server>`.
+
+## Bitbucket
+
+Un **jeton d’API avec scopes** d’Atlassian pour l’app Bitbucket, avec l’adresse e-mail de votre compte Atlassian :
+
+| Portée | Nécessaire pour |
+|---|---|
+| `read:user:bitbucket` | votre propre compte, pour masquer vos propres pull requests |
+| `read:repository:bitbucket` | les dépôts, les tags, les statuts de build (les checks) et la vérification des dépendances |
+| `read:pullrequest:bitbucket` | les pull requests et leurs commits (les co-auteurs) |
+
+Pullwatch ne demande rien de plus. `read:workspace:bitbucket` n’est pas nécessaire : Pullwatch vérifie un workspace par ses dépôts. Les mots de passe d’application de Bitbucket ne fonctionnent plus depuis juillet 2026.
 
 ## Connexion avec un outil en ligne de commande
 

@@ -1,6 +1,6 @@
 ---
 title: Konten hinzufügen
-description: GitHub, GitHub Enterprise, Azure DevOps und GitLab verbinden und wählen, welchen Repositories Pullwatch folgt.
+description: GitHub, GitHub Enterprise, Azure DevOps, GitLab und Bitbucket verbinden und wählen, welchen Repositories Pullwatch folgt.
 ---
 
 Öffne **Einstellungen** (die Zahnrad-Schaltfläche im Menü) und geh zu **Konten**. Füge mit **+** ein Konto hinzu, wähle, wie Pullwatch sich anmeldet, und prüfe es mit **Verbindung testen**. Du kannst beliebig viele Konten jeder Art hinzufügen.
@@ -36,6 +36,14 @@ Lass **Server** für gitlab.com leer, oder gib deinen eigenen Server ein (nur ht
 
 Melde dich mit einem Personal Access Token mit dem Scope `read_api` an, oder mit der GitLab CLI (`glab auth login`). **Token erstellen** im Kontoeditor öffnet die Token-Seite deines Servers mit ausgefülltem Namen und Scope.
 
+## Bitbucket
+
+Wähle **Bitbucket** auf seiner Karte im Willkommensfenster oder **Bitbucket Cloud** im Menü **+**. Das ist Bitbucket Cloud auf bitbucket.org; Bitbucket Data Center wird nicht unterstützt. Trage die Workspaces, denen du folgen willst, unter **Workspaces** ein, durch Kommas getrennt, etwa `acme, acme-labs`. Der Workspace ist der erste Teil eines Links, `bitbucket.org/<workspace>/<repo>`, und Repositories erscheinen als `workspace/repo`.
+
+Melde dich mit einem API-Token mit Scopes von Atlassian und der E-Mail-Adresse deines Atlassian-Kontos unter **E-Mail-Adresse** an. **Token erstellen** öffnet die Seite mit den API-Tokens deines Atlassian-Kontos: Wähle **Create API token with scopes**, dann **Bitbucket** und die Leserechte aus [Token-Berechtigungen](/de/getting-started/permissions/). App-Passwörter funktionieren nicht mehr, und es gibt kein Kommandozeilenwerkzeug von Bitbucket, aus dem Pullwatch ein Token holen könnte. Die E-Mail-Adresse steht in den Einstellungen, das Token im Schlüsselbund.
+
+Bitbucket kennt keine Releases, deshalb zeigt **Tags und Releases** bei einem Bitbucket-Konto nur Tags. Die Checks eines Pull Requests sind die Build-Status auf seinem letzten Commit, von Bitbucket Pipelines oder anderer CI, die sie meldet. Bitbucket hat keine Liste aller Pull Requests eines Workspace, deshalb fragt Pullwatch jedes Repository einzeln; ein Repository, das sich seit der letzten Abfrage nicht geändert hat, wird spätestens nach 10 Minuten erneut gefragt.
+
 ## Wählen, was du verfolgst
 
 Jedes Konto listet seine Repositories. Hake pro Repository an, was du möchtest:
@@ -53,8 +61,9 @@ Unter **Andere Repositorys** unten in der Liste fügst du ein einzelnes Reposito
 - GitHub: `owner/repo`, oder füge einen Link von github.com ein.
 - Azure DevOps: `project/repo` innerhalb der Organisation des Kontos, oder ein Link von dev.azure.com.
 - GitLab: `group/subgroup/project`, oder ein Link von gitlab.com oder vom eigenen Server des Kontos.
+- Bitbucket: `workspace/repo`, oder füge einen Link von bitbucket.org ein.
 
-Pullwatch prüft es mit einer Anfrage und sagt dir in klaren Worten, wenn es das Repository nicht finden oder lesen kann. Ein öffentliches Repository auf github.com oder gitlab.com, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. **Einem Repository folgen…** (⇧⌘N, im Menü Ablage und in der Symbolleiste von Repositories) öffnet dasselbe Feld mit einer Auswahl des Kontos. Entferne eines per Rechtsklick oder mit der Entfernen-Taste.
+Pullwatch prüft es mit einer Anfrage und sagt dir in klaren Worten, wenn es das Repository nicht finden oder lesen kann. Ein öffentliches Repository auf github.com, gitlab.com oder bitbucket.org, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. **Einem Repository folgen…** (⇧⌘N, im Menü Ablage und in der Symbolleiste von Repositories) öffnet dasselbe Feld mit einer Auswahl des Kontos. Entferne eines per Rechtsklick oder mit der Entfernen-Taste.
 
 Ein solches Repository erscheint überall wie die anderen, denen du folgst, gruppiert unter seinem eigenen Owner.
 

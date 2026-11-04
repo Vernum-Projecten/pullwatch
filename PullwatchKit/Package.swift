@@ -27,8 +27,9 @@ let package = Package(
         .target(name: "PullwatchGitHub", dependencies: ["PullwatchCore"], resources: [.process("Localizable.xcstrings")]),
         .target(name: "PullwatchAzureDevOps", dependencies: ["PullwatchCore"]),
         .target(name: "PullwatchGitLab", dependencies: ["PullwatchCore"]),
+        .target(name: "PullwatchBitbucket", dependencies: ["PullwatchCore"]),
         // Kiest per account de provider; het enige dat alle providers kent.
-        .target(name: "PullwatchProviders", dependencies: ["PullwatchCore", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab"]),
+        .target(name: "PullwatchProviders", dependencies: ["PullwatchCore", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchBitbucket"]),
         // De MCP-server voor agents: het toolregister en de begrenzing bovenop de SDK.
         .target(
             name: "PullwatchMCP",
@@ -42,9 +43,10 @@ let package = Package(
         .testTarget(name: "PullwatchGitHubTests", dependencies: ["PullwatchGitHub", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchAzureDevOpsTests", dependencies: ["PullwatchAzureDevOps", "PullwatchTestSupport"]),
         .testTarget(name: "PullwatchGitLabTests", dependencies: ["PullwatchGitLab", "PullwatchTestSupport"]),
+        .testTarget(name: "PullwatchBitbucketTests", dependencies: ["PullwatchBitbucket", "PullwatchTestSupport"]),
         .testTarget(
             name: "PullwatchProvidersTests",
-            dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchTestSupport"]
+            dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchBitbucket", "PullwatchTestSupport"]
         ),
         .testTarget(name: "PullwatchMCPTests", dependencies: ["PullwatchMCP", "PullwatchCore", .product(name: "MCP", package: "swift-sdk")]),
     ]

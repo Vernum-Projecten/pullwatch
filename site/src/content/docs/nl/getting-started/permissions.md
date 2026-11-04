@@ -1,6 +1,6 @@
 ---
 title: Rechten van tokens
-description: De scopes en rechten die Pullwatch nodig heeft op GitHub, GitHub Enterprise, Azure DevOps en GitLab.
+description: De scopes en rechten die Pullwatch nodig heeft op GitHub, GitHub Enterprise, Azure DevOps, GitLab en Bitbucket.
 ---
 
 Pullwatch leest alleen. Geef een token de leesrechten hieronder en niets meer. Ontbreekt een recht voor een optioneel deel, dan staat bij dat deel **Toestemming nodig** met een link, en de rest blijft werken.
@@ -42,6 +42,18 @@ Met de Azure CLI log je in met `az login`; Pullwatch vraagt `az` om een token.
 ## GitLab
 
 Een personal access token met de scope **read_api** dekt merge requests, projecten, tags, releases, commits en bestanden. `api` werkt ook, maar geeft meer dan Pullwatch nodig heeft. Met de GitLab CLI leest Pullwatch `glab config get token --host <server>`.
+
+## Bitbucket
+
+Een **API-token met scopes** van Atlassian voor de app Bitbucket, samen met het e-mailadres van je Atlassian-account:
+
+| Scope | Nodig voor |
+|---|---|
+| `read:user:bitbucket` | je eigen account, om je eigen pull requests te verbergen |
+| `read:repository:bitbucket` | repositories, tags, build-statussen (de checks) en de check van afhankelijkheden |
+| `read:pullrequest:bitbucket` | pull requests en hun commits (de co-auteurs) |
+
+Meer vraagt Pullwatch niet. `read:workspace:bitbucket` is niet nodig: Pullwatch controleert een workspace via zijn repositories. De app passwords van Bitbucket werken sinds juli 2026 niet meer.
 
 ## Inloggen met een opdrachtregeltool
 

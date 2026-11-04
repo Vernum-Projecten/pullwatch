@@ -4,7 +4,7 @@ public import Foundation
 public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
     // Een nieuwe dienst komt erbij als nieuwe case; de rawValue staat in config.json en
     // verandert nooit, zodat een bestaande config gewoon blijft decoderen.
-    case azureDevOps, gitHub, gitLab
+    case azureDevOps, gitHub, gitLab, bitbucket
 
     /// Productnaam, in elke taal hetzelfde.
     public var name: String {
@@ -12,6 +12,7 @@ public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
         case .azureDevOps: "Azure DevOps"
         case .gitHub: "GitHub"
         case .gitLab: "GitLab"
+        case .bitbucket: "Bitbucket"
         }
     }
 
@@ -25,13 +26,15 @@ public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
         case .azureDevOps: nil
         case .gitHub: URL(string: "https://github.com")
         case .gitLab: URL(string: "https://gitlab.com")
+        case .bitbucket: URL(string: "https://bitbucket.org")
         }
     }
 }
 
 /// Hoe een account inlogt.
 public enum AuthMethod: String, Codable, Hashable, Sendable, CaseIterable {
-    /// Personal access token in de Keychain.
+    /// Personal access token in de Keychain; bij Bitbucket een API-token met scopes (met het
+    /// e-mailadres van het Atlassian-account in `Account.email`).
     case pat
     /// Het token van `az` of `gh`.
     case cli

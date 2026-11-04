@@ -1,6 +1,6 @@
 ---
 title: Ajouter vos comptes
-description: "Connectez GitHub, GitHub Enterprise, Azure DevOps et GitLab, et choisissez les dépôts que Pullwatch suit."
+description: "Connectez GitHub, GitHub Enterprise, Azure DevOps, GitLab et Bitbucket, et choisissez les dépôts que Pullwatch suit."
 ---
 
 Ouvrez **Réglages** (le bouton en forme d’engrenage du panneau du menu) et allez dans **Comptes**. Ajoutez un compte avec **+**, choisissez comment Pullwatch se connecte, et utilisez **Tester la connexion** pour le vérifier. Vous pouvez ajouter autant de comptes que vous voulez, de tout type.
@@ -36,6 +36,14 @@ Laissez **Serveur** vide pour gitlab.com, ou saisissez votre propre serveur (htt
 
 Connectez-vous avec un jeton d’accès personnel avec la portée `read_api`, ou avec la GitLab CLI (`glab auth login`). **Créer un jeton** dans l’éditeur de compte ouvre la page des jetons de votre serveur avec le nom et la portée déjà remplis.
 
+## Bitbucket
+
+Choisissez **Bitbucket** sur sa carte dans la fenêtre de bienvenue, ou **Bitbucket Cloud** dans le menu **+**. Il s’agit de Bitbucket Cloud sur bitbucket.org ; Bitbucket Data Center n’est pas pris en charge. Indiquez les workspaces à suivre sous **Workspaces**, séparés par des virgules, comme `acme, acme-labs`. Le workspace est la première partie d’un lien, `bitbucket.org/<workspace>/<repo>`, et les dépôts apparaissent sous la forme `workspace/repo`.
+
+Connectez-vous avec un jeton d’API avec portées d’Atlassian et l’adresse e-mail de votre compte Atlassian, sous **Adresse e-mail**. **Créer un jeton** ouvre la page des jetons d’API de votre compte Atlassian : choisissez **Create API token with scopes**, puis **Bitbucket**, et les portées en lecture de [Autorisations des jetons](/fr/getting-started/permissions/). Les mots de passe d’application ne fonctionnent plus, et il n’existe pas d’outil en ligne de commande Bitbucket dont Pullwatch pourrait tirer un jeton. L’adresse e-mail est gardée dans les réglages, le jeton dans le trousseau.
+
+Bitbucket n’a pas de versions publiées : **Tags et versions publiées** n’affiche que des tags pour un compte Bitbucket. Les checks d’une pull request sont les statuts de build sur son dernier commit, de Bitbucket Pipelines ou de toute autre CI qui les signale. Bitbucket n’a pas de liste de toutes les pull requests d’un workspace, donc Pullwatch interroge chaque dépôt ; un dépôt qui n’a pas changé depuis la dernière interrogation est de nouveau interrogé au plus tard après 10 minutes.
+
 ## Choisir ce que vous suivez
 
 Chaque compte liste ses dépôts. Pour chaque dépôt, cochez ce que vous voulez :
@@ -53,8 +61,9 @@ Sous **Autres dépôts**, en bas de la liste, ajoutez un dépôt isolé qui ne f
 - GitHub : `owner/repo`, ou collez un lien github.com.
 - Azure DevOps : `project/repo` dans l’organisation du compte, ou un lien dev.azure.com.
 - GitLab : `group/subgroup/project`, ou un lien de gitlab.com ou du propre serveur du compte.
+- Bitbucket : `workspace/repo`, ou collez un lien bitbucket.org.
 
-Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com ou gitlab.com que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Fichier et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
+Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com, gitlab.com ou bitbucket.org que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Fichier et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
 
 Un tel dépôt apparaît partout comme les autres dépôts que vous suivez, regroupé sous son propre propriétaire.
 

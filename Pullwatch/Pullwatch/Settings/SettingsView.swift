@@ -53,7 +53,7 @@ private struct AccountsSettingsView: View {
     /// Het nieuwe account staat op een eigen server: GitHub Enterprise of een eigen GitLab-server.
     @State private var draftIsEnterprise = false
     @State private var confirmsRemoval = false
-    /// De keuze GitHub, GitHub Enterprise, Azure DevOps of GitLab, na Nieuw account… (⌘N).
+    /// De keuze GitHub, GitHub Enterprise, Azure DevOps, GitLab of Bitbucket, na Nieuw account… (⌘N).
     @State private var choosesKind = false
 
     var body: some View {
@@ -210,7 +210,7 @@ private struct AccountCard: View {
     }
 }
 
-/// + met een pijltje (het opent een keuze: GitHub, Azure DevOps of GitLab) en − onder de lijst, zoals
+/// + met een pijltje (het opent een keuze: GitHub, Azure DevOps, GitLab of Bitbucket) en − onder de lijst, zoals
 /// in de Mac-instellingen.
 private struct AccountListButtons: View {
     let canRemove: Bool
@@ -220,7 +220,7 @@ private struct AccountListButtons: View {
     /// GitHub en GitLab twee keer: github.com en GitHub Enterprise, gitlab.com en een eigen
     /// GitLab-server; dezelfde keuzes als op de kaarten van het welkomstvenster.
     static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
-        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true),
+        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true), (.bitbucket, false),
     ]
 
     /// De productnaam van de keuze, in elke taal hetzelfde.
@@ -228,6 +228,7 @@ private struct AccountListButtons: View {
         switch (choice.kind, choice.enterprise) {
         case (.gitHub, true): "GitHub Enterprise"
         case (.gitLab, true): "GitLab Self-Managed"
+        case (.bitbucket, _): "Bitbucket Cloud"
         default: choice.kind.name
         }
     }

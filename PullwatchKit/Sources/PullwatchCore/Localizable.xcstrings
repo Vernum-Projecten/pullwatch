@@ -1960,6 +1960,28 @@
         }
       }
     },
+    "Typ workspace/repo, of plak de link van de repository.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type workspace/repo, or paste the link of the repository."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib workspace/repo ein oder füge den Link des Repositorys ein."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez workspace/dépôt, ou collez le lien du dépôt."
+          }
+        }
+      }
+    },
     "Updatecheck van Pullwatch": {
       "comment": "Verbinding in het overzicht van bronnen",
       "localizations": {

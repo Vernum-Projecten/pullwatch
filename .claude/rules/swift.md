@@ -53,7 +53,7 @@ A file is found by its name, a type by its module and area.
   `Vulnerabilities`, `Check` and `Tables`, `Packages`, `DataSources`, `AgentBrief`,
   `Updates`, `Support`) has no provider API code; each
   provider is a module (`PullwatchGitHub`, `PullwatchAzureDevOps`,
-  `PullwatchGitLab`) that depends only on `PullwatchCore`;
+  `PullwatchGitLab`, `PullwatchBitbucket`) that depends only on `PullwatchCore`;
   `PullwatchProviders` (`ProviderFactory`) is the only module that knows them
   all. A new provider is a new module plus one case in `ProviderFactory`.
   `PullwatchMCP` (the MCP server for agents) depends on `PullwatchCore` and

@@ -13,7 +13,7 @@ macOS 26.6 of nieuwer, op Apple silicon en op Intel. Het is één universele app
 
 ## Welke diensten ondersteunt het?
 
-GitHub (github.com, GitHub Enterprise Server en GHE.com), Azure DevOps, en GitLab (gitlab.com en je eigen server). Zie [Je accounts toevoegen](/nl/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server en GHE.com), Azure DevOps, GitLab (gitlab.com en je eigen server), en Bitbucket Cloud (bitbucket.org). Zie [Je accounts toevoegen](/nl/getting-started/accounts/).
 
 ## Kan Pullwatch iets veranderen in mijn repositories?
 
@@ -33,7 +33,7 @@ Tags zonder release, gemergede pull requests en nieuwe versies komen bewust stil
 
 ## Kan ik een repository volgen die niet van mij is?
 
-Ja. Voeg hem toe onder **Andere repositories** in zijn account, of met **Volg een repository…** (⇧⌘N). Een openbare repository op github.com of gitlab.com werkt ook als je token hem niet mag lezen.
+Ja. Voeg hem toe onder **Andere repositories** in zijn account, of met **Volg een repository…** (⇧⌘N). Een openbare repository op github.com, gitlab.com of bitbucket.org werkt ook als je token hem niet mag lezen.
 
 ## Welke talen spreekt Pullwatch?
 
@@ -43,6 +43,6 @@ Engels, Nederlands, Duits en Frans. Het volgt macOS, of je kiest onder Instellin
 
 Pullwatch zoekt eens per dag naar updates en installeert ze voor je. Zie [Updates](/nl/getting-started/install/#updates).
 
-## Hoort Pullwatch bij GitHub, GitLab of Microsoft?
+## Hoort Pullwatch bij GitHub, GitLab, Atlassian of Microsoft?
 
-Nee. GitHub is een handelsmerk van GitHub, Inc., GITLAB is een handelsmerk van GitLab Inc., en Azure DevOps is een handelsmerk van de Microsoft-groep.
+Nee. GitHub is een handelsmerk van GitHub, Inc., GITLAB is een handelsmerk van GitLab Inc., Bitbucket is een handelsmerk van Atlassian, en Azure DevOps is een handelsmerk van de Microsoft-groep.

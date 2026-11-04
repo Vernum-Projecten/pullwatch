@@ -16,4 +16,4 @@ Pullwatch is gratis en open source onder de [Apache License 2.0](https://github.
 
 De MCP Swift SDK haalt voor zijn eigen testtools ook SwiftNIO, Swift Atomics en Swift Collections binnen. Pullwatch linkt ze niet, dus ze zitten niet in de app.
 
-GitHub, GitLab en Azure DevOps zijn merken van hun eigenaars. Pullwatch gebruikt hun namen alleen om te zeggen dat het ermee werkt, en is niet aan een van hen verbonden of door hen goedgekeurd. Het [NOTICE-bestand](https://github.com/alessandro823/pullwatch/blob/main/NOTICE) heeft de details.
+GitHub, GitLab, Bitbucket en Azure DevOps zijn merken van hun eigenaars. Pullwatch gebruikt hun namen alleen om te zeggen dat het ermee werkt, en is niet aan een van hen verbonden of door hen goedgekeurd. Het [NOTICE-bestand](https://github.com/alessandro823/pullwatch/blob/main/NOTICE) heeft de details.

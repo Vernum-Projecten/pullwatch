@@ -4,8 +4,8 @@ public import Foundation
 public struct Account: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var kind: ProviderKind
-    /// Wat dit account volgt: Azure DevOps-organisatie, of bij GitHub het eigen account en/of
-    /// organisaties. Eén inlog kan meerdere eigenaren volgen.
+    /// Wat dit account volgt: Azure DevOps-organisatie, bij GitHub het eigen account en/of
+    /// organisaties, bij Bitbucket workspaces. Eén inlog kan meerdere eigenaren volgen.
     public var owners: [String]
     /// Wie er via de GitHub App is ingelogd (de login, zonder @); nil bij een token of CLI.
     public var login: String?
@@ -23,6 +23,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// Eigen server (GitLab self-managed, GitHub Enterprise Server of `<naam>.ghe.com`): alleen https, zonder "/" aan het eind
     /// (`InstanceURL.parse`). nil = de standaard van de dienst (`ProviderKind.defaultInstanceURL`).
     public var instanceURL: URL?
+    /// Bitbucket: het e-mailadres van het Atlassian-account bij het API-token (Basic auth
+    /// `e-mail:token`). Geen geheim, dus in de config; het token zelf staat in de Keychain.
+    public var email: String?
 
     /// Waar de repo's van dit account staan: de eigen server, anders de standaard van de dienst.
     public var effectiveInstanceURL: URL? {
@@ -153,7 +156,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         cliUser: String? = nil,
         isPaused: Bool = false,
         instanceURL: URL? = nil,
-        extraRepos: [String] = []
+        extraRepos: [String] = [],
+        email: String? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -169,10 +173,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.isPaused = isPaused
         self.instanceURL = instanceURL
         self.extraRepos = extraRepos
+        self.email = email
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos, email
     }
 
     public init(from decoder: any Decoder) throws {
@@ -198,6 +203,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         instanceURL = try c.decodeIfPresent(URL.self, forKey: .instanceURL)
         // Van vóór de losse repo's: geen.
         extraRepos = try c.decodeIfPresent([String].self, forKey: .extraRepos) ?? []
+        email = try c.decodeIfPresent(String.self, forKey: .email)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -219,6 +225,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         if isPaused { try c.encode(isPaused, forKey: .isPaused) }
         try c.encodeIfPresent(instanceURL, forKey: .instanceURL)
         if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
+        try c.encodeIfPresent(email, forKey: .email)
     }
 
     /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `<server>/<eigenaar>/<repo>`.
@@ -229,9 +236,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
             guard parts.count == 2 else { return nil }
             return URL(string: "https://dev.azure.com")?
                 .appending(path: organization).appending(path: parts[0]).appending(path: "_git").appending(path: parts[1])
-        case .gitHub, .gitLab:
-            // "eigenaar/repo" (GitHub) of "groep/subgroep/project" (GitLab) onder de eigen
-            // server, anders github.com of gitlab.com.
+        case .gitHub, .gitLab, .bitbucket:
+            // "eigenaar/repo" (GitHub), "groep/subgroep/project" (GitLab) of "workspace/repo"
+            // (Bitbucket) onder de eigen server, anders github.com, gitlab.com of bitbucket.org.
             return effectiveInstanceURL?.appending(path: repo)
         }
     }

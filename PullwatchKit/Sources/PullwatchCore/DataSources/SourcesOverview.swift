@@ -50,7 +50,7 @@ public enum SourcesOverview {
     /// Het adres waar de provider van `account` echt mee praat, zoals de providers het opbouwen:
     /// GitHub zoals `GitHubEndpoints.api` (github.com via `api.github.com`, GHE.com via
     /// `api.<naam>.ghe.com`, een Enterprise-server via `<server>/api/v3`), Azure DevOps
-    /// `dev.azure.com/<organisatie>`, GitLab `<server>/api/v4`.
+    /// `dev.azure.com/<organisatie>`, GitLab `<server>/api/v4`, Bitbucket `api.bitbucket.org/2.0`.
     public static func server(of account: Account) -> URL {
         let instance = account.effectiveInstanceURL
         switch account.kind {
@@ -67,6 +67,8 @@ public enum SourcesOverview {
             return instance.appending(path: "api/v3")
         case .gitLab:
             return (instance ?? URL(string: "https://gitlab.com")!).appending(path: "api/v4")
+        case .bitbucket:
+            return URL(string: "https://api.bitbucket.org/2.0")!
         }
     }
 
@@ -132,7 +134,7 @@ public enum SourcesOverview {
         }
 
         // Profielfoto's laadt de app los van de geschiedenis, dus de hosts volgen uit de accounts.
-        let pictureAccounts = config.accounts.filter { $0.kind == .gitHub || $0.kind == .gitLab }
+        let pictureAccounts = config.accounts.filter { !pictureHosts(of: $0).isEmpty }
         if !pictureAccounts.isEmpty {
             var urls: [URL] = []
             for url in pictureAccounts.flatMap(pictureHosts(of:)) where !urls.contains(url) {
@@ -173,7 +175,9 @@ public enum SourcesOverview {
     /// - GitHub Enterprise Server en GHE.com: `<server>/<login>.png`, en `avatars.<server>` als
     ///   de server subdomeinen gebruikt (subdomain isolation, op GHE.com altijd);
     /// - GitLab: geüploade foto's op de server zelf (`<server>/uploads/…`), en anders Gravatar
-    ///   (secure.gravatar.com), dat gitlab.com en een eigen server standaard gebruiken.
+    ///   (secure.gravatar.com), dat gitlab.com en een eigen server standaard gebruiken;
+    /// - Bitbucket: Gravatar met de initialen van Atlassian als terugval
+    ///   (avatar-management--avatars.us-west-2.prod.public.atl-paas.net), zoals `links.avatar` ze noemt.
     static func pictureHosts(of account: Account) -> [URL] {
         switch account.kind {
         case .azureDevOps:
@@ -191,6 +195,9 @@ public enum SourcesOverview {
         case .gitLab:
             let web = account.effectiveInstanceURL ?? URL(string: "https://gitlab.com")!
             return [web, URL(string: "https://secure.gravatar.com")!]
+        case .bitbucket:
+            return [URL(string: "https://secure.gravatar.com")!,
+                    URL(string: "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net")!]
         }
     }
 
