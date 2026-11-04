@@ -46,38 +46,56 @@ extension GitHubProvider {
     public func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages {
         let followed = Dictionary(followedRepos.map { ($0.lowercased(), $0) }, uniquingKeysWith: { first, _ in first })
         var packages: [PublishedPackage] = []
+        // Per eigenaar: een eigenaar waar de app of het token niet bij het register mag (bv. het
+        // eigen account waar de GitHub App niet op staat), slaat alleen die eigenaar over. Alleen als
+        // geen enkele eigenaar te lezen is, is het hele account `.needsPermission`.
+        var forbidden: [String] = []
         do {
             for owner in owners {
-                let base = switch try await resolveOwnerKind(owner) {
-                case .organization: apiBase.appending(path: "orgs").appending(path: owner)
-                case .user: apiBase.appending(path: "users").appending(path: owner)
-                }
-                for type in Self.packageTypes {
-                    let listed: [PackageDTO] = try await packagePages(
-                        base.appending(path: "packages"),
-                        query: [
-                            URLQueryItem(name: "package_type", value: type.rawValue),
-                            URLQueryItem(name: "per_page", value: String(pageSize)),
-                        ]
-                    )
-                    for item in listed {
-                        // Een package van een repo die niet gevolgd wordt, hoort niet in Pullwatch.
-                        let repo = item.repository.flatMap { followed[$0.fullName.lowercased()] }
-                        if item.repository != nil, repo == nil { continue }
-                        let versions = repo == nil ? [] : try await recentVersions(of: item, type: type, base: base)
-                        packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, versions: versions))
-                    }
+                do {
+                    packages += try await ownerPackages(owner, followed: followed)
+                } catch PackagesAccess.needsPermission {
+                    forbidden.append(owner)
+                    logger.info("\(logPrefix): geen recht op het register van \(owner), overgeslagen")
                 }
             }
-        } catch PackagesAccess.needsPermission {
-            logger.info("\(logPrefix): geen recht op het register, needsPermission")
-            return .needsPermission(reason: Self.packagesPermissionReason(for: authMethod))
         } catch {
             logger.info("\(logPrefix): mislukt: \((error as? ProviderError)?.userMessage ?? error.localizedDescription)")
             throw error
         }
-        logger.info("\(logPrefix): \(packages.count) packages van \(owners.count) eigenaren")
+        if !owners.isEmpty, forbidden.count == owners.count {
+            logger.info("\(logPrefix): geen recht op het register, needsPermission")
+            return .needsPermission(reason: Self.packagesPermissionReason(for: authMethod))
+        }
+        logger.info("\(logPrefix): \(packages.count) packages van \(owners.count - forbidden.count) eigenaren, \(forbidden.count) zonder recht")
         return .packages(packages)
+    }
+
+    /// De packages van één eigenaar (organisatie of gebruiker), alle soorten. Gooit
+    /// `PackagesAccess.needsPermission` als het register van die eigenaar niet te lezen is.
+    private func ownerPackages(_ owner: String, followed: [String: String]) async throws -> [PublishedPackage] {
+        var packages: [PublishedPackage] = []
+        let base = switch try await resolveOwnerKind(owner) {
+        case .organization: apiBase.appending(path: "orgs").appending(path: owner)
+        case .user: apiBase.appending(path: "users").appending(path: owner)
+        }
+        for type in Self.packageTypes {
+            let listed: [PackageDTO] = try await packagePages(
+                base.appending(path: "packages"),
+                query: [
+                    URLQueryItem(name: "package_type", value: type.rawValue),
+                    URLQueryItem(name: "per_page", value: String(pageSize)),
+                ]
+            )
+            for item in listed {
+                // Een package van een repo die niet gevolgd wordt, hoort niet in Pullwatch.
+                let repo = item.repository.flatMap { followed[$0.fullName.lowercased()] }
+                if item.repository != nil, repo == nil { continue }
+                let versions = repo == nil ? [] : try await recentVersions(of: item, type: type, base: base)
+                packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, versions: versions))
+            }
+        }
+        return packages
     }
 
     /// "gitHub/gitHubApp account <id>" voor elke logregel.
