@@ -2,7 +2,7 @@ import PullwatchCore
 import SwiftUI
 
 /// Profielfoto van een GitHub-gebruiker of -organisatie, rond, zoals de accounts in RustRover.
-/// Zonder foto (Azure DevOps, nog geen eigenaar, offline) het symbool van de dienst.
+/// Zonder foto (Azure DevOps, GitLab, nog geen eigenaar, offline) het teken van de dienst.
 struct AccountAvatar: View {
     let url: URL?
     let kind: ProviderKind
@@ -34,28 +34,11 @@ struct AccountAvatar: View {
         .accessibilityHidden(true)
     }
 
-    @ViewBuilder private var placeholder: some View {
-        if kind.glyphKeepsItsColours {
-            // Het GitHub-logo zoals GitHub het geeft (zwart of wit), met wat ruimte in de cirkel.
-            ProviderMark(kind: kind, size: size * 0.62)
-                .frame(width: size, height: size)
-                .background(.quaternary)
-        } else {
-            Image(systemName: Self.placeholderSymbol(for: kind))
-                .resizable()
-                .scaledToFit()
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    /// Het symbool zonder foto voor diensten die geen logo in een app toestaan (zie
-    /// `ProviderKind.glyph`): Azure DevOps een wolk, GitLab een groep, want daar volgt een
-    /// GitLab-account meestal.
-    static func placeholderSymbol(for kind: ProviderKind) -> String {
-        switch kind {
-        case .gitHub: "person.crop.circle.fill"
-        case .azureDevOps: "cloud.circle.fill"
-        case .gitLab: "person.2.circle.fill"
-        }
+    /// Zonder foto het teken van de dienst (`ProviderMark`), met wat ruimte in de cirkel: overal
+    /// hetzelfde teken als op de keuzekaarten en in het toevoeg-menu.
+    private var placeholder: some View {
+        ProviderMark(kind: kind, size: size * 0.62)
+            .frame(width: size, height: size)
+            .background(.quaternary)
     }
 }

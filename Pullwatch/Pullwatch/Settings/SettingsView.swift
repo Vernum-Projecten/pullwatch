@@ -58,7 +58,7 @@ private struct AccountsSettingsView: View {
     @State private var selection: UUID?
     /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
     @State private var draft: Account?
-    /// Het nieuwe account is een GitHub-account op GitHub Enterprise.
+    /// Het nieuwe account staat op een eigen server: GitHub Enterprise of een eigen GitLab-server.
     @State private var draftIsEnterprise = false
     @State private var confirmsRemoval = false
 
@@ -113,7 +113,7 @@ private struct AccountsSettingsView: View {
         }
     }
 
-    /// `enterprise`: GitHub Enterprise, waar de Pullwatch-app niet bestaat; daar eerst een token.
+    /// `enterprise`: een eigen server. Op GitHub Enterprise bestaat de Pullwatch-app niet; daar eerst een token.
     private func add(_ kind: ProviderKind, enterprise: Bool) {
         draftIsEnterprise = enterprise
         draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
@@ -209,10 +209,20 @@ private struct AccountListButtons: View {
     let add: (_ kind: ProviderKind, _ enterprise: Bool) -> Void
     let remove: () -> Void
 
-    /// GitHub twee keer: github.com en GitHub Enterprise.
+    /// GitHub en GitLab twee keer: github.com en GitHub Enterprise, gitlab.com en een eigen
+    /// GitLab-server; dezelfde keuzes als op de kaarten van het welkomstvenster.
     private static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
-        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false),
+        (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true),
     ]
+
+    /// De productnaam van de keuze, in elke taal hetzelfde.
+    private static func title(of choice: (kind: ProviderKind, enterprise: Bool)) -> String {
+        switch (choice.kind, choice.enterprise) {
+        case (.gitHub, true): "GitHub Enterprise"
+        case (.gitLab, true): "GitLab Self-Managed"
+        default: choice.kind.name
+        }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -222,7 +232,7 @@ private struct AccountListButtons: View {
                         add(choice.kind, choice.enterprise)
                     } label: {
                         Label {
-                            Text(verbatim: choice.enterprise ? "GitHub Enterprise" : choice.kind.name)
+                            Text(verbatim: Self.title(of: choice))
                         } icon: {
                             ProviderMark.menuIcon(for: choice.kind)
                         }
