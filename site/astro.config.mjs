@@ -7,10 +7,12 @@ import { baseLinks } from './src/plugins/base-links.mjs';
 
 // The address is one setting: the repository variable PAGES_DOMAIN (docs/website.md).
 // Set (for example pullwatch.net), the site lives at https://<domain>/; empty, at the
-// project page https://alessandro823.github.io/pullwatch/.
+// project page of the repository it is built in (GITHUB_REPOSITORY in Actions), so
+// https://alessandro823.github.io/pullwatch/, or a fork's own page for a preview.
 const domain = process.env.PAGES_DOMAIN?.trim();
-const site = domain ? `https://${domain}` : 'https://alessandro823.github.io';
-const base = domain ? '/' : '/pullwatch';
+const [owner, name] = (process.env.GITHUB_REPOSITORY || 'alessandro823/pullwatch').toLowerCase().split('/');
+const site = domain ? `https://${domain}` : `https://${owner}.github.io`;
+const base = domain ? '/' : `/${name}`;
 const baseSlash = base.endsWith('/') ? base : `${base}/`;
 
 export const repository = 'https://github.com/alessandro823/pullwatch';
