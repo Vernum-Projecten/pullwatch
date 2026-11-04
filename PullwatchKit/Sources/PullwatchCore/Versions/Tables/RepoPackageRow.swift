@@ -16,6 +16,8 @@ public struct RepoPackageRow: Hashable, Sendable, Identifiable {
     public let installedVersions: [String]
     /// De nieuwste versie die nu kan, als die anders is dan de nieuwste en nieuwer dan wat er staat.
     public let newestUsable: String?
+    /// Gezet als een gevolgde repository dit package zelf publiceert (`PackageMetadata.inHouse`).
+    public let inHouse: InHousePackage?
     /// Alles waarop gezocht wordt, in één tekst.
     let searchable: String
 
@@ -30,6 +32,7 @@ public struct RepoPackageRow: Hashable, Sendable, Identifiable {
         self.workspace = workspace
         self.origin = origin
         self.latest = latest
+        self.inHouse = context.metadata[package.id]?.inHouse
         if latest != nil {
             let installs = package.installs.map {
                 InstallUpdate(install: $0, update: $0.update(ecosystem: package.ecosystem, name: package.name, latest: latest, context: context))

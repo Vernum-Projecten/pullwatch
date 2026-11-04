@@ -32,6 +32,25 @@ enum SourceOff {
         id != .endOfLife && id != .swiftOrg && DataSource.source(id).group == .versions
     }
 
+    /// De zin voor een eigen package waarvan de nieuwste versie niet uit het eigen register kwam;
+    /// nil als die wel gelezen is. Nooit "actueel": de bron staat uit of het account mag niet lezen.
+    static func inHouseNotChecked(_ inHouse: InHousePackage) -> String? {
+        switch inHouse.status {
+        case .checked: nil
+        case .sourceOff: notChecked(.packageRegistries)
+        case .needsPermission:
+            String(localized: "Niet gecontroleerd: geen toegang tot het packageregister van dit account",
+                   comment: "Een eigen package; het token van het account mist het recht om het register te lezen")
+        }
+    }
+
+    /// Wat er voor een eigen package nodig is om het te controleren (de reden van de dienst); nil
+    /// als er niets ontbreekt.
+    static func inHouseHelp(_ inHouse: InHousePackage) -> String? {
+        if case .needsPermission(let reason) = inHouse.status, !reason.isEmpty { return reason }
+        return inHouseNotChecked(inHouse)
+    }
+
     /// Het register achter een `PackageSummary.id` ("ecosysteem:naam") als dat in `disabled` staat.
     static func registry(ofPackage id: String, in disabled: Set<DataSourceID>) -> DataSourceID? {
         guard let colon = id.firstIndex(of: ":"),

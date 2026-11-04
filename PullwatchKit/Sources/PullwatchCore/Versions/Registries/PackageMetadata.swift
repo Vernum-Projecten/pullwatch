@@ -62,22 +62,28 @@ public struct PackageMetadata: Codable, Hashable, Sendable {
     public var versions: [String: VersionMetadata]
     /// false zolang alleen de nieuwste versie bekend is (Go: `@latest` zonder `@v/list`).
     public var isComplete: Bool
+    /// Gezet als een gevolgde repository dit package zelf publiceert: dan komen `latest` en
+    /// `versions` uit dat eigen register en is het publieke register niet gevraagd.
+    public var inHouse: InHousePackage?
 
-    public init(latest: String?, versions: [String: VersionMetadata], isComplete: Bool = true) {
+    public init(latest: String?, versions: [String: VersionMetadata], isComplete: Bool = true, inHouse: InHousePackage? = nil) {
         self.latest = latest
         self.versions = versions
         self.isComplete = isComplete
+        self.inHouse = inHouse
     }
 
     private enum CodingKeys: String, CodingKey {
-        case latest, versions, isComplete
+        case latest, versions, isComplete, inHouse
     }
 
+    /// Een rapport van vóór de eigen packages heeft geen `inHouse`; een onleesbare wordt nil.
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         latest = try c.decodeIfPresent(String.self, forKey: .latest)
         versions = try c.decodeIfPresent([String: VersionMetadata].self, forKey: .versions) ?? [:]
         isComplete = try c.decodeIfPresent(Bool.self, forKey: .isComplete) ?? true
+        inHouse = (try? c.decodeIfPresent(InHousePackage.self, forKey: .inHouse)) ?? nil
     }
 
     /// De versies die een update kunnen zijn, oplopend: stabiel, niet ingetrokken en leesbaar.

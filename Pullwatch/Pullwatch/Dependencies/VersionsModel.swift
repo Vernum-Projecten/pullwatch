@@ -172,7 +172,7 @@ final class VersionsModel {
     }
 
     private func runVersionCheck(automatic: Bool) async {
-        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: storedReport, disabledSources: config.disabledSources, accounts: config.accounts)
         let fresh = await checker.run(accounts: config.pollableAccounts) { @MainActor [weak self] done, total in
             self?.versionCheck = CheckProgress(done: done, total: total)
         }
@@ -237,7 +237,7 @@ final class VersionsModel {
     }
 
     private func runRefresh(of repo: RepoSummary, account: Account) async {
-        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: storedReport, disabledSources: config.disabledSources, accounts: config.accounts)
         let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
         guard let report = storedReport else { return }
         let updated = await checker.completingAdvisories(
@@ -278,7 +278,7 @@ final class VersionsModel {
     }
 
     private func runNewRepoCheck(from start: VersionReport) async {
-        let checker = services.versionChecker(metadataCache: start.packageMetadata, disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: start, disabledSources: config.disabledSources, accounts: config.accounts)
         let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
             self.versionCheck = CheckProgress(done: done, total: total)
         }

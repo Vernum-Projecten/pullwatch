@@ -101,6 +101,10 @@ import Testing
         #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
     }
 
+    @Test func `The in-house symbol exists`() {
+        #expect(NSImage(systemSymbolName: InHouseBadge.symbol, accessibilityDescription: nil) != nil)
+    }
+
     @Test(arguments: MainSection.allCases)
     func sectionSymbolsExist(_ section: MainSection) {
         #expect(exists(section.glyph))

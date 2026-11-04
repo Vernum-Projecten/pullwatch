@@ -76,11 +76,14 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
     public let current: [PackageUser]
     /// Repo's die het package alleen transitief hebben: niet zelf bij te werken, dus nooit "achter".
     public let transitiveOnly: [PackageUser]
+    /// Gezet als een gevolgde repository dit package zelf publiceert (`PackageMetadata.inHouse`).
+    public let inHouse: InHousePackage?
 
     public init(
         id: String, label: String, kind: String, latest: String?, since: Date?,
-        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser]
+        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser], inHouse: InHousePackage? = nil
     ) {
+        self.inHouse = inHouse
         self.id = id
         self.label = label
         self.kind = kind
@@ -207,7 +210,8 @@ extension VersionReport {
             let behind = group.latest.map { latest in own.filter { PackageVersions.isBehind($0.version, latest: latest) } } ?? []
             return PackageSummary(
                 id: id, label: group.label, kind: group.kind, latest: group.latest, since: group.since,
-                behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly
+                behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly,
+                inHouse: packageMetadata[id]?.inHouse
             )
         }
         func rank(_ state: PackageSummary.State) -> Int {

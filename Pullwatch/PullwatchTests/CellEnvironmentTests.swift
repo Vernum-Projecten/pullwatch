@@ -36,6 +36,22 @@ import Testing
         #expect(draws(PullRequestRow(item: Self.item, showsChecks: showsChecks)))
     }
 
+    /// Het In-house-teken staat in de cellen van Afhankelijkheden en van het tabblad Packages, met
+    /// en zonder link (een Azure-project zonder repository en zonder pagina).
+    @Test(arguments: [
+        (URL(string: "https://github.com/octo/ui"), InHousePackage.Status.checked),
+        (nil, .sourceOff),
+        (nil, .needsPermission(reason: "read:packages")),
+    ])
+    func `InHouseBadge draws without a model in the environment`(link: URL?, status: InHousePackage.Status) {
+        let inHouse = InHousePackage(
+            accountId: UUID(), name: "ui", type: .npm, owner: "octo", repository: link == nil ? nil : "octo/ui",
+            repositoryURL: link, status: status
+        )
+        #expect(draws(InHouseBadge(inHouse: inHouse)))
+        #expect(draws(HStack { Text(verbatim: "@octo/ui"); InHouseBadge(inHouse: inHouse) }))
+    }
+
     @Test func `AcknowledgementRow draws without a model in the environment`() {
         let component = Acknowledgement(
             id: "sparkle", name: "Sparkle", version: "2.10.1", license: "MIT AND BSD-2-Clause AND Zlib",
