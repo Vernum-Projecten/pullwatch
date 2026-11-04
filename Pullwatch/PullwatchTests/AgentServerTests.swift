@@ -35,10 +35,6 @@ import Testing
         #expect(!FileManager.default.fileExists(atPath: socket.path(percentEncoded: false)))
     }
 
-    @Test func `The app has no tools for agents yet`() throws {
-        #expect(try MCPToolRegistry(AppModel.mcpTools()).tools.isEmpty)
-    }
-
     @Test func `The helper is inside the app`() {
         #expect(FileManager.default.isExecutableFile(atPath: helper.path(percentEncoded: false)))
         #expect(PullwatchAppLocation.appBundle(forHelperAt: helper)?.standardizedFileURL == Bundle.main.bundleURL.standardizedFileURL)

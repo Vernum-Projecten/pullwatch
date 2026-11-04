@@ -17,7 +17,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .securityAlert: self = .securityAlert
         case .packageUpdate: self = .packageUpdate
         // Het icoon van Pullwatch staat er al; een tweede plaatje zegt niets.
-        case .appUpdate, .account: return nil
+        case .appUpdate, .account, .agent: return nil
         }
     }
 

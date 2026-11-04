@@ -23,6 +23,8 @@ final class AppModel {
     @ObservationIgnored let updates: UpdatesModel
     @ObservationIgnored let router: AppRouter
     @ObservationIgnored let agents: AgentServer
+    /// Wat de tools van agents lezen: de modellen hierboven.
+    @ObservationIgnored let mcpDataSource: AppMCPDataSource
 
     @ObservationIgnored private var loopTask: Task<Void, Never>?
     @ObservationIgnored private var wakeTask: Task<Void, Never>?
@@ -47,20 +49,42 @@ final class AppModel {
         self.notifications = notifications
         self.versions = versions
         self.overview = overview
-        polling = PollingModel(
+        let polling = PollingModel(
             services: services, accounts: accounts, history: history, versions: versions, notifications: notifications
         )
+        self.polling = polling
         updates = UpdatesModel(services: services, accounts: accounts, notifications: notifications)
         router = AppRouter()
-        let agents = AgentServer(makeTools: { AppModel.mcpTools() })
+        let dataSource = AppMCPDataSource(
+            accounts: accounts, history: history, overview: overview, versions: versions, polling: polling,
+            engine: services.engine,
+            syncStatus: { AppModel.syncStatus(accounts: accounts, polling: polling, versions: versions, overview: overview) }
+        )
+        mcpDataSource = dataSource
+        // De tools lezen de modellen hierboven; de server maakt ze pas als de socket opengaat.
+        let agents = AgentServer(makeTools: { PullwatchMCPTools.all(dataSource: dataSource) })
+        agents.load(approved: accounts.config.approvedAgents)
         self.agents = agents
         // Het overzicht volgt instellingen, geschiedenis en rapport, meteen bij elke wijziging.
         // Andere bronnen uit of een account erbij of eraf: eerst het getoonde rapport, dat dan zelf
         // het overzicht bijwerkt.
         accounts.didChangeConfig = { [weak accounts] in
             if !versions.configChanged() { overview.recomputeRepoSummaries() }
+            guard let config = accounts?.config else { return }
+            agents.load(approved: config.approvedAgents)
             // De socket volgt Instellingen, Agents, maar pas als de app gestart is.
-            if agents.isEnabled, let access = accounts?.config.agentAccess { agents.apply(access) }
+            if agents.isEnabled { agents.apply(config.agentAccess) }
+        }
+        agents.onApprovalsChanged = { [weak accounts] approved in
+            accounts?.edit { $0.approvedAgents = approved }
+        }
+        let notifier = services.notifier
+        agents.onApprovalNeeded = { [weak notifications] clientName, displayName in
+            guard let notifications else { return }
+            notifier.deliver([notifications.builder.agentApproval(clientName: clientName, displayName: displayName)])
+        }
+        agents.onApprovalAnswered = { clientName in
+            notifier.removeDelivered(identifiers: [NotificationContentBuilder.agentApprovalIdentifier(clientName)])
         }
         history.didChangeHistory = { overview.recomputeRepoSummaries() }
         versions.didChangeReport = { overview.recomputeRepoSummaries() }
@@ -108,6 +132,9 @@ final class AppModel {
 
         agents.isEnabled = true
         agents.apply(config.agentAccess)
+        #if DEBUG
+        FakeAgents.installIfRequested(in: agents)
+        #endif
 
         let incomplete = accounts.incompleteAccounts
         for account in incomplete { removeAccount(account.id) }
@@ -151,11 +178,16 @@ final class AppModel {
     /// Eén status voor alles wat Pullwatch ophaalt: de balk onderin het hoofdvenster en de
     /// spinner in het menu lezen hem.
     var syncStatus: SyncStatus {
+        Self.syncStatus(accounts: accounts, polling: polling, versions: versions, overview: overview)
+    }
+
+    /// `syncStatus` uit de modellen zelf, ook voor de tools van agents.
+    static func syncStatus(accounts: AccountsModel, polling: PollingModel, versions: VersionsModel, overview: OverviewModel) -> SyncStatus {
         let refreshingRepos = versions.refreshingRepos
         let repoName = refreshingRepos.first.flatMap { id in overview.repoSummariesById[id]?.repo }
         return SyncStatus.current(
             poll: polling.pollProgress,
-            firstSyncPending: !polling.pendingFirstSync.isEmpty && !config.pollableAccounts.isEmpty,
+            firstSyncPending: !polling.pendingFirstSync.isEmpty && !accounts.config.pollableAccounts.isEmpty,
             refetch: polling.refetch.map { ($0.done, $0.total) },
             versions: versions.versionCheck.map { ($0.done, $0.total) },
             checkingRepo: refreshingRepos.isEmpty ? nil : (repoName ?? ""),
@@ -298,10 +330,11 @@ final class AppModel {
 
     // MARK: - Agents
 
-    /// De tools die agents krijgen. Nog leeg: #143 vult dit met `PullwatchMCPTools` over de
-    /// modellen van de app, zodat een agent dezelfde gegevens ziet als de vensters.
-    static func mcpTools() -> [MCPTool] {
-        []
+    /// De tools die agents krijgen: `PullwatchMCPTools` over de modellen van de app, zodat een
+    /// agent dezelfde gegevens ziet als de vensters. `AgentServer` maakt ze zo als de socket
+    /// opengaat.
+    func mcpTools() -> [MCPTool] {
+        PullwatchMCPTools.all(dataSource: mcpDataSource)
     }
 
     // MARK: - Meldingen
@@ -341,6 +374,10 @@ final class AppModel {
         case .copyAdvisoryId?:
             guard let id = payload.advisoryId else { return }
             Pasteboard.copy(id)
+        case .allowAgent?:
+            if let name = payload.agentName { agents.allow(name) }
+        case .denyAgent?:
+            if let name = payload.agentName { agents.deny(name) }
         }
     }
 

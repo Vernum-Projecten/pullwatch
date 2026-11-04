@@ -14,14 +14,19 @@ public enum PullwatchMCPServer {
 
     /// Bouwt een server en start hem op `transport`, ingepakt in `MCPBoundedTransport`. Eén
     /// server per verbinding. `onInitialize` hoort welke client zich meldt (`clientInfo`, alleen
-    /// om te tonen, geen beveiliging) en kan de sessie weigeren door te gooien.
+    /// om te tonen, geen beveiliging) en kan de sessie weigeren door te gooien. Met `approval`
+    /// krijgt een client die nog niet is toegestaan op elke `tools/call` een toolfout die zegt
+    /// waar hij kan worden toegestaan. `onToolCall` hoort elke toegestane `tools/call` met de
+    /// naam van de tool.
     public static func start(
         tools: MCPToolRegistry,
         version: String,
         instructions: String? = nil,
         limits: MCPLimits = .standard,
+        approval: MCPApproval? = nil,
         on transport: any Transport,
-        onInitialize: (@Sendable (Client.Info) async throws -> Void)? = nil
+        onInitialize: (@Sendable (Client.Info) async throws -> Void)? = nil,
+        onToolCall: (@Sendable (String) async -> Void)? = nil
     ) async throws -> Server {
         let handshake = Handshake()
         let server = Server(
@@ -42,11 +47,16 @@ public enum PullwatchMCPServer {
         await server.withMethodHandler(LenientCallTool.self) { parameters in
             try await handshake.requireDone()
             let (name, arguments) = try LenientCallTool.parse(parameters)
+            if let approval, let client = await handshake.client, !(await approval.isApproved(client.name)) {
+                let displayName = MCPClientName.displayName(name: client.name, title: client.title)
+                return MCPToolError.callResult(MCPApproval.waitingMessage(for: displayName))
+            }
+            await onToolCall?(name)
             return try await tools.call(name, arguments: arguments)
         }
         try await server.start(transport: MCPBoundedTransport(wrapping: transport, limits: limits)) { info, _ in
             try await onInitialize?(info)
-            await handshake.markDone()
+            await handshake.markDone(info)
         }
         return server
     }
@@ -55,14 +65,15 @@ public enum PullwatchMCPServer {
 /// Of de client `initialize` al heeft gestuurd. Tot dan beantwoordt de server alleen `initialize`
 /// en `ping`, zoals de specificatie vraagt.
 private actor Handshake {
-    private var isDone = false
+    /// De client uit `initialize`; nil tot de handshake.
+    private(set) var client: Client.Info?
 
-    func markDone() {
-        isDone = true
+    func markDone(_ client: Client.Info) {
+        self.client = client
     }
 
     func requireDone() throws(MCPError) {
-        guard isDone else { throw MCPError.invalidRequest("Server is not initialized; send initialize first") }
+        guard client != nil else { throw MCPError.invalidRequest("Server is not initialized; send initialize first") }
     }
 }
 

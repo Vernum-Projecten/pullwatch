@@ -2,22 +2,40 @@ import Darwin
 import Foundation
 import MCP
 import PullwatchCore
+import Synchronization
 
 /// Eén verbonden agent, zoals de app hem toont: welke client het is (uit `initialize`, alleen om
-/// te tonen, geen beveiliging) en sinds wanneer.
+/// te tonen, geen beveiliging), sinds wanneer, en welke tool hij het laatst gebruikte.
 public struct MCPSession: Sendable, Identifiable, Equatable {
     public let id: UUID
     /// `clientInfo.name` (`claude-code`), nil tot de client `initialize` stuurde.
     public var clientName: String?
+    /// `clientInfo.title` (`Claude Code`), als de client er een stuurt.
+    public var clientTitle: String?
     /// `clientInfo.version`, nil tot `initialize`.
     public var clientVersion: String?
     public let connectedSince: Date
+    /// De naam van de laatst aangeroepen tool (`list_pull_requests`), nil tot de eerste.
+    public var lastTool: String?
+    /// Wanneer die tool werd aangeroepen.
+    public var lastActivity: Date?
 
-    public init(id: UUID, clientName: String? = nil, clientVersion: String? = nil, connectedSince: Date) {
+    public init(
+        id: UUID, clientName: String? = nil, clientTitle: String? = nil, clientVersion: String? = nil, connectedSince: Date,
+        lastTool: String? = nil, lastActivity: Date? = nil
+    ) {
         self.id = id
         self.clientName = clientName
+        self.clientTitle = clientTitle
         self.clientVersion = clientVersion
         self.connectedSince = connectedSince
+        self.lastTool = lastTool
+        self.lastActivity = lastActivity
+    }
+
+    /// De naam om te tonen (`MCPClientName`), nil tot `initialize`.
+    public var displayName: String? {
+        clientName.map { MCPClientName.displayName(name: $0, title: clientTitle) }
     }
 }
 
@@ -26,8 +44,16 @@ public enum MCPSessionEvent: Sendable, Equatable {
     /// Een verbinding is door de controle en heeft een sessie.
     case connected(MCPSession)
     /// De client van de sessie meldde zich met `initialize`.
-    case identified(id: UUID, name: String, version: String)
+    case identified(id: UUID, name: String, version: String, title: String? = nil)
+    /// De client riep een tool aan (alleen toegestane aanroepen).
+    case calledTool(id: UUID, name: String)
     case disconnected(id: UUID)
+}
+
+/// De notificatie die de app stuurt voordat hij een agent loskoppelt (Loskoppelen, Niet
+/// toestaan). De helper geeft hem niet door: hij weet dan dat hij niet opnieuw moet verbinden.
+public struct PullwatchDisconnectNotification: MCP.Notification {
+    public static let name = "notifications/pullwatch/disconnected"
 }
 
 /// De MCP-server van de app op de Unix-socket: luistert op `mcp.sock`, controleert elke nieuwe
@@ -44,6 +70,9 @@ public final class MCPSocketServer: Sendable {
     private let instructions: String?
     private let limits: MCPLimits
     private let peerCheck: MCPPeerCheck
+    private let approval: MCPApproval?
+    /// De lopende sessies, om er een los te kunnen koppelen.
+    private let live = Mutex<[UUID: LiveSession]>([:])
     private static let log = Log(category: "MCP")
 
     public init(
@@ -52,7 +81,8 @@ public final class MCPSocketServer: Sendable {
         version: String,
         instructions: String? = nil,
         limits: MCPLimits = .standard,
-        peerCheck: MCPPeerCheck = .forCurrentProcess()
+        peerCheck: MCPPeerCheck = .forCurrentProcess(),
+        approval: MCPApproval? = nil
     ) {
         self.url = url
         self.tools = tools
@@ -60,6 +90,7 @@ public final class MCPSocketServer: Sendable {
         self.instructions = instructions
         self.limits = limits
         self.peerCheck = peerCheck
+        self.approval = approval
         (events, emit) = AsyncStream.makeStream(of: MCPSessionEvent.self)
     }
 
@@ -107,10 +138,14 @@ public final class MCPSocketServer: Sendable {
         let transport = MCPSocketTransport(descriptor: descriptor, limits: limits)
         do {
             let server = try await PullwatchMCPServer.start(
-                tools: tools, version: version, instructions: instructions, limits: limits, on: transport
+                tools: tools, version: version, instructions: instructions, limits: limits, approval: approval, on: transport
             ) { [emit] client in
-                emit.yield(.identified(id: session.id, name: client.name, version: client.version))
+                emit.yield(.identified(id: session.id, name: client.name, version: client.version, title: client.title))
+            } onToolCall: { [emit] tool in
+                emit.yield(.calledTool(id: session.id, name: tool))
             }
+            live.withLock { $0[session.id] = LiveSession(server: server, descriptor: descriptor) }
+            defer { _ = live.withLock { $0.removeValue(forKey: session.id) } }
             await withTaskCancellationHandler {
                 await server.waitUntilCompleted()
             } onCancel: {
@@ -124,5 +159,21 @@ public final class MCPSocketServer: Sendable {
             Self.log.error("MCP: sessie niet te starten: \(error)")
             descriptor.close()
         }
+    }
+
+    // MARK: - Loskoppelen
+
+    /// Koppelt sessie `id` los: eerst `PullwatchDisconnectNotification`, zodat de helper niet
+    /// opnieuw verbindt, dan gaat de socket dicht. Een sessie die al weg is: niets.
+    public func disconnect(id: UUID) async {
+        guard let session = live.withLock({ $0[id] }) else { return }
+        try? await session.server.notify(PullwatchDisconnectNotification.message())
+        session.descriptor.shutdown()
+    }
+
+    /// Wat `disconnect(id:)` van een lopende sessie nodig heeft.
+    private struct LiveSession: Sendable {
+        let server: Server
+        let descriptor: NonBlockingDescriptor
     }
 }

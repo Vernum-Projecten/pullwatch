@@ -302,6 +302,31 @@ struct NotificationContentBuilder {
         )
     }
 
+    /// Een agent die zich voor het eerst meldt: Toestaan of Niet toestaan. `clientName` is
+    /// `clientInfo.name` (waar toestaan op gaat), `displayName` de naam die de persoon kent.
+    func agentApproval(clientName: String, displayName: String) -> NotificationContent {
+        NotificationContent(
+            identifier: Self.agentApprovalIdentifier(clientName),
+            kind: .agent,
+            title: String(localized: "\(displayName) wil Pullwatch gebruiken", bundle: bundle, comment: "Meldingstitel; naam van een coding agent, zoals Claude Code"),
+            subtitle: "",
+            body: String(
+                localized: "De agent leest dan je pull requests, repo's en kwetsbaarheden in Pullwatch. Wat hij leest, gaat naar zijn modelaanbieder.",
+                bundle: bundle, comment: "Melding als een coding agent voor het eerst Pullwatch wil gebruiken"
+            ),
+            threadIdentifier: "agents",
+            category: .agent,
+            importance: .of(.agent, quiet: quiet),
+            avatarURL: nil,
+            payload: NotificationPayload(section: "settings", agentName: clientName)
+        )
+    }
+
+    /// De id van de vraag om `clientName`, om hem na het antwoord weg te halen.
+    static func agentApprovalIdentifier(_ clientName: String) -> String {
+        "agent-\(clientName)"
+    }
+
     // MARK: - Stukjes tekst
 
     private func account(_ id: UUID?) -> Account? {

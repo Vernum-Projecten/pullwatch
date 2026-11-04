@@ -39,6 +39,7 @@ public struct MCPBridge: Sendable {
         public static let openPullwatch = "Open Pullwatch to use it from an agent."
         public static let didNotStart = "Pullwatch did not start in time. Open Pullwatch to use it from an agent."
         public static let restarted = "Pullwatch closed the connection while answering. Try again."
+        public static let disconnected = "Pullwatch disconnected this agent. Reconnect the agent to Pullwatch (restart its MCP server) to use it again."
     }
 
     /// De JSON-RPC-foutcode van die meldingen: een serverfout, geen fout in het verzoek.
@@ -139,7 +140,7 @@ public struct MCPBridge: Sendable {
                 case .app(let generation, let message) where generation == state.generation:
                     await state.fromApp(message, output: output)
                 case .appClosed(let generation) where generation == state.generation:
-                    await state.answerPending(with: Message.restarted, output: output)
+                    await state.answerPending(with: state.refusal ?? Message.restarted, output: output)
                     state.detach()
                     if state.reconnectsLeft > 0 {
                         state.reconnectsLeft -= 1
@@ -279,6 +280,13 @@ public struct MCPBridge: Sendable {
 
         mutating func fromApp(_ message: Data, output: @Sendable (Data) async -> Void) async {
             let parsed = BridgeMessage(message)
+            if parsed.method == PullwatchDisconnectNotification.name {
+                // De persoon koppelde deze agent los: niet opnieuw verbinden, en elk verzoek
+                // hoort waarom. De agent zelf krijgt de notificatie niet.
+                reconnectsLeft = 0
+                refusal = Message.disconnected
+                return
+            }
             if let id = parsed.responseID {
                 if id == MCPBridge.replayID, held != nil {
                     // Het antwoord op de herhaalde handshake: de agent kreeg het zijne al.

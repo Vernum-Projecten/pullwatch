@@ -10,6 +10,8 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
     case appUpdate
     /// Een account waarvan het token niet meer werkt.
     case account
+    /// Een coding agent die voor het eerst Pullwatch wil gebruiken (Toestaan of Niet toestaan).
+    case agent
 
     public var id: Self { self }
 
@@ -126,8 +128,8 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         menuBarDot = try value(.menuBarDot, defaults.menuBarDot)
     }
 
-    /// Staat de melding van deze soort aan? Een update van Pullwatch en een account dat niet
-    /// meer inlogt melden altijd.
+    /// Staat de melding van deze soort aan? Een update van Pullwatch, een account dat niet
+    /// meer inlogt en een agent die om toestemming vraagt melden altijd.
     public subscript(kind: NotificationKind) -> Bool {
         get {
             switch kind {
@@ -139,7 +141,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .vulnerability: vulnerabilities
             case .securityAlert: securityAlerts
             case .packageUpdate: packageUpdates
-            case .appUpdate, .account: true
+            case .appUpdate, .account, .agent: true
             }
         }
         set {
@@ -152,7 +154,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .vulnerability: vulnerabilities = newValue
             case .securityAlert: securityAlerts = newValue
             case .packageUpdate: packageUpdates = newValue
-            case .appUpdate, .account: break
+            case .appUpdate, .account, .agent: break
             }
         }
     }

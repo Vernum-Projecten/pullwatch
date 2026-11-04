@@ -99,6 +99,7 @@ struct NotificationSamples {
         case .packageUpdate: builder.packageUpdates([packageUpdate])
         case .appUpdate: builder.appUpdate(AvailableUpdate(version: "2.0.0", pageURL: Self.web, downloadURL: nil, installsInApp: true))
         case .account: builder.authFailure(accounts[0])
+        case .agent: builder.agentApproval(clientName: "claude-code", displayName: "Claude Code")
         }
     }
 
