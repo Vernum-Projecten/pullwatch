@@ -59,18 +59,30 @@ Een package dat geen repo zelf vraagt en dat alleen via een ander package binnen
 
 ## In-house packages
 
-Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts) is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
+Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts), en die je repository aantoonbaar daarvandaan haalt, is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
 
-Je privénamen blijven privé. Pullwatch leest eerst je registers, voordat het iets opzoekt, en laat elke in-house naam weg uit elke openbare opzoeking: registry.npmjs.org en de andere openbare registers zien hem nooit, en OSV.dev ook niet. Lukt het lezen van je register niet, dan houdt Pullwatch wat de check ervoor vond, zodat een slechte dag nooit een privénaam naar buiten stuurt.
+### Bewijs, niet de naam
+
+Een naam alleen maakt een package niet van jou. Een organisatie kan een gepatchte fork van een openbaar package onder dezelfde naam publiceren, zoals `Newtonsoft.Json`, en een repository die het openbare package gebruikt, moet zijn openbare nieuwste versie en zijn bekende kwetsbaarheden houden. Daarom telt Pullwatch een dependency alleen als in-house met bewijs:
+
+- npm: een naam met de scope van de eigenaar (`@acme/ui`, gepubliceerd door `acme`; bij GitLab de bovenste groep, bij Azure DevOps ook de organisatie).
+- Go: het modulepad, dat zijn eigen host en eigenaar noemt.
+- Elk ecosysteem: het register dat de lockfile of het manifest noemt, is het eigen register van het account voor dat ecosysteem. Pullwatch leest het uit `resolved` in `package-lock.json` en een klassieke `yarn.lock`, `remote:` in `Gemfile.lock`, `dist.url` in `composer.lock`, `--index-url` of `--extra-index-url` in een `requirements`-bestand, de bron van een package in `poetry.lock` en `uv.lock`, en `source` in `Cargo.lock`. Eigen registers zijn `npm.pkg.github.com`, `nuget.pkg.github.com` en `rubygems.pkg.github.com` met de eigenaar in het pad (bij GitHub Enterprise `npm.<host>` of `<host>/_registry/npm/`), `/api/v4/…/packages/…` op de GitLab-server van het account, en `pkgs.dev.azure.com/<organisatie>/…/_packaging/…` voor Azure Artifacts.
+
+`packages.lock.json`, `pnpm-lock.yaml` en de `yarn.lock` van Yarn 2 en later noemen geen register per package, dus een NuGet-package, en een npm-package zonder de scope van de eigenaar dat met pnpm of een nieuwere Yarn is geïnstalleerd, is nooit in-house. Gebruikt één repository de naam zonder bewijs, dan is de naam openbaar voor elke repository. Een openbaar package waarvan een van je accounts de naam ook publiceert, zegt dat in de tooltip: "Ook gepubliceerd door acme/lib (hier niet gebruikt)."
+
+Een dependency zonder bewijs is een openbaar package: Pullwatch zoekt de nieuwste versie op in het openbare register en de kwetsbaarheden in OSV.dev, zoals bij elk ander package. Is het account dat een package publiceert verwijderd of gepauzeerd, of noemt het het package niet meer, dan behandelt de volgende check het weer als openbaar.
+
+Pullwatch leest eerst je registers, voordat het iets opzoekt, en laat elke in-house naam weg uit elk openbaar register: registry.npmjs.org en de andere zien hem nooit. OSV.dev ziet een in-house naam alleen als een eerdere check die naam ook in het openbare register vond, zodat een fork van een openbaar package toch de bekende kwetsbaarheden van die naam krijgt; een naam die alleen je eigen register kent, komt nooit bij OSV.dev. Lukt het lezen van je register niet, dan houdt Pullwatch wat de check ervoor vond.
 
 Kan Pullwatch de nieuwste versie niet lezen, dan zegt de rij dat, in plaats van hem als actueel te tonen:
 
-- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. Een package dat eerder in-house was, blijft in-house en wordt niet openbaar opgezocht.
+- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. Een package dat eerder in-house was, blijft met hetzelfde bewijs in-house en wordt niet openbaar opgezocht.
 - "Niet gecontroleerd: geen toegang tot het packageregister van dit account": het account mag zijn register niet lezen. De tooltip zegt wat je moet toestaan; zie [Wat je toestaat](/nl/using/packages/#wat-je-toestaat).
 
 Een openbaar register uitzetten, zoals npm, raakt een in-house package niet.
 
-Wat er gematcht wordt, op het ecosysteem en de naam van de dependency:
+Met welk gepubliceerd package een dependency vergeleken wordt, op zijn ecosysteem en zijn naam (daarna beslist het bewijs hierboven):
 
 | Ecosysteem | Gematcht op |
 |---|---|

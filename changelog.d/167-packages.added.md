@@ -6,9 +6,13 @@
   which one. A repository's Overview names what it publishes, and a new
   notification, off by default, tells you about a new version of your own
   packages. Agents can ask for the same with the new `list_packages` tool.
-- A dependency that one of your repositories publishes now gets its latest
-  version from your own registry and says In-house, instead of being
-  unknown. Its name is never sent to a public registry or OSV.dev. Settings,
-  Sources has a switch for the package registries of your accounts.
+- A dependency that one of your repositories publishes, and that the
+  lockfile shows comes from your own registry (or an npm name with your
+  scope), now gets its latest version from that registry and says In-house,
+  instead of being unknown. Its name is never sent to a public registry, and
+  OSV.dev only sees it when the public registry knows the name too. A public
+  package with the same name as one of yours stays public, with its known
+  vulnerabilities. Settings, Sources has a switch for the package registries
+  of your accounts.
 - The repository page's Packages tab is now called Dependencies, the same
   as the section in the sidebar.

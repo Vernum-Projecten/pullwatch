@@ -11,6 +11,18 @@ struct InHouseBadge: View {
 
     let inHouse: InHousePackage
 
+    /// De hint bij een publiek package waarvan een account een package met dezelfde naam
+    /// publiceert, dat deze repo niet gebruikt (`PackageMetadata.alsoPublishedBy`).
+    static func alsoPublished(_ namesake: InHousePackage) -> Text {
+        Text("Ook gepubliceerd door \(namesake.source) (hier niet gebruikt)",
+             comment: "Repository of project dat een package met dezelfde naam publiceert; deze repo gebruikt het publieke package")
+    }
+
+    /// `alsoPublished` als tooltip, of niets.
+    static func alsoPublishedHelp(_ namesake: InHousePackage?) -> Text {
+        namesake.map(alsoPublished) ?? Text(verbatim: "")
+    }
+
     var body: some View {
         if let link = inHouse.link {
             Link(destination: link) {

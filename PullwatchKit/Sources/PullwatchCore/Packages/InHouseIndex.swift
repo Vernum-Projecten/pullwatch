@@ -1,8 +1,9 @@
 import Foundation
 
 /// De gepubliceerde packages van de accounts, op de sleutel waarmee de versiecheck een dependency
-/// noemt ("ecosysteem:naam", genormaliseerd zoals het register vergelijkt), om een eigen package
-/// tussen de dependencies te herkennen.
+/// noemt ("ecosysteem:naam", genormaliseerd zoals het register vergelijkt). Een treffer is alleen
+/// een kandidaat: een dependency is pas eigen met bewijs uit de lockfile (`InHouseEvidence`), want
+/// een organisatie kan een fork van een publiek package onder dezelfde naam publiceren (#214).
 ///
 /// Per ecosysteem:
 /// - npm: de naam met scope, precies ("@acme/ui"). GitHub noemt een npm-package zonder scope

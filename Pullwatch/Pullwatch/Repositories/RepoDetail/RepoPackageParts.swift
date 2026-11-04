@@ -143,6 +143,7 @@ private struct PackageNameCell: View {
                         InHouseBadge(inHouse: inHouse)
                     }
                 }
+                .help(InHouseBadge.alsoPublishedHelp(row.row.alsoPublishedBy))
                 if let detail = row.row.detailText {
                     Text(verbatim: detail)
                         .foregroundStyle(.secondary)
@@ -207,6 +208,11 @@ struct PackageInspector: View {
                     }
                     if let skippedRegistry, row.row.inHouse == nil {
                         SourceOffText(text: SourceOff.versionNotChecked(skippedRegistry))
+                    }
+                    if let namesake = row.row.alsoPublishedBy {
+                        InHouseBadge.alsoPublished(namesake)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     if let status = row.status {
                         UpdateStatusLabel(status: status)

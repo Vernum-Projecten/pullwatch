@@ -4,15 +4,17 @@ extension DependencyDetector {
     // MARK: - Manifesten zonder lockfile
 
     /// Alleen `pakket==versie`; extras (`pakket[x]==1`) en markers (`; python_version…`) worden genegeerd.
+    /// De index van het bestand (`requirementsIndex`) geldt voor elk package erin.
     static func requirements(_ content: String, path: String) -> [Dependency] {
-        content.split(whereSeparator: \.isNewline).compactMap { raw in
+        let index = requirementsIndex(content)
+        return content.split(whereSeparator: \.isNewline).compactMap { raw in
             let line = raw.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
             let spec = line.split(separator: ";", maxSplits: 1, omittingEmptySubsequences: false).first ?? ""
             guard let m = spec.trimmingCharacters(in: .whitespaces).wholeMatch(of: /([A-Za-z0-9._-]+)(\[[^\]]*\])?\s*==\s*([^\s,]+)/) else {
                 return nil
             }
             return Dependency(ecosystem: "PyPI", name: String(m.output.1), version: String(m.output.3), source: path, isDirect: true,
-                              requested: "==\(m.output.3)")
+                              requested: "==\(m.output.3)", registry: index)
         }
     }
 

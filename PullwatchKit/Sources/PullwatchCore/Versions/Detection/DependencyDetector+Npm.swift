@@ -14,6 +14,8 @@ extension DependencyDetector {
         let optional: Bool?
         let devOptional: Bool?
         let link: Bool?
+        /// Waar npm het package haalde: de tarball-URL in het register.
+        let resolved: String?
 
         /// Wat de lockfile zelf over de soort zegt; nil zonder vlag.
         var flaggedKind: DependencyKind? {
@@ -26,6 +28,7 @@ extension DependencyDetector {
     /// lockfileVersion 1 (`dependencies`, genest).
     private struct NpmV1Entry: Decodable {
         let version: String?
+        let resolved: String?
         let dev: Bool?
         let optional: Bool?
         let requires: [String: String]?
@@ -102,7 +105,7 @@ extension DependencyDetector {
                 result.append(Dependency(
                     ecosystem: "npm", name: name(key), version: version, source: path, workspace: workspace,
                     scope: reach.via.isEmpty ? .direct : .transitive, kind: entry.flaggedKind ?? reach.kind, via: reach.via,
-                    requested: requested(by: reach.parent ?? importer, key)
+                    requested: requested(by: reach.parent ?? importer, key), registry: registry(entry.resolved)
                 ))
             }
         }
@@ -116,7 +119,8 @@ extension DependencyDetector {
             let chain = key[first.upperBound...].components(separatedBy: "/node_modules/")
             result.append(Dependency(
                 ecosystem: "npm", name: name(key), version: version, source: path, workspace: join(base, owner),
-                scope: hasRoot ? .transitive : .unknown, kind: entry.flaggedKind ?? .runtime, via: Array(chain.dropLast())
+                scope: hasRoot ? .transitive : .unknown, kind: entry.flaggedKind ?? .runtime, via: Array(chain.dropLast()),
+                registry: registry(entry.resolved)
             ))
         }
         read.dependencies = merged(result).sorted { ($0.name, $0.version, $0.workspace) < ($1.name, $1.version, $1.workspace) }
@@ -134,7 +138,7 @@ extension DependencyDetector {
                 if let version = entry.version, isExactVersion(version) {
                     let kind: DependencyKind = entry.dev == true ? .dev : entry.optional == true ? .optional : .runtime
                     result.append(Dependency(ecosystem: "npm", name: name, version: version, source: path, workspace: base,
-                                             scope: .unknown, kind: kind, via: chain))
+                                             scope: .unknown, kind: kind, via: chain, registry: registry(entry.resolved)))
                 }
                 visit(entry.dependencies ?? [:], chain: chain + [name])
             }

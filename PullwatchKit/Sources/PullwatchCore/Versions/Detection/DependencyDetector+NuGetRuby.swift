@@ -64,18 +64,23 @@ extension DependencyDetector {
         var section = ""
         var current: String?
         var seen: Set<String> = []
+        /// De `remote:` van het huidige `GEM`-blok; een Gemfile.lock met twee bronnen heeft er twee.
+        var remote: String?
         for raw in content.split(whereSeparator: \.isNewline) {
             let line = String(raw)
             if let first = line.first, first != " " {
                 section = line.trimmingCharacters(in: .whitespaces)
                 current = nil
+                remote = nil
                 continue
             }
             let indent = line.prefix { $0 == " " }.count
             let text = line.trimmingCharacters(in: .whitespaces)
             switch section {
             case "GEM", "GIT", "PATH":
-                if indent == 4, let m = text.wholeMatch(of: /([^\s(]+) \(([^)]+)\)/) {
+                if indent == 2, section == "GEM", let m = text.wholeMatch(of: /remote:\s*(\S+)/) {
+                    remote = registry(String(m.output.1))
+                } else if indent == 4, let m = text.wholeMatch(of: /([^\s(]+) \(([^)]+)\)/) {
                     let name = String(m.output.1)
                     current = name
                     if graph[name] == nil { graph[name] = [] }
@@ -83,7 +88,7 @@ extension DependencyDetector {
                     let version = String(m.output.2.split(separator: "-", maxSplits: 1).first ?? m.output.2)
                     guard isExactVersion(version), seen.insert("\(name)@\(version)").inserted else { continue }
                     read.dependencies.append(Dependency(ecosystem: "RubyGems", name: name, version: version, source: path,
-                                                        workspace: nil, scope: .unknown))
+                                                        workspace: nil, scope: .unknown, registry: remote))
                 } else if indent == 6, let current, let m = text.firstMatch(of: /^([^\s(!]+)(?: \(([^)]+)\))?/) {
                     let child = String(m.output.1)
                     if !(graph[current] ?? []).contains(child) { graph[current, default: []].append(child) }
