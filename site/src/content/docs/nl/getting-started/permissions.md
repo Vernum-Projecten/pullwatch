@@ -21,7 +21,22 @@ Pullwatch leest alleen. Geef een token de leesrechten hieronder en niets meer. O
 
 **Classic token**: `repo`, plus `security_events` voor de meldingen van code scanning en secret scanning, en optioneel `read:packages` voor de packages die je repositories in GitHub Packages publiceren. Met de GitHub CLI voeg je die scope toe met `gh auth refresh -s read:packages`.
 
-**Inloggen met GitHub** gebruikt de GitHub-app van Pullwatch, die om dezelfde leesrechten vraagt, plus het optionele Packages: Read voor de packages die je repositories publiceren; zonder dat recht staat bij die packages dat er een recht ontbreekt. De eigenaar van elke installatie keurt ze goed; krijgt de app een nieuw recht, dan vraagt GitHub de eigenaar om dat nog een keer goed te keuren.
+**Inloggen met GitHub** gebruikt de GitHub-app van Pullwatch. Die vraagt om deze rechten op repositories, allemaal alleen lezen, en verder niets:
+
+| Recht | Toegang | Waarvoor | Zonder dit recht |
+|---|---|---|---|
+| Metadata | Read-only, verplicht | de repositories van de eigenaren die je volgt | GitHub staat geen app zonder toe |
+| Pull requests | Read-only | pull requests, hun co-auteurs en de merge queue | geen pull requests |
+| Contents | Read-only | tags, releases en de bestanden voor de check van afhankelijkheden | geen tags of releases, geen check van afhankelijkheden |
+| Repository security advisories | Read-only | de eigen adviezen van de repository | **Toestemming nodig** op de pagina van de repository |
+| Checks | Read-only | de check runs in de checks van elke pull request | geen checks bij pull requests |
+| Commit statuses | Read-only | de commit statuses in dezelfde checks | geen checks bij pull requests |
+| Code scanning alerts | Read-only, optioneel | meldingen van code scanning | **Toestemming nodig** ernaast |
+| Secret scanning alerts | Read-only, optioneel | het aantal open meldingen van secret scanning | **Toestemming nodig** ernaast |
+
+De eigenaar van elke installatie keurt ze goed; krijgt de app een nieuw recht, dan vraagt GitHub de eigenaar om dat nog een keer goed te keuren.
+
+De app heeft geen recht Packages: GitHub geeft packages aan geen enkele GitHub App. Een account dat inlogt met GitHub leest de packages die zijn repositories publiceren daarom met de GitHub CLI. **Packages lezen met de GitHub CLI** in de account-editor staat aan als `gh` is ingelogd, en toont welk `gh`-account het gebruikt. Dat account heeft de scope `read:packages` nodig: `gh auth refresh -h github.com -s read:packages`. Zonder `gh`, zonder de scope of met de schakelaar uit toont **Packages** **Toestemming nodig** met de precieze opdracht.
 
 ## GitHub Enterprise
 

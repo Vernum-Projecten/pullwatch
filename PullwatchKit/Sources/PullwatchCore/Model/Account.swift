@@ -29,6 +29,15 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// Bij Gitea (`ProviderKind.gitea`): Codeberg, Forgejo of Gitea. Bepaalt de naam, het logo en
     /// het adres zonder eigen server; bij de andere diensten zonder betekenis.
     public var giteaFlavour: GiteaFlavour
+    /// GitHub App: de packages lezen met het token van de GitHub CLI (`gh`) voor de host van het
+    /// account, want GitHubs Packages-API weigert elk token van een GitHub App (403 "Resource not
+    /// accessible by integration", #206). nil = de standaard: aan, zodat een `gh` die is ingelogd
+    /// meteen werkt en anders de reden zegt hoe je `gh` installeert en inlogt. false = geen packages
+    /// voor dit account. Bij een token of de CLI zonder betekenis: die lezen met hun eigen token.
+    public var packagesViaCLI: Bool?
+
+    /// Leest dit GitHub App-account zijn packages met `gh`? Zie `packagesViaCLI`.
+    public var readsPackagesWithCLI: Bool { packagesViaCLI ?? true }
 
     /// Het adres van de dienst zonder eigen server: bij Gitea dat van de smaak (codeberg.org,
     /// gitea.com), anders `ProviderKind.defaultInstanceURL`.
@@ -172,7 +181,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         instanceURL: URL? = nil,
         extraRepos: [String] = [],
         email: String? = nil,
-        giteaFlavour: GiteaFlavour = .gitea
+        giteaFlavour: GiteaFlavour = .gitea,
+        packagesViaCLI: Bool? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -190,10 +200,11 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         self.extraRepos = extraRepos
         self.email = email
         self.giteaFlavour = giteaFlavour
+        self.packagesViaCLI = packagesViaCLI
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos, email, giteaFlavour
+        case id, kind, displayName, organization, owners, login, authMethod, repoWatch, newRepoDefault, includeDrafts, hideOwn, cliUser, isPaused, instanceURL, extraRepos, email, giteaFlavour, packagesViaCLI
     }
 
     public init(from decoder: any Decoder) throws {
@@ -222,6 +233,8 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         email = try c.decodeIfPresent(String.self, forKey: .email)
         // Alleen bij Gitea geschreven; zonder veld de smaak Gitea.
         giteaFlavour = try c.decodeIfPresent(GiteaFlavour.self, forKey: .giteaFlavour) ?? .gitea
+        // Van vóór #206, of nooit gekozen: geen veld, dus de standaard.
+        packagesViaCLI = try c.decodeIfPresent(Bool.self, forKey: .packagesViaCLI)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -245,6 +258,7 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
         try c.encodeIfPresent(email, forKey: .email)
         if kind == .gitea { try c.encode(giteaFlavour, forKey: .giteaFlavour) }
+        try c.encodeIfPresent(packagesViaCLI, forKey: .packagesViaCLI)
     }
 
     /// Webpagina van de repo: Azure DevOps `…/<project>/_git/<repo>`, GitHub `<server>/<eigenaar>/<repo>`.

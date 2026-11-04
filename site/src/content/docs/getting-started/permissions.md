@@ -21,7 +21,22 @@ Pullwatch only reads. Give a token the read permissions below and nothing more. 
 
 **Classic token**: `repo`, plus `security_events` for the code scanning and secret scanning alerts, and optionally `read:packages` for the packages your repositories publish to GitHub Packages. With the GitHub CLI, add that scope with `gh auth refresh -s read:packages`.
 
-**Sign In with GitHub** uses the Pullwatch GitHub App, which asks for the same read permissions, plus the optional Packages: Read for the packages your repositories publish; without it, those packages say a permission is missing. The owner of each installation accepts them; when the app gains a new permission, GitHub asks the owner to accept it once more.
+**Sign In with GitHub** uses the Pullwatch GitHub App. It asks for these repository permissions, all read-only, and nothing else:
+
+| Permission | Access | What it is for | Without it |
+|---|---|---|---|
+| Metadata | Read-only, mandatory | the repositories of the owners you follow | GitHub does not allow an app without it |
+| Pull requests | Read-only | pull requests, their co-authors and merge queue | no pull requests |
+| Contents | Read-only | tags, releases and the files of the dependency check | no tags or releases, no dependency check |
+| Repository security advisories | Read-only | the repository's own advisories | **Needs permission** on the repository page |
+| Checks | Read-only | the check runs in each pull request's checks | no checks for pull requests |
+| Commit statuses | Read-only | the commit statuses in the same checks | no checks for pull requests |
+| Code scanning alerts | Read-only, optional | code scanning alerts | **Needs permission** next to them |
+| Secret scanning alerts | Read-only, optional | the number of open secret scanning alerts | **Needs permission** next to them |
+
+The owner of each installation accepts them; when the app gains a new permission, GitHub asks the owner to accept it once more.
+
+The app has no Packages permission: GitHub refuses packages to every GitHub App. An account that signs in with GitHub reads the packages its repositories publish with the GitHub CLI instead. **Read packages with the GitHub CLI** in the account editor is on when `gh` is logged in, and shows which `gh` account it uses. That account needs the `read:packages` scope: `gh auth refresh -h github.com -s read:packages`. Without `gh`, without the scope, or with the switch off, **Packages** shows **Needs permission** with the exact command.
 
 ## GitHub Enterprise
 

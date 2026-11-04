@@ -21,7 +21,22 @@ Pullwatch liest nur. Gib einem Token die unten genannten Leseberechtigungen und 
 
 **Classic token**: `repo`, dazu `security_events` für die Warnungen aus Code-Scanning und Secret-Scanning, und optional `read:packages` für die Pakete, die deine Repositories in GitHub Packages veröffentlichen. Mit der GitHub CLI fügst du diesen Scope mit `gh auth refresh -s read:packages` hinzu.
 
-**Mit GitHub anmelden** nutzt die GitHub App von Pullwatch, die nach denselben Leseberechtigungen fragt, dazu das optionale Packages: Read für die Pakete, die deine Repositories veröffentlichen; ohne diese Berechtigung steht bei diesen Paketen, dass eine Berechtigung fehlt. Der Owner jeder Installation akzeptiert sie. Bekommt die App eine neue Berechtigung, bittet GitHub den Owner, sie noch einmal zu akzeptieren.
+**Mit GitHub anmelden** nutzt die GitHub App von Pullwatch. Sie fragt nach diesen Berechtigungen für Repositories, alle nur lesend, und nach nichts sonst:
+
+| Berechtigung | Zugriff | Wofür | Ohne sie |
+|---|---|---|---|
+| Metadata | Read-only, Pflicht | die Repositories der Eigentümer, denen du folgst | GitHub erlaubt keine App ohne sie |
+| Pull requests | Read-only | Pull Requests, ihre Co-Autoren und die Merge Queue | keine Pull Requests |
+| Contents | Read-only | Tags, Releases und die Dateien für die Prüfung der Abhängigkeiten | keine Tags oder Releases, keine Prüfung der Abhängigkeiten |
+| Repository security advisories | Read-only | die eigenen Advisories des Repositorys | **Berechtigung nötig** auf der Seite des Repositorys |
+| Checks | Read-only | die Check Runs in den Checks jedes Pull Requests | keine Checks bei Pull Requests |
+| Commit statuses | Read-only | die Commit-Status in denselben Checks | keine Checks bei Pull Requests |
+| Code scanning alerts | Read-only, optional | Warnungen aus dem Code-Scanning | **Berechtigung nötig** daneben |
+| Secret scanning alerts | Read-only, optional | die Anzahl offener Warnungen aus dem Secret-Scanning | **Berechtigung nötig** daneben |
+
+Der Owner jeder Installation akzeptiert sie. Bekommt die App eine neue Berechtigung, bittet GitHub den Owner, sie noch einmal zu akzeptieren.
+
+Die App hat keine Berechtigung Packages: GitHub gibt Pakete an keine GitHub App heraus. Ein Konto, das sich mit GitHub anmeldet, liest die Pakete seiner Repositories deshalb mit der GitHub CLI. **Pakete mit der GitHub CLI lesen** im Konto-Editor ist an, wenn `gh` angemeldet ist, und zeigt, welches `gh`-Konto es nutzt. Dieses Konto braucht den Scope `read:packages`: `gh auth refresh -h github.com -s read:packages`. Ohne `gh`, ohne den Scope oder mit ausgeschaltetem Schalter zeigt **Pakete** **Berechtigung nötig** mit dem genauen Befehl.
 
 ## GitHub Enterprise
 

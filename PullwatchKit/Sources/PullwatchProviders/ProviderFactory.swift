@@ -9,13 +9,15 @@ import PullwatchGitLab
 /// Maakt bij een account de provider van zijn dienst, met de juiste tokenbron; de enige plek die
 /// elke provider kent.
 public enum ProviderFactory {
-    /// `pat` overschrijft de Keychain (gebruikt bij "Test verbinding" vóór opslaan).
+    /// `pat` overschrijft de Keychain (gebruikt bij "Test verbinding" vóór opslaan). `locator`
+    /// vindt `gh` voor de packages van een GitHub App-account.
     public static func make(
         _ account: Account,
         pat: String? = nil,
         secrets: any SecretStore = SecretStores.shared,
         http: any HTTPClient = URLSessionHTTPClient(),
         runner: any ProcessRunner = SystemProcessRunner(),
+        locator: CLILocator = CLILocator(),
         gitHubApp: GitHubAppConfig = .main
     ) -> any PRProvider {
         let tokens: any TokenSource
@@ -59,6 +61,12 @@ public enum ProviderFactory {
                 http: http
             )
         case .gitHub:
+            // GitHubs Packages-API weigert elk token van een GitHub App: zo'n account leest zijn
+            // packages met het token van `gh` voor zijn host (het actieve `gh`-account), tenzij
+            // dat uitstaat (`Account.packagesViaCLI`).
+            let packagesTokens: (any TokenSource)? = account.authMethod == .gitHubApp && account.readsPackagesWithCLI
+                ? GhCLISource(runner: runner, locator: locator, host: GitHubEndpoints(instanceURL: account.effectiveInstanceURL).cliHost)
+                : nil
             return GitHubProvider(
                 accountId: account.id,
                 owners: account.owners,
@@ -66,6 +74,7 @@ public enum ProviderFactory {
                 instanceURL: account.effectiveInstanceURL,
                 authMethod: account.authMethod,
                 tokenSource: tokens,
+                packagesTokenSource: packagesTokens,
                 http: http
             )
         case .gitLab:

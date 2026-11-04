@@ -21,7 +21,22 @@ Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-d
 
 **Classic token** : `repo`, plus `security_events` pour les alertes d’analyse du code et d’analyse des secrets, et en option `read:packages` pour les paquets que vos dépôts publient dans GitHub Packages. Avec la GitHub CLI, ajoutez ce scope avec `gh auth refresh -s read:packages`.
 
-**Se connecter avec GitHub** utilise la GitHub App Pullwatch, qui demande les mêmes autorisations en lecture, plus l’autorisation facultative Packages: Read pour les paquets que vos dépôts publient ; sans elle, ces paquets indiquent qu’une autorisation manque. Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
+**Se connecter avec GitHub** utilise la GitHub App Pullwatch. Elle demande ces autorisations sur les dépôts, toutes en lecture seule, et rien d’autre :
+
+| Autorisation | Accès | À quoi elle sert | Sans elle |
+|---|---|---|---|
+| Metadata | Read-only, obligatoire | les dépôts des propriétaires que vous suivez | GitHub n’accepte pas d’app sans elle |
+| Pull requests | Read-only | les pull requests, leurs co-auteurs et la merge queue | pas de pull requests |
+| Contents | Read-only | les tags, les releases et les fichiers de la vérification des dépendances | pas de tags ni de releases, pas de vérification des dépendances |
+| Repository security advisories | Read-only | les avis propres du dépôt | **Autorisation requise** sur la page du dépôt |
+| Checks | Read-only | les check runs dans les checks de chaque pull request | pas de checks pour les pull requests |
+| Commit statuses | Read-only | les statuts de commit dans les mêmes checks | pas de checks pour les pull requests |
+| Code scanning alerts | Read-only, facultatif | les alertes d’analyse du code | **Autorisation requise** à côté |
+| Secret scanning alerts | Read-only, facultatif | le nombre d’alertes d’analyse des secrets ouvertes | **Autorisation requise** à côté |
+
+Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
+
+L’app n’a pas d’autorisation Packages : GitHub ne donne les paquets à aucune GitHub App. Un compte connecté avec GitHub lit donc les paquets que ses dépôts publient avec la GitHub CLI. **Lire les paquets avec la GitHub CLI** dans l’éditeur de compte est activé quand `gh` est connecté, et montre quel compte `gh` il utilise. Ce compte a besoin du scope `read:packages` : `gh auth refresh -h github.com -s read:packages`. Sans `gh`, sans le scope ou avec l’interrupteur désactivé, **Paquets** affiche **Autorisation requise** avec la commande exacte.
 
 ## GitHub Enterprise
 

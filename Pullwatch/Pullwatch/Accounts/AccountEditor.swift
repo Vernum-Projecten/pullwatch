@@ -37,6 +37,8 @@ struct AccountEditor: View {
     @State private var testTask: Task<Void, Never>?
     /// Accounts waarmee `gh` is ingelogd; leeg tot ze geladen zijn.
     @State private var ghAccounts: [String] = []
+    /// GitHub App: hoe `gh` er op de host voor staat, voor de packages; nil tot het bekend is.
+    @State private var ghStatus: GhCLIStatus?
     /// Inloggen met GitHub voor dit account (code, goedkeuring, installaties); nil bij een
     /// andere manier van inloggen.
     @State private var signIn: GitHubSignIn?
@@ -375,6 +377,21 @@ struct AccountEditor: View {
             if draft.authMethod == .gitHubApp, let signIn, signIn.isSignedIn {
                 Section("Repositories van") {
                     GitHubInstallationsRow(signIn: signIn, owners: $draft.owners)
+                }
+            }
+
+            // GitHubs Packages-API weigert het token van de GitHub App: de packages komen via `gh`.
+            // Zolang de keuze niet gemaakt is: aan als `gh` op deze host is ingelogd.
+            if draft.kind == .gitHub && draft.authMethod == .gitHubApp {
+                Section("Packages") {
+                    PackagesCLIRow(
+                        isOn: Binding(
+                            get: { draft.packagesViaCLI ?? (ghStatus.map { $0.user != nil } ?? true) },
+                            set: { draft.packagesViaCLI = $0 }
+                        ),
+                        status: ghStatus, login: draft.login, host: ghHost
+                    )
+                    .task(id: ghHost) { ghStatus = await GhCLIAccounts.status(runner: SystemProcessRunner(), host: ghHost) }
                 }
             }
 
