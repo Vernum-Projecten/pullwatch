@@ -54,7 +54,7 @@ Codeberg, Forgejo und Gitea teilen sich eine Karte, weil sie dieselbe API sprech
 
 Trage die Organisationen oder Benutzer, denen du folgen willst, unter **Organisationen oder Benutzer** ein, durch Kommas getrennt, etwa `acme` und `jdoe`. Repositories erscheinen als `owner/repo`.
 
-Melde dich mit einem Token an, das du auf diesem Server unter Einstellungen, Anwendungen erstellst, mit den Scopes `read:user`, `read:organization`, `read:repository` und `read:issue` ([Token-Berechtigungen](/getting-started/permissions/) sagt warum). **Token erstellen** öffnet diese Seite. Eine Anmeldung über das Kommandozeilenwerkzeug `tea` gibt es nicht: `tea` hat keinen Befehl, der sein Token herausgibt.
+Melde dich mit einem Token an, das du auf diesem Server unter Einstellungen, Anwendungen erstellst, mit den Scopes `read:user`, `read:organization`, `read:repository` und `read:issue` ([Token-Berechtigungen](/de/getting-started/permissions/) sagt warum). **Token erstellen** öffnet diese Seite. Eine Anmeldung über das Kommandozeilenwerkzeug `tea` gibt es nicht: `tea` hat keinen Befehl, der sein Token herausgibt.
 
 **Verbindung testen** sagt, was nicht stimmt: ein ungültiges Token, ein Scope, der dem Token fehlt (mit Namen), eine Organisation oder ein Benutzer, die es nicht gibt, eine Adresse, unter der kein Gitea oder Forgejo antwortet, oder ein Zertifikat, dem macOS nicht vertraut. Pullwatch spricht nur über https mit Servern mit einem gültigen Zertifikat, ein selbst signiertes Zertifikat funktioniert also nur, wenn macOS ihm vertraut.
 

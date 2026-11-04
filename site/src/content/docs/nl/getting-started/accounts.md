@@ -54,7 +54,7 @@ Codeberg, Forgejo en Gitea delen één kaart, omdat ze dezelfde API spreken. Kie
 
 Zet de organisaties of gebruikers die je wilt volgen onder **Organisaties of gebruikers**, gescheiden door komma's, zoals `acme` en `jdoe`. Repositories verschijnen als `eigenaar/repo`.
 
-Log in met een token dat je op die server maakt onder Instellingen, Applicaties, met de scopes `read:user`, `read:organization`, `read:repository` en `read:issue` ([Tokenrechten](/getting-started/permissions/) zegt waarom). **Token maken** opent die pagina. Inloggen via de opdrachtregeltool `tea` kan niet: `tea` heeft geen opdracht die zijn token afgeeft.
+Log in met een token dat je op die server maakt onder Instellingen, Applicaties, met de scopes `read:user`, `read:organization`, `read:repository` en `read:issue` ([Tokenrechten](/nl/getting-started/permissions/) zegt waarom). **Token maken** opent die pagina. Inloggen via de opdrachtregeltool `tea` kan niet: `tea` heeft geen opdracht die zijn token afgeeft.
 
 **Test verbinding** zegt wat er mis is als er iets mis is: een token dat niet geldig is, een scope die het token mist (met naam), een organisatie of gebruiker die niet bestaat, een adres waar geen Gitea of Forgejo antwoordt, of een certificaat dat macOS niet vertrouwt. Pullwatch praat alleen via https met servers met een geldig certificaat, dus een zelfondertekend certificaat werkt niet tenzij macOS het vertrouwt.
 

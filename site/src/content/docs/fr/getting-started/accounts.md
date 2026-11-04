@@ -54,7 +54,7 @@ Codeberg, Forgejo et Gitea partagent une carte, car ils parlent la même API. Ch
 
 Indiquez les organisations ou utilisateurs à suivre sous **Organisations ou utilisateurs**, séparés par des virgules, comme `acme` et `jdoe`. Les dépôts apparaissent sous la forme `owner/repo`.
 
-Connectez-vous avec un jeton créé sur ce serveur sous Paramètres, Applications, avec les portées `read:user`, `read:organization`, `read:repository` et `read:issue` ([Autorisations des jetons](/getting-started/permissions/) explique pourquoi). **Créer un jeton** ouvre cette page. La connexion par l’outil en ligne de commande `tea` n’existe pas : `tea` n’a aucune commande qui fournit son jeton.
+Connectez-vous avec un jeton créé sur ce serveur sous Paramètres, Applications, avec les portées `read:user`, `read:organization`, `read:repository` et `read:issue` ([Autorisations des jetons](/fr/getting-started/permissions/) explique pourquoi). **Créer un jeton** ouvre cette page. La connexion par l’outil en ligne de commande `tea` n’existe pas : `tea` n’a aucune commande qui fournit son jeton.
 
 **Tester la connexion** dit ce qui ne va pas : un jeton non valide, une portée qui manque au jeton (nommée), une organisation ou un utilisateur qui n’existe pas, une adresse où aucun Gitea ni Forgejo ne répond, ou un certificat auquel macOS ne fait pas confiance. Pullwatch ne communique qu’en https avec des serveurs dotés d’un certificat valide : un certificat auto-signé ne fonctionne que si macOS lui fait confiance.
 
