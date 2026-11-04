@@ -1,1 +1,0 @@
-- Bots such as `github-actions[bot]` and `renovate[bot]` now show their own picture next to their pull requests. Pullwatch uses the picture GitHub and GitLab send with each pull request instead of guessing one from the name; pull requests already in the history get it at the next poll.
