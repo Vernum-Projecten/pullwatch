@@ -53,12 +53,15 @@ extension VersionChecker {
     }
 
     /// De metadata van een eigen package: de versies uit het eigen register (wat ze vragen staat
-    /// daar niet, dus `dependencies` blijft onbekend) en de nieuwste stabiele versie.
+    /// daar niet, dus `dependencies` blijft onbekend) en de hoogste stabiele versie. Een zwevende
+    /// tag of een image zonder tag is nooit de nieuwste versie (`releasedVersion`).
     static func metadata(of package: PublishedPackage, repositoryURL: URL?) -> PackageMetadata {
         var versions: [String: VersionMetadata] = [:]
         for version in package.versions { versions[version.version] = VersionMetadata() }
-        let stable = package.versions.map(\.version).filter { Version($0).map { !$0.isPrerelease } ?? false }
-        let latest = stable.max { isOlder($0, than: $1) } ?? package.latestVersion
+        // Op `Version`, zodat "v2.3.0" en "2.3.0" gelijk lezen en "1.10" na "1.9" komt.
+        let stable = package.versions.compactMap { item in Version(item.version).map { (text: item.version, version: $0) } }
+            .filter { !$0.version.isPrerelease }
+        let latest = stable.max { $0.version < $1.version }?.text ?? package.releasedVersion
         if let latest, versions[latest] == nil { versions[latest] = VersionMetadata() }
         let inHouse = InHousePackage(
             accountId: package.accountId, name: package.name, type: package.type, owner: package.owner, repository: package.repository,

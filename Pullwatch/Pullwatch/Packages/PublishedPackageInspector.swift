@@ -53,13 +53,23 @@ private struct PublishedPackageHeaderSection: View {
             LabeledContent("Gepubliceerd door") {
                 Text(verbatim: package.repository ?? package.owner).textSelection(.enabled)
             }
+            LabeledContent("Nieuwste versie") {
+                PublishedPackageVersionCell(
+                    version: package.latestVersion, publishedAt: package.publishedAt, kind: package.latestKind, latestTag: package.latestTag
+                )
+            }
             if let visibility = package.visibility {
                 LabeledContent("Zichtbaarheid") {
-                    switch visibility {
-                    case .public: Text("Openbaar")
-                    case .private: Text("Privé")
-                    case .internal: Text("Intern")
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        if let symbol = visibility.symbol {
+                            Image(systemName: symbol)
+                                .imageScale(.small)
+                                .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
+                        }
+                        visibility.text
                     }
+                    .help(visibility.help)
                 }
             }
             if let accountName {
@@ -108,7 +118,16 @@ private struct PublishedPackageVersionsSection: View {
                         }
                     }
                 } label: {
-                    Text(verbatim: version.version).monospacedDigit().textSelection(.enabled)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(verbatim: version.version).monospacedDigit().textSelection(.enabled)
+                        if version.isLatestTag {
+                            LatestTagBadge()
+                        }
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(version.isLatestTag
+                                        ? Text("versie \(version.version), met de tag latest", comment: "VoiceOver: versie waar ook de tag latest op staat")
+                                        : Text("versie \(version.version)", comment: "VoiceOver: de nieuwste versie van een package"))
                     if let date = version.publishedAt {
                         Text(date, format: .relative(presentation: .named))
                     }

@@ -199,7 +199,7 @@ private struct PublishedPackagesTable: View {
     var body: some View {
         Table(of: PublishedPackageSummary.self, selection: $selection, sortOrder: $sortOrder) {
             TableColumn("Package", value: \.nameSortKey) { summary in
-                PublishedPackageNameCell(name: summary.package.name, type: summary.package.type)
+                PublishedPackageNameCell(name: summary.package.name, type: summary.package.type, visibility: summary.package.visibility)
             }
             .width(min: 140, ideal: 200)
             TableColumn("Repository", value: \.publisherSortKey) { summary in
@@ -207,7 +207,10 @@ private struct PublishedPackagesTable: View {
             }
             .width(min: 120, ideal: 200)
             TableColumn("Nieuwste versie", value: \.latestSortKey) { summary in
-                PublishedPackageVersionCell(version: summary.package.latestVersion, publishedAt: summary.package.publishedAt, showsDateInHelp: !showsDate)
+                PublishedPackageVersionCell(
+                    version: summary.package.latestVersion, publishedAt: summary.package.publishedAt, showsDateInHelp: !showsDate,
+                    kind: summary.package.latestKind, latestTag: summary.package.latestTag
+                )
             }
             .width(min: 70, ideal: 100)
             if showsDate {

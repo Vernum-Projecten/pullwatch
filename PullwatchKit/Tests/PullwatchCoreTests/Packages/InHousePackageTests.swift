@@ -63,6 +63,20 @@ import PullwatchTestSupport
         #expect((found != nil) == item.matches)
     }
 
+    @Test func `The in-house latest is the normalised version, never a floating tag`() {
+        let floating = PublishedPackage(
+            accountId: fixedAccountId, name: "ui", type: .npm, owner: "acme", repository: "acme/ui", latestVersion: "main",
+            latestKind: .floatingTag
+        )
+        let released = PublishedPackage(
+            accountId: fixedAccountId, name: "ui", type: .npm, owner: "acme", repository: "acme/ui", latestVersion: "2.4.0-rc1",
+            versions: [PublishedVersion(version: "2.4.0-rc1"), PublishedVersion(version: "v2.3.0"), PublishedVersion(version: "2.2.0")]
+        )
+
+        #expect(VersionChecker.metadata(of: floating, repositoryURL: nil).latest == nil)
+        #expect(VersionChecker.metadata(of: released, repositoryURL: nil).latest == "v2.3.0", "de hoogste stabiele versie")
+    }
+
     @Test func `An Azure package links to the project of its feed`() {
         let account = Account(id: fixedAccountId, kind: .azureDevOps, organization: "contoso", authMethod: .pat)
         let package = PublishedPackage(accountId: fixedAccountId, name: "acme-ui", type: .npm, owner: "Platform", repository: nil)

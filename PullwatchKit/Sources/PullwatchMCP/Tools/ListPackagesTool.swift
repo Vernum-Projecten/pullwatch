@@ -15,6 +15,8 @@ enum ListPackagesTool {
         let url: URL?
         let tag: String?
         let runUrl: URL?
+        /// Alleen bij een image die ook `latest` draagt.
+        let taggedLatest: Bool?
     }
 
     struct User: Encodable {
@@ -30,6 +32,8 @@ enum ListPackagesTool {
         let owner: String
         let repository: String?
         let latestVersion: String?
+        /// Een image zonder versietag: de nieuwste tag (`main`); dan is er geen `latestVersion`.
+        let newestTag: String?
         let publishedAt: Date?
         let visibility: String?
         let url: URL?
@@ -81,7 +85,8 @@ enum ListPackagesTool {
                             "account_id": .string(),
                             "owner": .string("The user, organization, group or Azure DevOps project it belongs to."),
                             "repository": .string("The followed repository that publishes it; absent when the service ties it to none."),
-                            "latest_version": .string(),
+                            "latest_version": .string("For a container image the highest version tag, never a digest, signature or commit tag; absent when no image has a version tag."),
+                            "newest_tag": .string("Only for a container image without any version tag: its newest tag (main, latest)."),
                             "published_at": .dateTime("When the latest version was published."),
                             "visibility": .string(oneOf: ["public", "private", "internal"]),
                             "url": .string("The package page in the registry."),
@@ -89,6 +94,7 @@ enum ListPackagesTool {
                                 [
                                     "version": .string(), "published_at": .dateTime("When it was published."), "url": .string(),
                                     "tag": .string("The repository tag of this version."), "run_url": .string("The run or pipeline that published it."),
+                                    "tagged_latest": .boolean("Whether this container image also carries the latest tag."),
                                 ],
                                 required: ["version"]
                             ), "Newest first, at most 10."),
@@ -164,10 +170,12 @@ enum ListPackagesTool {
         let package = summary.package
         return PackageItem(
             name: package.name, type: package.type.rawValue, accountId: package.accountId, owner: package.owner,
-            repository: package.repository, latestVersion: package.latestVersion, publishedAt: package.publishedAt,
+            repository: package.repository, latestVersion: package.releasedVersion,
+            newestTag: package.latestKind == .floatingTag ? package.latestVersion : nil, publishedAt: package.publishedAt,
             visibility: package.visibility?.rawValue, url: package.webURL?.withoutCredentials,
             recentVersions: package.versions.map {
-                Version(version: $0.version, publishedAt: $0.publishedAt, url: $0.webURL?.withoutCredentials, tag: $0.tag, runUrl: $0.runURL?.withoutCredentials)
+                Version(version: $0.version, publishedAt: $0.publishedAt, url: $0.webURL?.withoutCredentials, tag: $0.tag, runUrl: $0.runURL?.withoutCredentials,
+                    taggedLatest: $0.isLatestTag ? true : nil)
             },
             usedBy: summary.users
                 .filter { followed.contains(accountId: $0.accountId, repo: $0.repo) }

@@ -44,10 +44,11 @@ import PullwatchTestSupport
         #"{"name":"\#(name)","path":"\#(path):\#(name)","location":"registry.gitlab.com/\#(path):\#(name)"}"#
     }
 
-    func tagDetail(_ name: String, created: String) -> String {
-        #"""
+    func tagDetail(_ name: String, created: String, digest: String? = nil) -> String {
+        let digest = digest ?? "sha256:\(name)"
+        return #"""
         {"name":"\#(name)","path":"acme/web:\#(name)","location":"registry.gitlab.com/acme/web:\#(name)",
-         "revision":"c3490dcf","short_revision":"c3490dcf","digest":"sha256:c3490dcf10ffb653","created_at":"\#(created)","total_size":2818413}
+         "revision":"c3490dcf","short_revision":"c3490dcf","digest":"\#(digest)","created_at":"\#(created)","total_size":2818413}
         """#
     }
 
@@ -205,7 +206,8 @@ import PullwatchTestSupport
         let http = MockHTTPClient()
         group(http)
         http.on("groups/acme/packages", body: "[]")
-        http.on("repositories/5/tags/1.4.0", body: tagDetail("1.4.0", created: "2026-11-01T16:49:51.272+00:00"))
+        http.on("repositories/5/tags/1.4.0", body: tagDetail("1.4.0", created: "2026-11-01T16:49:51.272+00:00", digest: "sha256:c3490dcf10ffb653"))
+        http.on("repositories/5/tags/latest", body: tagDetail("latest", created: "2026-11-01T16:49:51.272+00:00", digest: "sha256:c3490dcf10ffb653"))
         http.on("repositories/5/tags?", body: list(tag("latest"), tag("1.4.0"), tag("1.3.0")))
         http.on("repositories/6/tags?", body: "[]")
         http.on("groups/acme/registry/repositories", body: list(image(id: 5, path: "acme/web"), image(id: 6, path: "acme/web/worker"), image(id: 7, path: "acme/other")))
@@ -218,13 +220,16 @@ import PullwatchTestSupport
         #expect(web.repository == "acme/web")
         #expect(web.owner == "acme")
         #expect(web.versions.map(\.version) == ["1.4.0", "1.3.0"], "latest zegt niets over de versie")
+        #expect(web.latestVersion == "1.4.0")
+        #expect(web.latestTag == .onLatestVersion, "dezelfde digest")
+        #expect(web.versions.map(\.isLatestTag) == [true, false])
         #expect(web.publishedAt == DateParsing.parse("2026-11-01T16:49:51.272+00:00"))
         #expect(web.versions.last?.publishedAt == nil)
         #expect(web.webURL?.absoluteString == "https://gitlab.com/acme/web/container_registry/5")
         #expect(result.packages.last?.repository == "acme/web")
         #expect(result.packages.last?.versions.isEmpty == true)
-        #expect(urls(http).contains("\(api)projects/acme%2Fweb/registry/repositories/5/tags?pagination=keyset&order_by=published_at&sort=desc&per_page=11"))
-        #expect(urls(http).filter { $0.contains("/tags/") }.count == 1, "alleen de nieuwste tag in detail")
+        #expect(urls(http).contains("\(api)projects/acme%2Fweb/registry/repositories/5/tags?pagination=keyset&order_by=published_at&sort=desc&per_page=100"))
+        #expect(urls(http).filter { $0.contains("/tags/") }.count == 2, "alleen de nieuwste versie en latest in detail")
     }
 
     @Test func `Sorts tags by their details when the server cannot sort them`() async throws {
@@ -241,12 +246,52 @@ import PullwatchTestSupport
 
         let web = try #require(result.packages.first)
         #expect(web.versions.map(\.version) == ["1.9.0", "1.10.0"], "nieuwste eerst, op datum")
-        #expect(web.publishedAt == DateParsing.parse("2026-10-15T10:00:00.000+00:00"))
+        #expect(web.latestVersion == "1.10.0", "de hoogste versie, niet de nieuwste datum")
+        #expect(web.publishedAt == DateParsing.parse("2026-10-01T10:00:00.000+00:00"), "de datum van die versie")
     }
 
     @Test func `Keeps latest when it is the only tag`() {
-        #expect(GitLabProvider.withoutLatest(["latest"]) == ["latest"])
-        #expect(GitLabProvider.withoutLatest(["latest", "1.0"]) == ["1.0"])
+        let only = ContainerVersions(images: GitLabProvider.images([("latest", nil, nil)], link: nil))
+        #expect(only.latestVersion == "latest")
+        #expect(only.latestKind == .floatingTag)
+        #expect(ContainerVersions(images: GitLabProvider.images([("latest", nil, nil), ("1.0", nil, nil)], link: nil)).latestVersion == "1.0")
+    }
+
+    @Test func `Reads the version among commit, signature and branch tags`() async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/packages", body: "[]")
+        http.on("repositories/5/tags/0.0.17", body: tagDetail("0.0.17", created: "2026-11-04T11:43:07.000+00:00", digest: "sha256:f889"))
+        http.on("repositories/5/tags/latest", body: tagDetail("latest", created: "2026-11-04T15:32:46.000+00:00", digest: "sha256:aa01"))
+        http.on("repositories/5/tags?", body: list(
+            tag("sha256-6ae52104050e88a57d380b6d61a14db91ba985bb08854faac4daa6d1f17d8c0a.sig"), tag("latest"), tag("main"),
+            tag("466930c1"), tag("sha-466930c"), tag("artifacthub.io"), tag("0.0.17"), tag("0.0"), tag("0.0.15")
+        ))
+        http.on("groups/acme/registry/repositories", body: "[\(image(id: 5, path: "acme/web"))]")
+
+        let web = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(web.latestVersion == "0.0.17")
+        #expect(web.latestKind == .version)
+        #expect(web.publishedAt == DateParsing.parse("2026-11-04T11:43:07.000+00:00"))
+        #expect(web.versions.map(\.version) == ["0.0.17", "0.0", "0.0.15"])
+        #expect(web.latestTag == .unversionedBuild, "latest staat op een nieuwere build van main")
+    }
+
+    @Test func `An image with only branch and commit tags shows its newest branch`() async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/packages", body: "[]")
+        http.on("repositories/5/tags/main", body: tagDetail("main", created: "2026-11-04T15:32:46.000+00:00"))
+        http.on("repositories/5/tags?", body: list(tag("sha-466930c"), tag("main"), tag("f83df34cc968f5e0f916834508336c8eeb4c9e41")))
+        http.on("groups/acme/registry/repositories", body: "[\(image(id: 5, path: "acme/web"))]")
+
+        let web = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(web.latestVersion == "main")
+        #expect(web.latestKind == .floatingTag)
+        #expect(web.versions.isEmpty)
+        #expect(web.publishedAt == DateParsing.parse("2026-11-04T15:32:46.000+00:00"))
     }
 
     // MARK: - Rechten en lege registers

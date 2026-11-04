@@ -21,9 +21,14 @@ extension GitHubProvider {
     /// De soorten die de REST API van GitHub Packages kent (`package_type`, verplicht).
     static let packageTypes: [PublishedPackageType] = [.npm, .maven, .rubyGems, .docker, .nuGet, .container]
 
-    /// Hoeveel versies per verzoek: images hebben ook versies zonder tag (tussenlagen, oude
-    /// digests), dus ruim genoeg om er `PublishedPackage.recentVersionLimit` met tag over te houden.
+    /// Hoeveel versies per verzoek bij een package met echte versies (npm, Maven, NuGet).
     static let versionPageSize = 30
+    /// Bij een image: pagina's van honderd, nieuwste eerst, tot er `recentVersionLimit` versies
+    /// met een versietag zijn, hooguit `containerVersionPages`. Elke push naar main voegt images
+    /// toe (commit-tags, handtekeningen, digests zonder tag), dus de release kan ouder zijn dan
+    /// de nieuwste dertig of honderd.
+    static let containerVersionPageSize = 100
+    static let containerVersionPages = 5
 
     public func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages {
         let host = endpoints.cliHost
@@ -102,8 +107,13 @@ extension GitHubProvider {
                 // Een package van een repo die niet gevolgd wordt, hoort niet in Pullwatch.
                 let repo = item.repository.flatMap { followed[$0.fullName.lowercased()] }
                 if item.repository != nil, repo == nil { continue }
-                let versions = repo == nil ? [] : try await recentVersions(of: item, type: type, base: base, tokens: tokens)
-                packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, versions: versions))
+                if type == .container {
+                    let images = repo == nil ? [] : try await containerImages(of: item, type: type, base: base, tokens: tokens)
+                    packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, images: images))
+                } else {
+                    let versions = repo == nil ? [] : try await recentVersions(of: item, type: type, base: base, tokens: tokens)
+                    packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, versions: versions))
+                }
             }
         }
         return packages
@@ -128,8 +138,8 @@ extension GitHubProvider {
         }
     }
 
-    /// De nieuwste versies van één package, nieuwste eerst; een image zonder tag telt niet. Een
-    /// fout hier (behalve een recht dat ontbreekt) laat het package zonder versies staan.
+    /// De nieuwste versies van één package dat geen image is, nieuwste eerst. Een fout hier
+    /// (behalve een recht dat ontbreekt) laat het package zonder versies staan.
     private func recentVersions(
         of item: PackageDTO, type: PublishedPackageType, base: URL, tokens: (any TokenSource)?
     ) async throws -> [PublishedVersion] {
@@ -145,12 +155,44 @@ extension GitHubProvider {
             logRequest(url, type: nil, response: response, data: data, count: items.count)
             guard try Self.checkPackagesAccess(response) else { return [] }
             try HTTPStatus.check(response, now: now())
-            return Array(items.compactMap { $0.version(type: type) }.prefix(PublishedPackage.recentVersionLimit))
+            return Array(items.map(\.version).prefix(PublishedPackage.recentVersionLimit))
         } catch let refused as PackagesAccess {
             throw refused
         } catch {
             return []
         }
+    }
+
+    /// De images van een container-package met hun tags, nieuwste eerst: pagina's van honderd tot
+    /// er genoeg versietags zijn (`containerVersionPages`). Een fout op de eerste pagina (behalve
+    /// een recht dat ontbreekt) laat het package zonder versies; op een latere pagina blijft wat
+    /// al gelezen is.
+    private func containerImages(
+        of item: PackageDTO, type: PublishedPackageType, base: URL, tokens: (any TokenSource)?
+    ) async throws -> [ContainerVersions.Image] {
+        let url = base.appending(path: "packages").appending(path: type.rawValue).appending(component: item.name).appending(path: "versions")
+        var images: [ContainerVersions.Image] = []
+        var next: (url: URL, query: [URLQueryItem])? = (url, [URLQueryItem(name: "per_page", value: String(Self.containerVersionPageSize))])
+        var pages = 0
+        while let current = next, pages < Self.containerVersionPages {
+            do {
+                let (data, response) = try await send(current.url, query: current.query, checked: false, tokens: tokens)
+                let items = (200..<300).contains(response.statusCode)
+                    ? try JSONDecoding.decode([PackageVersionDTO].self, from: data, snakeCase: true) : []
+                logRequest(current.url, type: nil, response: response, data: data, count: items.count)
+                guard try Self.checkPackagesAccess(response) else { break }
+                try HTTPStatus.check(response, now: now())
+                images += items.map(\.image)
+                next = Self.nextLink(response).map { ($0, []) }
+            } catch let refused as PackagesAccess {
+                throw refused
+            } catch {
+                break
+            }
+            pages += 1
+            if ContainerVersions.versionTaggedCount(images) >= PublishedPackage.recentVersionLimit { break }
+        }
+        return images
     }
 
     /// Alle pagina's van een lijst van packages, via de `next`-link, hooguit `maxPages`. Een 404
@@ -233,6 +275,17 @@ private struct PackageDTO: Decodable {
     let updatedAt: String?
     let repository: Repository?
 
+    /// Een container-package: de versies uit de tags van zijn images.
+    func package(
+        accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, images: [ContainerVersions.Image]
+    ) -> PublishedPackage {
+        PublishedPackage(
+            accountId: accountId, name: name, type: type, owner: owner, repository: repository,
+            container: ContainerVersions(images: images), fallbackDate: updatedAt.flatMap(DateParsing.parse),
+            visibility: visibility.flatMap(PublishedPackage.Visibility.init(rawValue:)), webURL: htmlUrl.flatMap(URL.init(string:))
+        )
+    }
+
     func package(
         accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, versions: [PublishedVersion]
     ) -> PublishedPackage {
@@ -258,19 +311,15 @@ private struct PackageVersionDTO: Decodable {
     let htmlUrl: String?
     let metadata: Metadata?
 
-    /// De versie zoals een mens hem noemt: bij een image de eerste tag naast "latest" (de naam is
-    /// daar een digest), anders de naam. Een image zonder tag geeft nil.
-    func version(type: PublishedPackageType) -> PublishedVersion? {
-        let label: String
-        if type == .container {
-            let tags = metadata?.container?.tags ?? []
-            guard let tag = tags.first(where: { $0 != "latest" }) ?? tags.first else { return nil }
-            label = tag
-        } else {
-            label = name
-        }
-        return PublishedVersion(
-            version: label, publishedAt: createdAt.flatMap(DateParsing.parse), webURL: htmlUrl.flatMap(URL.init(string:))
+    /// De versie zoals het register hem noemt (npm, Maven, NuGet, RubyGems).
+    var version: PublishedVersion {
+        PublishedVersion(version: name, publishedAt: createdAt.flatMap(DateParsing.parse), webURL: htmlUrl.flatMap(URL.init(string:)))
+    }
+
+    /// Bij een image is de naam een digest; de tags staan in de metadata (`ContainerVersions`).
+    var image: ContainerVersions.Image {
+        ContainerVersions.Image(
+            tags: metadata?.container?.tags ?? [], publishedAt: createdAt.flatMap(DateParsing.parse), webURL: htmlUrl.flatMap(URL.init(string:))
         )
     }
 }

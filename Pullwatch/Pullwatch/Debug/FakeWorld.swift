@@ -183,17 +183,23 @@ nonisolated enum FakeWorld {
         let name: String
         let repo: String?
         let versions: [(String, Double)]
+        /// Openbaar, privé of intern: het slot of gebouw achter de naam.
+        var visibility = "private"
     }
 
     /// Wat octocat in GitHub Packages publiceert: per gevolgde repo één package van een andere soort
     /// (npm van linguist, dat hello-world gebruikt; een image van hello-world; NuGet van spoon-knife),
     /// en een npm-package dat aan geen repo hangt. GitHub noemt een npm-package zonder scope; de
-    /// scope is de eigenaar.
+    /// scope is de eigenaar. De image heeft, zoals op ghcr.io, ook een cosign-handtekening
+    /// (`sha256-…`) en een commit-tag (`sha-…`) die nooit als versie verschijnen.
     static let packages: [FakePackage] = [
-        FakePackage(type: "npm", name: "greeting", repo: "linguist", versions: [("1.4.0", 2.0), ("1.3.0", 20.0), ("1.2.0", 60.0)]),
-        FakePackage(type: "container", name: "hello-world", repo: "hello-world", versions: [("1.3.0-beta.1", 0.3), ("1.2.0", 3.0), ("1.1.0", 33.0)]),
+        FakePackage(type: "npm", name: "greeting", repo: "linguist", versions: [("1.4.0", 2.0), ("1.3.0", 20.0), ("1.2.0", 60.0)], visibility: "public"),
+        FakePackage(type: "container", name: "hello-world", repo: "hello-world", versions: [
+            ("sha256-7e0fd343419965e2b3c3151dbd7a601ac1e97f42caadbf2ef9d50f86883d1957", 0.29), ("1.3.0-beta.1", 0.3), ("sha-466930c", 1.0),
+            ("1.2.0", 3.0), ("1.1.0", 33.0),
+        ]),
         FakePackage(type: "nuget", name: "Octocat.SpoonKnife", repo: "spoon-knife", versions: [("3.0.1", 5.0), ("3.0.0", 9.0)]),
-        FakePackage(type: "npm", name: "shared-config", repo: nil, versions: [("0.4.2", 12.0)]),
+        FakePackage(type: "npm", name: "shared-config", repo: nil, versions: [("0.4.2", 12.0)], visibility: "internal"),
     ]
 
     static func publishedPackages(path: String, query: String) -> String? {
@@ -204,20 +210,22 @@ nonisolated enum FakeWorld {
             if packagesMode == "none" { return "[]" }
             let items = packages.filter { query.contains("package_type=\($0.type)") }.map { package in
                 let repository = package.repo.map { #"{"full_name":"\#(FakeGitHub.login)/\#($0)"}"# } ?? "null"
-                return #"{"name":"\#(package.name)","package_type":"\#(package.type)","visibility":"private","#
+                return #"{"name":"\#(package.name)","package_type":"\#(package.type)","visibility":"\#(package.visibility)","#
                     + #""html_url":"https://github.com/users/\#(FakeGitHub.login)/packages/\#(package.type)/package/\#(package.name)","#
                     + #""updated_at":"\#(iso(package.versions.first?.1 ?? 1))","repository":\#(repository)}"#
             }
             return "[" + items.joined(separator: ",") + "]"
         }
         guard let package = packages.first(where: { path == "\(base)/\($0.type)/\($0.name)/versions" }) else { return nil }
+        // `latest` staat op de nieuwste image met een versie, niet op een handtekening.
+        let latest = package.versions.firstIndex { ContainerTag($0.0).kind == .version }
         return "[" + package.versions.enumerated().map { index, item in
             let (version, daysAgo) = item
             let page = "https://github.com/users/\(FakeGitHub.login)/packages/\(package.type)/\(package.name)/\(version)"
             // Een image heet bij GitHub naar zijn digest; de versie staat in de tags.
             return package.type == "container"
                 ? #"{"name":"sha256:\#(String(repeating: String(index), count: 8))","created_at":"\#(iso(daysAgo))","html_url":"\#(page)","#
-                    + #""metadata":{"container":{"tags":["\#(version)"\#(index == 0 ? #","latest""# : "")]}}}"#
+                    + #""metadata":{"container":{"tags":["\#(version)"\#(index == latest ? #","latest""# : "")]}}}"#
                 : #"{"name":"\#(version)","created_at":"\#(iso(daysAgo))","html_url":"\#(page)"}"#
         }.joined(separator: ",") + "]"
     }

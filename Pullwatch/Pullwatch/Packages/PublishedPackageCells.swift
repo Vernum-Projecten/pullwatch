@@ -10,28 +10,50 @@ nonisolated extension PublishedPackageSummary {
     /// De repository voluit, anders de eigenaar (een Azure-project).
     var publisher: String { package.repository ?? package.owner }
     var publisherSortKey: String { publisher.lowercased() }
-    /// Zonder versie achteraan.
-    var latestSortKey: String { package.latestVersion ?? "\u{10FFFF}" }
+    /// Zonder versie achteraan, een zwevende tag (`main`) net daarvoor.
+    var latestSortKey: String {
+        switch package.latestKind {
+        case .version: package.latestVersion ?? "\u{10FFFF}"
+        case .floatingTag: "\u{10FFFE}" + (package.latestVersion ?? "")
+        case .untagged: "\u{10FFFF}"
+        }
+    }
     /// Zonder datum achteraan bij nieuwste eerst.
     var publishedSortKey: Date { package.publishedAt ?? .distantPast }
     /// Een soort die de check niet herkent telt als onbekend, onder nul.
     var usedBySortKey: Int { isMatchable ? users.count : -1 }
 }
 
-/// Het symbool van de soort met de naam van het package.
+/// Het symbool van de soort met de naam van het package, en een slot (privé) of gebouw (intern)
+/// achter de naam.
 struct PublishedPackageNameCell: View {
     let name: String
     let type: PublishedPackageType
+    var visibility: PublishedPackage.Visibility?
 
     var body: some View {
         Label {
-            Text(verbatim: name).fontWeight(.medium).lineLimit(1)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(verbatim: name).fontWeight(.medium).lineLimit(1)
+                PublishedPackageVisibilityIcon(visibility: visibility)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(accessibilityName)
         } icon: {
             Image(systemName: type.symbol)
                 .foregroundStyle(.secondary)
                 .accessibilityLabel(type.text)
         }
         .help(type.text)
+    }
+
+    /// "ferroehr, privé": de zichtbaarheid hoort bij de naam.
+    private var accessibilityName: Text {
+        switch visibility {
+        case .private?: Text("\(name), privé", comment: "VoiceOver: naam van een privé package")
+        case .internal?: Text("\(name), intern", comment: "VoiceOver: naam van een intern package")
+        case .public?, nil: Text(verbatim: name)
+        }
     }
 }
 
@@ -53,22 +75,58 @@ struct PublishedPackagePublisherCell: View {
     }
 }
 
-/// De nieuwste versie; als de kolom met de datum er niet staat, de datum in de tooltip.
+/// De nieuwste versie; als de kolom met de datum er niet staat, de datum in de tooltip. Bij een
+/// container-image: het label `latest` als die tag op dezelfde image staat, anders een tooltip
+/// waar `latest` naar wijst; zonder versietag de nieuwste tag in het grijs, zonder tag "Zonder tag".
 struct PublishedPackageVersionCell: View {
     let version: String?
     let publishedAt: Date?
     var showsDateInHelp = false
+    var kind: PublishedPackage.LatestKind = .version
+    var latestTag: PublishedPackage.LatestTag = .absent
 
     var body: some View {
-        if let version {
-            Text(verbatim: version)
-                .monospacedDigit()
+        switch (kind, version) {
+        case (.version, let version?):
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(verbatim: version)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                if latestTag == .onLatestVersion {
+                    LatestTagBadge()
+                }
+            }
+            .help(help)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(latestTag == .onLatestVersion
+                                ? Text("versie \(version), met de tag latest", comment: "VoiceOver: versie waar ook de tag latest op staat")
+                                : Text("versie \(version)", comment: "VoiceOver: de nieuwste versie van een package"))
+        case (.floatingTag, let tag?):
+            Text(verbatim: tag)
+                .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .help(showsDateInHelp
-                      ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
-                      : Text(verbatim: ""))
-        } else {
+                .help(Text("Geen versietag; dit is de nieuwste tag", comment: "Image zonder versietag: de nieuwste tag (main, latest) staat er"))
+        case (.untagged, _):
+            Text("Zonder tag", comment: "Image waarvan geen versie een tag heeft")
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .help(Text("Geen versie van deze image heeft een tag"))
+        default:
             Text("Onbekend").foregroundStyle(.tertiary)
+        }
+    }
+
+    /// Waar `latest` naar wijst als dat niet de getoonde versie is, anders de datum.
+    private var help: Text {
+        switch latestTag {
+        case .unversionedBuild:
+            Text("latest wijst naar een nieuwere build zonder versietag", comment: "latest is de naam van een tag; niet vertalen")
+        case .otherVersion(let other):
+            Text("latest wijst naar \(other)", comment: "latest is de naam van een tag; niet vertalen")
+        case .absent, .onLatestVersion:
+            showsDateInHelp
+                ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
+                : Text(verbatim: "")
         }
     }
 }

@@ -87,6 +87,30 @@ import Testing
         #expect(Self.report([Self.ui("2.3.0"), Self.feedPackage]).newPublishedVersions(since: before).isEmpty)
     }
 
+    static func container(_ latest: String?, kind: PublishedPackage.LatestKind = .version) -> PublishedPackage {
+        PublishedPackage(
+            accountId: account, name: "ferrobridge", type: .container, owner: "acme", repository: "acme/ferrobridge",
+            latestVersion: latest, latestKind: kind
+        )
+    }
+
+    @Test func `A signature tag stored by an older Pullwatch gives no notification once the real version shows`() {
+        let before = Self.report([Self.container("sha256-7e0fd343419965e2b3c3151dbd7a601ac1e97f42caadbf2ef9d50f86883d1957")])
+        let after = Self.report([Self.container("0.0.17")])
+
+        #expect(after.newPublishedVersions(since: before).isEmpty)
+    }
+
+    @Test func `A floating tag is no new version, a new release tag is`() {
+        let floating = Self.report([Self.container("main", kind: .floatingTag)])
+        let first = Self.report([Self.container("0.0.15")])
+        let second = Self.report([Self.container("0.0.17")])
+
+        #expect(first.newPublishedVersions(since: floating).isEmpty)
+        #expect(floating.newPublishedVersions(since: first).isEmpty)
+        #expect(second.newPublishedVersions(since: first).map(\.latestVersion) == ["0.0.17"])
+    }
+
     @Test func `The notification of a new version is off by default, also in an older config`() throws {
         #expect(!NotificationSettings().publishedPackages)
         #expect(!NotificationSettings()[.publishedPackage])

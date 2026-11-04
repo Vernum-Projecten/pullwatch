@@ -12,17 +12,22 @@ public struct PublishedVersion: Codable, Hashable, Sendable {
     public let tag: String?
     /// De run of pipeline die hem publiceerde, als de dienst dat zegt.
     public let runURL: URL?
+    /// Of de image van deze versie ook de tag `latest` draagt (alleen bij een container-image).
+    public let isLatestTag: Bool
 
-    public init(version: String, publishedAt: Date? = nil, webURL: URL? = nil, tag: String? = nil, runURL: URL? = nil) {
+    public init(
+        version: String, publishedAt: Date? = nil, webURL: URL? = nil, tag: String? = nil, runURL: URL? = nil, isLatestTag: Bool = false
+    ) {
         self.version = version
         self.publishedAt = publishedAt
         self.webURL = webURL
         self.tag = tag
         self.runURL = runURL
+        self.isLatestTag = isLatestTag
     }
 
     private enum CodingKeys: String, CodingKey {
-        case version, publishedAt, webURL, tag, runURL
+        case version, publishedAt, webURL, tag, runURL, isLatestTag
     }
 
     /// Alles behalve de versie mag ontbreken, ook in gegevens van een oudere of nieuwere Pullwatch.
@@ -33,5 +38,6 @@ public struct PublishedVersion: Codable, Hashable, Sendable {
         webURL = try? c.decodeIfPresent(URL.self, forKey: .webURL)
         tag = try? c.decodeIfPresent(String.self, forKey: .tag)
         runURL = try? c.decodeIfPresent(URL.self, forKey: .runURL)
+        isLatestTag = ((try? c.decodeIfPresent(Bool.self, forKey: .isLatestTag)) ?? nil) ?? false
     }
 }
