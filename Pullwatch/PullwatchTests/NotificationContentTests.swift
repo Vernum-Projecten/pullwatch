@@ -40,7 +40,7 @@ import Testing
     @Test func aNewPullRequestReadsAtAGlance() throws {
         let content = try builder().content(for: .pullRequest(pr(coAuthors: ["hubot", "octocat"])))
         #expect(content.title == "New Pull Request")
-        #expect(content.subtitle == repo)
+        #expect(content.subtitle == "\(repo) #42")
         #expect(content.body == "Add dark mode\nby mona and 2 others")
         #expect(!content.title.contains(":"))
         #expect(content.identifier == pr().dedupKey)
@@ -54,6 +54,29 @@ import Testing
         #expect(content.payload.watchKinds == [.pullRequests])
         #expect(content.payload.accountId == accountId)
         #expect(content.payload.repo == repo)
+    }
+
+    @Test(arguments: [ProviderKind.gitHub, .gitLab, .azureDevOps], ["new", "merged", "checks failed"])
+    func `The subtitle names the repository and the number as the service writes it`(kind: ProviderKind, event: String) throws {
+        let item: RepositoryItem = switch event {
+        case "merged": .merged(pr())
+        case "checks failed": .checksFailed(pr())
+        default: .pullRequest(pr())
+        }
+
+        let content = try builder(kind: kind).content(for: item)
+
+        #expect(content.subtitle == "\(repo) \(kind == .gitHub ? "#" : "!")42")
+    }
+
+    @Test func `A tag keeps the repository alone as its subtitle`() throws {
+        #expect(try builder().content(for: .tag(tag())).subtitle == repo)
+    }
+
+    @Test func `Without its account the subtitle is the repository alone`() throws {
+        let builder = NotificationContentBuilder(accounts: [], bundle: try language("en"))
+
+        #expect(builder.content(for: .pullRequest(pr())).subtitle == repo)
     }
 
     @Test func coAuthorsAreNamedOrCounted() throws {

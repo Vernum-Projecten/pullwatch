@@ -60,6 +60,8 @@ enum SnapshotTour {
 
         var steps: [(String, () -> Void)] = [
             ("pull-requests", { model.router.show(.pullRequests) }),
+            // Een geselecteerde rij: het nummer in de kolom Repo volgt de kleuren van de selectie.
+            ("pull-requests-selected", { SnapshotCamera.selectRow(1, windowId: WindowID.main.rawValue) }),
             ("tags", { model.router.show(.tags) }),
             ("stats", { model.router.show(.stats) }),
             ("repos", { model.router.show(.repos) }),

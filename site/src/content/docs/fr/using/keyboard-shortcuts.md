@@ -59,6 +59,7 @@ La pull request, le tag ou la version publiée sélectionnés.
 | ⇧⌘U | Marquer comme lu ou Marquer comme non lu |
 | ⌘K | Tout marquer comme lu |
 | ⇧⌘L | Copier le lien |
+| ⌥⇧⌘L | Copier la référence des pull requests sélectionnées, par exemple `FerroHEALTH/FerroFED#1570` |
 
 ## Dépôt
 

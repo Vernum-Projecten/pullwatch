@@ -41,6 +41,8 @@ struct RepoOverviewSection: View {
 
 struct RepoPullRequestsSection: View {
     let items: [HistoryItem]
+    /// De dienst van het account, voor het teken van het PR-nummer; nil zonder account.
+    let providerKind: ProviderKind?
     let openCount: Int
     /// De bron CI-checks staat aan.
     let showsChecks: Bool
@@ -58,7 +60,7 @@ struct RepoPullRequestsSection: View {
                 Button {
                     open(item)
                 } label: {
-                    PullRequestRow(item: item, showsChecks: showsChecks)
+                    PullRequestRow(item: item, kind: providerKind, showsChecks: showsChecks)
                 }
                 .buttonStyle(.plain)
                 .help(Text("Open in browser"))
@@ -107,9 +109,13 @@ private struct ChecksPermissionNote: View {
     }
 }
 
-/// Eén PR in een lijst. Leest zelf geen model uit de environment (zie `ChecksBadge`).
+/// Eén PR in een lijst: het nummer (`#1570`) ingetogen voor de titel, zoals de telling van de
+/// checks; de repo staat al boven de pagina. Leest zelf geen model uit de environment (zie
+/// `ChecksBadge`).
 struct PullRequestRow: View {
     let item: HistoryItem
+    /// De dienst van het account, voor het teken van het nummer; nil: geen nummer.
+    let kind: ProviderKind?
     /// De bron CI-checks staat aan.
     let showsChecks: Bool
 
@@ -117,6 +123,14 @@ struct PullRequestRow: View {
         HStack(spacing: 6) {
             if let pill = item.entry.statePill {
                 Pill(text: pill.text, tint: pill.tint)
+            }
+            if case .pullRequest(let pr) = item.entry, let kind {
+                Text(verbatim: pr.numberText(kind))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .fixedSize()
+                    .help(pr.reference(kind))
+                    .accessibilityLabel(PullRequestNumberText.spoken(number: pr.number))
             }
             Text(verbatim: item.entry.title)
                 .fontWeight(item.isRead ? .regular : .semibold)

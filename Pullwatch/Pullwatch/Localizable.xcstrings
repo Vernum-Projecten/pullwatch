@@ -860,6 +860,64 @@
         }
       }
     },
+    "%@, pull request %@": {
+      "comment": "VoiceOver; korte repo-naam en het nummer van een pull request",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Pull Request %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@"
+          }
+        }
+      }
+    },
+    "%@, pull request %@, %@, %@": {
+      "comment": "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@, %3$@, %4$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@, %3$@, %4$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Pull Request %2$@, %3$@, %4$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pull request %2$@, %3$@, %4$@"
+          }
+        }
+      }
+    },
     "%@, uitgezet": {
       "comment": "Dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server); het account wordt niet opgehaald",
       "localizations": {
@@ -10229,6 +10287,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopieer overzicht"
+          }
+        }
+      }
+    },
+    "Kopieer verwijzing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Reference"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verweis kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier la référence"
           }
         }
       }
@@ -19780,6 +19860,28 @@
         }
       }
     },
+    "Zoek op titel, nummer, auteur, repo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by title, number, author, repository…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Titel, Nummer, Autor, Repository suchen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher par titre, numéro, auteur, dépôt…"
+          }
+        }
+      }
+    },
     "Zoek…": {
       "localizations": {
         "de": {
@@ -20632,6 +20734,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "corrigé dans %@"
+          }
+        }
+      }
+    },
+    "pull request %@": {
+      "comment": "VoiceOver; het nummer van een pull request",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pull request %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pull request %@"
           }
         }
       }

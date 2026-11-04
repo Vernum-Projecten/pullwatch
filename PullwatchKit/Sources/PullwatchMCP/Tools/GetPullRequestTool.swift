@@ -54,10 +54,10 @@ enum GetPullRequestTool {
         let checksOff = await source.disabledSources().contains(.ciChecks)
         let userIds = await source.currentUserIds()
         let output = Output(
-            pullRequest: MCPPullRequest(pr, item: item, userId: userIds[pr.accountId], checksOff: checksOff, details: true),
+            pullRequest: MCPPullRequest(pr, kind: match.account.kind, item: item, userId: userIds[pr.accountId], checksOff: checksOff, details: true),
             notChecked: checksOff ? [MCPSourceOff(.ciChecks)] : []
         )
         let state = pr.state == .open && pr.isDraft ? "draft" : (pr.isQueued ? "queued" : pr.state.rawValue)
-        return try MCPToolOutput.result(output, summary: "\(match.repo) #\(pr.number) (\(state)): \(pr.title)")
+        return try MCPToolOutput.result(output, summary: "\(pr.reference(match.account.kind)) (\(state)): \(pr.title)")
     }
 }

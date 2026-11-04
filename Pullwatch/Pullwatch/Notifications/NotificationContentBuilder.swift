@@ -3,7 +3,7 @@ import PullwatchCore
 
 /// Maakt van wat de planner en de versiecheck melden de tekst, groep, knoppen en het belang van
 /// elke melding (Apple HIG "Notifications"): de titel zegt wat er gebeurde, de ondertitel de
-/// repository, de tekst de PR of release met wie hem maakte. Geen tekst aan elkaar geplakt met
+/// repository (bij een PR met zijn nummer, `FerroHEALTH/FerroFED #1570`), de tekst de PR of release met wie hem maakte. Geen tekst aan elkaar geplakt met
 /// dubbelepunten; elke zin is één string in de catalog. Puur: geen UserNotifications, geen
 /// netwerk, dus volledig te testen (`NotificationContentTests`).
 ///
@@ -34,6 +34,11 @@ struct NotificationContentBuilder {
         let body: [String?]
         let url: URL
         var avatar: URL?
+        // Bij een PR het nummer achter de repo, met het teken van de dienst van het account.
+        let subtitle = switch item {
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): account.map { pr.repoAndNumber($0.kind) } ?? key.repo
+        case .tag: key.repo
+        }
         switch item {
         case .pullRequest(let pr):
             title = newPullRequestTitle(pr, account: account)
@@ -59,7 +64,7 @@ struct NotificationContentBuilder {
             identifier: item.notificationIdentifier,
             kind: item.kind,
             title: title,
-            subtitle: key.repo,
+            subtitle: subtitle,
             body: lines(body),
             threadIdentifier: key.threadIdentifier,
             category: .item,

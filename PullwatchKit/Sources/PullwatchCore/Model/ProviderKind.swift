@@ -20,6 +20,17 @@ public enum ProviderKind: String, Codable, Hashable, Sendable, CaseIterable {
         }
     }
 
+    /// Het teken voor het nummer van een pull request, zoals de dienst het zelf schrijft: `#1570` op
+    /// GitHub, `!42` bij een merge request van GitLab en een pull request van Azure DevOps. Bewust
+    /// zonder `default`: een nieuwe dienst kiest hier zelf (Gitea, Forgejo en Bitbucket schrijven `#`).
+    public var pullRequestPrefix: String {
+        switch self {
+        case .azureDevOps: "!"
+        case .gitHub: "#"
+        case .gitLab: "!"
+        }
+    }
+
     /// Kan een account van deze dienst op een eigen server staan (`Account.instanceURL`)?
     /// GitLab self-managed, GitHub Enterprise Server of GHE.com, en een eigen Gitea- of
     /// Forgejo-server.

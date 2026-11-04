@@ -94,6 +94,20 @@ enum SnapshotCamera {
         scrollView.reflectScrolledClipView(scrollView.contentView)
     }
 
+    /// Selecteert rij `row` van de tabel in het venster (geen zijbalk), zodat een foto laat zien
+    /// hoe een geselecteerde rij eruitziet. De tabel meldt het aan SwiftUI zoals een klik.
+    static func selectRow(_ row: Int, windowId: String) {
+        guard let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix(windowId) == true }),
+              let content = window.contentView,
+              // SwiftUI's `Table` kan zelf een `NSOutlineView` zijn; de zijbalk heeft één kolom.
+              let table = outlineOrTableViews(in: content).max(by: { $0.tableColumns.count < $1.tableColumns.count }),
+              table.tableColumns.count > 1,
+              row < table.numberOfRows
+        else { return }
+        window.makeFirstResponder(table)
+        table.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+    }
+
     private static func scrollViews(in view: NSView) -> [NSScrollView] {
         ((view as? NSScrollView).map { [$0] } ?? []) + view.subviews.flatMap(scrollViews)
     }

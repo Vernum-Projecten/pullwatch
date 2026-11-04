@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 public struct AppConfig: Codable, Equatable, Sendable {
     static let intervalRange = 60...900
@@ -152,5 +152,10 @@ public struct AppConfig: Codable, Equatable, Sendable {
     /// Accounts die Pullwatch ophaalt: met een eigenaar en niet uitgezet.
     public var pollableAccounts: [Account] {
         accounts.filter { $0.isComplete && !$0.isPaused }
+    }
+
+    /// De dienst per account, voor het teken van een PR-nummer (`ProviderKind.pullRequestPrefix`).
+    public var providerKinds: [UUID: ProviderKind] {
+        Dictionary(accounts.map { ($0.id, $0.kind) }, uniquingKeysWith: { first, _ in first })
     }
 }
