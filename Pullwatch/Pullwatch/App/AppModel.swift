@@ -314,8 +314,7 @@ final class AppModel {
             }
         case .copyAdvisoryId?:
             guard let id = payload.advisoryId else { return }
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(id, forType: .string)
+            Pasteboard.copy(id)
         }
     }
 

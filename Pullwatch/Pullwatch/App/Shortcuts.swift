@@ -37,24 +37,7 @@ extension FocusedValues {
     @Entry var searchFocus: FocusState<Bool>.Binding?
 }
 
-extension View {
-    /// Geeft ⌘F (Zoeken in het menu Ga) het zoekveld van deze `.searchable`.
-    func searchShortcut() -> some View {
-        modifier(SearchShortcut())
-    }
-}
-
-private struct SearchShortcut: ViewModifier {
-    @FocusState private var isFocused: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .searchFocused($isFocused)
-            .focusedSceneValue(\.searchFocus, $isFocused)
-    }
-}
-
-/// Menu "Ga" met sneltoetsen: ⌘1–5 voor de onderdelen, ⌘R verversen, ⌘[ terug, ⌘O openen, en elke
+/// Menu "Ga" met sneltoetsen: ⌘1 tot ⌘5 voor de onderdelen, ⌘R verversen, ⌘[ terug, ⌘O openen, en elke
 /// knop uit de knoppenbalk, zodat niets alleen daar te vinden is. ⌘F zet de focus in het zoekveld
 /// van het zichtbare onderdeel.
 struct ShortcutCommands: Commands {
@@ -112,8 +95,7 @@ struct ShortcutCommands: Commands {
                           advisories: summary.advisories, report: model.versions.versionReport,
                           advisoryDetailsOff: !model.accounts.config.isEnabled(.gitHubAdvisoryDatabase)
                       ) else { return }
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(text, forType: .string)
+                Pasteboard.copy(text)
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
             .disabled(repoTarget?.isOpen != true || repoTarget.flatMap { model.overview.repoSummariesById[$0.id] }?.versions == nil)
