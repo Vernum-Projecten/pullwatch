@@ -11,10 +11,13 @@ struct HistoryView: View {
     @Environment(AppRouter.self) private var router
     let kind: ItemKind
     /// Alleen dit project (uit de zijbalk); nil voor alles.
-    var group: HistoryGroup.ID? = nil
-    var groupName: String? = nil
+    let group: HistoryGroup.ID?
+    let groupName: String?
 
     @State private var searchText = ""
+    /// Filters als tokens in het zoekveld: eerst die van de sprong hierheen, daarna wat de persoon
+    /// weghaalt of uit het contextmenu toevoegt. Van deze lijst, net als de zoektekst.
+    @State private var tokens: [HistoryToken]
     @State private var selection = Set<HistoryItem.ID>()
     @State private var sortOrder = [KeyPathComparator(\HistoryItem.detectedAt, order: .reverse)]
     /// Gefilterd en gesorteerd; opnieuw berekend als zoektekst, tokens, volgorde of geschiedenis verandert.
@@ -24,6 +27,13 @@ struct HistoryView: View {
     /// Alleen bij tags: alles, alleen releases of alleen tags zonder release.
     @State private var tagFilter = TagFilter.all
 
+    init(kind: ItemKind, group: HistoryGroup.ID? = nil, groupName: String? = nil, initialTokens: [HistoryToken] = []) {
+        self.kind = kind
+        self.group = group
+        self.groupName = groupName
+        _tokens = State(initialValue: initialTokens)
+    }
+
     private struct Query: Equatable {
         let text: String
         let tokens: [HistoryToken]
@@ -32,11 +42,10 @@ struct HistoryView: View {
     }
 
     private var query: Query {
-        Query(text: searchText, tokens: router.historyTokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
+        Query(text: searchText, tokens: tokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
     }
 
     private func recompute() {
-        let tokens = router.historyTokens
         let authors = Set(tokens.compactMap { if case .author(let name) = $0 { name } else { nil } })
         let repos = tokens.compactMap { if case .repo(let repo) = $0 { repo } else { nil } }
         let found = historyModel.history.search(searchText, kind: kind, group: group, providerKinds: accounts.config.providerKinds).filter { item in
@@ -167,7 +176,7 @@ struct HistoryView: View {
                 open: { open(ids) },
                 showRepo: { app.showRepo(accountId: $0.accountId, repo: $0.repo) },
                 filterAuthor: { name in
-                    if !router.historyTokens.contains(.author(name)) { router.historyTokens.append(.author(name)) }
+                    if !tokens.contains(.author(name)) { tokens.append(.author(name)) }
                 }
             )
         } primaryAction: { ids in
@@ -175,7 +184,7 @@ struct HistoryView: View {
         }
         .overlay {
             if rows.isEmpty {
-                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && router.historyTokens.isEmpty
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && tokens.isEmpty
                     && polling.isFillingHistory {
                     // De voortgang staat in de balk onderin; hier alleen wat er gebeurt.
                     ContentUnavailableView {
@@ -193,7 +202,7 @@ struct HistoryView: View {
                         systemImage: "line.3.horizontal.decrease.circle",
                         description: Text("Kies Alles om alle tags te zien.")
                     )
-                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && router.historyTokens.isEmpty {
+                } else if searchText.trimmingCharacters(in: .whitespaces).isEmpty && tokens.isEmpty {
                     ContentUnavailableView {
                         Label {
                             Text(kind == .pullRequest ? "Nog geen PR's" : "Nog geen tags")
@@ -212,7 +221,7 @@ struct HistoryView: View {
         }
         .searchable(
             text: $searchText,
-            tokens: Bindable(router).historyTokens,
+            tokens: $tokens,
             prompt: groupName.map { Text("Zoek in \($0)…", comment: "Projectnaam") } ?? Text(kind == .pullRequest ? "Zoek op titel, nummer, auteur, repo…" : "Zoek op titel, auteur, repo…")
         ) { token in
             HistoryTokenLabel(token: token)

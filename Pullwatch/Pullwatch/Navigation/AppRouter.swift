@@ -42,8 +42,12 @@ final class AppRouter {
     /// Pagina's op de `NavigationStack` van het zichtbare onderdeel (repo-pagina, statistieken van
     /// een repo); leeg toont de lijst van het onderdeel.
     var path: [Route] = []
-    /// Auteur- en repofilters op PR's of Tags vanaf een andere plek; tokens in het zoekveld.
-    var historyTokens: [HistoryToken] = []
+    /// Auteur- en repofilters op PR's of Tags vanaf een andere plek. De lijst begint ermee als
+    /// tokens in het zoekveld; daarna zijn de tokens van de lijst, zoals de zoektekst.
+    private(set) var historyTokens: [HistoryToken] = []
+    /// Telt elke sprong naar een onderdeel (`navigate(to:)`). Het hoofdvenster maakt per sprong een
+    /// nieuwe stack, zodat de lijst die weggaat niets meer verandert terwijl hij verdwijnt.
+    private(set) var navigation = 0
     /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
     var packagesSearch: String?
     /// Filter dat het onderdeel Packages bij openen overneemt (een repo vanaf zijn Overzicht, een
@@ -96,6 +100,7 @@ final class AppRouter {
         sidebarSelection = .section(section)
         path = []
         historyTokens = []
+        navigation += 1
         isNavigating = false
     }
 
