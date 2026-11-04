@@ -108,14 +108,15 @@ jobs:
         with:
           persist-credentials: false
       # Ad-hoc signed, as the project already is: the tests need a signed
-      # app, not a Developer ID.
+      # app, not a Developer ID. Warnings are errors through the project's
+      # SWIFT_TREAT_WARNINGS_AS_ERRORS; on the command line it would also reach
+      # the MCP SDK's packages, which Xcode builds with -suppress-warnings.
       - name: build and run the unit and UI tests
         run: |
           xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
             -destination 'platform=macOS,arch=arm64' -derivedDataPath build/DerivedData \
             -resultBundlePath build/Tests.xcresult \
-            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -160,14 +161,30 @@ jobs:
       # zip. A release tag then only adds signing and notarisation.
       - name: release.sh --unsigned
         run: scripts/release/release.sh --unsigned
-      - name: the app is universal
+      - name: the app and its agents helper are universal
         run: |
-          binary=build/Build/Products/Release/Pullwatch.app/Contents/MacOS/Pullwatch
-          archs="$(lipo -archs "$binary")"
-          echo "architectures: $archs"
-          for arch in arm64 x86_64; do
-            [[ " $archs " == *" $arch "* ]] || { echo "Pullwatch.app has no $arch slice" >&2; exit 1; }
+          app=build/Build/Products/Release/Pullwatch.app
+          for binary in "$app/Contents/MacOS/Pullwatch" "$app/Contents/Helpers/pullwatch-mcp"; do
+            archs="$(lipo -archs "$binary")"
+            echo "$binary: $archs"
+            for arch in arm64 x86_64; do
+              [[ " $archs " == *" $arch "* ]] || { echo "$binary has no $arch slice" >&2; exit 1; }
+            done
           done
+      # The helper an agent starts (pullwatch-mcp, #142) ships in both files,
+      # with hardened runtime and its own identifier.
+      - name: the helper is in the disk image and the zip
+        run: |
+          helper=Pullwatch.app/Contents/Helpers/pullwatch-mcp
+          unzip -l dist/Pullwatch-*.zip | grep -F "$helper"
+          mount="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" dist/Pullwatch-*.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          test -x "$mount/$helper"
+          signature="$(codesign -dvv "$mount/$helper" 2>&1)"
+          echo "$signature"
+          grep -q "^Identifier=nl.torrisi.pullwatch.mcp$" <<<"$signature"
+          grep -q "flags=.*runtime" <<<"$signature"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unsigned-dist

@@ -19,6 +19,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var onboardingCompleted: Bool
     /// Bronnen die de gebruiker heeft uitgezet. Standaard staat elke bron aan.
     public var disabledSources: Set<DataSourceID>
+    /// Of coding agents Pullwatch via MCP mogen gebruiken. Standaard nooit: niets gaat naar een
+    /// agent (en zijn modelaanbieder) voordat iemand dat zelf kiest.
+    public var agentAccess: AgentAccess
 
     public init(
         accounts: [Account] = [],
@@ -32,7 +35,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         notifySecurityAlerts: Bool? = nil,
         notifications: NotificationSettings = NotificationSettings(),
         onboardingCompleted: Bool = false,
-        disabledSources: Set<DataSourceID> = []
+        disabledSources: Set<DataSourceID> = [],
+        agentAccess: AgentAccess = .never
     ) {
         self.accounts = accounts
         self.pollInterval = pollInterval
@@ -48,6 +52,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         self.notifications = notifications
         self.onboardingCompleted = onboardingCompleted
         self.disabledSources = disabledSources
+        self.agentAccess = agentAccess
     }
 
     public init(from decoder: any Decoder) throws {
@@ -71,6 +76,8 @@ public struct AppConfig: Codable, Equatable, Sendable {
         onboardingCompleted = try c.decodeIfPresent(Bool.self, forKey: .onboardingCompleted) ?? false
         // Onbekende id's (van een nieuwere of oudere versie) worden genegeerd.
         disabledSources = Set(try c.decodeIfPresent([String].self, forKey: .disabledSources)?.compactMap(DataSourceID.init(rawValue:)) ?? [])
+        // Van voor de agents (#142): nooit.
+        agentAccess = try c.decodeIfPresent(AgentAccess.self, forKey: .agentAccess) ?? .never
     }
 
     public func isEnabled(_ id: DataSourceID) -> Bool {
@@ -79,7 +86,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case accounts, pollInterval, historyRetention, autoVersionCheck, checkForUpdates, includeTestVersions
-        case notifications, onboardingCompleted, disabledSources
+        case notifications, onboardingCompleted, disabledSources, agentAccess
         case notifyPackageUpdates, notifyOnlyUpdatesYouCanTake, notifySecurityAlerts
     }
 
@@ -95,6 +102,7 @@ public struct AppConfig: Codable, Equatable, Sendable {
         try c.encode(onboardingCompleted, forKey: .onboardingCompleted)
         // Gesorteerd, zodat config.json niet bij elke keer opslaan van volgorde wisselt.
         try c.encode(disabledSources.map(\.rawValue).sorted(), forKey: .disabledSources)
+        try c.encode(agentAccess, forKey: .agentAccess)
         // Nog wel geschreven: een oudere Pullwatch leest alleen deze drie.
         try c.encode(notifyPackageUpdates, forKey: .notifyPackageUpdates)
         try c.encode(notifyOnlyUpdatesYouCanTake, forKey: .notifyOnlyUpdatesYouCanTake)

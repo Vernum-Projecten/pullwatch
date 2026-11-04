@@ -11,6 +11,9 @@
 		0000000000000000000C0002 /* PullwatchGitHub in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0002 /* PullwatchGitHub */; };
 		0000000000000000000C0003 /* PullwatchProviders in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0003 /* PullwatchProviders */; };
 		0000000000000000000C0004 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0004 /* Sparkle */; };
+		0000000000000000000C0005 /* PullwatchMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0005 /* PullwatchMCP */; };
+		0000000000000000000C0006 /* pullwatch-mcp in Embed Helpers */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* pullwatch-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0000000000000000000C0007 /* PullwatchMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0006 /* PullwatchMCP */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,12 +31,32 @@
 			remoteGlobalIDString = 000000000000000100000000;
 			remoteInfo = Pullwatch;
 		};
+		000000000000000302000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000500000000;
+			remoteInfo = "pullwatch-mcp";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		000000000000000150000000 /* Embed Helpers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				0000000000000000000C0006 /* pullwatch-mcp in Embed Helpers */,
+			);
+			name = "Embed Helpers";
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Pullwatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pullwatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000121 /* PullwatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PullwatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000122 /* PullwatchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PullwatchUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000123 /* pullwatch-mcp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "pullwatch-mcp"; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000130 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
 		000000000000000000000131 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		000000000000000000000132 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
@@ -68,6 +91,11 @@
 			path = PullwatchUITests;
 			sourceTree = "<group>";
 		};
+		000000000000000000000014 /* pullwatch-mcp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "pullwatch-mcp";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +106,7 @@
 				0000000000000000000C0002 /* PullwatchGitHub in Frameworks */,
 				0000000000000000000C0003 /* PullwatchProviders in Frameworks */,
 				0000000000000000000C0004 /* Sparkle in Frameworks */,
+				0000000000000000000C0005 /* PullwatchMCP in Frameworks */,
 			);
 		};
 		000000000000000230000000 /* Frameworks */ = {
@@ -88,6 +117,12 @@
 		000000000000000430000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+			);
+		};
+		000000000000000530000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				0000000000000000000C0007 /* PullwatchMCP in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -102,6 +137,7 @@
 				000000000000000000000010 /* Pullwatch */,
 				000000000000000000000011 /* PullwatchTests */,
 				000000000000000000000013 /* PullwatchUITests */,
+				000000000000000000000014 /* pullwatch-mcp */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +148,7 @@
 				000000000000000000000120 /* Pullwatch.app */,
 				000000000000000000000121 /* PullwatchTests.xctest */,
 				000000000000000000000122 /* PullwatchUITests.xctest */,
+				000000000000000000000123 /* pullwatch-mcp */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -126,8 +163,12 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				000000000000000150000000 /* Embed Helpers */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				000000000000000312000000 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* Pullwatch */,
@@ -138,6 +179,7 @@
 				0000000000000000000B0002 /* PullwatchGitHub */,
 				0000000000000000000B0003 /* PullwatchProviders */,
 				0000000000000000000B0004 /* Sparkle */,
+				0000000000000000000B0005 /* PullwatchMCP */,
 			);
 			productName = Pullwatch;
 			productReference = 000000000000000000000120 /* Pullwatch.app */;
@@ -185,6 +227,28 @@
 			productReference = 000000000000000000000122 /* PullwatchUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		000000000000000500000000 /* pullwatch-mcp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000510000000 /* Build configuration list for PBXNativeTarget "pullwatch-mcp" */;
+			buildPhases = (
+				000000000000000520000000 /* Sources */,
+				000000000000000530000000 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				000000000000000000000014 /* pullwatch-mcp */,
+			);
+			name = "pullwatch-mcp";
+			packageProductDependencies = (
+				0000000000000000000B0006 /* PullwatchMCP */,
+			);
+			productName = "pullwatch-mcp";
+			productReference = 000000000000000000000123 /* pullwatch-mcp */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -205,6 +269,9 @@
 					000000000000000400000000 = {
 						CreatedOnToolsVersion = 27.1;
 						TestTargetID = 000000000000000100000000;
+					};
+					000000000000000500000000 = {
+						CreatedOnToolsVersion = 27.1;
 					};
 				};
 			};
@@ -232,6 +299,7 @@
 				000000000000000100000000 /* Pullwatch */,
 				000000000000000200000000 /* PullwatchTests */,
 				000000000000000400000000 /* PullwatchUITests */,
+				000000000000000500000000 /* pullwatch-mcp */,
 			);
 		};
 /* End PBXProject section */
@@ -270,6 +338,11 @@
 			files = (
 			);
 		};
+		000000000000000520000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -282,6 +355,11 @@
 			isa = PBXTargetDependency;
 			target = 000000000000000100000000 /* Pullwatch */;
 			targetProxy = 000000000000000301000000 /* PBXContainerItemProxy */;
+		};
+		000000000000000312000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000500000000 /* pullwatch-mcp */;
+			targetProxy = 000000000000000302000000 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -348,6 +426,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
 				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
 				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -411,6 +490,7 @@
 				SDKROOT = macosx;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
 				SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY = YES;
 				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -515,6 +595,45 @@
 			};
 			name = Release;
 		};
+		000000000000000511000000 /* Debug configuration for PBXNativeTarget "pullwatch-mcp" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000131 /* Debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Alessandro Torrisi";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.torrisi.pullwatch.mcp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+			};
+			name = Debug;
+		};
+		000000000000000512000000 /* Release configuration for PBXNativeTarget "pullwatch-mcp" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000132 /* Release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Alessandro Torrisi";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.torrisi.pullwatch.mcp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				DEPLOYMENT_POSTPROCESSING = YES;
+				SKIP_INSTALL = YES;
+				STRIP_INSTALLED_PRODUCT = YES;
+				STRIP_STYLE = all;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -547,6 +666,14 @@
 			buildConfigurations = (
 				000000000000000411000000 /* Debug configuration for PBXNativeTarget "PullwatchUITests" */,
 				000000000000000412000000 /* Release configuration for PBXNativeTarget "PullwatchUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		000000000000000510000000 /* Build configuration list for PBXNativeTarget "pullwatch-mcp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000511000000 /* Debug configuration for PBXNativeTarget "pullwatch-mcp" */,
+				000000000000000512000000 /* Release configuration for PBXNativeTarget "pullwatch-mcp" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -587,6 +714,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0000000000000000000A0002 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		0000000000000000000B0005 /* PullwatchMCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PullwatchMCP;
+		};
+		0000000000000000000B0006 /* PullwatchMCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PullwatchMCP;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -97,13 +97,23 @@ sparkle="$app/Contents/Frameworks/Sparkle.framework"
 }
 rm -rf "$sparkle/Versions/B/XPCServices"
 if ((sign)); then
-  sparkle_sign=(--force --options runtime --timestamp --sign "$SIGN_ID")
+  nested_sign=(--force --options runtime --timestamp --sign "$SIGN_ID")
 else
-  sparkle_sign=(--force --options runtime --sign -)
+  nested_sign=(--force --options runtime --sign -)
 fi
 for part in "$sparkle/Versions/B/Autoupdate" "$sparkle/Versions/B/Updater.app" "$sparkle"; do
-  codesign "${sparkle_sign[@]}" "$part"
+  codesign "${nested_sign[@]}" "$part"
 done
+# De helper voor coding agents (pullwatch-mcp, #142), ook van binnen naar buiten: voor de app,
+# met hardened runtime en zijn eigen identifier. De app laat op zijn socket alleen code toe met
+# die identifier en hetzelfde team als zijzelf (MCPPeerPolicy); de notarisatie van de app dekt
+# hem als geneste code.
+helper="$app/Contents/Helpers/pullwatch-mcp"
+[ -x "$helper" ] || {
+  echo "no pullwatch-mcp helper in $app" >&2
+  exit 1
+}
+codesign "${nested_sign[@]}" --identifier nl.torrisi.pullwatch.mcp "$helper"
 if ((sign)); then
   codesign --force --options runtime --timestamp --sign "$SIGN_ID" "$app"
 else

@@ -50,7 +50,7 @@ public actor MCPBoundedTransport: Transport {
     }
 
     /// Het JSON-RPC-antwoord op een bericht dat niet door mag.
-    private static func invalidRequest(_ message: String) throws -> Data {
+    static func invalidRequest(_ message: String) throws -> Data {
         let response: Value = [
             "jsonrpc": "2.0",
             "id": nil,

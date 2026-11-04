@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import PullwatchCore
+import PullwatchMCP
 
 /// Log is Sendable; ook bruikbaar vanuit nonisolated callbacks.
 nonisolated private let logger = Log(category: "app")
@@ -21,6 +22,7 @@ final class AppModel {
     @ObservationIgnored let polling: PollingModel
     @ObservationIgnored let updates: UpdatesModel
     @ObservationIgnored let router: AppRouter
+    @ObservationIgnored let agents: AgentServer
 
     @ObservationIgnored private var loopTask: Task<Void, Never>?
     @ObservationIgnored private var wakeTask: Task<Void, Never>?
@@ -50,10 +52,16 @@ final class AppModel {
         )
         updates = UpdatesModel(services: services, accounts: accounts, notifications: notifications)
         router = AppRouter()
+        let agents = AgentServer(makeTools: { AppModel.mcpTools() })
+        self.agents = agents
         // Het overzicht volgt instellingen, geschiedenis en rapport, meteen bij elke wijziging.
         // Andere bronnen uit of een account erbij of eraf: eerst het getoonde rapport, dat dan zelf
         // het overzicht bijwerkt.
-        accounts.didChangeConfig = { if !versions.configChanged() { overview.recomputeRepoSummaries() } }
+        accounts.didChangeConfig = { [weak accounts] in
+            if !versions.configChanged() { overview.recomputeRepoSummaries() }
+            // De socket volgt Instellingen, Agents, maar pas als de app gestart is.
+            if agents.isEnabled, let access = accounts?.config.agentAccess { agents.apply(access) }
+        }
         history.didChangeHistory = { overview.recomputeRepoSummaries() }
         versions.didChangeReport = { overview.recomputeRepoSummaries() }
         versions.didChangeSeenPackages = { overview.recomputeSidebar() }
@@ -97,6 +105,9 @@ final class AppModel {
                 await self?.polling.refreshNow()
             }
         }
+
+        agents.isEnabled = true
+        agents.apply(config.agentAccess)
 
         let incomplete = accounts.incompleteAccounts
         for account in incomplete { removeAccount(account.id) }
@@ -265,6 +276,13 @@ final class AppModel {
         }
     }
 
+    /// Instellingen, Agents: of coding agents Pullwatch via MCP mogen gebruiken. Direct
+    /// opgeslagen; de socket gaat meteen open of dicht (via `didChangeConfig`).
+    var agentAccess: AgentAccess {
+        get { config.agentAccess }
+        set { accounts.edit { $0.agentAccess = newValue } }
+    }
+
     var checksVersionsDaily: Bool {
         get { config.autoVersionCheck }
         set { accounts.edit { $0.autoVersionCheck = newValue } }
@@ -276,6 +294,14 @@ final class AppModel {
             accounts.edit { $0.historyRetention = newValue }
             historyModel.prune(retention: newValue)
         }
+    }
+
+    // MARK: - Agents
+
+    /// De tools die agents krijgen. Nog leeg: #143 vult dit met `PullwatchMCPTools` over de
+    /// modellen van de app, zodat een agent dezelfde gegevens ziet als de vensters.
+    static func mcpTools() -> [MCPTool] {
+        []
     }
 
     // MARK: - Meldingen
