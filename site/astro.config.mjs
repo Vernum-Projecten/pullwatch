@@ -81,6 +81,7 @@ export default defineConfig({
 					translations: { nl: 'Naslag', de: 'Referenz', fr: 'Référence' },
 					items: [
 						{ slug: 'privacy' },
+						{ slug: 'acknowledgements' },
 						{ slug: 'agents' },
 						{ slug: 'faq' },
 						{ slug: 'troubleshooting' },

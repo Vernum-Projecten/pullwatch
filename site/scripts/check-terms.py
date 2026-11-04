@@ -36,12 +36,12 @@ common = {'pullwatch', 'github', 'gitlab', 'azure devops', 'github enterprise', 
           'github advisory database', 'azure devops advanced security', 'swift.org', 'fine-grained token',
           'classic token', '+', 'eol', 'read_api', 'developer id', 'install pullwatch', 'finder', 'terminal',
           'spotlight', 'launchpad', 'dock'}
-# macOS's own names in each language (Finder, the Keychain prompt), not Pullwatch's.
+# macOS's own names in each language (Finder, the Keychain prompt, the Help menu), not Pullwatch's.
 macos = {
-    'en': {'applications', 'always allow'},
-    'nl': {'apps', 'sta altijd toe'},
-    'de': {'programme', 'immer erlauben'},
-    'fr': {'applications', 'toujours autoriser'},
+    'en': {'applications', 'always allow', 'help'},
+    'nl': {'apps', 'sta altijd toe', 'help'},
+    'de': {'programme', 'immer erlauben', 'hilfe'},
+    'fr': {'applications', 'toujours autoriser', 'aide'},
 }
 # Bold used as the lead-in of a list item or a step: emphasis in the prose, not a name on screen.
 emphasis = {

@@ -49,3 +49,7 @@ Alles staat standaard aan. Je keuze wordt bewaard in `config.json`, als `disable
 ## Openbare repositories zonder token
 
 Een openbare repository op github.com of gitlab.com die je token niet mag lezen, wordt gelezen zonder in te loggen. Pullwatch stuurt het token van een account nooit naar een andere server: een token van GitHub Enterprise blijft op zijn eigen server.
+
+## Opensourcesoftware
+
+De opensourcesoftware in Pullwatch, met de versie en de licentie van elk onderdeel, staat onder [Erkenningen](/nl/acknowledgements/).
