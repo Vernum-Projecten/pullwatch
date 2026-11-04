@@ -33,7 +33,12 @@ import Testing
 
     @Test(arguments: [true, false])
     func `PullRequestRow draws without a model in the environment`(showsChecks: Bool) {
-        #expect(draws(PullRequestRow(item: Self.item, showsChecks: showsChecks)))
+        #expect(draws(PullRequestRow(item: Self.item, kind: .gitHub, showsChecks: showsChecks)))
+    }
+
+    @Test(arguments: ProviderKind.allCases)
+    func `RepoReferenceLabel draws without a model in the environment`(kind: ProviderKind) {
+        #expect(draws(RepoReferenceLabel(entry: Self.item.entry, kind: kind)))
     }
 
     @Test func `AcknowledgementRow draws without a model in the environment`() {

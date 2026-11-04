@@ -59,6 +59,7 @@ Der ausgewählte Pull Request, Tag oder das ausgewählte Release.
 | ⇧⌘U | Als gelesen markieren oder Als ungelesen markieren |
 | ⌘K | Alle als gelesen markieren |
 | ⇧⌘L | Link kopieren |
+| ⌥⇧⌘L | Verweis kopieren: der ausgewählten Pull Requests, etwa `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 

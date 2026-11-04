@@ -256,10 +256,14 @@ public struct History: Codable, Equatable, Sendable {
     /// van een release), auteur, co-auteurs en repo.
     /// Met `group` alleen items van dat project, met `author` alleen PR's van die auteur, met `repo`
     /// alleen items van die repo (hoofdletterongevoelig).
+    /// Een tekst die een PR-nummer noemt (`1570`, `#1570`, `!42`, `FerroFED#1570`) vindt ook die PR
+    /// (`PullRequestNumberQuery`); `providerKinds` geeft per account de dienst, voor het teken.
     public func search(
-        _ text: String, kind: ItemKind?, group: HistoryGroup.ID? = nil, author: String? = nil, repo: HistoryRepo? = nil
+        _ text: String, kind: ItemKind?, group: HistoryGroup.ID? = nil, author: String? = nil, repo: HistoryRepo? = nil,
+        providerKinds: [UUID: ProviderKind] = [:]
     ) -> [HistoryItem] {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let number = PullRequestNumberQuery(query)
         return items.filter { item in
             if let kind, item.entry.kind != kind { return false }
             if let group, HistoryGroup.ID(item.entry) != group { return false }
@@ -267,6 +271,9 @@ public struct History: Codable, Equatable, Sendable {
             if let repo, item.entry.accountId != repo.accountId
                 || item.entry.repo.caseInsensitiveCompare(repo.repo) != .orderedSame { return false }
             if query.isEmpty { return true }
+            if let number, case .pullRequest(let pr) = item.entry, number.matches(pr, kind: providerKinds[pr.accountId]) {
+                return true
+            }
             return item.entry.title.localizedCaseInsensitiveContains(query)
                 || (item.entry.releaseTitle?.localizedCaseInsensitiveContains(query) ?? false)
                 || (item.entry.author?.localizedCaseInsensitiveContains(query) ?? false)

@@ -174,7 +174,8 @@ import Testing
         let entry = HistoryEntry.pullRequest(pr)
         #expect(entry.glyph == PRStatus.queued.glyph)
         #expect(String(localized: entry.glyphLabel) != String(localized: PRStatus.queued.spokenName), "met de plek erbij")
-        #expect(entry.statePill.map { String(localized: $0.text) } == String(localized: LocalizedStringResource("In wachtrij")))
+        #expect(String(localized: PRStatus.queued.spokenSentence(number: 1, title: "t"))
+                == String(localized: LocalizedStringResource("Pull request \("1") in de wachtrij: \("t")")))
 
         pr.mergeQueue?.position = nil
         #expect(String(localized: HistoryEntry.pullRequest(pr).glyphLabel) == String(localized: PRStatus.queued.spokenName))

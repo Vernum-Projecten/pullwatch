@@ -57,6 +57,16 @@ import Testing
         #expect(view.item(key: "r", modifiers: [.command])?.title == String(localized: "Laad opnieuw"))
     }
 
+    @Test func `The Item menu copies the reference right after the link`() throws {
+        let item = try #require(menus[safe: 5])
+        let link = try #require(item.item(key: "l", modifiers: [.shift, .command]))
+        let reference = try #require(item.item(key: "l", modifiers: [.option, .shift, .command]))
+        #expect(link.title == String(localized: "Kopieer link"))
+        #expect(reference.title == String(localized: "Kopieer verwijzing"))
+        #expect(item.index(of: reference) == item.index(of: link) + 1)
+        #expect(!reference.isAlternate, "Kopieer verwijzing staat er altijd, niet alleen met ⌥")
+    }
+
     @Test func `The Window menu brings back the main window`() throws {
         let window = try #require(menus[safe: 7])
         #expect(window.item(key: "0", modifiers: [.command])?.title == "Pullwatch")

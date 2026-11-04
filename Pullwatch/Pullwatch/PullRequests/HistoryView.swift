@@ -39,7 +39,7 @@ struct HistoryView: View {
         let tokens = router.historyTokens
         let authors = Set(tokens.compactMap { if case .author(let name) = $0 { name } else { nil } })
         let repos = tokens.compactMap { if case .repo(let repo) = $0 { repo } else { nil } }
-        let found = historyModel.history.search(searchText, kind: kind, group: group).filter { item in
+        let found = historyModel.history.search(searchText, kind: kind, group: group, providerKinds: accounts.config.providerKinds).filter { item in
             (authors.isEmpty || item.entry.author.map(authors.contains) == true)
                 && (repos.isEmpty || repos.contains {
                     $0.accountId == item.entry.accountId && $0.repo.caseInsensitiveCompare(item.entry.repo) == .orderedSame
@@ -66,7 +66,8 @@ struct HistoryView: View {
         return HistoryRepo(accountId: first.accountId, repo: first.repo)
     }
 
-    /// De dienst van het account van dit item, voor de foto's bij de auteur.
+    /// De dienst van het account van dit item, voor de foto's bij de auteur en het teken van het
+    /// PR-nummer.
     private func kind(of item: HistoryItem) -> ProviderKind {
         accounts.config.accounts.first { $0.id == item.entry.accountId }?.kind ?? .azureDevOps
     }
@@ -131,8 +132,10 @@ struct HistoryView: View {
                 .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
             }
             .width(min: 180, ideal: 300)
-            TableColumn("Repo", value: \.entry.repo) { item in
-                Text(verbatim: item.entry.repo).lineLimit(1)
+            // Bij een PR de korte naam met het nummer (`FerroFED #1570`), zoals GitHub; sorteren
+            // houdt een repo bij elkaar en zet zijn PR's op nummer (`RepoSortKey`).
+            TableColumn("Repo", value: \.entry.repoSortKey) { item in
+                RepoReferenceLabel(entry: item.entry, kind: kind(of: item))
             }
             .width(min: 100, ideal: 180)
             TableColumn("Auteur", value: \.authorSortKey) { item in
@@ -210,7 +213,7 @@ struct HistoryView: View {
         .searchable(
             text: $searchText,
             tokens: Bindable(router).historyTokens,
-            prompt: groupName.map { Text("Zoek in \($0)…", comment: "Projectnaam") } ?? Text("Zoek op titel, auteur, repo…")
+            prompt: groupName.map { Text("Zoek in \($0)…", comment: "Projectnaam") } ?? Text(kind == .pullRequest ? "Zoek op titel, nummer, auteur, repo…" : "Zoek op titel, auteur, repo…")
         ) { token in
             HistoryTokenLabel(token: token)
         }

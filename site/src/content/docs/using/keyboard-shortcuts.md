@@ -59,6 +59,7 @@ The selected pull request, tag or release.
 | ⇧⌘U | Mark as read or unread |
 | ⌘K | Mark all as read |
 | ⇧⌘L | Copy the link |
+| ⌥⇧⌘L | Copy the reference of the selected pull requests, such as `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 

@@ -41,6 +41,8 @@ struct RepoOverviewSection: View {
 
 struct RepoPullRequestsSection: View {
     let items: [HistoryItem]
+    /// De dienst van het account, voor het teken van het PR-nummer; nil zonder account.
+    let providerKind: ProviderKind?
     let openCount: Int
     /// De bron CI-checks staat aan.
     let showsChecks: Bool
@@ -58,7 +60,7 @@ struct RepoPullRequestsSection: View {
                 Button {
                     open(item)
                 } label: {
-                    PullRequestRow(item: item, showsChecks: showsChecks)
+                    PullRequestRow(item: item, kind: providerKind, showsChecks: showsChecks)
                 }
                 .buttonStyle(.plain)
                 .help(Text("Open in browser"))
@@ -107,20 +109,38 @@ private struct ChecksPermissionNote: View {
     }
 }
 
-/// Eén PR in een lijst. Leest zelf geen model uit de environment (zie `ChecksBadge`).
+/// Eén PR in een lijst: de status als Octicon in zijn kleur, zoals de PR-lijst van het
+/// hoofdvenster, daarachter het nummer (`#1570`) ingetogen zoals de telling van de checks, en de
+/// titel; de repo staat al boven de pagina. De status staat in woorden in de tooltip en voor
+/// VoiceOver ("Gemergde pull request 1570: titel"). Leest zelf geen model uit de environment (zie
+/// `ChecksBadge`).
 struct PullRequestRow: View {
     let item: HistoryItem
+    /// De dienst van het account, voor het teken van het nummer; nil: geen nummer.
+    let kind: ProviderKind?
     /// De bron CI-checks staat aan.
     let showsChecks: Bool
 
     var body: some View {
         HStack(spacing: 6) {
-            if let pill = item.entry.statePill {
-                Pill(text: pill.text, tint: pill.tint)
+            HStack(spacing: 6) {
+                item.entry.glyph.image
+                    .foregroundStyle(item.entry.glyphColor)
+                    .frame(width: 16)
+                    .help(Text(item.entry.glyphLabel))
+                if case .pullRequest(let pr) = item.entry, let kind {
+                    Text(verbatim: pr.numberText(kind))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .fixedSize()
+                        .help(pr.reference(kind))
+                }
+                Text(verbatim: item.entry.title)
+                    .fontWeight(item.isRead ? .regular : .semibold)
+                    .lineLimit(1)
             }
-            Text(verbatim: item.entry.title)
-                .fontWeight(item.isRead ? .regular : .semibold)
-                .lineLimit(1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(spokenTitle)
             ChecksBadge(checks: item.entry.checks, isEnabled: showsChecks)
             Spacer(minLength: 8)
             if let author = item.entry.author {
@@ -131,6 +151,14 @@ struct PullRequestRow: View {
                 .monospacedDigit()
         }
         .contentShape(Rectangle())
+    }
+
+    /// Status, nummer en titel als één zin; bij een tag alleen de titel.
+    private var spokenTitle: Text {
+        guard case .pullRequest(let pr) = item.entry, let status = item.entry.prStatus else {
+            return Text(verbatim: item.entry.title)
+        }
+        return Text(status.spokenSentence(number: pr.number, title: pr.title))
     }
 }
 

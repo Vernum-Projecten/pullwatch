@@ -59,6 +59,7 @@ De gekozen pull request, tag of release.
 | ⇧⌘U | Markeer als gelezen of Markeer als ongelezen |
 | ⌘K | Alles als gelezen markeren |
 | ⇧⌘L | Kopieer link |
+| ⌥⇧⌘L | Kopieer verwijzing: van de gekozen pull requests, zoals `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 

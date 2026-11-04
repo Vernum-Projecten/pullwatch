@@ -30,6 +30,7 @@ struct RepoOverviewTab: View {
             )
             RepoPullRequestsSection(
                 items: pullRequests,
+                providerKind: account?.kind,
                 openCount: summary.openPullRequests,
                 showsChecks: accounts.config.isEnabled(.ciChecks),
                 open: { historyModel.open($0) },
