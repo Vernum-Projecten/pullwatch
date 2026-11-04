@@ -81,7 +81,7 @@ Das ausgewählte Repository oder die offene Seite eines Repositorys.
 | ⌘M | Im Dock ablegen |
 | ⌘0 | Pullwatch: das Hauptfenster öffnen oder nach vorne holen |
 
-Hilfe führt zu dieser Dokumentation (Pullwatch-Hilfe), zu dieser Seite (Tastaturkurzbefehle), zu den Versionshinweisen deiner Version (Neu in Pullwatch), zu einem neuen Issue auf GitHub (Problem melden …) und zu den Danksagungen.
+Hilfe führt zu dieser Dokumentation (Pullwatch-Hilfe), zu dieser Seite (Tastaturkurzbefehle), zu den Versionshinweisen deiner Version (Neu in Pullwatch), zu Datenschutz und Quellen (Einstellungen, Quellen: jede Verbindung, die Pullwatch aufbaut), zu einem neuen Issue auf GitHub (Problem melden …) und zu den Danksagungen.
 
 ## Dock
 

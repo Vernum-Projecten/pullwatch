@@ -81,7 +81,7 @@ Le dépôt sélectionné, ou la page de dépôt ouverte.
 | ⌘M | Placer dans le Dock |
 | ⌘0 | Pullwatch : ouvrir la fenêtre principale ou la mettre au premier plan |
 
-Aide mène à cette documentation (Aide Pullwatch), à cette page (Raccourcis clavier), aux notes de version de votre version (Nouveautés de Pullwatch), à un nouveau ticket sur GitHub (Signaler un problème…) et aux Remerciements.
+Aide mène à cette documentation (Aide Pullwatch), à cette page (Raccourcis clavier), aux notes de version de votre version (Nouveautés de Pullwatch), à Confidentialité et sources (Réglages, Sources : chaque connexion établie par Pullwatch), à un nouveau ticket sur GitHub (Signaler un problème…) et aux Remerciements.
 
 ## Dock
 

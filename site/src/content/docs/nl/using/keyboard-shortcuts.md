@@ -81,7 +81,7 @@ De gekozen repository, of de open pagina van een repository.
 | ⌘M | Minimaliseren |
 | ⌘0 | Pullwatch: het hoofdvenster openen of naar voren halen |
 
-Help leidt naar deze documentatie (Pullwatch-help), naar deze pagina (Toetscombinaties), naar de release notes van jouw versie (Nieuw in Pullwatch), naar een nieuw issue op GitHub (Meld een probleem…) en naar Erkenningen.
+Help leidt naar deze documentatie (Pullwatch-help), naar deze pagina (Toetscombinaties), naar de release notes van jouw versie (Nieuw in Pullwatch), naar Privacy en bronnen (Instellingen, Bronnen: elke verbinding die Pullwatch maakt), naar een nieuw issue op GitHub (Meld een probleem…) en naar Erkenningen.
 
 ## Dock
 
