@@ -1,0 +1,44 @@
+---
+title: Pull requests et tags
+description: "L’historique consultable des pull requests, des merge requests, des tags et des versions publiées, et la façon dont Pullwatch affiche les checks."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+La fenêtre principale (**Ouvrir…** dans le panneau du menu) commence par deux listes : **PR** et **Tags et versions publiées**. Les deux conservent chaque pull request et chaque tag que Pullwatch a vus, aussi longtemps que vous le choisissez dans Réglages, Général (2 mois, 6 mois, 1 an ou Toujours).
+
+<Screenshot name="pull-requests" alt="La liste PR : des pull requests de quatre dépôts, chacune avec son icône d’état, ses checks comme 4 sur 8, son titre, son dépôt, son auteur et son ancienneté." />
+
+## Pull requests
+
+Chaque ligne affiche l’icône d’état aux couleurs de GitHub (ouverte, brouillon, en file d’attente, fusionnée, fermée), les checks, le titre, le dépôt, l’auteur avec les coauteurs (« mona et 2 autres ») et la date d’ouverture. Cherchez par titre, auteur ou dépôt, et double-cliquez sur une ligne pour l’ouvrir dans le navigateur.
+
+Une pull request ouverte qui attend d’être fusionnée automatiquement apparaît en file d’attente, avec une icône orange : dans une merge queue sur GitHub, dans un merge train ou programmée pour être fusionnée quand le pipeline réussit sur GitLab, ou avec l’auto-complete sur Azure DevOps.
+
+Dans la barre latérale, vous pouvez déplier **PR**, **Tags et versions publiées** et **Dépôts** en leurs projets (Azure DevOps) ou leurs propriétaires (GitHub et GitLab), chacun avec son propre nombre de non-lus. En sélectionner un filtre la liste et la recherche sur celui-ci. Les badges comptent ce qui n’est pas lu.
+
+Quand vous ajoutez un compte, Pullwatch récupère ses pull requests existantes (ouvertes, fusionnées et fermées), aussi loin que remonte l’historique et 1000 au maximum par compte. Elles ne déclenchent pas de notification et arrivent marquées comme lues. Ensuite, l’historique est mis à jour toutes les 15 minutes : état, titre et date de fermeture. Changer les dépôts qu’un compte suit, ou la durée de conservation de l’historique, relance cette première récupération pour ce compte.
+
+La recherche de GitHub a sa propre limite, 30 requêtes par minute. Quand Pullwatch l’atteint, il attend que GitHub en autorise davantage, tandis que l’interrogation des nouvelles pull requests continue.
+
+## Checks
+
+Pullwatch affiche les checks (CI) de chaque pull request comme la liste de GitHub : une icône de la couleur de l’état et le nombre de checks réussis sur le total.
+
+- une coche verte quand tout a réussi, comme `8/8` ;
+- une croix rouge dès que l’un d’eux a échoué, comme `4/8` ;
+- un point orange tant que des checks tournent encore.
+
+Les checks ignorés et neutres comptent comme réussis. L’infobulle et VoiceOver le disent en toutes lettres : « Checks réussis : 4 sur 8, 1 en échec et 3 en cours ». Une pull request sans checks n’a pas de cellule.
+
+Sur GitHub, les checks viennent du dernier commit (son `statusCheckRollup`, dans la même requête que les coauteurs), sur Azure DevOps des statuts et des stratégies de build de la pull request, et sur GitLab des jobs du pipeline de tête. Seules les pull requests ouvertes et celles fusionnées au cours des trois derniers jours sont interrogées, et les checks terminés qui n’ont pas changé ne coûtent aucune requête. Sans autorisation pour les checks (voir [Autorisations des jetons](/fr/getting-started/permissions/)), il n’y a pas de cellule, et la page du dépôt indique **Checks : Autorisation requise**.
+
+## Tags et versions publiées
+
+**Tags et versions publiées** liste chaque nouveau tag. Un tag indique qui l’a créé (sur GitHub, la personne derrière sa version publiée, sinon l’auteur du tag, sinon l’auteur du commit) avec sa photo, et une étiquette Version publiée ou Préversion avec le titre de la version. La barre d’outils filtre sur tous les tags, les versions publiées seulement, ou les tags sans version publiée. Un tag avec une version publiée ouvre la version publiée ; un tag sans version ouvre les fichiers à ce tag.
+
+Les tags sont interrogés toutes les 15 minutes, séparément des pull requests (**Actualiser maintenant** interroge aussi les tags), et la première interrogation des tags d’un dépôt est silencieuse. Sur GitHub, une version publiée plus tard pour un tag que Pullwatch a déjà vu donne une seule notification et met à jour la même ligne.
+
+## Naviguer
+
+Depuis une ligne, **Dépôt** dans la barre d’outils (ou un clic droit) ouvre la page de ce dépôt. Une page de dépôt renvoie vers toutes ses pull requests et tous ses tags.

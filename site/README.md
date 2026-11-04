@@ -44,6 +44,8 @@ CI builds and checks both.
    `src/plugins/base-links.mjs` adds `/pullwatch` on the project page, and the
    links validator fails the build when the page does not exist.
    In a component, build a link with `import.meta.env.BASE_URL`.
+5. Add the same page in Dutch, German and French under
+   `src/content/docs/nl/`, `de/` and `fr/` (see [Languages](#languages)).
 
 Write as the other pages do: English, short sentences, the names the app
 shows (**Settings**, **Sources**), and only what the code does. No em dashes,
@@ -51,8 +53,10 @@ no middle dots.
 
 ## Screenshots
 
-`src/assets/screenshots/light/` and `dark/` hold the same file names. Show
-one with the `Screenshot` component, which picks the one for the reader's
+`src/assets/screenshots/light/` and `dark/` hold the English set, and
+`src/assets/screenshots/<lang>/light/` and `dark/` the set of each other
+language, all with the same file names. Show one with the `Screenshot`
+component, which picks the one for the page's language and the reader's
 theme and lets Astro make AVIF and WebP in a few sizes:
 
 ```mdx
@@ -78,10 +82,30 @@ the dark set, and with `-PullwatchMenuPreview YES` and
 `-PullwatchNotificationPreview YES -PullwatchSkipNotificationRequest YES` (on
 the same data folder, so the menu has content) for the menu panel and the
 notifications. The main window draws its sidebar empty, so crop the shots
-to the content to the right of it, at 2x.
+to the content to the right of it, at 2x. For another language, pass
+`-AppleLanguages '(nl)' -AppleLocale nl_NL` (or `de`, `fr`). A window that
+opens on a 1x display is drawn at 1x: take that run again.
 
 ## Languages
 
-English is the root locale (no `/en/` in the address). A language is added
-in `astro.config.mjs` under `locales` with its pages in
-`src/content/docs/<lang>/`, without moving the English ones.
+English is the root locale (no `/en/` in the address) and the fallback.
+Dutch (`nl`), German (`de`) and French (`fr`) are in `astro.config.mjs` under
+`locales`, with their pages in `src/content/docs/<lang>/` under the same
+paths as the English ones, so the language picker and the `hreflang` links go
+from page to page. Every page exists in every language: the links validator
+fails the build on a link to an untranslated (fallback) page or to a page in
+another language.
+
+- A link on a translated page carries its language: `/nl/using/menu/`, and a
+  `#heading` is the slug of the translated heading.
+- The text of the landing page's own components is in
+  `src/content/i18n/<lang>.json` (the `pw.*` keys, read with
+  `Astro.locals.t`); `nl.json` also fills two Starlight strings its Dutch
+  lacks.
+- Every name of a button, menu, tab or setting is the one the app shows in
+  that language, from the String Catalogs (`Localizable.xcstrings`; the key
+  is the Dutch, the values per language). `python3 scripts/check-terms.py`
+  lists each bold or code name per language and fails on one the catalogs do
+  not hold, unless it is on its list of outside names (macOS, the services)
+  or emphasis.
+- Dutch says "je", German "du" and French "vous", as the app does.

@@ -1,0 +1,49 @@
+---
+title: Beveiliging
+description: Bekende kwetsbaarheden uit OSV.dev en de GitHub Advisory Database, en de meldingen van GitHub en Azure DevOps.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Dezelfde dagelijkse check die verouderde versies vindt, zoekt ook bekende kwetsbaarheden op. Ze staan op het tabblad **Controle** van de pagina van een repository, tellen mee voor de kleur in Repo's, en een nieuwe kwetsbaarheid geeft een melding.
+
+<Screenshot name="repo-check" alt="Het tabblad Controle van hello-world: Node 16 EOL, en adviezen voor lodash, qs en semver met de geïnstalleerde versie, de oplossing, hoe elk package erin kwam en of release v1.2.0 het ook heeft." />
+
+## Packages met bekende kwetsbaarheden
+
+Pullwatch stuurt de namen en exacte versies van je packages naar [OSV.dev](https://osv.dev), voor deze bestanden:
+
+- `go.mod`
+- `package-lock.json`, `yarn.lock` (classic en Berry), `pnpm-lock.yaml` (v6 tot en met v9)
+- `PackageReference` en `PackageVersion` in .NET-projecten, NuGet `packages.lock.json`
+- `requirements*.txt` (alleen `==`), `poetry.lock`, `uv.lock`
+- `composer.lock`
+- `Cargo.lock` (alleen crates.io)
+- `Package.resolved`
+- `Gemfile.lock` (gems van rubygems.org; gems uit `GIT` en `PATH` worden overgeslagen)
+
+Maven en Gradle worden niet gelezen: hun versies bestaan pas na het oplossen van een build. Elke scan leest hooguit 50 bestanden per repository, lockfiles eerst.
+
+Elke bevinding zegt waar ze zit: de workspace, of het package direct is of via een ander binnenkwam (met de kortste keten, zoals "via express, body-parser"), en of het voor runtime is, alleen voor ontwikkeling of optioneel. Klap een rij uit om elke installatie te zien.
+
+Heeft een repository tags, dan wordt ook de nieuwste versietag gecontroleerd (een pre-release zoals `-rc1` alleen als er niets anders is), en bij elke kwetsbaarheid staat of die release hem ook heeft. Wat op de standaardbranch al opgelost is, wordt niet gemeld.
+
+## Details van adviezen
+
+Elke kwetsbaarheid toont ook de vermelding in de GitHub Advisory Database: de GHSA-id naast de CVE, de ernst volgens GitHub met de CVSS-score en -vector, de namen van de CWE's, en een link naar `github.com/advisories`, op de pagina van de repository, in de gekopieerde tekst en in meldingen. Pullwatch haalt elk advies één keer op via de openbare advisories-API van GitHub (met het token van een GitHub-account als dat er is) en bewaart het bij de check. Kies een rij om het te zien in het inspectievenster, met de oplossing in gewone woorden ("Werk lodash bij naar 4.17.21; dat valt binnen het bereik, alleen de lockfile verandert") en wat de oplossing tegenhoudt.
+
+## Meldingen van GitHub en Azure DevOps
+
+Het tabblad **Beveiliging** toont wat de dienst zelf weet, gelezen bij de dagelijkse check en met **Check**, nooit bij elke poll.
+
+<Screenshot name="repo-security" alt="Het tabblad Beveiliging van hello-world: drie meldingen van code scanning, Kritiek, Hoog en Opmerking, met het bestand en de regel van elke melding." />
+
+- **GitHub**: de adviezen die de repository over zichzelf publiceert, open meldingen van code scanning (CodeQL en andere tools, met bestand en regel), en het aantal open meldingen van secret scanning. Pullwatch leest het geheim zelf nooit.
+- **Azure DevOps**: open meldingen van Advanced Security voor code en afhankelijkheden, en het aantal geheimen.
+- **GitLab** heeft niets vergelijkbaars dat voor elk abonnement open is, dus een repository op GitLab toont alleen de check van versies en OSV.dev.
+
+Open kritieke en hoge meldingen tellen mee in de bevindingen van de repository en de kleur ervan. Een melding bij een nieuwe beveiligingsmelding staat standaard uit; zet die aan onder Instellingen, Meldingen. Staat een soort uit voor een repository, of mag het token hem niet lezen, dan zegt het tabblad **Staat uit** of **Toestemming nodig** met een link, en er mislukt niets.
+
+## Bronnen uitzetten
+
+Elke bron hierboven kun je uitzetten onder Instellingen, Bronnen. Pullwatch toont dat deel dan nooit als schoon: het zegt "Niet gecontroleerd" met de naam van de bron die uit staat. Zie [Privacy en bronnen](/nl/privacy/).

@@ -1,0 +1,118 @@
+---
+title: Pullwatch
+description: "Une app de la barre des menus de macOS pour les nouvelles pull requests, les tags et les versions publiées sur GitHub, Azure DevOps et GitLab, avec une vérification de vos dépôts à la recherche de runtimes et de paquets obsolètes et de vulnérabilités connues."
+template: splash
+editUrl: false
+lastUpdated: false
+pagefind: false
+hero:
+  title: Pullwatch
+  tagline: "Les nouvelles pull requests, les tags et les versions publiées de GitHub, Azure DevOps et GitLab, directement dans votre barre des menus. Avec une vérification quotidienne de chaque dépôt à la recherche de runtimes et de paquets obsolètes et de vulnérabilités connues."
+  image:
+    file: ../../../assets/pullwatch-icon.png
+    alt: "L’icône de l’app Pullwatch"
+  actions:
+    - text: Télécharger pour Mac
+      link: https://github.com/alessandro823/pullwatch/releases/latest
+      icon: download
+      variant: primary
+    - text: Code source sur GitHub
+      link: https://github.com/alessandro823/pullwatch
+      icon: github
+      variant: minimal
+---
+
+import Feature from '../../../components/Feature.astro';
+import Closing from '../../../components/Closing.astro';
+
+<p class="pw-requirements">Gratuit et open source. macOS 26.6 ou ultérieur, Apple silicon et Intel. En anglais, néerlandais, allemand et français.</p>
+
+<Feature
+	id="pull-requests"
+	kicker="Pull requests"
+	title="Chaque pull request, dès son ouverture"
+	shot="pull-requests"
+	alt="La liste PR de Pullwatch : des pull requests de plusieurs dépôts avec leur icône d’état, des checks comme 4 sur 8 réussis, l’auteur et l’ancienneté."
+	href="/fr/using/pull-requests-and-tags/"
+	more="Pull requests et tags"
+>
+	<p>Pullwatch suit vos comptes sur github.com, GitHub Enterprise, Azure DevOps et GitLab, et vous signale les nouvelles pull requests et merge requests dès leur arrivée. Chacune affiche son état et ses checks comme sur GitHub : le nombre de checks réussis sur le total, une croix rouge quand l’un d’eux a échoué, de l’orange tant qu’ils tournent.</p>
+	<p>Tout arrive dans un historique où vous pouvez chercher par titre, auteur et dépôt, avec les nouveaux tags et les nouvelles versions publiées.</p>
+</Feature>
+
+<Feature
+	id="menu"
+	kicker="Barre des menus"
+	title="À un clic, où que vous soyez"
+	shot="menu"
+	alt="Le panneau du menu de Pullwatch avec les dernières pull requests et leurs checks, et les derniers tags et versions publiées."
+	href="/fr/using/menu/"
+	more="Le panneau du menu"
+	tall
+>
+	<p>Le panneau du menu affiche les pull requests et les tags les plus récents avec leurs checks. Cliquez sur l’un d’eux pour l’ouvrir dans le navigateur, actualisez, ou ouvrez la fenêtre principale. Un point sur l’icône de la barre des menus vous indique qu’il reste quelque chose de non lu.</p>
+</Feature>
+
+<Feature
+	id="repositories"
+	kicker="Dépôts"
+	title="L’état de chaque dépôt"
+	shot="repo-detail"
+	alt="Une page de dépôt dans Pullwatch : le statut Problème, le compte, le dernier tag, et ses pull requests ouvertes, en file d’attente, fusionnées et fermées."
+	href="/fr/using/repositories/"
+	more="Dépôts"
+>
+	<p>Chaque dépôt suivi a sa page avec ses pull requests ouvertes et récentes, le dernier tag et le résultat de sa vérification, les pires en tête de liste. Suivez aussi des dépôts isolés hors de vos organisations, comme un projet public dont vous dépendez.</p>
+</Feature>
+
+<Feature
+	id="dependencies"
+	kicker="Dépendances"
+	title="Voyez ce qui bloque une mise à jour"
+	shot="dependencies"
+	alt="La section Dépendances : les paquets regroupés en Mise à jour possible, Manifeste à modifier et Bloqué, avec les dépôts en retard et la raison."
+	href="/fr/using/dependencies/"
+	more="Dépendances"
+>
+	<p>Une fois par jour, Pullwatch lit les manifestes et les fichiers de verrouillage de vos dépôts et les compare aux registres de paquets et à endoflife.date. Il montre quels dépôts sont en retard, si une mise à jour reste dans la plage actuelle, et quel paquet la bloque.</p>
+</Feature>
+
+<Feature
+	id="security"
+	kicker="Sécurité"
+	title="Les vulnérabilités, avec leur origine"
+	shot="repo-check"
+	alt="L’onglet Contrôle d’un dépôt : une version de Node en fin de vie et quatre avis pour lodash, qs et semver, avec la version installée, le correctif et l’origine de chaque paquet."
+	href="/fr/using/security/"
+	more="Sécurité"
+>
+	<p>Les vulnérabilités connues viennent d’OSV.dev, avec les détails de la GitHub Advisory Database : gravité, CVSS, CWE et version corrigée. Pullwatch indique si un paquet est direct ou s’il arrive par un autre, et ajoute les alertes d’analyse du code, d’analyse des secrets et d’Advanced Security du dépôt lui-même.</p>
+</Feature>
+
+<Feature
+	id="notifications"
+	kicker="Notifications"
+	title="Des notifications qui disent ce qui s’est passé"
+	shot="notifications"
+	alt="Des notifications de Pullwatch pour une nouvelle pull request, une pull request fusionnée, une nouvelle version, un nouveau tag et une vulnérabilité critique."
+	href="/fr/using/notifications/"
+	more="Notifications"
+	tall
+	flip
+>
+	<p>Le titre dit ce qui s’est passé, le sous-titre où, et le corps qui. Activez ou désactivez chaque type, mettez un dépôt en sourdine depuis la notification elle-même, et définissez des heures calmes.</p>
+</Feature>
+
+<Feature
+	id="statistics"
+	kicker="Statistiques"
+	title="Comment votre équipe livre"
+	shot="stats"
+	alt="La section Statistiques : les pull requests ouvertes, les brouillons, les pull requests fusionnées et fermées, le délai médian, un graphique de l’activité par mois et les classements des auteurs et des dépôts."
+	href="/fr/using/statistics/"
+	more="Statistiques"
+>
+	<p>Les pull requests ouvertes et fusionnées par semaine, par mois ou par an, le délai médian jusqu’à la fusion, les auteurs les plus actifs et les dépôts les plus actifs, à partir de l’historique que Pullwatch conserve déjà.</p>
+</Feature>
+
+<Closing />

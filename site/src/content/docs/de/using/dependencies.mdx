@@ -1,0 +1,64 @@
+---
+title: Abhängigkeiten
+description: Wie Pullwatch veraltete Runtimes, Frameworks und Pakete findet und was ein Update aufhält.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Einmal am Tag, und immer wenn du **Alle prüfen** wählst, liest Pullwatch die Manifeste und Lockfiles auf dem Standard-Branch jedes Repositorys, dem du folgst. Es findet die Runtimes, Frameworks und Pakete und vergleicht sie mit dem aktuellen Stand. Die tägliche Prüfung kannst du unter Einstellungen, Allgemein ausschalten.
+
+## Runtimes und Frameworks
+
+| Datei | Was Pullwatch findet |
+|---|---|
+| `go.mod` | Go |
+| `*.csproj`, `*.fsproj`, `Directory.Build.props` | .NET |
+| `package.json` | Node (`engines`), Angular, React, Vue, Next.js, Nuxt |
+| `composer.json` | PHP, Symfony, Laravel |
+| `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` im Root | Rust |
+| `Package.swift` | Swift, verglichen mit den Releases auf swift.org |
+| `.nvmrc`, `.node-version`, `pyproject.toml`, `.python-version` | Node, Python |
+| `Dockerfile*` | Basis-Images wie node, golang, python, dotnet, alpine, debian, ubuntu, nginx, postgres, redis, eclipse-temurin, rust, php und ruby |
+| `.github/workflows/*.yml` | `python-version`, `node-version`, `go-version`, `dotnet-version` |
+
+Versionen werden mit [endoflife.date](https://endoflife.date) verglichen und bekommen einen von vier Zuständen: **Aktuell**, **Veraltet** (es gibt eine neuere Major- oder Minor-Version; Patches zählen nicht), **EOL** oder **Unbekannt**. Swift hat keine Regel für das Support-Ende und ist deshalb nie EOL.
+
+Ein paar Regeln halten das Ergebnis ehrlich:
+
+- Eine Anforderung, die nur ein Minimum ist (`engines.node`, `php` in `composer.json`, `requires-python`, `rust-version`, Versionen in CI), fällt weg, wenn dieselbe Sprache anderswo fest angegeben ist, etwa in einem Docker-Image, `.nvmrc` oder `rust-toolchain`.
+- Bei Frameworks hat die installierte Version aus `package-lock.json` oder `composer.lock` Vorrang vor dem Minimum im Manifest.
+- Ein `go.mod`, das als lokale Kopie einer Abhängigkeit dient (`replace ... => ./path`), wird ignoriert.
+- Eigene Docker-Images werden an einem bekannten Namen vor dem ersten Bindestrich erkannt (`php-fpm-alpine:8.4` ist PHP 8.4), und Standardwerte von `ARG` in `FROM` werden eingesetzt.
+
+## Der Bereich Abhängigkeiten
+
+**Abhängigkeiten** in der Seitenleiste dreht die Prüfung um: pro Runtime und Paket die neueste Version und welche Repositories noch auf einer älteren sind. Der Bereich wird mit der Versionsprüfung aktualisiert (täglich, **Alle prüfen** und **Jetzt prüfen**), und sein Badge in der Seitenleiste zählt die neuen Versionen, die du noch nicht gesehen hast und die du jetzt übernehmen kannst oder die eine Schwachstelle beheben.
+
+<Screenshot name="dependencies" alt="Der Bereich Abhängigkeiten, gruppiert nach Jetzt aktualisierbar, Manifest muss geändert werden und Blockiert, mit lodash, das an einer Stelle von express und body-parser blockiert wird." />
+
+- **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift und Docker-Images) werden innerhalb ihres Releasezyklus verglichen, Patches eingeschlossen. Ein Repository auf Go 1.27.3 sieht, dass Go 1.27.4 verfügbar ist, und eines auf Go 1.26.9 sieht 1.26.10, sobald es erscheint. Ein neuerer Zyklus (Node 22 auf 25) erscheint stattdessen beim Repository als veraltet. Eine Version ohne Patch (`go 1.27`, `node:22`) ist bei Patches nie veraltet.
+- **Pakete** sind die direkten Abhängigkeiten, aus dem Root und jedem Workspace. Pakete nur für die Entwicklung sind als solche markiert. Ein Paket ohne exakte Version (ein Bereich ohne Lockfile) wird nicht gezählt. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) erscheinen einmal, als Paket.
+- Die neueste Version kommt aus der Registry des Pakets: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io und rubygems.org. Vorab-Releases zählen nicht. Private Module und Swift-Pakete landen unter **Nicht prüfbar**.
+
+Woran Pullwatch erkennt, dass ein Paket direkt ist:
+
+| Datei | Direkte Pakete |
+|---|---|
+| `go.mod` | Zeilen ohne `// indirect` |
+| `package-lock.json` (v2 und v3), `pnpm-lock.yaml` | der Root und die Workspaces |
+| `packages.lock.json` | Pakete, die als `Direct` markiert sind |
+| `Gemfile.lock` | der Abschnitt `DEPENDENCIES` |
+| `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock`, `yarn.lock` | die Namen in `composer.json`, `Cargo.toml`, `pyproject.toml` oder der `package.json` des Roots und jedes Workspace |
+| .NET `PackageReference`, `requirements*.txt` | jedes Paket, da sie ohnehin direkt sind |
+
+Pakete nur für die Entwicklung kommen aus `devDependencies`, `require-dev`, Dev-Gruppen und den Blöcken `group :development, :test` eines `Gemfile`.
+
+Die Gruppen sagen dir, was ein Update braucht: **Jetzt aktualisierbar** passt in den Bereich in deinem Manifest, also ändert sich nur die Lockfile; **Manifest muss geändert werden** liegt außerhalb dieses Bereichs, etwa eine neue Major-Version; **Blockiert** heißt, dass ein anderes Paket es zurückhält, und die Zeile sagt, welches.
+
+## Pro Repository
+
+Der Tab **Pakete** auf der Seite eines Repositorys zeigt dasselbe pro Workspace: die installierte Version, die neueste Version, die jetzt nutzbar ist, die allerneueste Version und ob das Paket direkt ist, über ein anderes Paket kommt (mit der kürzesten Kette) oder nur für die Entwicklung ist.
+
+<Screenshot name="repo-packages" alt="Der Tab Pakete von hello-world: lodash in zwei Versionen, express blockiert, vite und jest nur für die Entwicklung, body-parser und qs über express." />
+
+Nach der täglichen Prüfung listet eine Mitteilung die neuen Versionen von allem, wobei ein Repository veraltet ist. Wird ein Paket zum ersten Mal gesehen, bleibt das still. Schalte es unter Einstellungen, Mitteilungen, **Neue Versionen** aus.

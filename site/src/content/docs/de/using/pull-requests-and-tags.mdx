@@ -1,0 +1,44 @@
+---
+title: Pull Requests und Tags
+description: Der durchsuchbare Verlauf von Pull Requests, Merge Requests, Tags und Releases, und wie Pullwatch Checks anzeigt.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Das Hauptfenster (**Öffnen…** im Menü) beginnt mit zwei Listen: **PRs** und **Tags und Releases**. Beide behalten jeden Pull Request und jeden Tag, den Pullwatch gesehen hat, so lange, wie du unter Einstellungen, Allgemein wählst (2 Monate, 6 Monate, 1 Jahr oder Immer).
+
+<Screenshot name="pull-requests" alt="Die Liste PRs: Pull Requests aus vier Repositories, jeder mit Status-Symbol, Checks wie 4 von 8, Titel, Repository, Autor und Alter." />
+
+## Pull Requests
+
+Jede Zeile hat das Status-Symbol in den Farben von GitHub (offen, Entwurf, in Warteschlange, gemergt, geschlossen), die Checks, den Titel, das Repository, den Autor mit Co-Autoren („mona und 2 weitere Personen“) und wann der Pull Request geöffnet wurde. Suche nach Titel, Autor oder Repository, und doppelklicke auf eine Zeile, um sie im Browser zu öffnen.
+
+Ein offener Pull Request, der darauf wartet, von selbst gemergt zu werden, erscheint als wartend, mit einem gelben Symbol: in einer Merge Queue auf GitHub, in einem Merge Train oder auf Merge nach erfolgreicher Pipeline gesetzt auf GitLab, oder mit Auto-Complete auf Azure DevOps.
+
+In der Seitenleiste kannst du **PRs**, **Tags und Releases** und **Repositories** in ihre Projekte (Azure DevOps) oder Owner (GitHub und GitLab) aufklappen, jeweils mit eigener Anzahl ungelesener Einträge. Wählst du einen aus, werden die Liste und die Suche darauf gefiltert. Die Badges zählen, was ungelesen ist.
+
+Wenn du ein Konto hinzufügst, ruft Pullwatch seine bestehenden Pull Requests ab (offen, gemergt und geschlossen), so weit zurück, wie der Verlauf reicht, und höchstens 1000 pro Konto. Diese lösen keine Mitteilung aus und kommen als gelesen markiert an. Danach wird der Verlauf alle 15 Minuten aktualisiert: Status, Titel und Datum des Schließens. Änderst du, welchen Repositories ein Konto folgt oder wie lange der Verlauf aufbewahrt wird, beginnt dieser erste Abruf für dieses Konto von vorn.
+
+Die Suche von GitHub hat ein eigenes Limit von 30 Anfragen pro Minute. Erreicht Pullwatch es, wartet es, bis GitHub wieder mehr erlaubt, während die Abfrage neuer Pull Requests weiterläuft.
+
+## Checks
+
+Pullwatch zeigt die Checks (CI) jedes Pull Requests so wie die Liste von GitHub: ein Symbol in der Farbe des Status und die Zahl der bestandenen Checks von allen.
+
+- ein grüner Haken, wenn alles bestanden hat, etwa `8/8`;
+- ein rotes Kreuz, sobald einer fehlgeschlagen ist, etwa `4/8`;
+- ein gelber Punkt, solange noch Checks laufen.
+
+Übersprungene und neutrale Checks zählen als bestanden. Der Tooltip und VoiceOver sagen es in Worten: „4 von 8 Checks bestanden, 1 fehlgeschlagen, 3 laufen“. Ein Pull Request ohne Checks hat keine Zelle.
+
+Auf GitHub kommen die Checks vom letzten Commit (sein `statusCheckRollup`, in derselben Anfrage wie die Co-Autoren), auf Azure DevOps aus den Status und Build-Richtlinien des Pull Requests und auf GitLab aus den Jobs der Head-Pipeline. Abgefragt werden nur offene Pull Requests und solche, die in den letzten drei Tagen gemergt wurden, und abgeschlossene Checks, die sich nicht geändert haben, kosten keine Anfrage. Ohne Berechtigung für Checks (siehe [Token-Berechtigungen](/de/getting-started/permissions/)) gibt es keine Zelle, und die Seite des Repositorys zeigt **Checks: Berechtigung nötig**.
+
+## Tags und Releases
+
+**Tags und Releases** listet jeden neuen Tag. Ein Tag zeigt, wer ihn erstellt hat (auf GitHub die Person hinter dem Release, sonst die Person, die getaggt hat, sonst den Autor des Commits), mit Profilbild, und ein Label Release oder Pre-Release mit dem Titel des Releases. Die Symbolleiste filtert auf alle Tags, nur Releases oder nur Tags ohne Release. Ein Tag mit Release öffnet das Release, einer ohne die Dateien bei diesem Tag.
+
+Tags werden alle 15 Minuten abgefragt, getrennt von den Pull Requests (**Jetzt aktualisieren** fragt auch Tags ab), und die erste Tag-Abfrage eines Repositorys ist still. Auf GitHub löst ein Release, das später für einen bereits gesehenen Tag veröffentlicht wird, eine Mitteilung aus und aktualisiert dieselbe Zeile.
+
+## Springen
+
+Von einer Zeile aus öffnet **Repository** in der Symbolleiste (oder ein Rechtsklick) die Seite dieses Repositorys. Die Seite eines Repositorys verlinkt zurück auf alle seine Pull Requests und Tags.

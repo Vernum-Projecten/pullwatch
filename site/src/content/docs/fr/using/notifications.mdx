@@ -1,0 +1,34 @@
+---
+title: Notifications
+description: "Ce que dit chaque notification de Pullwatch, ses boutons, et comment les régler."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Chaque notification dit ce qui s’est passé dans le titre (« Nouvelle pull request », « Pull request fusionnée », « Nouvelle version v1.2.0 », « Vulnérabilité critique »), le dépôt dans le sous-titre, et le titre avec son auteur et ses coauteurs (« par mona et 2 autres personnes ») dans le corps. La photo d’un auteur GitHub est jointe (récupérée une fois et conservée une semaine) ; sinon, la notification affiche l’icône de son type.
+
+<Screenshot name="notifications" maxWidth={420} alt="Cinq notifications de Pullwatch : une nouvelle pull request, une pull request fusionnée, une nouvelle version, un nouveau tag et une vulnérabilité critique dans lodash." />
+
+## Avec ou sans son
+
+Les nouvelles pull requests, les versions publiées, les vulnérabilités et les alertes de sécurité arrivent avec une bannière et un son. Les tags sans version publiée, les pull requests fusionnées et les nouvelles versions arrivent en silence, uniquement dans le Centre de notifications. La vulnérabilité la plus grave passe en tête de la pile.
+
+macOS regroupe les notifications par compte et par dépôt. Jusqu’à 20 éléments par interrogation, chacun reçoit sa propre notification ; au-delà, une notification par dépôt indique leur nombre et liste les trois premiers.
+
+## Boutons
+
+- Sur une pull request, une version publiée ou un tag : **Marquer comme lu**, **Ouvrir la page du dépôt** (dans Pullwatch) et **Mettre le dépôt en sourdine**.
+- Sur une vulnérabilité : **Afficher dans Pullwatch**, **Copier l’identifiant de l’avis** et **Ouvrir la page du dépôt**.
+
+**Mettre le dépôt en sourdine** désactive ce type de notification pour ce dépôt, comme sa cloche dans les Réglages, et le panneau du menu propose **Annuler** jusqu’à ce que vous le fermiez. Cliquer sur la notification elle-même ouvre la pull request, la version publiée ou l’avis et le marque comme lu. Lire un élément dans Pullwatch retire sa notification du Centre de notifications.
+
+## Réglages, Notifications
+
+- Un interrupteur par type : nouvelles pull requests, pull requests fusionnées, versions publiées, tags, vulnérabilités, alertes de sécurité et nouvelles versions, chacun avec un aperçu.
+- **Échec des checks de vos propres pull requests** (désactivé par défaut) vous prévient quand les checks d’une de vos pull requests ouvertes échouent.
+- **Heures calmes** : entre deux heures, les notifications arrivent sans son et uniquement dans le Centre de notifications. Les modes Concentration et Ne pas déranger restent gérés par macOS.
+- Le nombre de non-lus sur l’icône du Dock, et un point sur l’icône de la barre des menus tant qu’il reste quelque chose de non lu.
+
+Pour chaque dépôt, la cloche à côté de lui dans Réglages, Comptes désactive ses notifications tout en continuant à le suivre.
+
+Les notifications respectent le mode Concentration. Pullwatch n’utilise pas les notifications urgentes, qui demanderaient un profil de provisionnement.

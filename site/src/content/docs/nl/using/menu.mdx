@@ -1,0 +1,26 @@
+---
+title: Het menupaneel
+description: Wat het icoon van Pullwatch in de menubalk toont en wat je ermee kunt.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Klik op het icoon van Pullwatch in de menubalk om het menupaneel te openen.
+
+<Screenshot name="menu" maxWidth={400} alt="Het menupaneel van Pullwatch met vijf pull requests en hun checks onder Pull requests, en vijf tags en releases onder Tags en releases." />
+
+## Wat het toont
+
+- **Pull requests**: de nieuwste uit de repositories die je volgt. Elke rij heeft het statusicoon (open, draft, gemerged of gesloten), de titel, de checks (zoals `4/8`, met een rood kruis als er een mislukt is), en daaronder de repository, de auteur en wanneer Pullwatch hem zag.
+- **Tags en releases**: de nieuwste tags, met de titel van de release voor de naam van de tag als er een release is.
+- Onderaan elk account met de stand van de laatste poll, zodat je meteen ziet wanneer een token verlopen is of een server onbereikbaar is.
+- Een balk als er een nieuwe versie van Pullwatch beschikbaar is, en **Ongedaan maken** nadat je een repository vanuit een melding hebt gedempt.
+
+Een stipje voor een rij betekent dat hij ongelezen is. Instellingen, Meldingen kan ook een stip op het icoon in de menubalk zelf zetten zolang er iets ongelezen is.
+
+## Wat je kunt doen
+
+- **Klik op een rij** om de pull request, tag of release in je browser te openen. Hij staat daarna op gelezen.
+- **Klik met de rechtermuisknop op een rij** om hem als gelezen of ongelezen te markeren, of om de pagina van de repository in Pullwatch te openen.
+- De knoppen bovenaan: **Over Pullwatch**, **Nu verversen** (⌘R) en **Instellingen** (⌘,).
+- Onderaan: **Alles gelezen** (⌘K), **Openen…** (⌘O) voor het hoofdvenster, en **Stop Pullwatch** (⌘Q).

@@ -1,0 +1,44 @@
+---
+title: Pull requests en tags
+description: De doorzoekbare geschiedenis van pull requests, merge requests, tags en releases, en hoe Pullwatch checks toont.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Het hoofdvenster (**Openen…** in het menupaneel) begint met twee lijsten: **PR's** en **Tags en releases**. Beide bewaren elke pull request en tag die Pullwatch heeft gezien, zo lang als je kiest onder Instellingen, Algemeen (2 maanden, 6 maanden, 1 jaar of altijd).
+
+<Screenshot name="pull-requests" alt="De lijst PR's: pull requests uit vier repositories, elk met het statusicoon, checks zoals 4 van 8, titel, repo, auteur en leeftijd." />
+
+## Pull requests
+
+Elke rij heeft het statusicoon in de kleuren van GitHub (open, draft, in de wachtrij, gemerged, gesloten), de checks, de titel, de repository, de auteur met co-auteurs ("mona en 2 anderen") en wanneer hij geopend is. Zoek op titel, auteur of repository, en dubbelklik op een rij om hem in de browser te openen.
+
+Een open pull request die wacht om vanzelf te mergen, staat als in de wachtrij, met een oranje icoon: in een merge queue op GitHub, in een merge train of ingesteld om te mergen als de pipeline slaagt op GitLab, of met auto-complete op Azure DevOps.
+
+In de zijbalk kun je **PR's**, **Tags en releases** en **Repo's** uitklappen naar hun projecten (Azure DevOps) of eigenaren (GitHub en GitLab), elk met een eigen aantal ongelezen. Kies je er een, dan filtert dat de lijst en de zoekopdracht daarop. De badges tellen wat ongelezen is.
+
+Voeg je een account toe, dan haalt Pullwatch de bestaande pull requests op (open, gemerged en gesloten), zo ver terug als de geschiedenis gaat en hooguit 1000 per account. Die geven geen melding en komen binnen als gelezen. Daarna wordt de geschiedenis elke 15 minuten bijgewerkt: status, titel en sluitdatum. Verander je welke repositories een account volgt, of hoe lang de geschiedenis bewaard blijft, dan begint dit eerste ophalen voor dat account opnieuw.
+
+De zoekfunctie van GitHub heeft een eigen limiet: 30 verzoeken per minuut. Raakt Pullwatch die, dan wacht het tot GitHub weer meer toelaat, terwijl het kijken naar nieuwe pull requests gewoon doorgaat.
+
+## Checks
+
+Pullwatch toont de checks (CI) van elke pull request zoals de lijst van GitHub dat doet: een icoon in de kleur van de stand en het aantal geslaagde checks van het totaal.
+
+- een groen vinkje als alles geslaagd is, zoals `8/8`;
+- een rood kruis zodra er een mislukt is, zoals `4/8`;
+- een oranje stip zolang er nog checks lopen.
+
+Overgeslagen en neutrale checks tellen als geslaagd. De tooltip en VoiceOver zeggen het in woorden: "4 van 8 checks geslaagd, 1 mislukt en 3 bezig". Een pull request zonder checks heeft een lege cel.
+
+Op GitHub komen de checks van de laatste commit (de `statusCheckRollup`, in hetzelfde verzoek als de co-auteurs), op Azure DevOps van de statussen en buildpolicy's van de pull request, en op GitLab van de jobs van de head-pipeline. Pullwatch vraagt ze alleen op voor open pull requests en die in de laatste drie dagen gemerged zijn, en afgeronde checks die niet veranderden kosten geen verzoek. Zonder recht op checks (zie [Rechten van tokens](/nl/getting-started/permissions/)) is de cel leeg, en zegt de pagina van de repository **Checks: Toestemming nodig**.
+
+## Tags en releases
+
+**Tags en releases** toont elke nieuwe tag. Een tag laat zien wie hem maakte (op GitHub de persoon achter de release, anders wie de tag zette, anders de auteur van de commit) met een profielfoto, en een label Release of Pre-release met de titel van de release. In de knoppenbalk filter je op Alles, Alleen releases of Tags zonder release. Een tag met een release opent de release; een tag zonder opent de bestanden bij die tag.
+
+Pullwatch kijkt elke 15 minuten naar tags, los van de pull requests (**Nu verversen** kijkt ook naar tags), en de eerste keer dat het de tags van een repository ophaalt, blijft het stil. Wordt op GitHub later een release gepubliceerd voor een tag die Pullwatch al zag, dan geeft dat één melding en wordt dezelfde rij bijgewerkt.
+
+## Heen en weer springen
+
+Vanuit een rij opent **Repo** in de knoppenbalk (of een rechtermuisklik) de pagina van die repository. De pagina van een repository linkt terug naar al zijn pull requests en tags.

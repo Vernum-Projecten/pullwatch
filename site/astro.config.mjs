@@ -38,11 +38,15 @@ export default defineConfig({
 				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
 				{ tag: 'meta', attrs: { property: 'og:image:alt', content: 'The Pullwatch app icon' } },
 			],
-			// English is the root locale (no /en/ in the address); Dutch, German and French
-			// are added next to it (#153) without moving a page.
+			// English is the root locale (no /en/ in the address) and the fallback. Dutch, German
+			// and French live in src/content/docs/<locale>/ under the same slugs, so the language
+			// picker and the hreflang links map every page to its translation.
 			defaultLocale: 'root',
 			locales: {
 				root: { label: 'English', lang: 'en' },
+				nl: { label: 'Nederlands', lang: 'nl' },
+				de: { label: 'Deutsch', lang: 'de' },
+				fr: { label: 'Français', lang: 'fr' },
 			},
 			social: [{ icon: 'github', label: 'Pullwatch on GitHub', href: repository }],
 			editLink: { baseUrl: `${repository}/edit/main/site/` },
@@ -51,6 +55,7 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Getting started',
+					translations: { nl: 'Aan de slag', de: 'Erste Schritte', fr: 'Prise en main' },
 					items: [
 						{ slug: 'getting-started/install' },
 						{ slug: 'getting-started/accounts' },
@@ -59,6 +64,7 @@ export default defineConfig({
 				},
 				{
 					label: 'Using Pullwatch',
+					translations: { nl: 'Pullwatch gebruiken', de: 'Pullwatch verwenden', fr: 'Utiliser Pullwatch' },
 					items: [
 						{ slug: 'using/menu' },
 						{ slug: 'using/pull-requests-and-tags' },
@@ -72,8 +78,10 @@ export default defineConfig({
 				},
 				{
 					label: 'Reference',
+					translations: { nl: 'Naslag', de: 'Referenz', fr: 'Référence' },
 					items: [
 						{ slug: 'privacy' },
+						{ slug: 'acknowledgements' },
 						{ slug: 'agents' },
 						{ slug: 'faq' },
 						{ slug: 'troubleshooting' },
@@ -81,7 +89,9 @@ export default defineConfig({
 					],
 				},
 			],
-			plugins: [starlightLinksValidator()],
+			// Every page is translated: a link to a fallback page or to a page in another
+			// language fails the build.
+			plugins: [starlightLinksValidator({ errorOnInconsistentLocale: true })],
 		}),
 	],
 });

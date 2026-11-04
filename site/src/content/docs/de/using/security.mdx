@@ -1,0 +1,49 @@
+---
+title: Sicherheit
+description: Bekannte Schwachstellen von OSV.dev und aus der GitHub Advisory Database, und die Warnungen von GitHub und Azure DevOps.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Dieselbe tägliche Prüfung, die veraltete Versionen findet, sucht auch nach bekannten Schwachstellen. Sie erscheinen im Tab **Prüfung** auf der Seite eines Repositorys, zählen für seine Farbe in Repositories, und eine neue löst eine Mitteilung aus.
+
+<Screenshot name="repo-check" alt="Der Tab Prüfung von hello-world: Node 16 nach seinem Support-Ende und Advisories für lodash, qs und semver mit installierter Version, Korrektur, wie jedes Paket hineingekommen ist und ob Release v1.2.0 es auch enthält." />
+
+## Pakete mit bekannten Schwachstellen
+
+Pullwatch schickt die Namen und exakten Versionen deiner Pakete an [OSV.dev](https://osv.dev), für diese Dateien:
+
+- `go.mod`
+- `package-lock.json`, `yarn.lock` (Classic und Berry), `pnpm-lock.yaml` (v6 bis v9)
+- `PackageReference` und `PackageVersion` in .NET-Projekten, NuGet `packages.lock.json`
+- `requirements*.txt` (nur `==`), `poetry.lock`, `uv.lock`
+- `composer.lock`
+- `Cargo.lock` (nur crates.io)
+- `Package.resolved`
+- `Gemfile.lock` (Gems von rubygems.org; Gems aus `GIT` und `PATH` werden übersprungen)
+
+Maven und Gradle werden nicht gelesen: Ihre Versionen gibt es erst, nachdem ein Build sie aufgelöst hat. Jeder Scan liest höchstens 50 Dateien pro Repository, Lockfiles zuerst.
+
+Jeder Befund sagt, wo er steckt: den Workspace, ob das Paket direkt ist oder über ein anderes kam (mit der kürzesten Kette, etwa „über express, body-parser“), und ob es für die Laufzeit, nur für die Entwicklung oder optional ist. Klappe eine Zeile auf, um jede Installation zu sehen.
+
+Hat ein Repository Tags, wird auch der neueste Versions-Tag geprüft (ein Vorab-Release wie `-rc1` nur, wenn es nichts anderes gibt), und jede Schwachstelle sagt, ob dieses Release sie ebenfalls enthält. Was auf dem Standard-Branch bereits behoben ist, wird nicht gemeldet.
+
+## Details zum Advisory
+
+Jede Schwachstelle zeigt auch ihren Eintrag in der GitHub Advisory Database: die GHSA-ID neben der CVE, den Schweregrad laut GitHub mit CVSS-Wert und Vektor, die CWE-Namen und einen Link zu `github.com/advisories`, auf der Seite des Repositorys, im kopierten Text und in Mitteilungen. Pullwatch ruft jedes Advisory einmal über die öffentliche Advisories-API von GitHub ab (mit dem Token eines GitHub-Kontos, wenn es eines gibt) und speichert es mit der Prüfung. Wähle eine Zeile, um es im Inspektor zu sehen, mit der Korrektur in klaren Worten („Aktualisiere lodash auf 4.17.21; das liegt im Bereich, nur die Lockfile ändert sich“) und dem, was die Korrektur aufhält.
+
+## Warnungen von GitHub und Azure DevOps
+
+Der Tab **Sicherheit** zeigt, was der Dienst selbst weiß, gelesen mit der täglichen Prüfung und mit **Prüfen**, nie bei jeder Abfrage.
+
+<Screenshot name="repo-security" alt="Der Tab Sicherheit von hello-world: drei Warnungen aus dem Code-Scanning, kritisch, hoch und Hinweis, jeweils mit Datei und Zeile." />
+
+- **GitHub**: die Advisories, die das Repository über sich selbst veröffentlicht, offene Warnungen aus dem Code-Scanning (CodeQL und andere Werkzeuge, mit Datei und Zeile) und die Anzahl offener Warnungen aus dem Secret-Scanning. Das Secret selbst liest Pullwatch nie.
+- **Azure DevOps**: offene Warnungen aus Advanced Security für Code und Abhängigkeiten und die Anzahl der Secrets.
+- **GitLab** hat nichts Vergleichbares, das in jedem Tarif offen ist. Ein Repository auf GitLab zeigt deshalb nur die Prüfung der Versionen und von OSV.dev.
+
+Offene kritische und hohe Warnungen zählen in den Befunden des Repositorys und für seine Farbe. Eine Mitteilung bei einer neuen Warnung ist standardmäßig aus; schalte sie unter Einstellungen, Mitteilungen ein. Ist eine Art für ein Repository aus oder darf das Token sie nicht lesen, zeigt der Tab **Aus** oder **Berechtigung nötig** mit einem Link, und nichts schlägt fehl.
+
+## Quellen ausschalten
+
+Jede der oben genannten Quellen lässt sich unter Einstellungen, Quellen ausschalten. Pullwatch zeigt diesen Teil dann nie als sauber an: Es sagt „Nicht geprüft“ mit dem Namen der Quelle, die aus ist. Siehe [Datenschutz und Quellen](/de/privacy/).

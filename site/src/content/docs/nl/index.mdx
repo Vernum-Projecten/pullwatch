@@ -1,0 +1,118 @@
+---
+title: Pullwatch
+description: Een macOS-app in de menubalk voor nieuwe pull requests, tags en releases op GitHub, Azure DevOps en GitLab, met een check van je repositories op verouderde runtimes, packages en bekende kwetsbaarheden.
+template: splash
+editUrl: false
+lastUpdated: false
+pagefind: false
+hero:
+  title: Pullwatch
+  tagline: Nieuwe pull requests, tags en releases uit GitHub, Azure DevOps en GitLab, gewoon in je menubalk. Met elke dag een check van al je repositories op verouderde runtimes, packages en bekende kwetsbaarheden.
+  image:
+    file: ../../../assets/pullwatch-icon.png
+    alt: Het app-icoon van Pullwatch
+  actions:
+    - text: Download voor Mac
+      link: https://github.com/alessandro823/pullwatch/releases/latest
+      icon: download
+      variant: primary
+    - text: Broncode op GitHub
+      link: https://github.com/alessandro823/pullwatch
+      icon: github
+      variant: minimal
+---
+
+import Feature from '../../../components/Feature.astro';
+import Closing from '../../../components/Closing.astro';
+
+<p class="pw-requirements">Gratis en open source. macOS 26.6 of nieuwer, Apple silicon en Intel. In het Engels, Nederlands, Duits en Frans.</p>
+
+<Feature
+	id="pull-requests"
+	kicker="Pull requests"
+	title="Elke pull request, zodra hij opengaat"
+	shot="pull-requests"
+	alt="De lijst PR's in Pullwatch: pull requests uit meerdere repositories met hun statusicoon, checks zoals 4 van 8 geslaagd, auteur en leeftijd."
+	href="/nl/using/pull-requests-and-tags/"
+	more="Pull requests en tags"
+>
+	<p>Pullwatch volgt je accounts op github.com, GitHub Enterprise, Azure DevOps en GitLab, en meldt nieuwe pull requests en merge requests zodra ze binnenkomen. Elke pull request toont zijn status en zijn checks zoals GitHub dat doet: het aantal geslaagd van het totaal, een rood kruis als er een mislukt is, oranje zolang ze lopen.</p>
+	<p>Alles komt in een geschiedenis die je doorzoekt op titel, auteur en repository, samen met nieuwe tags en releases.</p>
+</Feature>
+
+<Feature
+	id="menu"
+	kicker="Menubalk"
+	title="Altijd één klik weg"
+	shot="menu"
+	alt="Het menupaneel van Pullwatch met de nieuwste pull requests en hun checks, en de nieuwste tags en releases."
+	href="/nl/using/menu/"
+	more="Het menupaneel"
+	tall
+>
+	<p>Het menupaneel toont de nieuwste pull requests en tags met hun checks. Klik er een aan om hem in de browser te openen, ververs, of open het hoofdvenster. Een stip op het icoon in de menubalk zegt dat er iets ongelezen is.</p>
+</Feature>
+
+<Feature
+	id="repositories"
+	kicker="Repositories"
+	title="Hoe elke repository ervoor staat"
+	shot="repo-detail"
+	alt="De pagina van een repository in Pullwatch: status Probleem, het account, de laatste tag, en de open pull requests, die in de wachtrij, de gemergede en de gesloten."
+	href="/nl/using/repositories/"
+	more="Repositories"
+>
+	<p>Elke gevolgde repository krijgt een pagina met de open en recente pull requests, de laatste tag en de uitkomst van de check, de slechtste bovenaan in de lijst. Volg ook losse repositories buiten je organisaties, zoals een openbaar project waar je van afhangt.</p>
+</Feature>
+
+<Feature
+	id="dependencies"
+	kicker="Afhankelijkheden"
+	title="Zie wat een update tegenhoudt"
+	shot="dependencies"
+	alt="Het onderdeel Afhankelijkheden: packages verdeeld over Kan nu bijwerken, Manifest aanpassen nodig en Geblokkeerd, met de repositories die achterlopen en waarom."
+	href="/nl/using/dependencies/"
+	more="Afhankelijkheden"
+>
+	<p>Eens per dag leest Pullwatch de manifesten en lockfiles van je repositories en vergelijkt ze met de package-registers en endoflife.date. Je ziet welke repositories achterlopen, of een update binnen het huidige bereik valt en welk package hem tegenhoudt.</p>
+</Feature>
+
+<Feature
+	id="security"
+	kicker="Beveiliging"
+	title="Kwetsbaarheden, en waar ze vandaan komen"
+	shot="repo-check"
+	alt="Het tabblad Controle van een repository: een Node-versie die EOL is en vier adviezen voor lodash, qs en semver, met de geïnstalleerde versie, de oplossing en hoe elk package erin kwam."
+	href="/nl/using/security/"
+	more="Beveiliging"
+>
+	<p>Bekende kwetsbaarheden komen van OSV.dev, met de details uit de GitHub Advisory Database: ernst, CVSS, CWE en de versie met de oplossing. Pullwatch laat zien of een package direct is of via een ander package binnenkwam, en voegt de eigen meldingen van code scanning, secret scanning en Advanced Security van de repository toe.</p>
+</Feature>
+
+<Feature
+	id="notifications"
+	kicker="Meldingen"
+	title="Meldingen die zeggen wat er gebeurde"
+	shot="notifications"
+	alt="Meldingen van Pullwatch voor een nieuwe pull request, een gemergede pull request, een nieuwe release, een nieuwe tag en een kritieke kwetsbaarheid."
+	href="/nl/using/notifications/"
+	more="Meldingen"
+	tall
+	flip
+>
+	<p>De titel zegt wat er gebeurde, de ondertitel waar, en de tekst wie. Zet elke soort aan of uit, demp een repository vanuit de melding zelf, en stel stille uren in.</p>
+</Feature>
+
+<Feature
+	id="statistics"
+	kicker="Statistieken"
+	title="Hoe je team oplevert"
+	shot="stats"
+	alt="Het onderdeel Statistieken: geopende pull requests, drafts, gemergede en gesloten pull requests, de mediane doorlooptijd, een grafiek van de activiteit per maand en ranglijsten van auteurs en repositories."
+	href="/nl/using/statistics/"
+	more="Statistieken"
+>
+	<p>Geopende en gemergede pull requests per week, maand of jaar, de mediane tijd tot de merge, de actiefste auteurs en de drukste repositories, uit de geschiedenis die Pullwatch al bijhoudt.</p>
+</Feature>
+
+<Closing />

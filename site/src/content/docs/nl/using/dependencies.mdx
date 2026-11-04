@@ -1,0 +1,64 @@
+---
+title: Afhankelijkheden
+description: Hoe Pullwatch verouderde runtimes, frameworks en packages vindt, en wat een update tegenhoudt.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Eens per dag, en telkens als je **Alles checken** kiest, leest Pullwatch de manifesten en lockfiles op de standaardbranch van elke repository die je volgt. Het vindt de runtimes, frameworks en packages, en vergelijkt ze met wat actueel is. De dagelijkse check zet je uit onder Instellingen, Algemeen.
+
+## Runtimes en frameworks
+
+| Bestand | Wat Pullwatch vindt |
+|---|---|
+| `go.mod` | Go |
+| `*.csproj`, `*.fsproj`, `Directory.Build.props` | .NET |
+| `package.json` | Node (`engines`), Angular, React, Vue, Next.js, Nuxt |
+| `composer.json` | PHP, Symfony, Laravel |
+| `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` in de root | Rust |
+| `Package.swift` | Swift, vergeleken met de releases op swift.org |
+| `.nvmrc`, `.node-version`, `pyproject.toml`, `.python-version` | Node, Python |
+| `Dockerfile*` | basisimages zoals node, golang, python, dotnet, alpine, debian, ubuntu, nginx, postgres, redis, eclipse-temurin, rust, php en ruby |
+| `.github/workflows/*.yml` | `python-version`, `node-version`, `go-version`, `dotnet-version` |
+
+Versies worden vergeleken met [endoflife.date](https://endoflife.date) en krijgen een van vier standen: **Actueel**, **Achter** (er is een nieuwere major of minor; patches tellen niet), **EOL** of **Onbekend**. Swift heeft geen beleid voor het einde van de ondersteuning, dus Swift is nooit EOL.
+
+Een paar regels houden de uitkomst eerlijk:
+
+- Een eis die alleen een minimum is (`engines.node`, `php` in `composer.json`, `requires-python`, `rust-version`, versies in CI) valt weg als dezelfde taal ergens anders vastligt, zoals in een Docker-image, `.nvmrc` of `rust-toolchain`.
+- Bij frameworks wint de geïnstalleerde versie uit `package-lock.json` of `composer.lock` van het minimum in het manifest.
+- Een `go.mod` die als lokale kopie van een afhankelijkheid dient (`replace ... => ./path`), wordt genegeerd.
+- Eigen Docker-images worden herkend aan een bekende naam voor het eerste streepje (`php-fpm-alpine:8.4` is PHP 8.4), en standaardwaarden van `ARG` in `FROM` worden ingevuld.
+
+## Het onderdeel Afhankelijkheden
+
+**Afhankelijkheden** in de zijbalk draait de check om: per runtime en package de nieuwste versie, en welke repositories nog op een oudere zitten. Het wordt bijgewerkt met de versiecheck (dagelijks, **Alles checken** en **Nu checken**), en de badge in de zijbalk telt de nieuwe versies die je nog niet hebt gezien en die je nu kunt nemen of die een kwetsbaarheid oplossen.
+
+<Screenshot name="dependencies" alt="Het onderdeel Afhankelijkheden, verdeeld in Kan nu bijwerken, Manifest aanpassen nodig en Geblokkeerd, met lodash op één plek geblokkeerd door express en body-parser." />
+
+- **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift en Docker-images) worden vergeleken binnen hun releasecyclus, patches inbegrepen. Een repository op Go 1.27.3 ziet dat Go 1.27.4 beschikbaar is, en een op Go 1.26.9 ziet 1.26.10 zodra die uit is. Een nieuwere cyclus (Node 22 naar 25) staat in plaats daarvan bij de repository als achter. Een versie zonder patch (`go 1.27`, `node:22`) loopt nooit achter op patches.
+- **Packages** zijn de directe afhankelijkheden, uit de root en elke workspace. Packages die alleen voor ontwikkeling zijn, worden zo gemarkeerd. Een package zonder exacte versie (een bereik zonder lockfile) telt niet mee. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) staan er één keer, als package.
+- De nieuwste versie komt uit het register van het package: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io en rubygems.org. Pre-releases tellen niet. Privémodules en Swift-packages komen onder **Niet te checken** terecht.
+
+Zo weet Pullwatch dat een package direct is:
+
+| Bestand | Directe packages |
+|---|---|
+| `go.mod` | regels zonder `// indirect` |
+| `package-lock.json` (v2 en v3), `pnpm-lock.yaml` | de root en de workspaces |
+| `packages.lock.json` | packages gemarkeerd als `Direct` |
+| `Gemfile.lock` | de sectie `DEPENDENCIES` |
+| `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock`, `yarn.lock` | de namen in `composer.json`, `Cargo.toml`, `pyproject.toml`, of de `package.json` van de root en elke workspace |
+| .NET `PackageReference`, `requirements*.txt` | elk package, want die zijn al direct |
+
+Packages voor alleen ontwikkeling komen uit `devDependencies`, `require-dev`, dev-groepen, en de blokken `group :development, :test` van een `Gemfile`.
+
+De groepen zeggen wat een update vraagt: **Kan nu bijwerken** past binnen het bereik in je manifest, dus alleen de lockfile verandert; **Manifest aanpassen nodig** valt buiten dat bereik, zoals een nieuwe major-versie; **Geblokkeerd** betekent dat een ander package hem tegenhoudt, en de rij zegt welk.
+
+## Per repository
+
+Het tabblad **Packages** van de pagina van een repository toont hetzelfde per workspace: de geïnstalleerde versie, de nieuwste versie die nu kan, de allernieuwste versie, en of het package direct is, via een ander package binnenkomt (met de kortste keten) of alleen voor ontwikkeling is.
+
+<Screenshot name="repo-packages" alt="Het tabblad Packages van hello-world: lodash in twee versies, express geblokkeerd, vite en jest met Alleen dev, body-parser en qs via express." />
+
+Na de dagelijkse check zet één melding de nieuwe versies op een rij van alles waarop een repository achterloopt. De eerste keer dat een package gezien wordt, blijft het stil. Zet het uit onder Instellingen, Meldingen, **Nieuwe versies**.

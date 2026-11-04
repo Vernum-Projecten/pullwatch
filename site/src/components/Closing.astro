@@ -1,25 +1,20 @@
 ---
-// The end of the landing page: what Pullwatch does with your data, then the download.
+// The end of the landing page: what Pullwatch does with your data, then the download. The
+// text comes from src/content/i18n/<lang>.json (the pw.* keys) in the page's language, and
+// the links stay in that language.
+const { t } = Astro.locals;
+const { locale } = Astro.locals.starlightRoute;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const points = [
-	{
-		title: 'Tokens stay in your Keychain',
-		text: 'Personal access tokens and the GitHub sign-in live in the macOS Keychain. Settings and history are plain files in your Library folder.',
-	},
-	{
-		title: 'No server in between',
-		text: 'Pullwatch talks straight to your GitHub, Azure DevOps and GitLab servers. It has no account, no server of its own and no analytics.',
-	},
-	{
-		title: 'Every connection listed',
-		text: 'Settings, Sources shows each outside service with the address it calls. Switch off any data source and Pullwatch says what it could not check.',
-	},
-];
+const home = locale ? `${base}/${locale}` : base;
+const points = (['keychain', 'server', 'sources'] as const).map((key) => ({
+	title: t(`pw.privacy.${key}.title`),
+	text: t(`pw.privacy.${key}.text`),
+}));
 ---
 
 <section class="closing" aria-labelledby="privacy">
-	<p class="kicker">Privacy</p>
-	<h2 id="privacy">Your code stays between you and your servers</h2>
+	<p class="kicker">{t('pw.privacy.kicker')}</p>
+	<h2 id="privacy">{t('pw.privacy.title')}</h2>
 	<ul class="points">
 		{
 			points.map((point) => (
@@ -30,15 +25,15 @@ const points = [
 			))
 		}
 	</ul>
-	<a class="more" href={`${base}/privacy/`}>Read about privacy and sources<span aria-hidden="true"> ›</span></a>
+	<a class="more" href={`${home}/privacy/`}>{t('pw.privacy.more')}<span aria-hidden="true"> ›</span></a>
 </section>
 
 <section class="download" aria-labelledby="get">
-	<h2 id="get">Get Pullwatch</h2>
-	<p>Free and open source under the Apache 2.0 license. For macOS 26.6 or later, on Apple silicon and Intel. Signed with a Developer ID and notarized by Apple.</p>
+	<h2 id="get">{t('pw.get.title')}</h2>
+	<p>{t('pw.get.text')}</p>
 	<div class="actions">
-		<a class="button primary" href="https://github.com/alessandro823/pullwatch/releases/latest">Download the latest release</a>
-		<a class="button" href={`${base}/getting-started/install/`}>Installation guide</a>
+		<a class="button primary" href="https://github.com/alessandro823/pullwatch/releases/latest">{t('pw.get.download')}</a>
+		<a class="button" href={`${home}/getting-started/install/`}>{t('pw.get.guide')}</a>
 	</div>
 </section>
 

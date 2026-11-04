@@ -1,0 +1,64 @@
+---
+title: Dépendances
+description: "Comment Pullwatch trouve les runtimes, les frameworks et les paquets obsolètes, et ce qui bloque une mise à jour."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Une fois par jour, et chaque fois que vous choisissez **Tout vérifier**, Pullwatch lit les manifestes et les fichiers de verrouillage sur la branche par défaut de chaque dépôt que vous suivez. Il y trouve les runtimes, les frameworks et les paquets, et les compare à ce qui est à jour. Vous pouvez désactiver la vérification quotidienne dans Réglages, Général.
+
+## Runtimes et frameworks
+
+| Fichier | Ce que Pullwatch trouve |
+|---|---|
+| `go.mod` | Go |
+| `*.csproj`, `*.fsproj`, `Directory.Build.props` | .NET |
+| `package.json` | Node (`engines`), Angular, React, Vue, Next.js, Nuxt |
+| `composer.json` | PHP, Symfony, Laravel |
+| `rust-toolchain`, `rust-toolchain.toml`, `Cargo.toml` à la racine | Rust |
+| `Package.swift` | Swift, comparé aux versions publiées sur swift.org |
+| `.nvmrc`, `.node-version`, `pyproject.toml`, `.python-version` | Node, Python |
+| `Dockerfile*` | les images de base comme node, golang, python, dotnet, alpine, debian, ubuntu, nginx, postgres, redis, eclipse-temurin, rust, php et ruby |
+| `.github/workflows/*.yml` | `python-version`, `node-version`, `go-version`, `dotnet-version` |
+
+Les versions sont comparées à [endoflife.date](https://endoflife.date) et reçoivent l’un de quatre états : **À jour**, **En retard** (une version majeure ou mineure plus récente existe ; les correctifs ne comptent pas), **EOL** ou **Inconnu**. Swift n’a pas de politique de fin de vie, il n’est donc jamais EOL.
+
+Quelques règles gardent le résultat fiable :
+
+- Une exigence qui n’est qu’un minimum (`engines.node`, `php` dans `composer.json`, `requires-python`, `rust-version`, les versions en CI) est ignorée quand le même langage est fixé ailleurs, comme une image Docker, `.nvmrc` ou `rust-toolchain`.
+- Pour les frameworks, la version installée de `package-lock.json` ou `composer.lock` l’emporte sur le minimum du manifeste.
+- Un `go.mod` utilisé comme copie locale d’une dépendance (`replace ... => ./path`) est ignoré.
+- Les images Docker personnalisées sont reconnues par un nom connu avant le premier tiret (`php-fpm-alpine:8.4` est PHP 8.4), et les valeurs par défaut des `ARG` dans `FROM` sont remplies.
+
+## La section Dépendances
+
+**Dépendances** dans la barre latérale présente la vérification dans l’autre sens : pour chaque runtime et chaque paquet, la dernière version, et les dépôts qui sont encore sur une version plus ancienne. Elle se met à jour avec la vérification des versions (quotidienne, **Tout vérifier** et **Vérifier maintenant**), et son badge dans la barre latérale compte les nouvelles versions que vous n’avez pas encore vues et que vous pouvez prendre maintenant ou qui corrigent une vulnérabilité.
+
+<Screenshot name="dependencies" alt="La section Dépendances regroupée en Mise à jour possible, Manifeste à modifier et Bloqué, avec lodash bloqué à un endroit par express et body-parser." />
+
+- **Les runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift et les images Docker) sont comparés au sein de leur cycle de publication, correctifs compris. Un dépôt sur Go 1.27.3 voit que Go 1.27.4 est disponible, et un dépôt sur Go 1.26.9 voit 1.26.10 dès sa sortie. Un cycle plus récent (de Node 22 à 25) apparaît plutôt sur le dépôt comme en retard. Une version sans correctif (`go 1.27`, `node:22`) n’est jamais en retard sur les correctifs.
+- **Les paquets** sont les dépendances directes, de la racine et de chaque espace de travail. Les paquets réservés au développement sont signalés comme tels. Un paquet sans version exacte (une plage sans fichier de verrouillage) n’est pas compté. Les frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) apparaissent une seule fois, comme paquet.
+- La dernière version vient du registre du paquet : proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io et rubygems.org. Les préversions ne comptent pas. Les modules privés et les paquets Swift se retrouvent sous **Impossible à vérifier**.
+
+Comment Pullwatch sait qu’un paquet est direct :
+
+| Fichier | Paquets directs |
+|---|---|
+| `go.mod` | les lignes sans `// indirect` |
+| `package-lock.json` (v2 et v3), `pnpm-lock.yaml` | la racine et les espaces de travail |
+| `packages.lock.json` | les paquets marqués `Direct` |
+| `Gemfile.lock` | la section `DEPENDENCIES` |
+| `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock`, `yarn.lock` | les noms de `composer.json`, `Cargo.toml`, `pyproject.toml`, ou du `package.json` de la racine et de chaque espace de travail |
+| .NET `PackageReference`, `requirements*.txt` | chaque paquet, puisqu’ils sont déjà directs |
+
+Les paquets réservés au développement viennent de `devDependencies`, `require-dev`, des groupes dev, et des blocs `group :development, :test` d’un `Gemfile`.
+
+Les groupes vous disent ce qu’une mise à jour demande : **Mise à jour possible** reste dans la plage de votre manifeste, donc seul le fichier de verrouillage change ; **Manifeste à modifier** sort de cette plage, comme une nouvelle version majeure ; **Bloqué** signifie qu’un autre paquet la retient, et la ligne indique lequel.
+
+## Par dépôt
+
+L’onglet **Paquets** d’une page de dépôt affiche la même chose par espace de travail : la version installée, la version la plus récente utilisable maintenant, la dernière version, et si le paquet est direct, s’il arrive par un autre paquet (avec la chaîne la plus courte) ou s’il est réservé au développement.
+
+<Screenshot name="repo-packages" alt="L’onglet Paquets de hello-world : lodash en deux versions, express bloqué, vite et jest en dev uniquement, body-parser et qs via express." />
+
+Après la vérification quotidienne, une notification liste les nouvelles versions de tout ce sur quoi un dépôt est en retard. La première fois qu’un paquet est vu, rien n’est notifié. Désactivez-la dans Réglages, Notifications, **Nouvelles versions**.
