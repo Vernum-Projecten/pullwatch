@@ -174,7 +174,8 @@ Once the site answers at `https://pullwatch.net/`:
 
 - the repository's website field:
   `gh repo edit alessandro823/pullwatch --homepage https://pullwatch.net`;
-- a link to `https://pullwatch.net` at the top of `README.md`;
+- the links to `https://pullwatch.net` at the top of `README.md` (already
+  there; they work once the domain answers);
 - the link in the app's About window, a separate change.
 
 ## Back to the project page

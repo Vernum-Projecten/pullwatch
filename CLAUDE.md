@@ -3,7 +3,8 @@
 Pullwatch is a macOS menu-bar app by Alessandro Torrisi that notifies about
 new pull requests (Azure DevOps and GitHub) and tags, keeps a searchable
 history, and checks repositories for outdated runtimes, packages and known
-vulnerabilities. Apache-2.0. `README.md` describes every feature; the design
+vulnerabilities. Apache-2.0. `README.md` is the short overview (at most 250
+lines); the website in `site/` describes every feature; the design
 of each part is in `docs/superpowers/specs/` and its plan in
 `docs/superpowers/plans/` (both Dutch). Swift is written as
 `.claude/rules/swift.md` says.
@@ -230,7 +231,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   link is written from the site root (`/using/menu/`) and gets the base from
   `src/plugins/base-links.mjs`. `npm run build` also makes the Pagefind index
   and validates the Markdown links; `npm run check-links` follows every link
-  in `dist/`. Keep its pages in step with the app, as the README.
+  in `dist/`. Keep its pages in step with the app; a detail that leaves
+  the README lands here. README images live in `docs/images/`.
 - `.github/workflows/`: `ci.yml` (every pull request and push to `main`:
   shellcheck and actionlint, `swift test`, `xcodebuild test` with the unit
   and UI tests, `release.sh --unsigned` with a universal check of the app
