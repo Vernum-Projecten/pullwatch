@@ -12,6 +12,7 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 here="$(cd "$(dirname "$0")" && pwd)"
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+# Must stay inside the repository: catalog-tidy.py reads only files there.
 derived="${DERIVED:-$root/build/DerivedData}"
 
 build=(-project "$root/Pullwatch/Pullwatch.xcodeproj" -scheme Pullwatch -configuration Debug

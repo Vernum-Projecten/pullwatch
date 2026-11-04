@@ -6,9 +6,24 @@ catalog), keeps entries marked "shouldTranslate": false, and writes the
 catalog with sorted keys in this repository's JSON style.
 """
 import json
+import os
 import sys
 
+# Only files inside this repository (sync-strings.sh builds into
+# build/DerivedData here), with the expected extension, are read or written.
+ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+
+def confined(path, suffix):
+    resolved = os.path.realpath(path)
+    if os.path.commonpath([ROOT, resolved]) != ROOT or not resolved.endswith(suffix):
+        sys.exit(f"catalog-tidy: {path} is not a {suffix} file inside {ROOT}")
+    return resolved
+
+
 catalog, *data = sys.argv[1:]
+catalog = confined(catalog, ".xcstrings")
+data = [confined(path, ".stringsdata") for path in data]
 used = set()
 for path in data:
     with open(path, encoding="utf-8") as f:
