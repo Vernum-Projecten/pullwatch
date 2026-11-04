@@ -32,13 +32,26 @@ A few rules keep the result honest:
 
 ## The Dependencies section
 
-**Dependencies** in the sidebar turns the check around: per runtime and package, the latest version, and which repositories are still on an older one.
+**Dependencies** in the sidebar turns the check around: per runtime and package, the latest version, and which repositories are still on an older one. It updates with the version check (daily, **Check all** and **Check now**), and its badge in the sidebar counts the new versions you have not seen yet that you can take now or that fix a vulnerability.
 
 <Screenshot name="dependencies" alt="The Dependencies section grouped into Can update now, Needs a manifest change and Blocked, with lodash blocked in one place by express and body-parser." />
 
-- **Runtimes** are compared within their release cycle, patches included. A repository on Go 1.27.3 sees that Go 1.27.4 is available. A newer cycle (Node 22 to 25) shows on the repository as behind instead.
-- **Packages** are the direct dependencies, from the root and each workspace. Development-only packages are marked as such. A package without an exact version (a range without a lockfile) is not counted.
+- **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift and Docker images) are compared within their release cycle, patches included. A repository on Go 1.27.3 sees that Go 1.27.4 is available, and one on Go 1.26.9 sees 1.26.10 once that is out. A newer cycle (Node 22 to 25) shows on the repository as behind instead. A version without a patch (`go 1.27`, `node:22`) is never behind on patches.
+- **Packages** are the direct dependencies, from the root and each workspace. Development-only packages are marked as such. A package without an exact version (a range without a lockfile) is not counted. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) appear once, as a package.
 - The latest version comes from the package's registry: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io and rubygems.org. Pre-releases do not count. Private modules and Swift packages end up under **Can't be checked**.
+
+How Pullwatch knows a package is direct:
+
+| File | Direct packages |
+|---|---|
+| `go.mod` | lines without `// indirect` |
+| `package-lock.json` (v2 and v3), `pnpm-lock.yaml` | the root and the workspaces |
+| `packages.lock.json` | packages marked `Direct` |
+| `Gemfile.lock` | the `DEPENDENCIES` section |
+| `composer.lock`, `Cargo.lock`, `poetry.lock`, `uv.lock`, `yarn.lock` | the names in `composer.json`, `Cargo.toml`, `pyproject.toml`, or the `package.json` of the root and each workspace |
+| .NET `PackageReference`, `requirements*.txt` | every package, since they are direct already |
+
+Development-only packages come from `devDependencies`, `require-dev`, dev groups, and the `group :development, :test` blocks of a `Gemfile`.
 
 The groups tell you what an update takes: **Can update now** fits the range in your manifest, so only the lockfile changes; **Needs a manifest change** is outside that range, such as a new major version; **Blocked** means another package holds it back, and the row says which one.
 

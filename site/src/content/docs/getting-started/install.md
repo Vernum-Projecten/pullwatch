@@ -32,16 +32,18 @@ After that Pullwatch polls your accounts in the background. The first time it al
 ## Where to find it
 
 - **The menu bar icon** opens the [menu panel](/using/menu/) with the newest pull requests and tags.
-- **Open…** in the menu panel opens the main window with PRs, Tags and Releases, Statistics, Repositories and Dependencies.
+- **Open…** in the menu panel opens the main window with PRs, Tags and Releases, Statistics, Repositories and Dependencies. It remembers the section you had open last.
 - **Settings** is the gear button in the menu panel, or ⌘, while Pullwatch is in front.
 
 While one of its windows is open, Pullwatch shows in the Dock. Close the last window and it runs from the menu bar only. Opening Pullwatch again while it runs brings up the main window (or the welcome window while no account is set up).
 
 ## Updates
 
-Pullwatch looks for a new release once a day (Settings, General, where **Check now** looks right away). When there is one you get a notification and a banner in the menu panel. **Install** shows the release notes, downloads the update, checks its signatures and restarts Pullwatch.
+Pullwatch looks for a new release once a day (Settings, General, where **Check now** looks right away). When there is one you get a notification and a banner in the menu panel. **Install** shows the release notes; then [Sparkle](https://sparkle-project.org) downloads the update, checks its EdDSA signature and its Developer ID signature, installs it and restarts Pullwatch.
 
 Under Settings, General, **Install updates automatically** downloads an update in the background and installs it when you quit Pullwatch, and **Include test versions** also offers pre-releases.
+
+A build without Sparkle's public key, such as one you build from source, shows a button that downloads the disk image instead.
 
 ## Language
 

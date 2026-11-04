@@ -5,7 +5,7 @@ description: What each Pullwatch notification says, its buttons, and how to tune
 
 import Screenshot from '../../../components/Screenshot.astro';
 
-Each notification says what happened in the title ("New Pull Request", "Pull Request Merged", "New Release v1.2.0", "Critical Vulnerability"), the repository in the subtitle, and the title with its author and co-authors ("by mona and 2 others") in the body. A GitHub author's picture is attached; otherwise the notification shows the icon of its kind.
+Each notification says what happened in the title ("New Pull Request", "Pull Request Merged", "New Release v1.2.0", "Critical Vulnerability"), the repository in the subtitle, and the title with its author and co-authors ("by mona and 2 others") in the body. A GitHub author's picture is attached (fetched once and kept for a week); otherwise the notification shows the icon of its kind.
 
 <Screenshot name="notifications" maxWidth={420} alt="Five Pullwatch notifications: a new pull request, a merged pull request, a new release, a new tag and a critical vulnerability in lodash." />
 
