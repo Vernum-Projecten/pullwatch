@@ -1,0 +1,20 @@
+---
+title: Statistieken
+description: De activiteit van pull requests uit je geschiedenis, per week, maand of jaar.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Statistieken** in de zijbalk toont de activiteit van pull requests uit de geschiedenis die Pullwatch bijhoudt.
+
+<Screenshot name="stats" alt="Het onderdeel Statistieken: 8 PR's geopend deze periode, 2 open drafts nu, 1 gesloten zonder merge, een mediane doorlooptijd van 12 uur en 6 actieve auteurs, een staafgrafiek per maand en ranglijsten van auteurs en repo's." />
+
+- Geopende en gemergede pull requests per week, maand of jaar (de laatste 12 weken, 12 maanden of 5 jaar).
+- De pull requests die in de huidige periode geopend en gemerged zijn, open drafts, de mediane tijd van openen tot merge, en het aantal actieve auteurs.
+- Ranglijsten van auteurs en van de drukste repositories.
+
+Filter op een project of een auteur; klik op een naam in de ranglijst om hem te kiezen, en spring van daaruit naar de pull requests van die auteur of de pagina van de repository. Bots (`[bot]` in de naam) zijn standaard verborgen. **Co-auteurs meetellen** in het menu met auteurs telt een pull request ook mee voor elk van de co-auteurs.
+
+De pagina van een repository heeft dezelfde grafiek per maand voor alleen die repository.
+
+Statistieken tellen pull requests (commits tellen niet mee) en gaan zo ver terug als de geschiedenis (Instellingen, Algemeen, **Geschiedenis bewaren**).

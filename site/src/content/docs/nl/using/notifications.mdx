@@ -1,0 +1,34 @@
+---
+title: Meldingen
+description: Wat elke melding van Pullwatch zegt, de knoppen erop, en hoe je ze instelt.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Elke melding zegt in de titel wat er gebeurde ("Nieuwe pull request", "Pull request gemerged", "Nieuwe release v1.2.0", "Kritieke kwetsbaarheid"), in de ondertitel de repository, en in de tekst de titel met de auteur en co-auteurs ("door mona en 2 anderen"). De profielfoto van een auteur op GitHub komt erbij (één keer opgehaald en een week bewaard); anders toont de melding het icoon van de soort.
+
+<Screenshot name="notifications" maxWidth={420} alt="Vijf meldingen van Pullwatch: een nieuwe pull request, een gemergede pull request, een nieuwe release, een nieuwe tag en een kritieke kwetsbaarheid in lodash." />
+
+## Met en zonder geluid
+
+Nieuwe pull requests, releases, kwetsbaarheden en beveiligingsmeldingen komen binnen met een banner en een geluid. Tags zonder release, gemergede pull requests en nieuwe versies komen stil binnen, alleen in het Berichtencentrum. De ernstigste kwetsbaarheid staat bovenaan de stapel.
+
+macOS groepeert de meldingen per account en repository. Tot 20 items per poll krijgen elk een eigen melding; daarboven zegt één melding per repository hoeveel het er zijn en noemt de eerste drie.
+
+## Knoppen
+
+- Op een pull request, release of tag: **Markeer als gelezen**, **Repopagina openen** (in Pullwatch) en **Repo dempen**.
+- Op een kwetsbaarheid: **Toon in Pullwatch**, **Advies-id kopiëren** en **Repopagina openen**.
+
+**Repo dempen** zet die soort melding uit voor die repository, net als de bel ervan in Instellingen, en het menupaneel biedt **Ongedaan maken** aan tot je het sluit. Klik je op de melding zelf, dan opent de pull request, release of het advies en staat het op gelezen. Lees je een item in Pullwatch, dan verdwijnt de melding ervan uit het Berichtencentrum.
+
+## Instellingen, Meldingen
+
+- Een schakelaar per soort: nieuwe pull requests, gemergede pull requests, releases, tags, kwetsbaarheden, beveiligingsmeldingen en nieuwe versies, elk met een voorbeeld.
+- **Mislukte checks van je eigen pull requests** (standaard uit) meldt wanneer de checks van een van je eigen open pull requests mislukken.
+- **Stille uren**: tussen twee tijden komen meldingen zonder geluid binnen, en alleen in het Berichtencentrum. Focus en Niet storen komen nog steeds van macOS.
+- Het aantal ongelezen op het Dock-icoon, en een stip op het icoon in de menubalk zolang er iets ongelezen is.
+
+Per repository zet de bel ernaast in Instellingen, Accounts de meldingen uit, terwijl je hem blijft volgen.
+
+Meldingen houden rekening met Focus. Pullwatch gebruikt geen tijdgevoelige meldingen, want die vragen een provisioning profile.

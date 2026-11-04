@@ -1,0 +1,34 @@
+---
+title: Repositories
+description: De lijst met gevolgde repositories, de slechtste bovenaan, en de pagina van elke repository.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Repo's** in de zijbalk toont elke repository die je volgt, de slechtste bovenaan:
+
+- rood bij bekende kwetsbaarheden of een runtime waarvan de ondersteuning is afgelopen (EOL);
+- oranje bij een runtime die achterloopt, of packages met een nieuwe versie;
+- groen als alles actueel is;
+- grijs als hij nog niet gecheckt is.
+
+<Screenshot name="repos" alt="De lijst Repo's: hello-world met 4 CVE's, 2 open meldingen, Node 16 EOL en 5 nieuwe versies; linguist met Go achter; spoon-knife met 1 nieuwe versie; specifications-AM actueel." />
+
+De kolom met bevindingen vat samen waarom, en de lijst toont van elke repository de open pull requests en de laatste tag. **+** in de knoppenbalk volgt een losse repository buiten je accounts (zie [Repositories buiten je account](/nl/getting-started/accounts/#repositories-buiten-je-account)).
+
+## De pagina van een repository
+
+Klik op een repository om de pagina te openen. Die heeft vier tabbladen.
+
+<Screenshot name="repo-detail" alt="Het tabblad Overzicht van een repository: status, account, laatste tag, wanneer hij gecheckt is, en de pull requests die open zijn, in de wachtrij staan, gemerged of gesloten zijn." />
+
+- **Overzicht**: de status, het account, de laatste tag, wanneer hij het laatst gecheckt is, en de open en recente pull requests met hun checks. Links leiden naar alle pull requests en tags van de repository.
+- **Controle**: runtimes en frameworks met hun versies, en de bekende kwetsbaarheden. Zie [Beveiliging](/nl/using/security/).
+- **Packages**: elk package met de geïnstalleerde versie, de nieuwste versie die je nu kunt gebruiken en de allernieuwste. Zie [Afhankelijkheden](/nl/using/dependencies/).
+- **Beveiliging**: wat de dienst zelf weet: code scanning, secret scanning en de eigen adviezen van de repository.
+
+De knoppenbalk heeft **Check** (deze repository opnieuw checken), een knop om de versies en kwetsbaarheden als tekst te kopiëren, en een menu om hem te volgen (PR's, Tags, Gemerged, elk met een eigen bel) zonder naar Instellingen te gaan. De statistieken zijn één sprong verder.
+
+## Kopieer voor een AI-agent
+
+Elk kopje van het tabblad Overzicht, en het menu Meer in de knoppenbalk, heeft **Kopieer voor een AI-agent**: dat zet dat kopje als opdracht in Markdown op het klembord, klaar om als taak in een coding agent te plakken.
