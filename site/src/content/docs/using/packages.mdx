@@ -13,7 +13,7 @@ import Screenshot from '../../../components/Screenshot.astro';
 
 Each package has one row, grouped by owner (the user, organization or group, or for Azure Artifacts the project of the feed), not one row per version. The columns, each sortable:
 
-- **Package**: the name, with a symbol for its type.
+- **Package**: the name, with the logo of its ecosystem (npm, container images, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform, and Rust for Cargo), or a symbol for a generic or Universal package.
 - **Repository**: the repository that publishes it, in full (`octocat/linguist`). A package that is not tied to a repository, such as one in an Azure Artifacts feed, shows its owner in grey.
 - **Latest version** and **Published**: the newest version and when it was published.
 - **Used by**: how many of the repositories you follow depend on it, from the dependency check. A container image or Helm chart shows "-": the check does not recognise those as dependencies yet, so the number is unknown, never zero.

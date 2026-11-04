@@ -13,7 +13,7 @@ import Screenshot from '../../../../components/Screenshot.astro';
 
 Elk package heeft één rij, gegroepeerd per eigenaar (de gebruiker, organisatie of groep, of bij Azure Artifacts het project van de feed), niet één rij per versie. De kolommen, elk sorteerbaar:
 
-- **Package**: de naam, met een symbool voor de soort.
+- **Package**: de naam, met het logo van het ecosysteem (npm, container-images, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform, en Rust voor Cargo), of een symbool voor een algemeen package of een Universal Package.
 - **Repository**: de repository die het publiceert, voluit (`octocat/linguist`). Een package dat niet aan een repository hangt, zoals een in een Azure Artifacts-feed, toont zijn eigenaar in grijs.
 - **Nieuwste versie** en **Gepubliceerd**: de nieuwste versie en wanneer die verscheen.
 - **Gebruikt door**: hoeveel van de repositories die je volgt ervan afhangen, uit de dependency-check. Een container-image of Helm-chart toont "-": de check herkent die nog niet als dependency, dus het aantal is onbekend, nooit nul.

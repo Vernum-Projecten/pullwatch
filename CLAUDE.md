@@ -85,7 +85,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `PackagesView` and `PackageRows`.
   `Packages/`: the Packages section (what followed repositories publish):
   `PublishedPackagesView`, its cells, `PublishedPackageInspector` and the
-  symbol per type (`PublishedPackageType+Display`).
+  symbol per type (`PublishedPackageType+Display`; `simpleIcon` names the
+  ecosystem logo from simple-icons-swift for every type that has one (an
+  app-only dependency pinned exactly in the project), and
+  `PublishedPackageTypeIcon` draws it at symbol size, else the SF Symbol;
+  never `SimpleIcon.allCases`, which puts every icon in the app).
   `Security/`: the vulnerability table and its cells, `AdvisoryInspector`.
   `Statistics/`: `StatsView` and its charts.
   `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,

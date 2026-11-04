@@ -128,6 +128,14 @@ import Testing
         #expect(RelativeDateText.text(for: date, at: nextDay, locale: locale) == dayLater)
     }
 
+    /// Het teken van elke soort package in de tabel van Packages: een logo uit Simple Icons of het
+    /// SF Symbol, ook voor een soort die Pullwatch niet kent.
+    @Test(arguments: PublishedPackageType.known + [PublishedPackageType(rawValue: "something-new")])
+    func `PublishedPackageTypeIcon draws without a model in the environment`(type: PublishedPackageType) {
+        #expect(draws(PublishedPackageTypeIcon(type: type)))
+        #expect(draws(PublishedPackageNameCell(name: "ui", type: type, visibility: .private)))
+    }
+
     @Test func `AcknowledgementRow draws without a model in the environment`() {
         let component = Acknowledgement(
             id: "sparkle", name: "Sparkle", version: "2.10.1", license: "MIT AND BSD-2-Clause AND Zlib",

@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import PullwatchCore
+import SimpleIcons
 import SwiftUI
 import Testing
 
@@ -89,6 +90,22 @@ import Testing
     @Test(arguments: PublishedPackageType.known + [PublishedPackageType(rawValue: "something-new")])
     func `Every package type has a symbol that exists`(type: PublishedPackageType) {
         #expect(NSImage(systemSymbolName: type.symbol, accessibilityDescription: nil) != nil)
+    }
+
+    /// Elke soort met een logo in Simple Icons toont dat logo (#221); algemeen en universeel houden
+    /// hun SF Symbol. Komt er een soort of logo bij, dan gaan deze lijst en NOTICE mee.
+    @Test func `Every ecosystem with a Simple Icons logo uses it`() {
+        let logos = Dictionary(uniqueKeysWithValues: PublishedPackageType.known.compactMap { type in
+            type.simpleIcon.map { (type.rawValue, $0.slug) }
+        })
+        #expect(logos == [
+            "npm": "npm", "container": "opencontainersinitiative", "docker": "docker", "nuget": "nuget",
+            "maven": "apachemaven", "rubygems": "rubygems", "pypi": "pypi", "helm": "helm", "composer": "composer",
+            "conan": "conan", "golang": "go", "terraform_module": "terraform", "cargo": "rust",
+        ])
+        #expect(PublishedPackageType.generic.simpleIcon == nil)
+        #expect(PublishedPackageType.universal.simpleIcon == nil)
+        #expect(PublishedPackageType(rawValue: "something-new").simpleIcon == nil)
     }
 
     @Test func `The section and notification symbols exist`() {

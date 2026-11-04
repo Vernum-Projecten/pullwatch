@@ -24,7 +24,7 @@ nonisolated extension PublishedPackageSummary {
     var usedBySortKey: Int { isMatchable ? users.count : -1 }
 }
 
-/// Het symbool van de soort met de naam van het package, en een slot (privé) of gebouw (intern)
+/// Het teken van de soort met de naam van het package, en een slot (privé) of gebouw (intern)
 /// achter de naam.
 struct PublishedPackageNameCell: View {
     let name: String
@@ -40,9 +40,8 @@ struct PublishedPackageNameCell: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(accessibilityName)
         } icon: {
-            Image(systemName: type.symbol)
+            PublishedPackageTypeIcon(type: type)
                 .foregroundStyle(.secondary)
-                .accessibilityLabel(type.text)
         }
         .help(type.text)
     }
