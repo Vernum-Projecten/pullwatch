@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+blank_issues_enabled: false
+contact_links:
+  - name: Report a vulnerability
+    url: https://github.com/alessandro823/pullwatch/security/advisories/new
+    about: Report a security problem privately, never in a public issue (SECURITY.md).
+  - name: Questions
+    url: https://pullwatch.net/faq/
+    about: Read the FAQ and Troubleshooting first; open an issue if they do not answer it.
+  - name: Documentation
+    url: https://pullwatch.net
+    about: Every screen and setting of Pullwatch, in English, Dutch, German and French.
