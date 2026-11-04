@@ -1,0 +1,51 @@
+---
+title: Dependencies
+description: How Pullwatch finds outdated runtimes, frameworks and packages, and what holds an update back.
+---
+
+import Screenshot from '../../../components/Screenshot.astro';
+
+Once a day, and whenever you choose **Check all**, Pullwatch reads the manifests and lockfiles on the default branch of every repository you follow. It finds the runtimes, frameworks and packages, and compares them with what is current. You can turn the daily check off under Settings, General.
+
+## Runtimes and frameworks
+
+| File | What Pullwatch finds |
+|---|---|
+| `go.mod` | Go |
+| `*.csproj`, `*.fsproj`, `Directory.Build.props` | .NET |
+| `package.json` | Node (`engines`), Angular, React, Vue, Next.js, Nuxt |
+| `composer.json` | PHP, Symfony, Laravel |
+| `rust-toolchain`, `rust-toolchain.toml`, root `Cargo.toml` | Rust |
+| `Package.swift` | Swift, compared with the releases on swift.org |
+| `.nvmrc`, `.node-version`, `pyproject.toml`, `.python-version` | Node, Python |
+| `Dockerfile*` | base images such as node, golang, python, dotnet, alpine, debian, ubuntu, nginx, postgres, redis, eclipse-temurin, rust, php and ruby |
+| `.github/workflows/*.yml` | `python-version`, `node-version`, `go-version`, `dotnet-version` |
+
+Versions are compared with [endoflife.date](https://endoflife.date) and get one of four states: **Current**, **Behind** (a newer major or minor exists; patches do not count), **EOL** or **Unknown**. Swift has no end-of-life policy, so it is never EOL.
+
+A few rules keep the result honest:
+
+- A requirement that is only a minimum (`engines.node`, `php` in `composer.json`, `requires-python`, `rust-version`, versions in CI) is dropped when the same language is pinned elsewhere, such as a Docker image, `.nvmrc` or `rust-toolchain`.
+- For frameworks, the installed version from `package-lock.json` or `composer.lock` wins over the minimum in the manifest.
+- A `go.mod` used as a local copy of a dependency (`replace ... => ./path`) is ignored.
+- Custom Docker images are recognized by a known name before the first dash (`php-fpm-alpine:8.4` is PHP 8.4), and `ARG` defaults in `FROM` are filled in.
+
+## The Dependencies section
+
+**Dependencies** in the sidebar turns the check around: per runtime and package, the latest version, and which repositories are still on an older one.
+
+<Screenshot name="dependencies" alt="The Dependencies section grouped into Can update now, Needs a manifest change and Blocked, with lodash blocked in one place by express and body-parser." />
+
+- **Runtimes** are compared within their release cycle, patches included. A repository on Go 1.27.3 sees that Go 1.27.4 is available. A newer cycle (Node 22 to 25) shows on the repository as behind instead.
+- **Packages** are the direct dependencies, from the root and each workspace. Development-only packages are marked as such. A package without an exact version (a range without a lockfile) is not counted.
+- The latest version comes from the package's registry: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io and rubygems.org. Pre-releases do not count. Private modules and Swift packages end up under **Can't be checked**.
+
+The groups tell you what an update takes: **Can update now** fits the range in your manifest, so only the lockfile changes; **Needs a manifest change** is outside that range, such as a new major version; **Blocked** means another package holds it back, and the row says which one.
+
+## Per repository
+
+The **Packages** tab of a repository page shows the same per workspace: the installed version, the newest version usable now, the latest version, and whether the package is direct, comes in through another package (with the shortest chain) or is for development only.
+
+<Screenshot name="repo-packages" alt="The Packages tab of hello-world: lodash in two versions, express blocked, vite and jest for development only, body-parser and qs through express." />
+
+After the daily check, one notification lists the new versions of anything a repository is behind on. The first time a package is seen stays silent. Turn it off under Settings, Notifications, **New versions**.

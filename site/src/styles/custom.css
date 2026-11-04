@@ -1,0 +1,93 @@
+/*
+ * Pullwatch's look on top of Starlight: the system font of the Mac, neutral macOS greys and
+ * the indigo of the app icon as the accent. Starlight's own rules sit in cascade layers, so
+ * these unlayered ones win without !important.
+ */
+
+:root {
+	--sl-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Roboto,
+		'Noto Sans', Arial, sans-serif;
+	--sl-font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+	--sl-line-height: 1.65;
+	--sl-content-width: 46rem;
+
+	/* Dark mode: neutral greys as in macOS, no blue cast. */
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #ebebf0;
+	--sl-color-gray-2: #c7c7cc;
+	--sl-color-gray-3: #98989f;
+	--sl-color-gray-4: #636366;
+	--sl-color-gray-5: #3a3a3c;
+	--sl-color-gray-6: #232325;
+	--sl-color-black: #161618;
+
+	--sl-color-accent-low: #262056;
+	--sl-color-accent: #8f80ff;
+	--sl-color-accent-high: #d3ccff;
+
+	--pw-hairline: rgb(255 255 255 / 0.1);
+	--pw-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -8px rgb(0 0 0 / 0.5);
+	--pw-surface: #1d1d1f;
+	--pw-muted: var(--sl-color-gray-3);
+}
+
+:root[data-theme='light'] {
+	--sl-color-white: #1d1d1f;
+	--sl-color-gray-1: #1d1d1f;
+	--sl-color-gray-2: #3a3a3c;
+	--sl-color-gray-3: #5c5c62;
+	--sl-color-gray-4: #8a8a8e;
+	--sl-color-gray-5: #d2d2d7;
+	--sl-color-gray-6: #ececf0;
+	--sl-color-gray-7: #f5f5f7;
+	--sl-color-black: #ffffff;
+
+	--sl-color-accent-low: #e6e2ff;
+	--sl-color-accent: #4b35d6;
+	--sl-color-accent-high: #2b1f86;
+
+	--pw-hairline: rgb(0 0 0 / 0.1);
+	--pw-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -8px rgb(0 0 0 / 0.18);
+	--pw-surface: #f5f5f7;
+	--pw-muted: #5c5c62;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.015em;
+}
+
+/* The landing page's hero: a large icon, a tight title and the two buttons. */
+[data-has-hero] .hero {
+	padding-block: clamp(2rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem);
+}
+[data-has-hero] .hero > img {
+	width: min(14rem, 50vw);
+	height: auto;
+	filter: drop-shadow(0 18px 30px rgb(40 30 120 / 0.25));
+}
+[data-has-hero] .hero h1 {
+	font-size: clamp(2.75rem, 7vw, 4.25rem);
+	font-weight: 700;
+	letter-spacing: -0.03em;
+}
+[data-has-hero] .hero .tagline {
+	font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+	line-height: 1.45;
+	color: var(--sl-color-gray-2);
+	max-width: 34rem;
+}
+
+/* The line under the hero: what it costs and what it runs on. */
+.pw-requirements {
+	margin: 0;
+	font-size: var(--sl-text-sm);
+	color: var(--pw-muted);
+	text-align: center;
+}
+@media (min-width: 50rem) {
+	.pw-requirements {
+		text-align: start;
+	}
+}

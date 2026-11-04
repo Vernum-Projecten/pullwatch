@@ -1,0 +1,49 @@
+---
+title: Security
+description: Known vulnerabilities from OSV.dev and the GitHub Advisory Database, and the alerts of GitHub and Azure DevOps.
+---
+
+import Screenshot from '../../../components/Screenshot.astro';
+
+The same daily check that finds outdated versions also looks up known vulnerabilities. They show on the **Check** tab of a repository page, count towards its color in Repositories, and a new one sends a notification.
+
+<Screenshot name="repo-check" alt="The Check tab of hello-world: Node 16 past its end of life, and advisories for lodash, qs and semver with the installed version, the fix, how each package got in and whether release v1.2.0 has it too." />
+
+## Packages with known vulnerabilities
+
+Pullwatch sends the names and exact versions of your packages to [OSV.dev](https://osv.dev), for these files:
+
+- `go.mod`
+- `package-lock.json`, `yarn.lock` (classic and Berry), `pnpm-lock.yaml` (v6 to v9)
+- `PackageReference` and `PackageVersion` in .NET projects, NuGet `packages.lock.json`
+- `requirements*.txt` (`==` only), `poetry.lock`, `uv.lock`
+- `composer.lock`
+- `Cargo.lock` (crates.io only)
+- `Package.resolved`
+- `Gemfile.lock` (gems from rubygems.org)
+
+Maven and Gradle are not read: their versions only exist after resolving a build. Each scan reads at most 50 files per repository, lockfiles first.
+
+Every finding says where it lives: the workspace, whether the package is direct or came in through another one (with the shortest chain, such as "via express, body-parser"), and whether it is for runtime, development only or optional. Expand a row to see each install.
+
+If a repository has tags, the newest version tag is checked too, and each vulnerability says whether that release has it as well. Anything already fixed on the default branch is not reported.
+
+## Advisory details
+
+Each vulnerability also shows its entry in the GitHub Advisory Database: the GHSA id next to the CVE, GitHub's severity with the CVSS score and vector, the CWE names, and a link to `github.com/advisories`. Select a row to see it in the inspector, with the fix in plain words ("Update lodash to 4.17.21; that is within range, only the lockfile changes") and what holds the fix back.
+
+## Alerts from GitHub and Azure DevOps
+
+The **Security** tab shows what the service itself knows, read with the daily check and **Check**, never on every poll.
+
+<Screenshot name="repo-security" alt="The Security tab of hello-world: three code scanning alerts, critical, high and note, with the file and line of each." />
+
+- **GitHub**: the advisories the repository publishes about itself, open code scanning alerts (CodeQL and other tools, with file and line), and the number of open secret scanning alerts. Pullwatch never reads the secret itself.
+- **Azure DevOps**: open Advanced Security alerts for code and dependencies, and the number of secrets.
+- **GitLab** has no equivalent open to every plan, so a GitLab repository shows the version and OSV.dev check only.
+
+Open critical and high alerts count in the repository's findings. When a kind is off for a repository, or the token may not read it, the tab says **Off** or **Needs permission** with a link, and nothing fails.
+
+## Turning sources off
+
+Every source above can be switched off under Settings, Sources. Pullwatch then never shows that part as clean: it says "Not checked" with the name of the source that is off. See [Privacy and sources](/privacy/).

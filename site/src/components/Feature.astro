@@ -1,0 +1,93 @@
+---
+// One section of the landing page: a short text with a link into the docs, next to (or,
+// with `wide`, above) a screenshot. The link gets Astro's base, so it works at both
+// addresses of the site.
+import Screenshot from './Screenshot.astro';
+
+interface Props {
+	id: string;
+	kicker: string;
+	title: string;
+	shot: string;
+	alt: string;
+	href: string;
+	more: string;
+	/** A tall screenshot (the menu panel, notifications) sits beside the text. */
+	tall?: boolean;
+	flip?: boolean;
+}
+
+const { id, kicker, title, shot, alt, href, more, tall = false, flip = false } = Astro.props;
+const link = `${import.meta.env.BASE_URL.replace(/\/$/, '')}${href}`;
+---
+
+<section class:list={['feature', { tall, flip }]} aria-labelledby={id}>
+	<div class="copy">
+		<p class="kicker">{kicker}</p>
+		<h2 id={id}>{title}</h2>
+		<slot />
+		<a class="more" href={link}>{more}<span aria-hidden="true"> ›</span></a>
+	</div>
+	<div class="media">
+		<Screenshot name={shot} alt={alt} maxWidth={tall ? 420 : 1160} />
+	</div>
+</section>
+
+<style>
+	.feature {
+		display: grid;
+		gap: clamp(1.5rem, 3vw, 2.5rem);
+		padding-block: clamp(3rem, 7vw, 5.5rem);
+		border-top: 1px solid var(--pw-hairline);
+	}
+	.feature:first-of-type {
+		border-top: 0;
+	}
+	.copy {
+		max-width: 40rem;
+	}
+	.kicker {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+	}
+	h2 {
+		margin: 0.35rem 0 0;
+		font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+		line-height: 1.12;
+		letter-spacing: -0.025em;
+		font-weight: 700;
+		color: var(--sl-color-white);
+	}
+	.copy :global(p:not(.kicker)) {
+		margin: 0.9rem 0 0;
+		font-size: var(--sl-text-lg);
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+	.more {
+		display: inline-block;
+		margin-top: 1rem;
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--sl-color-text-accent);
+	}
+	.more:hover {
+		text-decoration: underline;
+	}
+	.media {
+		display: flex;
+		justify-content: center;
+	}
+	@media (min-width: 50rem) {
+		.tall {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+			align-items: center;
+			gap: 4rem;
+		}
+		.tall.flip .copy {
+			order: 2;
+		}
+	}
+</style>
