@@ -10,6 +10,8 @@ import Testing
         (ProviderKind.gitHub, "#"),
         (.gitLab, "!"),
         (.azureDevOps, "!"),
+        (.bitbucket, "#"),
+        (.gitea, "#"),
     ])
     func `Each service writes the number with its own sign`(kind: ProviderKind, prefix: String) {
         #expect(kind.pullRequestPrefix == prefix)
@@ -25,6 +27,8 @@ import Testing
         (ProviderKind.gitHub, "FerroHEALTH/FerroFED", 1570, "FerroHEALTH/FerroFED#1570", "FerroFED #1570", "FerroHEALTH/FerroFED #1570", "#1570"),
         (.gitLab, "group/sub/project", 42, "group/sub/project!42", "project !42", "group/sub/project !42", "!42"),
         (.azureDevOps, "project/repo", 42, "project/repo!42", "repo !42", "project/repo !42", "!42"),
+        (.bitbucket, "workspace/repo", 12, "workspace/repo#12", "repo #12", "workspace/repo #12", "#12"),
+        (.gitea, "owner/repo", 12, "owner/repo#12", "repo #12", "owner/repo #12", "#12"),
     ])
     func `The reference per service`(
         kind: ProviderKind, repo: String, number: Int, reference: String, short: String, withRepo: String, numberText: String

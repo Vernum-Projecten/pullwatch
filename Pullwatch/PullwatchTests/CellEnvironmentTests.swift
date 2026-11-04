@@ -36,7 +36,7 @@ import Testing
         #expect(draws(PullRequestRow(item: Self.item, kind: .gitHub, showsChecks: showsChecks)))
     }
 
-    @Test(arguments: [ProviderKind.gitHub, .gitLab, .azureDevOps])
+    @Test(arguments: ProviderKind.allCases)
     func `RepoReferenceLabel draws without a model in the environment`(kind: ProviderKind) {
         #expect(draws(RepoReferenceLabel(entry: Self.item.entry, kind: kind)))
     }

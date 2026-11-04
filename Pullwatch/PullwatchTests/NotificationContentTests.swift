@@ -56,7 +56,7 @@ import Testing
         #expect(content.payload.repo == repo)
     }
 
-    @Test(arguments: [ProviderKind.gitHub, .gitLab, .azureDevOps], ["new", "merged", "checks failed"])
+    @Test(arguments: ProviderKind.allCases, ["new", "merged", "checks failed"])
     func `The subtitle names the repository and the number as the service writes it`(kind: ProviderKind, event: String) throws {
         let item: RepositoryItem = switch event {
         case "merged": .merged(pr())
@@ -66,7 +66,8 @@ import Testing
 
         let content = try builder(kind: kind).content(for: item)
 
-        #expect(content.subtitle == "\(repo) \(kind == .gitHub ? "#" : "!")42")
+        #expect(content.subtitle == "\(repo) \(kind.pullRequestPrefix)42")
+        #expect(content.subtitle.hasSuffix(kind == .gitLab || kind == .azureDevOps ? "!42" : "#42"))
     }
 
     @Test func `A tag keeps the repository alone as its subtitle`() throws {

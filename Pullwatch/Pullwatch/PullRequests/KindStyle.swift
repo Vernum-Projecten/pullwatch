@@ -212,14 +212,4 @@ nonisolated extension HistoryEntry {
         }
         return prStatus?.spokenName ?? kind.pillText
     }
-
-    /// De pill op de repo-pagina: de status zoals `PRState` hem noemt, en Queued apart zoals de
-    /// StateLabel van GitHub. Een draft houdt de pill Open.
-    var statePill: (text: LocalizedStringResource, tint: Color)? {
-        switch prStatus {
-        case .queued?: ("In wachtrij", PRStatus.queued.color)
-        case .some: prState.map { ($0.label, $0.color) }
-        case nil: nil
-        }
-    }
 }

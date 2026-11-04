@@ -863,10 +863,10 @@
     "%@, pull request %@": {
       "comment": "VoiceOver; korte repo-naam en het nummer van een pull request",
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@, pull request %2$@"
+            "value": "%1$@, Pull Request %2$@"
           }
         },
         "en": {
@@ -875,13 +875,13 @@
             "value": "%1$@, pull request %2$@"
           }
         },
-        "de": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@, Pull Request %2$@"
+            "value": "%1$@, pull request %2$@"
           }
         },
-        "fr": {
+        "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, pull request %2$@"
@@ -892,10 +892,10 @@
     "%@, pull request %@, %@, %@": {
       "comment": "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien",
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@, pull request %2$@, %3$@, %4$@"
+            "value": "%1$@, Pull Request %2$@, %3$@, %4$@"
           }
         },
         "en": {
@@ -904,13 +904,13 @@
             "value": "%1$@, pull request %2$@, %3$@, %4$@"
           }
         },
-        "de": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@, Pull Request %2$@, %3$@, %4$@"
+            "value": "%1$@, pull request %2$@, %3$@, %4$@"
           }
         },
-        "fr": {
+        "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, pull request %2$@, %3$@, %4$@"
@@ -5565,6 +5565,34 @@
         }
       }
     },
+    "Concept-pull request %@: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurf eines Pull Requests %1$@: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft pull request %1$@: %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request en brouillon %1$@ : %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concept-pull request %1$@: %2$@"
+          }
+        }
+      }
+    },
     "Controle": {
       "localizations": {
         "de": {
@@ -7943,6 +7971,34 @@
         }
       }
     },
+    "Gemergde pull request %@: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemergter Pull Request %1$@: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merged pull request %1$@: %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request fusionnée %1$@ : %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemergde pull request %1$@: %2$@"
+          }
+        }
+      }
+    },
     "Gemerged": {
       "localizations": {
         "de": {
@@ -8190,6 +8246,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gesloten"
+          }
+        }
+      }
+    },
+    "Gesloten pull request %@: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschlossener Pull Request %1$@: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed pull request %1$@: %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request fermée %1$@ : %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesloten pull request %1$@: %2$@"
           }
         }
       }
@@ -10293,16 +10377,16 @@
     },
     "Kopieer verwijzing": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy Reference"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Verweis kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Reference"
           }
         },
         "fr": {
@@ -13413,6 +13497,34 @@
         }
       }
     },
+    "Open pull request %@: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offener Pull Request %1$@: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open pull request %1$@: %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request ouverte %1$@ : %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open pull request %1$@: %2$@"
+          }
+        }
+      }
+    },
     "Open repo %@": {
       "localizations": {
         "de": {
@@ -14788,6 +14900,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Project"
+          }
+        }
+      }
+    },
+    "Pull request %@ in de wachtrij: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request %1$@ in der Warteschlange: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request %1$@, queued: %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request %1$@ en file d’attente : %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request %1$@ in de wachtrij: %2$@"
           }
         }
       }
@@ -19862,16 +20002,16 @@
     },
     "Zoek op titel, nummer, auteur, repo…": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search by title, number, author, repository…"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nach Titel, Nummer, Autor, Repository suchen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by title, number, author, repository…"
           }
         },
         "fr": {
@@ -20741,16 +20881,16 @@
     "pull request %@": {
       "comment": "VoiceOver; het nummer van een pull request",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pull request %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pull Request %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pull request %@"
           }
         },
         "fr": {

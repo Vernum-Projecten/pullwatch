@@ -52,4 +52,17 @@ nonisolated enum PRStatus: CaseIterable, Hashable, Sendable {
         case .closed: "Pull request, gesloten"
         }
     }
+
+    /// Status, nummer en titel als één zin, voor VoiceOver op de repo-pagina waar alleen het icoon
+    /// staat: "Gemergde pull request 1570: Fix the build". Het nummer als cijfers, zonder teken.
+    func spokenSentence(number: Int, title: String) -> LocalizedStringResource {
+        let number = String(number)
+        return switch self {
+        case .open: "Open pull request \(number): \(title)"
+        case .draft: "Concept-pull request \(number): \(title)"
+        case .queued: "Pull request \(number) in de wachtrij: \(title)"
+        case .merged: "Gemergde pull request \(number): \(title)"
+        case .closed: "Gesloten pull request \(number): \(title)"
+        }
+    }
 }
