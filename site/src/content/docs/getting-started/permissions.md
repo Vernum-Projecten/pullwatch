@@ -1,6 +1,6 @@
 ---
 title: Token permissions
-description: The scopes and permissions Pullwatch needs on GitHub, GitHub Enterprise, Azure DevOps, GitLab and Bitbucket.
+description: The scopes and permissions Pullwatch needs on GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea.
 ---
 
 Pullwatch only reads. Give a token the read permissions below and nothing more. When a permission for an optional part is missing, that part says **Needs permission** with a link, and the rest keeps working.
@@ -55,6 +55,19 @@ An Atlassian **API token with scopes** for the app Bitbucket, together with the 
 | `read:pullrequest:bitbucket` | pull requests and their commits (the co-authors) |
 
 These three are all Pullwatch asks for. `read:workspace:bitbucket` is not needed: Pullwatch checks a workspace through its repositories. Bitbucket's app passwords stopped working in July 2026.
+
+## Codeberg, Forgejo and Gitea
+
+Make a token under Settings, Applications on the server, with these scopes, all on Read:
+
+| Scope | Used for |
+|---|---|
+| `read:user` | who you are, and the repositories of users you follow |
+| `read:organization` | the organizations you follow and their repositories |
+| `read:repository` | pull requests, tags, releases, commit statuses (checks), commits and files |
+| `read:issue` | the list of pull requests, which comes from the issue search (`/repos/issues/search`) |
+
+Without one of them, **Test connection** names the scope that is missing. A token limited to public repositories works for public repositories only. There is no command-line sign-in: the `tea` tool has no command that hands out its token.
 
 ## Signing in with a command-line tool
 

@@ -53,6 +53,23 @@
       "license" : "MIT",
       "homepage" : "https://github.com/primer/octicons",
       "file" : "octicons-LICENSE.txt"
+    },
+    {
+      "id" : "codeberg-logo",
+      "name" : "Codeberg logo",
+      "version" : "9f8c699",
+      "license" : "CC0-1.0",
+      "homepage" : "https://codeberg.org/Codeberg/Design",
+      "file" : "codeberg-logo-LICENSE.txt",
+      "notice" : "codeberg-logo-NOTICE.txt"
+    },
+    {
+      "id" : "forgejo-logo",
+      "name" : "Forgejo logo",
+      "version" : "e34fea4",
+      "license" : "CC-BY-SA-4.0",
+      "homepage" : "https://codeberg.org/forgejo/meta/src/branch/readme/branding",
+      "file" : "forgejo-logo-LICENSE.txt"
     }
   ]
 }

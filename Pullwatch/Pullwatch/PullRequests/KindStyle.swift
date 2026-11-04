@@ -15,6 +15,11 @@ nonisolated enum Glyph: Hashable, Sendable {
         case .asset(let name): Image(decorative: name)
         }
     }
+
+    /// Een logo uit de assetcatalogus houdt zijn eigen kleuren: nooit tinten of als template tekenen.
+    var keepsItsColours: Bool {
+        if case .asset = self { true } else { false }
+    }
 }
 
 nonisolated extension ProviderKind {
@@ -29,20 +34,20 @@ nonisolated extension ProviderKind {
     /// licht en donker. Ook een keuze van de eigenaar (fork-issue #175), terug te draaien met dit
     /// ene geval en de asset.
     /// Azure DevOps: Microsoft staat de Azure-iconen alleen toe in diagrammen en documentatie,
-    /// dus een gevuld SF Symbol, even zwaar als de logo's.
+    /// dus een gevuld SF Symbol, even zwaar als de logo's. Gitea: zie `GiteaFlavour.glyph`;
+    /// zonder smaak het logo van Gitea.
     var glyph: Glyph {
         switch self {
         case .gitHub: .asset("GitHubMark")
         case .azureDevOps: .system("cloud.circle.fill")
         case .gitLab: .asset("GitLabMark")
         case .bitbucket: .asset("BitbucketMark")
+        case .gitea: GiteaFlavour.gitea.glyph
         }
     }
 
     /// Het logo moet zijn eigen kleuren houden: nooit tinten of als template tekenen.
-    var glyphKeepsItsColours: Bool {
-        if case .asset = glyph { true } else { false }
-    }
+    var glyphKeepsItsColours: Bool { glyph.keepsItsColours }
 
     /// Hoeveel groter het beeld getekend wordt dan zijn vak, zodat elk teken even groot oogt. Het
     /// bestand van GitLab houdt de vrije ruimte die GitLab eromheen voorschrijft in zijn canvas
@@ -55,8 +60,40 @@ nonisolated extension ProviderKind {
         case .gitLab: 2.3
         case .bitbucket: 0.86
         case .gitHub, .azureDevOps: 1
+        case .gitea: GiteaFlavour.gitea.glyphScale
         }
     }
+}
+
+nonisolated extension GiteaFlavour {
+    /// Het officiële logo van elke smaak, onveranderd (zie NOTICE): Codeberg het icoon uit
+    /// Codeberg/Design (CC0), blauw op licht en wit op donker zoals Codeberg voorschrijft; Forgejo
+    /// het logo uit forgejo/meta (CC BY-SA 4.0, Caesar Schinas), in kleur op licht en donker;
+    /// Gitea het logo uit go-gitea/gitea (`assets/logo.svg`), een bewuste keuze van de eigenaar
+    /// (fork-issue #175), terug te draaien met dit ene geval en de asset.
+    var glyph: Glyph {
+        switch self {
+        case .codeberg: .asset("CodebergMark")
+        case .forgejo: .asset("ForgejoMark")
+        case .gitea: .asset("GiteaMark")
+        }
+    }
+
+    /// Zoals `ProviderKind.glyphScale`: de drie bestanden vullen hun canvas (bijna) helemaal, dus
+    /// op de maat van de Invertocat.
+    var glyphScale: CGFloat {
+        switch self {
+        case .codeberg, .forgejo, .gitea: 1
+        }
+    }
+}
+
+nonisolated extension Account {
+    /// Het beeld van dit account: bij Gitea dat van de smaak, anders dat van de dienst.
+    var glyph: Glyph { kind == .gitea ? giteaFlavour.glyph : kind.glyph }
+
+    /// Zie `ProviderKind.glyphScale`.
+    var glyphScale: CGFloat { kind == .gitea ? giteaFlavour.glyphScale : kind.glyphScale }
 }
 
 // Vaste waarden (icoon, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.

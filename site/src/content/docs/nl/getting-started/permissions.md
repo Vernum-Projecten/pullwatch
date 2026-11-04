@@ -1,6 +1,6 @@
 ---
 title: Rechten van tokens
-description: De scopes en rechten die Pullwatch nodig heeft op GitHub, GitHub Enterprise, Azure DevOps, GitLab en Bitbucket.
+description: De scopes en rechten die Pullwatch nodig heeft op GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo en Gitea.
 ---
 
 Pullwatch leest alleen. Geef een token de leesrechten hieronder en niets meer. Ontbreekt een recht voor een optioneel deel, dan staat bij dat deel **Toestemming nodig** met een link, en de rest blijft werken.
@@ -55,6 +55,19 @@ Een **API-token met scopes** van Atlassian voor de app Bitbucket, samen met het 
 | `read:pullrequest:bitbucket` | pull requests en hun commits (de co-auteurs) |
 
 Meer vraagt Pullwatch niet. `read:workspace:bitbucket` is niet nodig: Pullwatch controleert een workspace via zijn repositories. De app passwords van Bitbucket werken sinds juli 2026 niet meer.
+
+## Codeberg, Forgejo en Gitea
+
+Maak een token onder Instellingen, Applicaties op de server, met deze scopes, alle op Lezen:
+
+| Scope | Gebruikt voor |
+|---|---|
+| `read:user` | wie je bent, en de repositories van gebruikers die je volgt |
+| `read:organization` | de organisaties die je volgt en hun repositories |
+| `read:repository` | pull requests, tags, releases, commit statuses (checks), commits en bestanden |
+| `read:issue` | de lijst van pull requests, die uit de zoekfunctie voor issues komt (`/repos/issues/search`) |
+
+Mist er een, dan noemt **Test verbinding** de scope die ontbreekt. Een token dat alleen bij openbare repositories mag, werkt alleen voor openbare repositories. Inloggen via de opdrachtregel kan niet: `tea` heeft geen opdracht die zijn token afgeeft.
 
 ## Inloggen met een opdrachtregeltool
 

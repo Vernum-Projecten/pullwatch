@@ -194,7 +194,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   an API token with scopes from the Keychain, pages through `next` links on
   the API host only, the open pull requests of a repository asked again only
   when its `updated_on` moved or after `openRefresh`, build statuses as checks,
-  tags without releases; no CLI token source). Each provider has the same layout: the
+  tags without releases; no CLI token source). `PullwatchGitea/`:
+  `GiteaProvider` (Gitea, Forgejo and Codeberg on the shared API v1,
+  `<server>/api/v1`; one `ProviderKind.gitea` with `Account.giteaFlavour`
+  (`GiteaFlavour`: codeberg.org, an own Forgejo server, gitea.com or an own
+  Gitea server); organisations and users as owners, pull requests per
+  owner from `/repos/issues/search?type=pulls`, pages through `Link` and
+  `X-Total-Count` on the server only, commit statuses as checks, tags with
+  releases, a 403 "required scope" as `ProviderError.missingScope`; token
+  only, `tea` hands out no token). Each provider has the same layout: the
   provider itself (accounts, repositories, pull requests), `+Tags`, `+HTTP`,
   one file of DTOs, and a `+Area` file per further area (co-authors, files,
   checks, security, extra repositories, merge queues and trains,
@@ -255,7 +263,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Bundle.localized…` helper (`Support/Localization.swift`).
   `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
-  `PullwatchGitLabTests`, `PullwatchBitbucketTests`, `PullwatchProvidersTests`,
+  `PullwatchGitLabTests`, `PullwatchBitbucketTests`, `PullwatchGiteaTests`,
+  `PullwatchProvidersTests`,
   `PullwatchMCPTests`),
   and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`

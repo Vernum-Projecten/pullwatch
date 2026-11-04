@@ -69,6 +69,9 @@ public enum SourcesOverview {
             return (instance ?? URL(string: "https://gitlab.com")!).appending(path: "api/v4")
         case .bitbucket:
             return URL(string: "https://api.bitbucket.org/2.0")!
+        case .gitea:
+            // Een Forgejo-account zonder server bestaat niet (de editor eist er een); dan codeberg.org.
+            return (instance ?? URL(string: "https://codeberg.org")!).appending(path: "api/v1")
         }
     }
 
@@ -198,6 +201,11 @@ public enum SourcesOverview {
         case .bitbucket:
             return [URL(string: "https://secure.gravatar.com")!,
                     URL(string: "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net")!]
+        case .gitea:
+            // Gitea en Forgejo geven `avatar_url` op de server zelf (`<server>/avatars/…`); een
+            // server die Gravatar aanzet stuurt daar door naar secure.gravatar.com.
+            let web = account.effectiveInstanceURL ?? URL(string: "https://codeberg.org")!
+            return [web, URL(string: "https://secure.gravatar.com")!]
         }
     }
 

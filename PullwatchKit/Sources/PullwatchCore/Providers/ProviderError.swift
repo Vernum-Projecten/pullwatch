@@ -13,6 +13,15 @@ public enum ProviderError: Error, Equatable, Sendable {
     /// Een CLI (`gh`, `az`, `glab`) of een server gaf binnen de tijd geen antwoord. `command`
     /// is de naam van het programma of de host van de server.
     case timeout(command: String)
+    /// Het token werkt, maar mist een scope die dit verzoek nodig heeft (Gitea en Forgejo zeggen
+    /// welke, bv. "read:issue").
+    case missingScope(String)
+    /// De server heeft een certificaat dat macOS niet vertrouwt (zelfondertekend, verlopen, of
+    /// van een eigen CA die niet in de sleutelhanger staat). De host van de server.
+    case untrustedCertificate(String)
+    /// Op dit adres antwoordt geen server van de verwachte dienst (bv. een webpagina in plaats
+    /// van de API). De host en de dienst ("Forgejo").
+    case unexpectedServer(host: String, service: String)
 
     public var userMessage: String {
         userMessage(bundle: .localizedCore)
@@ -46,6 +55,12 @@ public enum ProviderError: Error, Equatable, Sendable {
             return String(localized: "Geen toegang tot \"\(name)\", controleer de naam", bundle: bundle)
         case .timeout(let command):
             return String(localized: "\(command) reageert niet op tijd", bundle: bundle, comment: "Naam van een programma (gh, az, glab) of een server")
+        case .missingScope(let scope):
+            return String(localized: "Het token mist de scope \(scope); maak een token met de scopes die Pullwatch noemt", bundle: bundle, comment: "Scope van een token, bv. read:issue")
+        case .untrustedCertificate(let host):
+            return String(localized: "Het certificaat van \(host) wordt niet vertrouwd; Pullwatch praat alleen met servers met een geldig https-certificaat", bundle: bundle, comment: "Host van de server")
+        case .unexpectedServer(let host, let service):
+            return String(localized: "Op \(host) draait geen \(service); controleer het adres van de server", bundle: bundle, comment: "Host, dienst (Gitea, Forgejo, Codeberg)")
         }
     }
 }

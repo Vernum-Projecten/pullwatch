@@ -1,6 +1,6 @@
 ---
 title: Token-Berechtigungen
-description: Die Scopes und Berechtigungen, die Pullwatch auf GitHub, GitHub Enterprise, Azure DevOps, GitLab und Bitbucket braucht.
+description: Die Scopes und Berechtigungen, die Pullwatch auf GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo und Gitea braucht.
 ---
 
 Pullwatch liest nur. Gib einem Token die unten genannten Leseberechtigungen und nichts weiter. Fehlt eine Berechtigung für einen optionalen Teil, zeigt dieser Teil **Berechtigung nötig** mit einem Link, und der Rest funktioniert weiter.
@@ -55,6 +55,19 @@ Ein **API-Token mit Scopes** von Atlassian für die App Bitbucket, zusammen mit 
 | `read:pullrequest:bitbucket` | Pull Requests und ihre Commits (die Co-Autoren) |
 
 Mehr verlangt Pullwatch nicht. `read:workspace:bitbucket` ist nicht nötig: Pullwatch prüft einen Workspace über seine Repositories. Die App-Passwörter von Bitbucket funktionieren seit Juli 2026 nicht mehr.
+
+## Codeberg, Forgejo und Gitea
+
+Erstelle ein Token unter Einstellungen, Anwendungen auf dem Server, mit diesen Scopes, alle auf Lesen:
+
+| Scope | Wofür |
+|---|---|
+| `read:user` | wer du bist, und die Repositories von Benutzern, denen du folgst |
+| `read:organization` | die Organisationen, denen du folgst, und ihre Repositories |
+| `read:repository` | Pull Requests, Tags, Releases, Commit-Statuses (Checks), Commits und Dateien |
+| `read:issue` | die Liste der Pull Requests, die aus der Issue-Suche kommt (`/repos/issues/search`) |
+
+Fehlt einer, nennt **Verbindung testen** den fehlenden Scope. Ein Token, das nur öffentliche Repositories darf, funktioniert nur für öffentliche Repositories. Eine Anmeldung über die Kommandozeile gibt es nicht: `tea` hat keinen Befehl, der sein Token herausgibt.
 
 ## Anmelden mit einem Kommandozeilenwerkzeug
 

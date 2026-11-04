@@ -208,7 +208,7 @@ final class AccountsModel {
         do {
             repo = try RepositoryReference.parse(
                 input, kind: account.kind, organization: account.organization,
-                instanceURL: account.kind == .gitLab
+                instanceURL: account.kind == .gitLab || account.kind == .gitea
                     ? account.effectiveInstanceURL
                     : (account.isGitHubEnterprise ? account.instanceURL : nil)
             )
@@ -279,8 +279,19 @@ final class AccountsModel {
         switch kind {
         case .gitHub: gitHubApp.isConfigured ? .gitHubApp : .cli
         case .azureDevOps: .cli
-        case .gitLab, .bitbucket: .pat
+        // Gitea, Forgejo en Codeberg: alleen een token; `tea` geeft zijn token niet af.
+        case .gitLab, .bitbucket, .gitea: .pat
         }
+    }
+
+    /// Een nieuw, leeg account voor een keuze op de kaarten of in het toevoeg-menu. Op een eigen
+    /// GitHub- of GitLab-server eerst een token (de Pullwatch-app bestaat daar niet).
+    func draft(for choice: AccountChoice) -> Account {
+        Account(
+            kind: choice.kind, organization: "",
+            authMethod: choice.enterprise ? .pat : defaultAuthMethod(for: choice.kind),
+            giteaFlavour: choice.flavour ?? .gitea
+        )
     }
 
     func hasGitHubAppTokens(_ id: UUID) -> Bool {

@@ -4,6 +4,7 @@ import PullwatchAzureDevOps
 import PullwatchBitbucket
 import PullwatchCore
 import PullwatchGitHub
+import PullwatchGitea
 import PullwatchGitLab
 import PullwatchProviders
 import PullwatchTestSupport
@@ -14,6 +15,7 @@ import PullwatchTestSupport
         #expect(ProviderFactory.make(Account.fixture(kind: .gitHub)) is GitHubProvider)
         #expect(ProviderFactory.make(Account.fixture(kind: .gitLab)) is GitLabProvider)
         #expect(ProviderFactory.make(Account.fixture(kind: .bitbucket)) is BitbucketProvider)
+        #expect(ProviderFactory.make(Account.fixture(kind: .gitea)) is GiteaProvider)
     }
 
     @Test func `Bitbucket signs in with the account email and the token from the Keychain`() async throws {
@@ -36,6 +38,35 @@ import PullwatchTestSupport
         _ = try await ProviderFactory.make(account, pat: "ATATT-typed", secrets: InMemorySecretStore(), http: http).currentUserId()
         let expected = "Basic " + Data("jane@example.com:ATATT-typed".utf8).base64EncodedString()
         #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == expected)
+    }
+
+    @Test(arguments: [
+        (GiteaFlavour.codeberg, nil, "https://codeberg.org/api/v1/user"),
+        (.gitea, nil, "https://gitea.com/api/v1/user"),
+        (.forgejo, "https://forgejo.example.com", "https://forgejo.example.com/api/v1/user"),
+        (.gitea, "https://example.com/gitea", "https://example.com/gitea/api/v1/user"),
+    ])
+    func `Gitea talks to the server of its flavour with the typed token`(flavour: GiteaFlavour, server: String?, expected: String) async throws {
+        let http = MockHTTPClient()
+        http.on(expected, body: #"{"id":1,"login":"me","full_name":"Me"}"#)
+        var account = Account.fixture(kind: .gitea)
+        account.giteaFlavour = flavour
+        account.instanceURL = server.flatMap(URL.init(string:))
+        let provider = ProviderFactory.make(account, pat: "typed", secrets: InMemorySecretStore(), http: http)
+        #expect(try await provider.currentUserId() == "me")
+        #expect(http.requests.map(\.url?.absoluteString) == [expected])
+        #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == "token typed")
+    }
+
+    @Test func `Gitea reads its token from the Keychain`() async throws {
+        let http = MockHTTPClient()
+        http.on("https://codeberg.org/api/v1/user", body: #"{"id":1,"login":"me"}"#)
+        var account = Account.fixture(kind: .gitea)
+        account.giteaFlavour = .codeberg
+        let secrets = InMemorySecretStore()
+        try secrets.write("stored", account: account.id.uuidString)
+        _ = try await ProviderFactory.make(account, secrets: secrets, http: http).currentUserId()
+        #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == "token stored")
     }
 
     @Test func gitLabTalksToItsOwnServer() async throws {

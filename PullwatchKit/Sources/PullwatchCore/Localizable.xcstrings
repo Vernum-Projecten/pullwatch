@@ -1110,6 +1110,35 @@
         }
       }
     },
+    "Het certificaat van %@ wordt niet vertrouwd; Pullwatch praat alleen met servers met een geldig https-certificaat": {
+      "comment": "Host van de server",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Zertifikat von %@ ist nicht vertrauenswürdig; Pullwatch spricht nur mit Servern mit einem gültigen https-Zertifikat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate of %@ is not trusted; Pullwatch only talks to servers with a valid https certificate"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le certificat de %@ n’est pas approuvé ; Pullwatch ne communique qu’avec des serveurs dotés d’un certificat https valide"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het certificaat van %@ wordt niet vertrouwd; Pullwatch praat alleen met servers met een geldig https-certificaat"
+          }
+        }
+      }
+    },
     "Het register van GitLab is alleen te lezen met de scope read_api: gebruik een persoonlijk token met read_api, of log opnieuw in met de GitLab CLI (glab auth login).": {
       "comment": "Reden waarom de packages van een GitLab-account niet te lezen zijn; read_api en de glab-opdracht niet vertalen",
       "localizations": {
@@ -1135,6 +1164,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Het register van GitLab is alleen te lezen met de scope read_api: gebruik een persoonlijk token met read_api, of log opnieuw in met de GitLab CLI (glab auth login)."
+          }
+        }
+      }
+    },
+    "Het token mist de scope %@; maak een token met de scopes die Pullwatch noemt": {
+      "comment": "Scope van een token, bv. read:issue",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dem Token fehlt der Scope %@; erstelle ein Token mit den Scopes, die Pullwatch nennt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The token lacks the scope %@; create a token with the scopes Pullwatch lists"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il manque au jeton la portée %@ ; créez un jeton avec les portées indiquées par Pullwatch"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het token mist de scope %@; maak een token met de scopes die Pullwatch noemt"
           }
         }
       }
@@ -1559,6 +1617,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onverwacht antwoord: %@"
+          }
+        }
+      }
+    },
+    "Op %@ draait geen %@; controleer het adres van de server": {
+      "comment": "Host, dienst (Gitea, Forgejo, Codeberg)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf %1$@ läuft kein %2$@; prüfe die Adresse des Servers"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ does not run %2$@; check the address of the server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ n’exécute pas %2$@ ; vérifiez l’adresse du serveur"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op %1$@ draait geen %2$@; controleer het adres van de server"
           }
         }
       }

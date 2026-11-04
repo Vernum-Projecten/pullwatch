@@ -18,18 +18,53 @@ struct ProviderCard: View {
         let perform: () -> Void
     }
 
-    let kind: ProviderKind
+    /// De naam op de kaart, in elke taal hetzelfde.
+    let title: String
+    /// De tekens van de diensten op de kaart: één, of bij Gitea, Forgejo en Codeberg alle drie.
+    let marks: [Mark]
     let subtitle: LocalizedStringKey
     let actions: [Action]
+    /// Het deel achter `onboarding.card.` in de accessibility identifier.
+    let identifier: String
     @ScaledMetric(relativeTo: .largeTitle) private var markSize = 36.0
     @State private var isHovered = false
 
+    /// Het teken van één dienst (`ProviderMark`).
+    struct Mark: Hashable {
+        let glyph: Glyph
+        let scale: CGFloat
+    }
+
+    init(kind: ProviderKind, subtitle: LocalizedStringKey, actions: [Action]) {
+        title = kind.name
+        marks = [Mark(glyph: kind.glyph, scale: kind.glyphScale)]
+        self.subtitle = subtitle
+        self.actions = actions
+        identifier = kind.rawValue
+    }
+
+    /// Een kaart voor diensten die één API delen (Codeberg, Forgejo en Gitea): hun tekens naast
+    /// elkaar, elk even groot als het teken op de andere kaarten.
+    init(title: String, flavours: [GiteaFlavour], subtitle: LocalizedStringKey, actions: [Action], identifier: String) {
+        self.title = title
+        marks = flavours.map { Mark(glyph: $0.glyph, scale: $0.glyphScale) }
+        self.subtitle = subtitle
+        self.actions = actions
+        self.identifier = identifier
+    }
+
     var body: some View {
         VStack(spacing: 6) {
-            ProviderMark(kind: kind, size: markSize)
-                .padding(.bottom, 4)
-            Text(verbatim: kind.name)
+            HStack(spacing: 10) {
+                ForEach(marks, id: \.self) { mark in
+                    ProviderMark(glyph: mark.glyph, scale: mark.scale, size: markSize)
+                }
+            }
+            .padding(.bottom, 4)
+            Text(verbatim: title)
                 .font(.headline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             Text(subtitle)
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -66,7 +101,7 @@ struct ProviderCard: View {
         .onHover { isHovered = $0 }
         .animation(.easeOut(duration: 0.12), value: isHovered)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(verbatim: kind.name))
-        .accessibilityIdentifier("onboarding.card.\(kind.rawValue)")
+        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityIdentifier("onboarding.card.\(identifier)")
     }
 }
