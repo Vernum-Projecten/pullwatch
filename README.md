@@ -32,7 +32,7 @@ The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state 
 
 ## Usage
 
-1. Click the menu bar icon → **Instellingen…** (Settings), which opens the settings in the main window.
+1. Click the menu bar icon, then the gear button (**Instellingen**, Settings), which opens the Settings window.
 2. Add an account (Azure DevOps, GitHub or GitLab), choose PAT or CLI, and test the connection. With the GitHub CLI and several `gh` accounts, pick which one provides the token under **GitHub-account**. For GitHub Enterprise, choose **GitHub Enterprise** on the GitHub card (or in the **+** menu under Settings) and enter your server under **Server**: a GitHub Enterprise Server (`https://github.example.com`) or your enterprise's subdomain on GHE.com (`https://acme.ghe.com`), https only. Pullwatch finds the API itself (`/api/v3` on a server, `api.acme.ghe.com` on GHE.com), links to pull requests, tags and repositories on that server, and the account card shows the host. For GitLab, leave **Server** empty for gitlab.com or enter your own server (https only, for example `https://gitlab.example.com`), and list the groups or users to follow, separated by commas (`acme, acme/platform`); a group includes its subgroups, and repositories appear as `group/subgroup/project`.
 3. Per account, choose which repositories you follow: PR's, Tags and/or Completed (merged PRs).
 
@@ -42,7 +42,7 @@ Tags are off by default. Next to each checkbox is a bell: turn it off to keep fo
 
 Pullwatch checks GitHub once a day for a newer release (Settings → General, also **Check now**); when there is one, you get a notification and a banner in the menu. A release build installs the update itself with [Sparkle](https://sparkle-project.org): **Install** shows the release notes, then Sparkle downloads the update, checks its EdDSA signature and the Developer ID signature, installs it and restarts Pullwatch. Under Settings → General, **Install updates automatically** downloads an update in the background and installs it when you quit Pullwatch, and **Include test versions** also offers pre-releases (Sparkle's beta channel). A build without Sparkle's public key (one you build from source, or a fork without its own key) keeps the download button for the disk image instead.
 
-While a window (settings, history, versions) is open, Pullwatch shows in the Dock; close the last window and it runs from the menu bar only.
+While a window (the main window, the welcome window or Settings) is open, Pullwatch shows in the Dock; close the last window and it runs from the menu bar only.
 
 ### Notifications
 
@@ -58,11 +58,11 @@ New pull requests, releases, vulnerabilities and security alerts arrive with a b
 
 ### Main window
 
-**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags en releases**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), with **Instellingen** (settings) pinned at the bottom; the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub and GitLab), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. **Instellingen…** in the menu and ⌘, open the settings there.
+**Openen…** in the menu opens the main window. Its sidebar has **PR's**, **Tags en releases**, **Repo's** (repositories), **Afhankelijkheden** (dependencies) and **Statistieken** (statistics), and the badges count unread PRs and tags and unseen new versions. Under PR's, Tags and Repo's you can expand a list of projects (Azure DevOps) or owners (GitHub and GitLab), each with its own unread count; selecting one filters the list and the search to that project. Pullwatch remembers the last section. The gear button in the menu and ⌘, open Settings in a window of its own.
 
 ### Keyboard shortcuts and jumps
 
-In the main window, the **Ga** (Go) menu has ⌘1–⌘5 for PR's, Tags, Repo's, Afhankelijkheden and Statistieken, ⌘F to search the current section, ⌘R to refresh (the open repository, otherwise poll or check everything), ⌘[ or Esc to go back from a repository page, and ⌘O to open the selection (or the open repository) in the browser.
+In the main window, the **Ga** (Go) menu has ⌘1 to ⌘5 for PR's, Tags, Repo's, Afhankelijkheden and Statistieken, ⌘F to search the current section, ⌘R to refresh (the open repository, otherwise poll or check everything), ⌘[ or Esc to go back from a repository page, and ⌘O to open the selection (or the open repository) in the browser.
 
 Jumps between sections: a repository page links to all its PRs and tags, to its statistics, and from a CVE to that package in Afhankelijkheden; in Statistieken a selected author links to their PRs and a repository to its page; in the menu, right-click a PR or tag for **Open repo**.
 
@@ -72,7 +72,7 @@ Jumps between sections: a repository page links to all its PRs and tags, to its 
 
 Pullwatch also fetches existing PRs (open, merged and closed) for the history. The first time it goes back to the retention period, with at most 1000 PRs per account; after that the history is updated every 15 minutes (state, title and close date). Fetched PRs don't notify and are marked as read. Changing the repository filter or retention restarts the initial fetch for that account. The GitHub search API has its own limit of 30 requests per minute; when hit, Pullwatch waits it out while PR polling carries on.
 
-Calls to `az` and `gh` time out after 20 seconds.
+Calls to `az`, `gh` and `glab` time out after 20 seconds.
 
 ### Repositories
 
@@ -141,11 +141,11 @@ Settings → **Bronnen** (sources) lists every outside service Pullwatch talks t
 
 - With an ad-hoc signed local build (from Xcode or `release.sh --unsigned`), macOS may ask for Keychain access again after each install for PAT accounts; choose "Always Allow".
 - On first launch Pullwatch opens a welcome window: where the menu bar icon is, your first account, then notifications and launch at login. Opening Pullwatch again while it runs opens the main window (or the welcome window while no account is set up).
-- Running from Xcode while an installed Pullwatch is open gives you two menu bar icons; quit the installed one first via **Stop** in the menu.
+- Running from Xcode while an installed Pullwatch is open gives you two menu bar icons; quit the installed one first via **Stop Pullwatch** in the menu.
 
 ## Data
 
-`~/Library/Application Support/Pullwatch/`: `config.json`, `seen.json`, `history.json`, `versions.json`. Tokens are stored in the Keychain (`nl.torrisi.pullwatch`).
+`~/Library/Application Support/Pullwatch/`: `config.json`, `seen.json`, `history.json`, `versions.json`, `version-history.json`. Tokens are stored in the Keychain (`nl.torrisi.pullwatch`).
 
 Logs: `log stream --predicate 'subsystem == "nl.torrisi.pullwatch"'`
 

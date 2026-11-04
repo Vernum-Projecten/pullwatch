@@ -37,10 +37,10 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (four
   scenes: the `MenuBarExtra`, the main `Window`, the welcome `Window` that
   opens by itself on a first launch via `defaultLaunchBehavior`, and the
-  `Settings` scene; `WindowPresence` shows the Dock icon while one of them is
-  open; the menu-bar label opens windows the model asks for through
-  `AppRouter.windowRequest`; `appModels(_:)` puts every model in each scene's
-  environment), `AppModel.swift` (the composition root: creates the models
+  `Settings` scene; `appModels(_:)` puts every model in each scene's
+  environment), `AppDelegate` (starts the model, except as a test host),
+  `WindowPresence` (shows the Dock icon while one of those windows is open),
+  `AppModel.swift` (the composition root: creates the models
   once, starts the loop, and keeps the intents that span models), and one
   `@Observable` model per job, each read by views from the environment:
   `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
@@ -52,18 +52,29 @@ of each part is in `docs/superpowers/specs/` and its plan in
   paths, filters; `show(_:)` opens a window or section); `AppServices` holds
   the stores, the engine and the notifier,
   `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
-  the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` (debug only),
-  `Notifier`, `Shortcuts` (commands; ⌘O reads the `browserTarget` focused
-  value), `AppLanguage` (the language choice in General: follow macOS or a
-  fixed language through `AppleLanguages`, applied by relaunching). `Pullwatch/Pullwatch/Views/`: only draws. `AboutView` (the About window), `MenuView`
+  the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` and
+  `FakeWorld` (debug only: a GitHub without network and its repositories, for
+  the UI tests and the camera tours), `Notifier` and `NotificationGlyph`,
+  `Shortcuts` (commands; ⌘O reads the `browserTarget` focused value),
+  `AppLanguage` (the language choice in General: follow macOS or a fixed
+  language through `AppleLanguages`, applied by relaunching), and the models
+  of single screens (`RepoPage`, `PackageRows`, `RepoBriefs`, `TagFilter`,
+  `RepoVersions+Clipboard`).
+  `Pullwatch/Pullwatch/Views/`: only draws. `MenuBarLabel` (the menu-bar
+  icon; it opens the windows the model asks for through
+  `AppRouter.windowRequest`), `AboutView` (the About window), `MenuView`
   (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
   Statistics), `SettingsView` (the Settings window: Accounts, Notifications,
   General with the language choice, and Sources), `SourcesSettingsView` (the Sources tab:
   every outgoing connection, switches for the data sources, **Copy
-  overview**), `AccountEditor`, the section views, and `Components/`
-  (`SourceStatusParts`: the "Niet gecontroleerd: bron … staat uit" texts;
-  `CopyButton` and `AgentBriefButton`). `RepoDetailView` puts the agent
-  briefs behind the Overview headings and in the toolbar's More menu
+  overview**), `AccountEditor`, `OnboardingView` with `OnboardingSteps`, the
+  section views, and `Components/` (shared pieces: `SourceStatusParts` with
+  the "Niet gecontroleerd: bron … staat uit" texts, `Pasteboard`,
+  `CopyButton`, `AgentBriefButton` and `AgentBriefMenu`, the vulnerability
+  table and its cells). The repository page is `RepoDetailView` with a file
+  per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoPackagesTab`,
+  `RepoSecurityTab`), `RepoInspector` and `RepoDetailToolbar`; it puts the
+  agent briefs behind the Overview headings and in the toolbar's More menu
   (`RepoBriefs`, one per section). `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
@@ -79,7 +90,13 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `-PullwatchFakeGitHub`; `SecretStores`), and walk
   the first-run onboarding in Dutch and English. In debug builds
   `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
-  PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed.
+  PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed;
+  with `-PullwatchFakeGitHub YES -PullwatchFakeData YES
+  -PullwatchSnapshotTour YES` and a `config.json` with a GitHub account in
+  the data folder it walks every screen of the main window
+  (`App/SnapshotTour.swift`), and `-PullwatchOnboardingTour YES` every step of
+  the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
+  refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
   without a window, in five modules under `Sources/`. The names start with
   `Pullwatch` so a module never shares its name with a type in it.
@@ -100,7 +117,10 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
   `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
   `PullwatchGitLab/`: `GitLabProvider` (gitlab.com and self-managed, REST v4)
-  and the `glab` token source.
+  and the `glab` token source. Each provider has the same layout: the
+  provider itself (accounts, repositories, pull requests), `+Tags`, `+HTTP`,
+  one file of DTOs, and a `+Area` file per further area (co-authors, files,
+  checks, security, extra repositories, merge queues and trains).
   `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
   provider. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
@@ -114,7 +134,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
   `PullwatchGitLabTests`, `PullwatchProvidersTests`), and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
-  and fixtures.
+  (starting at `Date.testStart`), `CLILocator.homebrew` and `.nothing`,
+  `expectCalledHostsAreListed` and fixtures; a helper only one target needs
+  goes in that target's `Support/`.
 - `docs/setup.md`: everything the maintainer configures outside the code
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
@@ -138,14 +160,16 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `check-version.sh vX.Y.Z` (tag, `MARKETING_VERSION`, build number and
   changelog agree, no fragment left), `notes.sh vX.Y.Z` (the changelog
   section), `changelog.sh` (`--check`, `--preview`, `--assemble` of the
-  fragments), `protect-tags.sh` (the `v*` tag ruleset).
+  fragments), `protect-tags.sh` (the `v*` tag ruleset), `verify-update.swift`
+  (checks the signed appcast and zip against the app's public key).
 - `scripts/checks/changelog-guard.sh`: the changelog fragment guard CI runs
   on every pull request (`--self-test` proves it). `changelog.d/`: the
   fragments of the next release and their format (`README.md`).
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
   (issue type, Priority, Effort), `rel.sh` (sub-issues and blocked-by),
   `labels.sh` (the label set). `scripts/dev/xcode-skills.sh` exports
-  Apple's Xcode agent skills into `.claude/skills/`.
+  Apple's Xcode agent skills into `.claude/skills/`; `sync-strings.sh` (with
+  `catalog-tidy.py`) writes the extracted text into the String Catalogs.
 - `.githooks/`: `pre-commit` (refuses private keys, tokens, certificates)
   and `commit-msg` (strips AI attribution). Install once per clone:
   `git config core.hooksPath .githooks`.
@@ -178,12 +202,22 @@ of each part is in `docs/superpowers/specs/` and its plan in
 
 ## Gates (run before every commit)
 
+The same as CI (`.github/workflows/ci.yml`), warnings as errors:
+
 ```bash
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-swift test --package-path PullwatchKit                      # every PullwatchKit module
-xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch -destination 'platform=macOS'
+swift test --package-path PullwatchKit -Xswiftc -warnings-as-errors
+xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
+  -destination 'platform=macOS' SWIFT_TREAT_WARNINGS_AS_ERRORS=YES     # unit and UI tests
 shellcheck scripts/*/*.sh .claude/hooks/*.sh .githooks/*
+actionlint
+bash scripts/release/changelog.sh --check
+bash scripts/dev/sync-strings.sh && git diff --exit-code -- '*.xcstrings'
 ```
+
+The UI tests take over the screen. On a Mac someone is working on, run
+`-only-testing:PullwatchTests` and `xcodebuild build-for-testing` instead,
+and let CI run the UI tests.
 
 A UI change is looked at before it is called done: run the app (⌘R in Xcode),
 open every screen it touches in light and dark mode, in Dutch and English,

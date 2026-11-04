@@ -1,5 +1,7 @@
 # Pullwatch Implementation Plan
 
+> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. XcodeGen (`project.yml`) is vervangen door het vastgelegde `Pullwatch/Pullwatch.xcodeproj`. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** macOS menubar-app die nieuwe PR's in Azure DevOps en GitHub detecteert en daarvan een klikbare macOS-melding geeft.
@@ -2992,7 +2994,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task 12: App-shell — XcodeGen, AppModel, notificaties en menubar
+### Task 12: App-shell: XcodeGen, AppModel, notificaties en menubar
 
 **Files:**
 - Create: `project.yml`, `App/PullwatchApp.swift`, `App/AppModel.swift`, `App/Notifier.swift`, `App/MenuView.swift`
@@ -3121,7 +3123,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
             switch plan {
             case .single(let pr):
                 content.title = "\(pr.repo): nieuwe PR"
-                content.body = "\(pr.title) — \(pr.authorName)"
+                content.body = "\(pr.title), \(pr.authorName)"
                 content.userInfo = ["url": pr.webURL.absoluteString, "key": pr.dedupKey]
                 identifier = pr.dedupKey
             case .summary(let count, let lines):
@@ -3415,7 +3417,7 @@ private struct RecentRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.pullRequest.title).lineLimit(1)
                     HStack(spacing: 4) {
-                        Text("\(item.pullRequest.repo) · \(item.pullRequest.authorName) ·")
+                        Text("\(item.pullRequest.repo), \(item.pullRequest.authorName),")
                         Text(item.pullRequest.createdAt, format: .relative(presentation: .named))
                     }
                     .font(.caption)
@@ -3572,7 +3574,7 @@ struct AccountEditor: View {
                 }
                 if draft.authMethod == .pat {
                     SecureField(
-                        model.hasStoredPAT(draft.id) ? "Opgeslagen — leeg laten om te behouden" : "Token",
+                        model.hasStoredPAT(draft.id) ? "Opgeslagen, leeg laten om te behouden" : "Token",
                         text: $pat
                     )
                 }
@@ -3709,7 +3711,7 @@ private struct AccountsSettingsView: View {
                 List(model.config.accounts, selection: $selection) { account in
                     VStack(alignment: .leading) {
                         Text(account.displayName)
-                        Text("\(account.kind == .azureDevOps ? "Azure DevOps" : "GitHub") · \(account.organization)")
+                        Text("\(account.kind == .azureDevOps ? "Azure DevOps" : "GitHub"), \(account.organization)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -3862,7 +3864,7 @@ Expected:
 1. Menu → "Instellingen…" opent venster vóór andere apps.
 2. "+" → Azure DevOps; vul organisatie in, kies "Azure CLI"; "Test verbinding" toont ✓ (vereist `az login`).
 3. "Repos laden" vult de lijst; zoekveld filtert; vinkjes zetten; "Opslaan".
-4. GitHub-account met PAT: plak token, "Test verbinding" ✓ vóór opslaan; na opslaan toont het veld "Opgeslagen — leeg laten om te behouden".
+4. GitHub-account met PAT: plak token, "Test verbinding" ✓ vóór opslaan; na opslaan toont het veld "Opgeslagen, leeg laten om te behouden".
 5. Tab Algemeen: interval wijzigen blijft bewaard na herstart; "Starten bij inloggen" aan → zichtbaar in Systeeminstellingen → Algemeen → Inloggen.
 6. Ongeldige PAT opslaan → binnen een poll één melding "Token ongeldig of verlopen", menu toont fout, ⚠-icoon.
 
@@ -3919,7 +3921,7 @@ Bestaande PR's worden bij het toevoegen stil overgeslagen; alleen nieuwe PR's ge
 
 ## Data
 
-`~/Library/Application Support/Pullwatch/` — `config.json`, `seen.json`, `recent.json`. Tokens staan in de Keychain (`nl.torrisi.pullwatch`).
+`~/Library/Application Support/Pullwatch/`: `config.json`, `seen.json`, `recent.json`. Tokens staan in de Keychain (`nl.torrisi.pullwatch`).
 
 Logs: `log stream --predicate 'subsystem == "nl.torrisi.pullwatch"'`
 ````

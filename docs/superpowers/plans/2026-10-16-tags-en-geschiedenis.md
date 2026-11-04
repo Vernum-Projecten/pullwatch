@@ -1,4 +1,6 @@
-# Tags en geschiedenis — Implementation Plan
+# Tags en geschiedenis: Implementation Plan
+
+> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -66,8 +68,8 @@
   - `public struct WatchSet: Codable, Hashable, Sendable { public var prs: Bool; public var tags: Bool }` + `static let none, prs, tags, both`
   - `public enum NewRepoDefault: String, Codable, CaseIterable, Sendable { case none, prs }` + `var watchSet: WatchSet`
   - `Account.repoWatch: [String: WatchSet]`, `Account.newRepoDefault: NewRepoDefault` (default `.prs`); `filterMode`/`repos` verdwijnen uit `Account` (enum `FilterMode` blijft, alleen voor migratie).
-  - `Account.watch(for repo: String) -> WatchSet` — case-insensitive lookup in `repoWatch`, anders `newRepoDefault.watchSet`.
-  - `Account.tagRepos: [String]` — keys van `repoWatch` met `tags == true`, gesorteerd.
+  - `Account.watch(for repo: String) -> WatchSet`: case-insensitive lookup in `repoWatch`, anders `newRepoDefault.watchSet`.
+  - `Account.tagRepos: [String]`: keys van `repoWatch` met `tags == true`, gesorteerd.
   - `FilterSettings` velden `repoWatch`, `newRepoDefault` (i.p.v. `filterMode`, `repos`) + dezelfde `watch(for:)`; `PRFilter.follows(repo:settings:)` = `settings.watch(for: repo).prs`.
   - Fixture: `Account.fixture(..., repoWatch: [String: WatchSet] = [:], newRepoDefault: NewRepoDefault = .prs, ...)`.
 
@@ -110,13 +112,13 @@ Plus `legacyLastSettingsDecode`: oude `seen.json` bevat `lastSettings` met `filt
 **Interfaces:**
 - Produces:
   - `public struct Tag: Codable, Hashable, Sendable { accountId: UUID; repo: String; name: String; authorName: String?; webURL: URL; var dedupKey: String { "\(accountId.uuidString):\(repo.lowercased()):tag:\(name)" } }`
-  - `PRProvider.tags(in repos: [String]) async throws -> [Tag]` — `Tag.repo` is exact de doorgegeven repo-string. Repo die 404 geeft → overslaan.
+  - `PRProvider.tags(in repos: [String]) async throws -> [Tag]`: `Tag.repo` is exact de doorgegeven repo-string. Repo die 404 geeft → overslaan.
   - `MockProvider.set(tags: [Tag])`; `MockProvider.tagFetchCount`; `tags(in:)` geeft alleen tags waarvan `repo` (case-insensitive) in `repos` zit. `GatedProvider.tags` → `[]`.
   - `Tag.fixture(accountId:repo:name:)` met URL `https://example.com/{repo}/tag/{name}`.
 
 - [ ] **Step 1:** Test `tagDedupKeyIsDistinctFromPR`: `Tag.fixture(repo: "Proj/API", name: "v1").dedupKey == "00000000-0000-0000-0000-000000000001:proj/api:tag:v1"`.
 - [ ] **Step 2:** `swift test` → faalt.
-- [ ] **Step 3:** Implementeren (alleen model/protocol/mocks; providers krijgen tijdelijk `throw ProviderError.decoding("tags nog niet")` — vervangen in Task 3/4).
+- [ ] **Step 3:** Implementeren (alleen model/protocol/mocks; providers krijgen tijdelijk `throw ProviderError.decoding("tags nog niet")`: vervangen in Task 3/4).
 - [ ] **Step 4:** `swift test` → groen.
 - [ ] **Step 5: Commit** `feat: tag model and provider protocol`
 
@@ -155,7 +157,7 @@ REST `GET /repos/{owner}/{repo}/tags?per_page=100&page=n` voor alle pagina's (to
   - `tagURLEncodesName`: `release/1.0` → `"https://github.com/acme/api/releases/tag/release%2F1.0"`.
   - `missingRepoYieldsNoTags`: 404 → `[]`.
 - [ ] **Step 2:** `swift test --filter GitHubProviderTests` → faalt.
-- [ ] **Step 3:** Implementeren. `HTTPStatus.check` gooit `.server(status: 404)` — vangen per repo.
+- [ ] **Step 3:** Implementeren. `HTTPStatus.check` gooit `.server(status: 404)`: vangen per repo.
 - [ ] **Step 4:** groen.
 - [ ] **Step 5: Commit** `feat: fetch tags from GitHub`
 
@@ -195,14 +197,14 @@ Gedrag:
 
 ### Task 6: Meldingen per soort
 
-**Files:** Modify `Sources/PullwatchCore/NotificationPlanner.swift`, `App/Notifier.swift`; Test nieuw `Tests/PullwatchCoreTests/NotificationPlannerTests.swift` (of bestaande `GlueTests` als planner daar getest wordt — eerst checken met `grep -rn NotificationPlanner Tests`).
+**Files:** Modify `Sources/PullwatchCore/NotificationPlanner.swift`, `App/Notifier.swift`; Test nieuw `Tests/PullwatchCoreTests/NotificationPlannerTests.swift` (of bestaande `GlueTests` als planner daar getest wordt, eerst checken met `grep -rn NotificationPlanner Tests`).
 
 **Interfaces:**
 - Produces:
   - `public enum ItemKind: String, Codable, Sendable { case pullRequest, tag }` (in `Models.swift`)
   - `PlannedNotification`: `.pullRequest(PullRequest)`, `.tag(Tag)`, `.summary(kind: ItemKind, count: Int, lines: [String])`
-  - `NotificationPlanner.plan(pullRequests: [PullRequest], tags: [Tag]) -> [PlannedNotification]` — PR's eerst, dan tags; elk deel apart tegen `burstThreshold`. Tag-regel: `"{repo}: {naam}"`.
-  - Notifier: tag-titel `"{repo}: nieuwe tag"`, body `naam` + `" — {auteur}"` indien bekend, `userInfo` `url`/`key` = `tag.dedupKey`, identifier `dedupKey`. Summary-titel `"{n} nieuwe PR's"` / `"{n} nieuwe tags"`.
+  - `NotificationPlanner.plan(pullRequests: [PullRequest], tags: [Tag]) -> [PlannedNotification]`: PR's eerst, dan tags; elk deel apart tegen `burstThreshold`. Tag-regel: `"{repo}: {naam}"`.
+  - Notifier: tag-titel `"{repo}: nieuwe tag"`, body `naam` + `", {auteur}"` indien bekend, `userInfo` `url`/`key` = `tag.dedupKey`, identifier `dedupKey`. Summary-titel `"{n} nieuwe PR's"` / `"{n} nieuwe tags"`.
 - [ ] **Step 1: Tests:** `mixedSmallBatchGivesSingles` (2 PR + 2 tags → 4 items in volgorde), `tagBurstSummarizesSeparately` (1 PR + 4 tags → `[.pullRequest, .summary(kind: .tag, count: 4, lines: 3 regels)]`).
 - [ ] **Step 2:** faalt. **Step 3:** implementeren + Notifier aanpassen. **Step 4:** `swift test` groen, `make build` slaagt.
 - [ ] **Step 5: Commit** `feat: separate notifications for tags`
@@ -224,8 +226,8 @@ Gedrag:
     - `markRead(_ id:)`, `markAllRead()`, `removeAccount(_:)`
     - `prune(now: Date, retention: HistoryRetention) -> Bool` (true als er iets weg is)
     - `latest(_ kind: ItemKind, limit: Int) -> [HistoryItem]`
-    - `search(_ text: String, kind: ItemKind?) -> [HistoryItem]` — trim; leeg = alles; anders case-insensitive substring in titel, auteur of repo.
-    - `init(migrating: RecentList)` — behoudt `detectedAt`, `isRead`.
+    - `search(_ text: String, kind: ItemKind?) -> [HistoryItem]`: trim; leeg = alles; anders case-insensitive substring in titel, auteur of repo.
+    - `init(migrating: RecentList)`: behoudt `detectedAt`, `isRead`.
   - `AppConfig.historyRetention: HistoryRetention = .oneYear`; `AppConfig.init(from:)` met `decodeIfPresent` zodat oude `config.json` laadt.
 - [ ] **Step 1: Tests:** `addsNewestFirstAcrossKinds`, `latestFiltersByKind`, `pruneRespectsRetention` (item 62 dagen oud weg bij `.twoMonths`, blijft bij `.sixMonths`; `.forever` verwijdert nooit), `searchMatchesTitleAuthorRepoCaseInsensitive`, `searchCombinesKindFilter`, `searchSkipsNilAuthor`, `migratesRecentList`, `legacyConfigWithoutRetentionDefaultsToOneYear`, `historyRoundTripsThroughJSON`.
 - [ ] **Step 2:** faalt. **Step 3:** implementeren. **Step 4:** groen.
@@ -257,9 +259,9 @@ Gedrag:
 
 - `KindStyle` (`ItemKind` extension): `color` (`.blue` / `.orange`), `symbol` (`arrow.triangle.pull` / `tag`), `pillText` ("PR"/"TAG"), en een `KindPill` view.
 - Menu: sectiekop "Pull requests" + `history.latest(.pullRequest, limit: 5)`, lege staat "Nog geen nieuwe PR's"; sectie "Tags" + `latest(.tag, limit: 5)` alleen als er tags in de geschiedenis staan. Rij toont soort-icoon in de kleur. Knop "Geschiedenis…" naast "Instellingen…" (`openWindow(id: "history")`, `NSApp.activate()`).
-- `Window("Geschiedenis", id: "history")` met `HistoryView`: `.searchable` of `TextField` "Zoek op titel, auteur, repo…", `Picker` `.segmented` Alles/PR's/Tags, `Table` kolommen type (`KindPill`), titel, repo, auteur (`"—"` als nil), wanneer (relatief, `.help` met absolute datum). Ongelezen titel vet. Dubbelklik (`contextMenu(forSelectionType:primaryAction:)`) → `model.open`. Min-grootte ~720×420.
+- `Window("Geschiedenis", id: "history")` met `HistoryView`: `.searchable` of `TextField` "Zoek op titel, auteur, repo…", `Picker` `.segmented` Alles/PR's/Tags, `Table` kolommen type (`KindPill`), titel, repo, auteur (`"-"` als nil), wanneer (relatief, `.help` met absolute datum). Ongelezen titel vet. Dubbelklik (`contextMenu(forSelectionType:primaryAction:)`) → `model.open`. Min-grootte ~720×420.
 - SettingsView: Picker "Geschiedenis bewaren" over `HistoryRetention.allCases`.
-- README: tags, geschiedenis, `history.json` bij Data; GitHub-scope voor tags verifiëren (fine-grained: tags vallen onder **Contents: Read** of **Metadata: Read** — controleer met een fine-grained PAT en documenteer wat nodig is); ADO Code (Read) volstaat.
+- README: tags, geschiedenis, `history.json` bij Data; GitHub-scope voor tags verifiëren (fine-grained: tags vallen onder **Contents: Read** of **Metadata: Read**: controleer met een fine-grained PAT en documenteer wat nodig is); ADO Code (Read) volstaat.
 - [ ] **Step 1:** `make build` slaagt.
 - [ ] **Step 2: Handmatig:** menu toont secties; venster opent; zoeken op auteur filtert; filter Tags toont alleen oranje; dubbelklik opent browser en haalt vet weg; bewaartermijn wijzigen werkt.
 - [ ] **Step 3: Commit** `feat: menu sections and history window`

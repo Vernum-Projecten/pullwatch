@@ -1,4 +1,6 @@
-# Pullwatch — tags en geschiedenis
+# Pullwatch: tags en geschiedenis
+
+> Noot (4 november 2026): De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-10-16
 Status: brainstorm afgerond, wacht op review
@@ -8,10 +10,10 @@ Bouwt voort op: `2026-10-15-pullwatch-design.md`
 
 Pullwatch bevalt. Twee wensen erbij:
 
-1. **Nieuwe tags melden** in gevolgde repo's — puur informatief ("er is een release geweest"), maar wél als gewone macOS-melding, net als een PR.
+1. **Nieuwe tags melden** in gevolgde repo's, puur informatief ("er is een release geweest"), maar wél als gewone macOS-melding, net als een PR.
 2. **Lokale geschiedenis** van wat er gemeld is, doorzoekbaar, met doorklikken naar de echte PR of tag.
 
-Harde eis van de gebruiker: **PR's en tags altijd duidelijk van elkaar te onderscheiden** — in melding, menu en geschiedenis.
+Harde eis van de gebruiker: **PR's en tags altijd duidelijk van elkaar te onderscheiden**: in melding, menu en geschiedenis.
 
 ## Doelen
 
@@ -39,9 +41,9 @@ Harde eis van de gebruiker: **PR's en tags altijd duidelijk van elkaar te onders
 
 - Tags krijgen een gewone melding, zoals PR's.
 - Tags volgen dezelfde accounts/repo's; per repo vink je PR's en/of tags aan.
-- Repo-instelling: **variant A** — tabel met per repo twee vinkjes (PR's, Tags) plus een keuze voor nieuwe repo's. De oude modus "alles behalve / alleen aangevinkt" verdwijnt.
-- Tags gaan **alleen aan via het vinkje per repo**. De standaard voor nieuwe repo's kent alleen Niets / PR's — nooit tags (houdt het aantal tag-aanvragen klein en voorspelbaar).
-- UI-indeling: **variant B** — menu met twee secties (Pull requests, Tags) en knop "Geschiedenis…" die een apart venster opent met zoekveld, segmented filter Alles/PR's/Tags en tabel (type, titel, repo, auteur, wanneer).
+- Repo-instelling: **variant A**: tabel met per repo twee vinkjes (PR's, Tags) plus een keuze voor nieuwe repo's. De oude modus "alles behalve / alleen aangevinkt" verdwijnt.
+- Tags gaan **alleen aan via het vinkje per repo**. De standaard voor nieuwe repo's kent alleen Niets / PR's, nooit tags (houdt het aantal tag-aanvragen klein en voorspelbaar).
+- UI-indeling: **variant B**: menu met twee secties (Pull requests, Tags) en knop "Geschiedenis…" die een apart venster opent met zoekveld, segmented filter Alles/PR's/Tags en tabel (type, titel, repo, auteur, wanneer).
 - Bewaren: instelling "Geschiedenis bewaren" met 2 maanden / 6 maanden / 1 jaar / altijd; standaard 1 jaar.
 - Opslag als JSON-bestand (geen SQLite); later overstappen mag als het traag wordt.
 
@@ -61,7 +63,7 @@ enum WatchSet: String, Codable { case none, prs, tags, both }   // of OptionSet;
 struct Account {
     ...
     var repoWatch: [String: WatchSet]   // expliciet ingestelde repo's (case-insensitive key)
-    var newRepoDefault: NewRepoDefault  // .none of .prs — nooit tags
+    var newRepoDefault: NewRepoDefault  // .none of .prs, nooit tags
     var includeDrafts: Bool             // alleen PR's
     var hideOwn: Bool                   // alleen PR's
 }
@@ -76,9 +78,9 @@ struct Account {
 
 Tags staan na migratie nergens aan → geen enkele nieuwe melding door de upgrade. Gedrag voor PR's moet exact gelijk blijven (test dit).
 
-**Settings-UI:** de bestaande repolijst (zoeken, "Repos laden") wordt een tabel met kolommen Repo / PR's / Tags. Bovenaan picker "Nieuwe repo's volgen: Niets · PR's" (afwijkend van de mockup, die nog Tags/Beide toonde). De set repo's waarvoor tags gepolld worden = precies de repo's in `repoWatch` met `.tags` of `.both`. Een repo waarvan beide vinkjes gelijk zijn aan de default hoeft niet in `repoWatch` te staan (aan builder).
+**Settings-UI:** de bestaande repolijst (zoeken, "Repos laden") wordt een tabel met kolommen Repo / PR's / Tags. Bovenaan picker "Nieuwe repo's volgen: Niets, PR's" (afwijkend van de mockup, die nog Tags/Beide toonde). De set repo's waarvoor tags gepolld worden = precies de repo's in `repoWatch` met `.tags` of `.both`. Een repo waarvan beide vinkjes gelijk zijn aan de default hoeft niet in `repoWatch` te staan (aan builder).
 
-`FilterSettings` / seeding-logica moeten mee: een repo die van "geen tags" naar "tags" gaat, seedt zijn bestaande tags stil — zelfde mechanisme als nu via `lastSettings`.
+`FilterSettings` / seeding-logica moeten mee: een repo die van "geen tags" naar "tags" gaat, seedt zijn bestaande tags stil, zelfde mechanisme als nu via `lastSettings`.
 
 ## Tags ophalen
 
@@ -96,15 +98,15 @@ struct Tag {
 ```
 
 - **Azure DevOps:** `GET /{project}/_apis/git/repositories/{repo}/refs?filter=tags/` (gepagineerd via continuation token). Auteur: `creator.displayName`. URL: `https://dev.azure.com/{org}/{project}/_git/{repo}?version=GT{tag}`. PAT-scope Code (Read) volstaat.
-- **GitHub:** volledige taglijst per repo ophalen (alle pagina's) en diffen met `seen` — dus ook tags op oudere commits (backports) worden gemeld. REST `/repos/{o}/{r}/tags` of GraphQL `refs(refPrefix: "refs/tags/")` met meerdere repo's per query: keuze aan builder. Auteur ontbreekt meestal → `nil`. URL: `https://github.com/{o}/{r}/releases/tag/{tag}` (werkt ook zonder release). Scope: Metadata (Read) volstaat; README bijwerken als dat niet klopt.
-- **Interval:** tags apart en trager pollen dan PR's — vast **15 minuten** (claude's call), met dezelfde backoff/rate-limit-afhandeling per account. Handmatig verversen pollt ook tags.
+- **GitHub:** volledige taglijst per repo ophalen (alle pagina's) en diffen met `seen`: dus ook tags op oudere commits (backports) worden gemeld. REST `/repos/{o}/{r}/tags` of GraphQL `refs(refPrefix: "refs/tags/")` met meerdere repo's per query: keuze aan builder. Auteur ontbreekt meestal → `nil`. URL: `https://github.com/{o}/{r}/releases/tag/{tag}` (werkt ook zonder release). Scope: Metadata (Read) volstaat; README bijwerken als dat niet klopt.
+- **Interval:** tags apart en trager pollen dan PR's, vast **15 minuten** (claude's call), met dezelfde backoff/rate-limit-afhandeling per account. Handmatig verversen pollt ook tags.
 - Altijd volledige lijst → elke bestaande tag wordt elke tag-poll opnieuw "gezien" en dus niet geprunet. Een verwijderde tag valt na 30 dagen uit `seen`; komt hij daarna terug met dezelfde naam, dan meldt hij opnieuw (acceptabel).
 - **Eerste tag-poll van een repo is altijd stil** (claude's call): of de repo nu nieuw is in de org of net een tag-vinkje kreeg, de bestaande tags worden stil geseed. Bijhouden per repo (bv. set "tag-geseede repo's" in `SeenState`), niet alleen via `lastSettings`.
 - `hideOwn` en `includeDrafts` gelden niet voor tags.
 
 ## Meldingen
 
-- Tag: titel `"{repo}: nieuwe tag"`, body `"{tagnaam}"` (+ `" — {auteur}"` als bekend). Klik opent tag-URL en markeert gelezen.
+- Tag: titel `"{repo}: nieuwe tag"`, body `"{tagnaam}"` (+ `", {auteur}"` als bekend). Klik opent tag-URL en markeert gelezen.
 - PR: ongewijzigd.
 - Burst: per soort apart (>3 PR's → "n nieuwe PR's"; >3 tags → "n nieuwe tags"). Een gemengde poll met 2 PR's en 2 tags geeft dus 4 losse meldingen.
 
@@ -123,7 +125,7 @@ struct HistoryItem: Identifiable {
 ```
 
 - Alleen gemelde items komen erin.
-- Bestaande `recent.json` bij eerste start migreren naar `history.json` (gelezen-status behouden), daarna `recent.json` laten staan of verwijderen — aan builder.
+- Bestaande `recent.json` bij eerste start migreren naar `history.json` (gelezen-status behouden), daarna `recent.json` laten staan of verwijderen, aan builder.
 - Opruimen: bij laden en na elke toevoeging items ouder dan de bewaartermijn weg (op `detectedAt`).
 - Account verwijderen → zijn items weg (zoals nu).
 - Opslaan alleen bij wijziging (nieuw item, gelezen markeren, opruimen).
@@ -131,7 +133,7 @@ struct HistoryItem: Identifiable {
 
 **Zoeken:** case-insensitive substring over titel/tagnaam, auteur en repo; gecombineerd met filter Alles/PR's/Tags. In geheugen, live bij typen.
 
-**Venster "Geschiedenis":** apart `Window` (zoals Settings), geopend via knop in het menu. Tabel kolommen: type-pill, titel, repo, auteur ("—" als onbekend), wanneer (relatief, tooltip absoluut). Sortering nieuwste eerst. Dubbelklik of klik opent URL en markeert gelezen. Ongelezen visueel herkenbaar (bv. vet of stip) — aan builder.
+**Venster "Geschiedenis":** apart `Window` (zoals Settings), geopend via knop in het menu. Tabel kolommen: type-pill, titel, repo, auteur ("-" als onbekend), wanneer (relatief, tooltip absoluut). Sortering nieuwste eerst. Dubbelklik of klik opent URL en markeert gelezen. Ongelezen visueel herkenbaar (bv. vet of stip), aan builder.
 
 ## Menu
 
