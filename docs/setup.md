@@ -172,6 +172,16 @@ checks it. Set `repo=alessandro823/pullwatch` first.
   gh api repos/$repo --jq .has_discussions   # false
   ```
 
+- [ ] **GitHub Sponsors** for the names in `.github/FUNDING.yml`
+  (`alessandro823`, `rubentalstra`): GitHub shows a Sponsor button on the
+  repository and leaves out a name that has no Sponsors profile, so set
+  one up at https://github.com/sponsors to appear in it. Settings, General,
+  Features, **Sponsorships** must be on for the button to show.
+
+  ```bash
+  gh api graphql -f query='{ user(login:"alessandro823"){ hasSponsorsListing } }'   # true once set up
+  ```
+
 - [ ] **Reported content** from all users (Settings, Moderation options,
   Reported content), so the reports [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
   points to reach the maintainer. There is no REST API for this setting;
