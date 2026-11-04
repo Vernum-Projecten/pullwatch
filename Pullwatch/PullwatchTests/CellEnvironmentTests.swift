@@ -1,5 +1,6 @@
 import AppKit
 import PullwatchCore
+import PullwatchGitHub
 import SwiftUI
 import Testing
 
@@ -33,7 +34,39 @@ import Testing
 
     @Test(arguments: [true, false])
     func `PullRequestRow draws without a model in the environment`(showsChecks: Bool) {
-        #expect(draws(PullRequestRow(item: Self.item, showsChecks: showsChecks)))
+        #expect(draws(PullRequestRow(item: Self.item, kind: .gitHub, showsChecks: showsChecks)))
+    }
+
+    @Test(arguments: ProviderKind.allCases)
+    func `RepoReferenceLabel draws without a model in the environment`(kind: ProviderKind) {
+        #expect(draws(RepoReferenceLabel(entry: Self.item.entry, kind: kind)))
+    }
+
+    /// Het In-house-teken staat in de cellen van Afhankelijkheden en van het tabblad Packages, met
+    /// en zonder link (een Azure-project zonder repository en zonder pagina).
+    @Test(arguments: [
+        (URL(string: "https://github.com/octo/ui"), InHousePackage.Status.checked),
+        (nil, .sourceOff),
+        (nil, .needsPermission(reason: "read:packages")),
+    ])
+    func `InHouseBadge draws without a model in the environment`(link: URL?, status: InHousePackage.Status) {
+        let inHouse = InHousePackage(
+            accountId: UUID(), name: "ui", type: .npm, owner: "octo", repository: link == nil ? nil : "octo/ui",
+            repositoryURL: link, status: status
+        )
+        #expect(draws(InHouseBadge(inHouse: inHouse)))
+        #expect(draws(HStack { Text(verbatim: "@octo/ui"); InHouseBadge(inHouse: inHouse) }))
+    }
+
+    /// De schakelaar Packages lezen met de GitHub CLI in de account-editor (#206), in elke stand
+    /// van `gh`, ook met een ander `gh`-account dan wie er met de app inlogde.
+    @Test(arguments: [
+        (GhCLIStatus?.none, String?.some("mona")), (.notInstalled, "mona"), (.notLoggedIn, "mona"),
+        (.loggedIn("mona"), "mona"), (.loggedIn("octo"), "mona"), (.loggedIn("octo"), nil),
+    ])
+    func `PackagesCLIRow draws without a model in the environment`(status: GhCLIStatus?, login: String?) {
+        #expect(draws(Form { PackagesCLIRow(isOn: .constant(true), status: status, login: login, host: "github.com") }))
+        #expect(draws(Form { PackagesCLIRow(isOn: .constant(false), status: status, login: login, host: "github.example.com") }))
     }
 
     @Test func `AcknowledgementRow draws without a model in the environment`() {

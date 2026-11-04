@@ -26,6 +26,7 @@ Het tabblad Bronnen toont elke externe dienst in gewone taal. Elke rij zegt wat 
 **Versies**
 
 - De package-registers: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io en rubygems.org. Namen van packages worden verstuurd, ook voor privé-repositories.
+- **Packageregisters van je accounts**: de packages en container-images die je gevolgde repositories publiceren in GitHub Packages, de registers van GitLab en Azure Artifacts, eens per dag gelezen met het token van elk account en nergens anders heen gestuurd. Namen van in-house packages gaan nooit naar de openbare registers of OSV.dev. Uit: geen enkel register van jou wordt gelezen, het onderdeel Packages is leeg, en in-house dependencies zeggen "Niet gecontroleerd: bron Packageregisters van je accounts staat uit".
 - **endoflife.date**: releasecycli en einddata van ondersteuning van runtimes en frameworks.
 - **swift.org**: de releases van Swift.
 
@@ -48,7 +49,7 @@ Alles staat standaard aan. Je keuze wordt bewaard in `config.json`, als `disable
 
 ## Openbare repositories zonder token
 
-Een openbare repository op github.com of gitlab.com die je token niet mag lezen, wordt gelezen zonder in te loggen. Pullwatch stuurt het token van een account nooit naar een andere server: een token van GitHub Enterprise blijft op zijn eigen server.
+Een openbare repository op github.com, gitlab.com of bitbucket.org die je token niet mag lezen, wordt gelezen zonder in te loggen. Pullwatch stuurt het token van een account nooit naar een andere server: een token van GitHub Enterprise blijft op zijn eigen server.
 
 ## Opensourcesoftware
 

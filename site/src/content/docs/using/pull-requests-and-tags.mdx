@@ -11,7 +11,11 @@ The main window (**Open…** in the menu panel) starts with two lists: **PRs** a
 
 ## Pull requests
 
-Each row has the state icon in GitHub colors (open, draft, queued, merged, closed), the checks, the title, the repository, the author with co-authors ("mona and 2 others") and when it was opened. Search by title, author or repository, and double-click a row to open it in the browser.
+Each row has the state icon in GitHub colors (open, draft, queued, merged, closed), the checks, the title, the repository with the number, the author with co-authors ("mona and 2 others") and when it was opened. Search by title, number, author or repository, and double-click a row to open it in the browser.
+
+The number is written as the service writes it: FerroHEALTH/FerroFED #1570 on GitHub, Bitbucket, Gitea, Forgejo and Codeberg, group/project !42 for a merge request on GitLab and a pull request on Azure DevOps. The menu panel shows it under the title, a repository page before the title, and a notification after the repository. Hover over it for the full reference, `FerroHEALTH/FerroFED#1570`. Sorting on Repo keeps the pull requests of a repository together, by number.
+
+To find one pull request, search for `1570`, `#1570`, `!42`, `FerroFED#1570` or `FerroHEALTH/FerroFED#1570`. A bare number also finds titles with that number in them. **Copy Reference** in the Item menu (⌥⇧⌘L) puts `FerroHEALTH/FerroFED#1570` on the clipboard, ready for a commit message, an issue or a chat.
 
 An open pull request that waits to merge by itself shows as queued, with an amber icon: in a merge queue on GitHub, in a merge train or set to merge when the pipeline succeeds on GitLab, or with auto-complete on Azure DevOps.
 

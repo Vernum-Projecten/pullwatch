@@ -35,7 +35,12 @@ for f in cats:
 common = {'pullwatch', 'github', 'gitlab', 'azure devops', 'github enterprise', 'osv.dev', 'endoflife.date',
           'github advisory database', 'azure devops advanced security', 'swift.org', 'fine-grained token',
           'classic token', '+', 'eol', 'read_api', 'developer id', 'install pullwatch', 'finder', 'terminal',
-          'spotlight', 'launchpad', 'dock'}
+          'spotlight', 'launchpad', 'dock',
+          # Bitbucket: de dienst, de keuze in het menu +, de knop op Atlassians tokenpagina, het voorbeeld.
+          'bitbucket', 'bitbucket cloud', 'create api token with scopes', 'acme, acme-labs',
+          # Codeberg, Forgejo en Gitea: de diensten en de naam van hun kaart.
+          'codeberg', 'forgejo', 'gitea', 'codeberg, forgejo and gitea',
+          'codeberg, forgejo en gitea', 'codeberg, forgejo und gitea', 'codeberg, forgejo et gitea'}
 # macOS's own names in each language (Finder, the Keychain prompt, the Help menu), not Pullwatch's.
 macos = {
     'en': {'applications', 'always allow', 'help'},

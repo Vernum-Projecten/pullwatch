@@ -25,6 +25,7 @@ enum ExplainUpdateTool {
         let requested: String?
         let declaredIn: String
         let update: String
+        let unknownReason: String?
         let step: String?
         let usableVersion: String?
         let blocker: Blocker?
@@ -44,6 +45,8 @@ enum ExplainUpdateTool {
         let package: String
         let ecosystem: String
         let latest: String?
+        /// Gezet als een gevolgde repository het package zelf publiceert.
+        let inHouse: MCPInHouse?
         let installs: [Install]
         let vulnerabilities: [Fix]
         let notChecked: [MCPSourceOff]
@@ -59,7 +62,9 @@ enum ExplainUpdateTool {
                 Explains what blocks updating one package in one followed repository, per install: whether the latest \
                 version is within the requested range, needs a manifest change, or is held back by a parent package, a peer \
                 or the runtime (with the version to update that to first), the newest version that works now, and the \
-                vulnerabilities in the package with their fix. Use it for "why can't I update react in acme/web?" before \
+                vulnerabilities in the package with their fix. Works for transitive packages too (any package from a lock \
+                file): via names the chain from the direct dependency, and the explanation says what must change to fix a \
+                vulnerability (only the lock file, or the parent first, within or outside its own range). Use it for "why can't I update react in acme/web?" before \
                 changing manifests. Needs repo and package; pass ecosystem when the repository uses two packages with the \
                 same name. Reads Pullwatch's last version check; it does not look up anything new.
                 """,
@@ -75,15 +80,22 @@ enum ExplainUpdateTool {
             output: .object(
                 [
                     "repository": .string(), "account_id": .string(), "package": .string(), "ecosystem": .string(),
-                    "latest": .string("The latest version in the registry; absent when unknown or the registry source is off."),
+                    "latest": .string(
+                        "The latest version in the registry (your own registry for an in-house package); absent when unknown or the registry source is off."
+                    ),
+                    "in_house": MCPInHouse.schema,
                     "installs": .array(of: .object(
                         [
                             "workspace": .string("Empty for the repository root."), "version": .string(),
                             "scope": .string(oneOf: ["direct", "transitive", "unknown"]),
                             "use": .string(oneOf: ["runtime", "dev", "optional"]),
                             "via": .array(of: .string(), "The chain of packages that pulls a transitive install in."),
-                            "requested": .string("The requested range in the manifest."), "declared_in": .string(),
+                            "requested": .string(
+                                "The requested range: from the manifest, or for a transitive install the range its parent (the last package in via) asks for."
+                            ),
+                            "declared_in": .string(),
                             "update": .string(oneOf: updateValues),
+                            "unknown_reason": .string("Why update is unknown.", oneOf: MCPUpdateText.unknownReasons),
                             "step": .string(oneOf: ["patch", "minor", "major"]),
                             "usable_version": .string("The newest version every requirement allows now."),
                             "blocker": .object(
@@ -126,8 +138,15 @@ enum ExplainUpdateTool {
             $0.name.caseInsensitiveCompare(name) == .orderedSame
                 && (ecosystem == nil || PackageVersions.kind(ofEcosystem: $0.ecosystem).caseInsensitiveCompare(ecosystem ?? "") == .orderedSame)
         }
+        let report = await source.versionReport()
         guard let use = uses.first else {
-            throw MCPToolError("\(match.repo) does not use a package named \(name) in Pullwatch's last check. get_repository_report lists its packages.")
+            // Een rapport van een oudere check kent geen transitieve packages: zeg dat, in plaats van "gebruikt het niet".
+            let older = report?.isOutdatedFormat == true
+                ? " That check was made by an older version of Pullwatch, which kept only the direct packages; Pullwatch checks again by itself."
+                : ""
+            throw MCPToolError(
+                "\(match.repo) does not use a package named \(name) in Pullwatch's last check.\(older) get_repository_report lists its packages."
+            )
         }
         guard uses.count == 1 else {
             let kinds = uses.map { PackageVersions.kind(ofEcosystem: $0.ecosystem) }.joined(separator: ", ")
@@ -135,14 +154,24 @@ enum ExplainUpdateTool {
         }
 
         var notChecked: [MCPSourceOff] = []
-        let registry = DataSourceID.registry(ecosystem: use.ecosystem)
-        let registryOff = registry.map(versions.isUnchecked) ?? false
-        if let registry, registryOff { notChecked.append(MCPSourceOff(registry, repository: match.repo)) }
-        if versions.isUnchecked(.osv) { notChecked.append(MCPSourceOff(.osv, repository: match.repo)) }
-        let report = await source.versionReport()
-        let latest = registryOff ? nil : report?.latestPackages[use.key]?.version
         let context = await source.updateContext(for: versions)
-        let installs = use.installs.map { install(use, $0, latest: latest, registryOff: registryOff, context: context) }
+        // Een eigen package: de nieuwste versie komt uit het eigen register, en alleen die bron telt.
+        let inHouse = context.metadata[use.key]?.inHouse.map(MCPInHouse.init)
+        let registryOff: Bool
+        if let inHouse {
+            let off = inHouse.notChecked(repository: match.repo)
+            registryOff = off != nil
+            if let off { notChecked.append(off) }
+        } else {
+            let registry = DataSourceID.registry(ecosystem: use.ecosystem)
+            registryOff = registry.map(versions.isUnchecked) ?? false
+            if let registry, registryOff { notChecked.append(MCPSourceOff(registry, repository: match.repo)) }
+        }
+        if versions.isUnchecked(.osv) { notChecked.append(MCPSourceOff(.osv, repository: match.repo)) }
+        let latest = registryOff ? nil : report?.latestPackages[use.key]?.version
+        let installs = use.installs.map { item in
+            install(use, item, latest: latest, registryOff: registryOff, inHouse: inHouse, context: context, versions: versions)
+        }
         let vulnerabilities = versions.vulnerabilityRows(gitHub: summary.advisories, context: context)
             .filter { $0.package.caseInsensitiveCompare(use.name) == .orderedSame && $0.first.ecosystem == use.ecosystem }
             .map { row in
@@ -151,42 +180,106 @@ enum ExplainUpdateTool {
             }
         let output = Output(
             repository: match.repo, accountId: match.account.id, package: use.name, ecosystem: PackageVersions.kind(ofEcosystem: use.ecosystem),
-            latest: latest, installs: installs, vulnerabilities: vulnerabilities, notChecked: notChecked
+            latest: latest, inHouse: inHouse, installs: installs, vulnerabilities: vulnerabilities, notChecked: notChecked
         )
+        let own = inHouse.map { "\(use.name) is in-house: \($0.source) publishes it, so its latest version comes from your own registry. " } ?? ""
         let summaryText = registryOff
-            ? "\(use.name) in \(match.repo): \(notChecked[0].message)"
-            : installs.map(\.explanation).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: " ")
+            ? "\(own)\(use.name) in \(match.repo): \(notChecked[0].message)"
+            : own + installs.map(\.explanation).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: " ")
         return try MCPToolOutput.result(output, summary: summaryText)
     }
 
-    private static func install(_ use: PackageUse, _ install: PackageInstall, latest: String?, registryOff: Bool, context: UpdateContext) -> Install {
+    private static func install(
+        _ use: PackageUse, _ install: PackageInstall, latest: String?, registryOff: Bool, inHouse: MCPInHouse?, context: UpdateContext,
+        versions: RepoVersions
+    ) -> Install {
         let scope = install.scope.rawValue
         let place = install.workspace.isEmpty ? "the root" : install.workspace
+        let requested = context.requirement(ecosystem: use.ecosystem, name: use.name, install: install)
+        let parent = install.scope == .transitive ? install.via.last : nil
         guard !registryOff else {
             return Install(
                 workspace: install.workspace, version: install.version, scope: scope, use: install.kind.rawValue, via: install.via,
-                requested: install.requested, declaredIn: install.source, update: "not_checked", step: nil, usableVersion: nil, blocker: nil,
-                explanation: "\(use.name) \(install.version) in \(place): the latest version is not checked because its registry source is off."
+                requested: requested, declaredIn: install.source, update: "not_checked", unknownReason: nil, step: nil, usableVersion: nil,
+                blocker: nil,
+                explanation: inHouse?.status == "needs_permission"
+                    ? "\(use.name) \(install.version) in \(place): the latest version is not checked because Pullwatch may not read the package registry that publishes it."
+                    : inHouse != nil
+                        ? "\(use.name) \(install.version) in \(place): the latest version is not checked because the source Package registries of your accounts is off."
+                        : "\(use.name) \(install.version) in \(place): the latest version is not checked because its registry source is off."
             )
         }
         let update = PackageUpdate(ecosystem: use.ecosystem, name: use.name, install: install, latest: latest, context: context)
-        let status = MCPUpdateText.status(update.status)
-        let explanation: String
-        if let sentence = AgentBrief.blockerSentence(package: use.name, installed: install.version, requested: install.requested, update: update) {
+        var explanation: String
+        if let sentence = AgentBrief.blockerSentence(package: use.name, installed: install.version, requested: requested, update: update) {
             explanation = sentence
         } else {
-            explanation = switch update.status {
-            case .upToDate: "\(use.name) \(install.version) in \(place) is the latest version."
-            case .withinRange: "\(use.name) \(latest ?? "") is within the requested range \(install.requested ?? ""); only the lock file changes."
-            default: "Pullwatch cannot tell whether \(use.name) \(install.version) in \(place) can be updated (no latest version or an unreadable range)."
+            switch update.status {
+            case .upToDate:
+                explanation = "\(use.name) \(install.version) in \(place) is the latest version."
+            case .withinRange:
+                explanation = "\(use.name) \(latest ?? "") is within the requested range \(requested ?? ""); only the lock file changes."
+            default:
+                let cause = update.unknownReason.map { MCPUpdateText.cause($0, parent: parent) } ?? "the status is not known"
+                explanation = update.unknownReason == .latestNotLookedUp
+                    ? "Its latest version is not known: \(cause)."
+                    : "Pullwatch cannot tell whether \(use.name) \(install.version) in \(place) can be updated: \(cause)."
             }
         }
+        if parent != nil {
+            let asks = requested.map { "; \(install.via.last ?? "") asks for \(use.name) \($0)" } ?? ""
+            explanation = "\(use.name) \(install.version) in \(place) comes in through \(install.via.joined(separator: " > "))\(asks). " + explanation
+        }
+        explanation += transitiveFixes(use, install, requested: requested, context: context, versions: versions).map { " " + $0 }.joined()
         return Install(
             workspace: install.workspace, version: install.version, scope: scope, use: install.kind.rawValue, via: install.via,
-            requested: install.requested, declaredIn: install.source, update: status, step: MCPUpdateText.step(update.step),
+            requested: requested, declaredIn: install.source, update: MCPUpdateText.status(update.status),
+            unknownReason: MCPUpdateText.reason(update.unknownReason), step: MCPUpdateText.step(update.step),
             usableVersion: update.usable.flatMap { $0 == update.latest || $0 == install.version ? nil : $0 },
             blocker: blocker(update.status), explanation: explanation
         )
+    }
+
+    /// Wat er voor een transitieve install moet veranderen om elke kwetsbaarheid erin op te lossen:
+    /// alleen de lockfile (de oplossing valt binnen wat de ouder vraagt), of eerst de ouder, binnen
+    /// of buiten zijn eigen bereik.
+    private static func transitiveFixes(
+        _ use: PackageUse, _ install: PackageInstall, requested: String?, context: UpdateContext, versions: RepoVersions
+    ) -> [String] {
+        guard install.scope == .transitive else { return [] }
+        let found = versions.vulnerabilities.filter {
+            $0.ecosystem == use.ecosystem && $0.package == use.name && $0.version == install.version && $0.workspace == install.workspace
+        }
+        var seen: Set<String> = []
+        return found.compactMap { vulnerability -> String? in
+            guard seen.insert(vulnerability.id).inserted, let fixedIn = vulnerability.fixedIn else { return nil }
+            let id = vulnerability.id
+            switch vulnerability.fix(in: context) {
+            case .withinRange:
+                let command = use.ecosystem == "crates.io" ? " (cargo update -p \(use.name))" : ""
+                let range = requested.map { " \($0)" } ?? ""
+                return "To fix \(id), \(use.name) \(fixedIn) is within the range\(range) that \(install.via.last ?? "its parent") asks for, "
+                    + "so only the lock file changes\(command)."
+            case .blocked(_, _, .package(let blocking, let range, let minimum)):
+                guard let minimum else {
+                    return "To fix \(id), \(blocking) must allow \(use.name) \(fixedIn), but it asks for \(range) and no known version of \(blocking) allows it yet."
+                }
+                return "To fix \(id), update \(blocking) to \(minimum) first: it asks for \(use.name) \(range), which does not allow \(fixedIn)."
+                    + parentRange(blocking, minimum: minimum, ecosystem: use.ecosystem, versions: versions)
+            case let fix:
+                return "To fix \(id): " + AgentBrief.fixText(fix)
+            }
+        }
+    }
+
+    /// Of de nieuwe versie van de ouder binnen zijn eigen gevraagde bereik valt.
+    private static func parentRange(_ parent: String, minimum: String, ecosystem: String, versions: RepoVersions) -> String {
+        let installs = (versions.packages + versions.otherPackages).first { $0.ecosystem == ecosystem && $0.name == parent }?.installs ?? []
+        guard let direct = installs.first(where: { $0.scope == .direct }), let requested = direct.requested,
+              let allows = direct.requestedAllows(minimum, ecosystem: ecosystem, name: parent) else { return "" }
+        return allows
+            ? " \(minimum) is within the range \(requested) the manifest asks for \(parent), so only the lock file changes."
+            : " \(minimum) is outside the range \(requested) the manifest asks for \(parent), so the manifest changes too."
     }
 
     private static func blocker(_ status: PackageUpdate.Status) -> Blocker? {

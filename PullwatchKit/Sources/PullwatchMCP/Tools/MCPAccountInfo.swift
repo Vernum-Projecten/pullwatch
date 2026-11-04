@@ -5,7 +5,7 @@ import PullwatchCore
 /// token, een Keychain-item of de gebruiker van de CLI.
 struct MCPAccountInfo: Encodable {
     let id: UUID
-    /// "GitHub", "Azure DevOps" of "GitLab".
+    /// "GitHub", "Azure DevOps", "GitLab" of "Gitea" (ook Forgejo en Codeberg; de host zegt welke).
     let service: String
     /// "@login" na inloggen met GitHub, anders de gevolgde eigenaren.
     let name: String

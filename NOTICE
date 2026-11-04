@@ -36,6 +36,26 @@ licensed under the MIT License:
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
+This product includes the Codeberg logo (codeberg-logo_icon_blue.svg and
+codeberg-logo_icon_white.svg from https://codeberg.org/Codeberg/Design,
+logo/icon/svg, commit 9f8c699), unmodified, in
+Pullwatch/Pullwatch/Assets.xcassets/CodebergMark.imageset. The Codeberg design
+resources are dedicated to the public domain under CC0 1.0 Universal
+(CC0-1.0, https://creativecommons.org/publicdomain/zero/1.0/); the full text
+is in the Acknowledgements of the app.
+
+This product includes the Forgejo logo (forgejo.svg from
+https://codeberg.org/forgejo/meta/src/branch/readme/branding/logo, commit
+e34fea4), unmodified, in Pullwatch/Pullwatch/Assets.xcassets/ForgejoMark.imageset
+as forgejo.pdf: the same vector drawing saved as PDF by rsvg-convert, because
+the asset catalogue does not apply the CSS classes that give the SVG its
+colours.
+The Forgejo logo was created by Caesar Schinas (https://caesarschinas.com/)
+and is licensed under the Creative Commons Attribution-ShareAlike 4.0
+International license (CC-BY-SA-4.0,
+https://creativecommons.org/licenses/by-sa/4.0/); the full text is in the
+Acknowledgements of the app.
+
 This product includes Sparkle (https://sparkle-project.org,
 https://github.com/sparkle-project/Sparkle, version 2.10.1), the framework
 that installs updates (Contents/Frameworks/Sparkle.framework). Its license
@@ -262,6 +282,39 @@ in Pullwatch/Pullwatch/Assets.xcassets/GitLabMark.imageset), only to say that
 an account connects to GitLab: on the account choice of the welcome window,
 the account cards in Settings and the add-account menu. Pullwatch is not
 affiliated with, endorsed, sponsored, or approved by GitLab Inc.
+
+Bitbucket and Atlassian are trademarks of Atlassian, which is their sole owner
+(Atlassian Trademark Guidelines, https://www.atlassian.com/legal/trademark).
+Pullwatch shows the Bitbucket icon, unmodified and in its brand colours on
+light and dark backgrounds, from Atlassian's own logo component: the "brand"
+appearance of bitbucket/icon in the npm package @atlaskit/logo 23.3.1
+(https://atlassian.design/components/logo/, the same icon as in
+bitbucket_attribution.zip at https://atlassian.design/foundations/logos), with
+its two colour variables written as their default values (#94c748 and
+#101214), in Pullwatch/Pullwatch/Assets.xcassets/BitbucketMark.imageset. It
+appears only to say that an account connects to Bitbucket Cloud: on the account
+choice of the welcome window, the account cards in Settings and the
+add-account menu. Pullwatch is not affiliated with, endorsed, sponsored, or
+approved by Atlassian.
+Codeberg and the Codeberg logo are trademarks of Codeberg e.V. Pullwatch
+shows the logo (see above) only to say that an account connects to
+codeberg.org. Pullwatch is not affiliated with, endorsed or sponsored by
+Codeberg e.V.
+
+Forgejo and the Forgejo logo belong to the Forgejo project. Pullwatch shows
+the logo (see above) only to say that an account connects to a Forgejo
+server. Pullwatch is not affiliated with, endorsed or sponsored by the
+Forgejo project.
+
+Gitea and the Gitea logo are trademarks of their owners (CommitGo, Inc. and
+the Gitea project). Pullwatch shows Gitea's logo, unmodified and in full
+colour (assets/logo.svg from https://github.com/go-gitea/gitea, commit
+f8a668a, downloaded from
+https://raw.githubusercontent.com/go-gitea/gitea/main/assets/logo.svg, in
+Pullwatch/Pullwatch/Assets.xcassets/GiteaMark.imageset), only to say that an
+account connects to gitea.com or a Gitea server. Pullwatch is not affiliated
+with, endorsed, sponsored, or approved by CommitGo, Inc. or the Gitea
+project.
 
 Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
 uses only the name, with the SF Symbol cloud.circle.fill; Microsoft permits

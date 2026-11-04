@@ -23,12 +23,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
-  <img src="docs/images/hero-light.png" alt="The PRs list in the Pullwatch main window: pull requests from four repositories, each with its state icon, checks such as 4 of 8, title, repository, author and age.">
+  <img src="docs/images/hero-light.png" alt="The PRs list in the Pullwatch main window: pull requests from four repositories, each with its state icon, checks such as 4 of 8, title, repository and number, author and age.">
 </picture>
 
 Pullwatch is a menu bar app for macOS. It tells you about new pull requests,
-tags and releases on GitHub, Azure DevOps and GitLab™, keeps a searchable
-history, and checks your repositories for outdated runtimes, packages and
+tags and releases on GitHub, Azure DevOps, GitLab™, Bitbucket, Codeberg,
+Forgejo and Gitea, keeps a searchable history, and checks your repositories for outdated runtimes, packages and
 known vulnerabilities. It speaks English, Dutch, German and French.
 
 ## What it does
@@ -36,23 +36,25 @@ known vulnerabilities. It speaks English, Dutch, German and French.
 - **Pull requests**: a notification for each new or merged pull request (or
   merge request), with its CI checks as `4/8` and whether it waits in a merge
   queue or merge train.
-- **Tags and releases**: new tags and GitHub and GitLab releases, per
-  repository, with who made them.
+- **Tags and releases**: new tags and the releases of GitHub, GitLab,
+  Codeberg, Forgejo and Gitea, per repository, with who made them.
 - **History and statistics**: every pull request and tag in a searchable
   list, and charts of opened and merged pull requests per author and
   repository.
 - **Repositories**: every repository you follow, worst first, with a page
-  per repository for its pull requests, versions, packages and security.
+  per repository for its pull requests, versions, dependencies and security.
 - **Dependencies**: outdated runtimes, frameworks and packages from your
   manifests and lockfiles, and what holds each update back.
+- **Packages**: what your repositories publish to their own registry, and
+  who uses it; your own packages are checked against that registry.
 - **Vulnerabilities**: known advisories from OSV.dev and the GitHub Advisory
   Database, plus the code scanning, secret scanning and Advanced Security
   alerts of GitHub and Azure DevOps.
 - **Notifications** with buttons to mark as read, open the repository or
   mute it, quiet hours, and a switch per kind.
-- **Agents via MCP** (coming): coding agents on your Mac will be able to ask
-  Pullwatch what it knows. Today, **Copy for an AI Agent** turns a section of
-  a repository page into a Markdown brief.
+- **Agents via MCP**: Claude Code, Codex, Cursor or VS Code ask Pullwatch
+  about your pull requests, repositories and vulnerabilities, read-only and
+  off by default ([Agents](https://pullwatch.net/agents/)).
 
 ## Supported services
 
@@ -62,6 +64,8 @@ known vulnerabilities. It speaks English, Dutch, German and French.
 | GitHub Enterprise Server and GHE.com | Yes | Yes | Yes | Yes | Code scanning, secret scanning; advisories where the server has them |
 | Azure DevOps | Yes | Yes | No | Yes | Advanced Security alerts |
 | GitLab (gitlab.com and self-managed) | Yes | Yes | Yes | Yes | None; packages are checked with OSV.dev |
+| Bitbucket Cloud (bitbucket.org) | Yes | Yes | No (Bitbucket has none) | Yes (build statuses) | None; packages are checked with OSV.dev |
+| Codeberg, Forgejo and Gitea (codeberg.org, gitea.com and your own server) | Yes | Yes | Yes | Yes (commit statuses) | None; packages are checked with OSV.dev |
 
 The dependency and vulnerability check works on every service. See
 [Add your accounts](https://pullwatch.net/getting-started/accounts/) for the
@@ -128,7 +132,8 @@ xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
 `scripts/release/release.sh --unsigned` makes an ad hoc signed disk image in
 `dist/`. Signing, the release lane and the repository layout are in
 [For maintainers](https://pullwatch.net/maintainers/) and
-[docs/releasing.md](docs/releasing.md).
+[docs/releasing.md](docs/releasing.md); the MCP server for agents in
+[docs/mcp.md](docs/mcp.md).
 
 ## Contributing
 
@@ -137,6 +142,8 @@ Bug reports and ideas are welcome as
 explains what changed and why, passes the checks in [CLAUDE.md](CLAUDE.md)
 (the project's working notes: layout, gates and rules), and adds a changelog
 fragment as [changelog.d/README.md](changelog.d/README.md) describes.
+
+[Contributing](CONTRIBUTING.md) &nbsp;&nbsp;&nbsp; [Security](SECURITY.md) &nbsp;&nbsp;&nbsp; [Support](SUPPORT.md) &nbsp;&nbsp;&nbsp; [AI policy](AI_POLICY.md) &nbsp;&nbsp;&nbsp; [Code of conduct](CODE_OF_CONDUCT.md)
 
 ## License
 
@@ -154,10 +161,22 @@ Pullwatch is licensed under the [Apache License 2.0](LICENSE).
   countries and regions. Pullwatch shows GitLab's logomark, unmodified, from
   GitLab's [press kit](https://about.gitlab.com/press/press-kit/)
   (`gitlab-logo-500-rgb.svg`) where an account connects to GitLab.
+- Bitbucket and Atlassian are trademarks of Atlassian. Pullwatch shows the
+  unmodified Bitbucket icon from Atlassian's
+  [logo component](https://atlassian.design/components/logo/) where an
+  account connects to Bitbucket.
+- The Codeberg logo is from [Codeberg/Design](https://codeberg.org/Codeberg/Design), CC0; Codeberg is
+  a trademark of Codeberg e.V. The Forgejo logo is by Caesar Schinas, from
+  [forgejo/meta](https://codeberg.org/forgejo/meta/src/branch/readme/branding),
+  CC BY-SA 4.0. Gitea and its logo are trademarks of their owners; Pullwatch
+  shows the unmodified logo from the
+  [Gitea repository](https://github.com/go-gitea/gitea/blob/main/assets/logo.svg)
+  where an account connects to Gitea.
 - Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
   shows only the name, with an SF Symbol (a cloud).
 - Pullwatch is not affiliated with, endorsed, sponsored or approved by
-  GitHub, GitLab Inc. or Microsoft.
+  GitHub, GitLab Inc., Atlassian, Microsoft, Codeberg e.V., the Forgejo
+  project, CommitGo, Inc. or the Gitea project.
 
 [NOTICE](NOTICE) holds the full notices, including the MCP Swift SDK and its
 dependencies.

@@ -52,6 +52,33 @@ import Testing
         #expect(ProviderKind.gitLab.glyphKeepsItsColours)
     }
 
+    /// Het Bitbucket-icoon blijft zoals Atlassian het geeft, in zijn eigen kleuren: geen template.
+    @Test func `Bitbucket mark keeps its colours`() throws {
+        let logo = try #require(NSImage(named: "BitbucketMark"))
+        #expect(!logo.isTemplate)
+        #expect(ProviderKind.bitbucket.glyph == .asset("BitbucketMark"))
+        #expect(ProviderKind.bitbucket.glyphKeepsItsColours)
+    }
+
+    /// Codeberg, Forgejo en Gitea: elk zijn eigen logo, onveranderd en in zijn eigen kleuren.
+    @Test(arguments: [(GiteaFlavour.codeberg, "CodebergMark"), (.forgejo, "ForgejoMark"), (.gitea, "GiteaMark")])
+    func `Each Gitea flavour has its own mark in its own colours`(_ flavour: GiteaFlavour, name: String) throws {
+        #expect(flavour.glyph == .asset(name))
+        let logo = try #require(NSImage(named: name))
+        #expect(!logo.isTemplate)
+        #expect(logo.size.width > 0 && logo.size.height > 0)
+        #expect(flavour.glyph.keepsItsColours)
+        let account = Account(kind: .gitea, organization: "acme", authMethod: .pat, giteaFlavour: flavour)
+        #expect(account.glyph == flavour.glyph)
+    }
+
+    /// Elke keuze bij een nieuw account heeft een eigen id (de camera en `ForEach`) en een naam.
+    @Test func `Account choices are unique and named`() {
+        #expect(Set(AccountChoice.all.map(\.id)).count == AccountChoice.all.count)
+        #expect(AccountChoice.all.allSatisfy { !$0.title.isEmpty })
+        #expect(AccountChoice.all.filter { $0.kind == .gitea }.map(\.title) == ["Codeberg", "Forgejo", "Gitea"])
+    }
+
     @Test(arguments: NotificationGlyph.allCases)
     func notificationGlyphsExist(_ glyph: NotificationGlyph) {
         #expect(exists(glyph.glyph))
@@ -72,6 +99,10 @@ import Testing
     @Test(arguments: [AgentsSettingsView.symbol, "minus.circle", "hourglass", "checkmark.circle", "checkmark.circle.fill"])
     func `Agent symbols exist`(_ name: String) {
         #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
+    }
+
+    @Test func `The in-house symbol exists`() {
+        #expect(NSImage(systemSymbolName: InHouseBadge.symbol, accessibilityDescription: nil) != nil)
     }
 
     @Test(arguments: MainSection.allCases)
@@ -147,7 +178,8 @@ import Testing
         let entry = HistoryEntry.pullRequest(pr)
         #expect(entry.glyph == PRStatus.queued.glyph)
         #expect(String(localized: entry.glyphLabel) != String(localized: PRStatus.queued.spokenName), "met de plek erbij")
-        #expect(entry.statePill.map { String(localized: $0.text) } == String(localized: LocalizedStringResource("In wachtrij")))
+        #expect(String(localized: PRStatus.queued.spokenSentence(number: 1, title: "t"))
+                == String(localized: LocalizedStringResource("Pull request \("1") in de wachtrij: \("t")")))
 
         pr.mergeQueue?.position = nil
         #expect(String(localized: HistoryEntry.pullRequest(pr).glyphLabel) == String(localized: PRStatus.queued.spokenName))

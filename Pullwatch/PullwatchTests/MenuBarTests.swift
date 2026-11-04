@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import SwiftUI
 import Testing
 
 @testable import Pullwatch
@@ -55,6 +56,25 @@ import Testing
         #expect(view.item(key: "s", modifiers: [.control, .command]) != nil, "Toon of verberg zijbalk")
         #expect(view.item(key: "t", modifiers: [.option, .command]) != nil, "Toon of verberg knoppenbalk")
         #expect(view.item(key: "r", modifiers: [.command])?.title == String(localized: "Laad opnieuw"))
+    }
+
+    @Test func `The Item menu copies the reference right after the link`() throws {
+        let item = try #require(menus[safe: 5])
+        let link = try #require(item.item(key: "l", modifiers: [.shift, .command]))
+        let reference = try #require(item.item(key: "l", modifiers: [.option, .shift, .command]))
+        #expect(link.title == String(localized: "Kopieer link"))
+        #expect(reference.title == String(localized: "Kopieer verwijzing"))
+        #expect(item.index(of: reference) == item.index(of: link) + 1)
+        #expect(!reference.isAlternate, "Kopieer verwijzing staat er altijd, niet alleen met ⌥")
+    }
+
+    @Test func `The Go menu lists every section in sidebar order, Packages on Command-6`() throws {
+        let go = try #require(menus[safe: 4])
+        let sections = MainSection.allCases.compactMap { section in
+            go.item(key: section.shortcut.character.description, modifiers: [.command])
+        }
+        #expect(sections.map(\.title) == MainSection.allCases.map { String(localized: $0.title) })
+        #expect(go.item(key: "6", modifiers: [.command])?.title == String(localized: MainSection.packages.title))
     }
 
     @Test func `The Window menu brings back the main window`() throws {

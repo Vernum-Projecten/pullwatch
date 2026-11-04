@@ -50,7 +50,8 @@ struct PackagesView: View {
                 PackageRow(
                     summary: summary,
                     isNew: summary.state == .updateAvailable && seenAtOpen[summary.id] != summary.latest,
-                    skippedSource: summary.state == .unchecked
+                    // Een eigen package hangt niet aan het publieke register van zijn ecosysteem.
+                    skippedSource: summary.state == .unchecked && summary.inHouse == nil
                         ? SourceOff.registry(ofPackage: summary.id, in: accounts.config.disabledSources) : nil
                 )
             })
@@ -201,6 +202,9 @@ private struct PackageNameCell: View {
                     .accessibilityHidden(!row.isNew)
                 Text(verbatim: row.summary.label).fontWeight(.semibold).lineLimit(1)
                 Text(verbatim: row.summary.kind).font(.caption).foregroundStyle(.secondary)
+                if let inHouse = row.summary.inHouse {
+                    InHouseBadge(inHouse: inHouse)
+                }
             }
         case .user(let row):
             Text(verbatim: row.user.repo)
@@ -280,15 +284,23 @@ private struct PackageStatusCell: View {
                 Text("\(row.summary.behind.count) repo's lopen achter").foregroundStyle(.orange)
             case .current:
                 Text("gebruikt in \(row.summary.current.count) repo's").foregroundStyle(.secondary)
+            case .unchecked where row.summary.isTransitiveOnly:
+                Text("Alleen via andere packages")
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .help(Text("Geen repo vraagt dit package zelf; het staat hier om een kwetsbaarheid. Pullwatch zoekt de nieuwste versie alleen op voor packages die een repo zelf vraagt."))
             case .unchecked:
-                if let source = row.skippedSource {
+                if let inHouse = row.summary.inHouse, let text = SourceOff.inHouseNotChecked(inHouse) {
+                    Text(verbatim: text).foregroundStyle(.secondary).lineLimit(1)
+                        .help(Text(verbatim: SourceOff.inHouseHelp(inHouse) ?? text))
+                } else if let source = row.skippedSource {
                     Text(verbatim: SourceOff.versionNotChecked(source)).foregroundStyle(.secondary).lineLimit(1)
                         .help(Text(verbatim: SourceOff.versionNotChecked(source)))
                 } else {
                     Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)
                 }
             }
-        case .user(let row) where row.standing == .transitiveOnly:
+        case .user(let row) where row.standing == .transitiveOnly && row.user.installs.count != 1:
             Text("Alleen transitief")
                 .foregroundStyle(.secondary)
                 .lineLimit(1)

@@ -20,7 +20,7 @@ The menu bar follows Apple's order: Pullwatch, File, Edit, View, Go, Item, Repos
 |---|---|
 | ⌘N | New Account…: Settings, Accounts, with the choice of service |
 | ⇧⌘N | Watch a Repository… |
-| ⌘O | Open the selection (or the open repository) in the browser |
+| ⌘O | Open the selection (or the open repository) in the browser; for a package, its page in the registry |
 | ⌘W | Close the window |
 
 ## Edit
@@ -48,6 +48,7 @@ The menu bar follows Apple's order: Pullwatch, File, Edit, View, Go, Item, Repos
 | ⌘3 | Statistics |
 | ⌘4 | Repositories |
 | ⌘5 | Dependencies |
+| ⌘6 | Packages |
 | ⌘↓ | The selected repository's page |
 
 ## Item
@@ -59,6 +60,7 @@ The selected pull request, tag or release.
 | ⇧⌘U | Mark as read or unread |
 | ⌘K | Mark all as read |
 | ⇧⌘L | Copy the link |
+| ⌥⇧⌘L | Copy the reference of the selected pull requests, such as `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 

@@ -94,6 +94,35 @@ enum SnapshotCamera {
         scrollView.reflectScrolledClipView(scrollView.contentView)
     }
 
+    /// Selecteert rij `row` van de tabel in het venster (geen zijbalk), zodat een foto laat zien
+    /// hoe een geselecteerde rij eruitziet. De tabel meldt het aan SwiftUI zoals een klik.
+    static func selectRow(_ row: Int, windowId: String) {
+        guard let table = mainTable(windowId: windowId), row < table.numberOfRows else { return }
+        table.window?.makeFirstResponder(table)
+        table.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+    }
+
+    /// Sorteert de tabel in het venster op kolom `column`, zoals een klik op de kop: de eerste
+    /// keer oplopend, daarna de andere kant op. De tabel meldt het aan SwiftUI zoals een klik.
+    static func sortByColumn(_ column: Int, windowId: String) {
+        guard let table = mainTable(windowId: windowId), column < table.tableColumns.count,
+              let prototype = table.tableColumns[column].sortDescriptorPrototype
+        else { return }
+        let isSorted = table.sortDescriptors.first.map { $0 == prototype || $0 == prototype.reversedSortDescriptor as? NSSortDescriptor } ?? false
+        table.sortDescriptors = isSorted ? [table.sortDescriptors[0].reversedSortDescriptor as? NSSortDescriptor ?? prototype] : [prototype]
+    }
+
+    /// De tabel van het venster (geen zijbalk): die met de meeste kolommen.
+    private static func mainTable(windowId: String) -> NSTableView? {
+        guard let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix(windowId) == true }),
+              let content = window.contentView,
+              // SwiftUI's `Table` kan zelf een `NSOutlineView` zijn; de zijbalk heeft één kolom.
+              let table = outlineOrTableViews(in: content).max(by: { $0.tableColumns.count < $1.tableColumns.count }),
+              table.tableColumns.count > 1
+        else { return nil }
+        return table
+    }
+
     private static func scrollViews(in view: NSView) -> [NSScrollView] {
         ((view as? NSScrollView).map { [$0] } ?? []) + view.subviews.flatMap(scrollViews)
     }

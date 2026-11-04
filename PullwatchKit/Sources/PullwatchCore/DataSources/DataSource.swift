@@ -5,6 +5,8 @@ public import Foundation
 public enum DataSourceID: String, Codable, CaseIterable, Sendable {
     case osv, gitHubAdvisoryDatabase, gitHubSecurity, azureDevOpsAdvancedSecurity
     case npm, pyPI, cratesIO, nuGet, rubyGems, packagist, goProxy, endOfLife, swiftOrg
+    /// De registers van de accounts zelf (GitHub Packages): wat de gevolgde repo's publiceren.
+    case packageRegistries
     case ciChecks
 }
 
@@ -91,10 +93,20 @@ public struct DataSource: Sendable, Identifiable {
             id: .swiftOrg, group: .versions, name: "swift.org",
             summary: LocalizedStringResource("Swift-releases; Swift heeft geen einddatum van ondersteuning", bundle: .localizedCore),
             endpoints: ["https://www.swift.org/api/v1/install/releases.json"], site: "https://www.swift.org"),
+        // De dagelijkse versiecheck vraagt per account het register van de dienst zelf; bij GitHub
+        // Enterprise is dat de server van het account.
+        DataSource(
+            id: .packageRegistries, group: .versions, name: "Packageregisters van je accounts",
+            localizedName: LocalizedStringResource("Packageregisters van je accounts", bundle: .localizedCore),
+            summary: LocalizedStringResource("De packages en container-images die je gevolgde repo's in het register van hun dienst publiceren, met hun recente versies", bundle: .localizedCore),
+            endpoints: ["https://api.github.com"], site: "https://docs.github.com/packages"),
         DataSource(
             id: .ciChecks, group: .pullRequests, name: "CI-checks", localizedName: LocalizedStringResource("CI-checks", bundle: .localizedCore),
             summary: LocalizedStringResource("De checks (CI) van pull requests: hoeveel er geslaagd, mislukt of nog bezig zijn, en de melding als die van je eigen PR mislukken", bundle: .localizedCore),
-            endpoints: ["https://api.github.com", "https://dev.azure.com", "https://gitlab.com/api/v4"],
+            endpoints: [
+                "https://api.github.com", "https://dev.azure.com", "https://gitlab.com/api/v4", "https://codeberg.org/api/v1",
+                "https://gitea.com/api/v1",
+            ],
             site: "https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks"),
     ]
 

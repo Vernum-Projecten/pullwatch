@@ -60,12 +60,27 @@ enum SnapshotTour {
 
         var steps: [(String, () -> Void)] = [
             ("pull-requests", { model.router.show(.pullRequests) }),
+            // Een geselecteerde rij: het nummer in de kolom Repo volgt de kleuren van de selectie.
+            ("pull-requests-selected", { SnapshotCamera.selectRow(1, windowId: WindowID.main.rawValue) }),
             ("tags", { model.router.show(.tags) }),
             ("stats", { model.router.show(.stats) }),
             ("repos", { model.router.show(.repos) }),
             ("versions", { model.router.show(.dependencies) }),
+            // Wat de repo's publiceren: de lijst, een package met wie het gebruikt, en het filter op één repo.
+            ("packages", { model.router.show(.packages) }),
             ("history-author-token", { model.router.showHistory(.pullRequest, author: "mona") }),
         ]
+        if let package = model.versions.publishedPackages.first(where: { !$0.users.isEmpty }) ?? model.versions.publishedPackages.first {
+            steps.append(("packages-inspector", {
+                model.router.show(.packages)
+                model.router.publishedPackagesRequest = PublishedPackagesRequest(selection: package.id)
+            }))
+        }
+        if let publisher = model.versions.publishedPackages.first(where: { $0.package.repository != nil })?.package {
+            steps.append(("packages-repo", {
+                model.router.showPublishedPackages(of: HistoryRepo(accountId: publisher.accountId, repo: publisher.repository ?? ""))
+            }))
+        }
         if let group {
             steps.append(("history-group", { model.router.sidebarSelection = .group(.pullRequest, group.id) }))
         }
@@ -81,8 +96,8 @@ enum SnapshotTour {
                 steps.append(("repo-check-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .check, rowId: advisory.id) }))
             }
             // Packages, met een package dat iets tegenhoudt in het inspectievenster.
-            steps.append(("repo-packages", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .packages) }))
-            steps.append(("repo-packages-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .packages, rowId: "|npm:express") }))
+            steps.append(("repo-packages", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .dependencies) }))
+            steps.append(("repo-packages-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .dependencies, rowId: "|npm:express") }))
             // De beveiliging van GitHub zelf, met een melding van code scanning.
             steps.append(("repo-security", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .security) }))
             if let alert = repo.versions?.security?.findingRows.first {
@@ -113,7 +128,41 @@ enum SnapshotTour {
             }))
         }
         steps.append(("repos-again", { model.router.show(.repos) }))
+        // `-PullwatchSnapshotTourInteract YES`: na elke tabel ook sorteren (twee keer, dus beide
+        // richtingen), schuiven en een rij kiezen, zoals iemand met de muis doet; de waarschuwing
+        // van AppKit over een reentrante tabel-delegate (#204) zou dan in stderr staan.
+        if UserDefaults.standard.bool(forKey: "PullwatchSnapshotTourInteract") {
+            let tables: Set<String> = [
+                "pull-requests", "tags", "repos", "versions", "packages", "history-author-token", "history-group",
+                "repo-check", "repo-packages", "repo-security", "repo-history-token", "repos-again",
+            ]
+            let main = WindowID.main.rawValue
+            steps = steps.flatMap { step -> [(String, () -> Void)] in
+                guard tables.contains(step.0) else { return [step] }
+                // Elke kolom twee keer: oplopend en aflopend.
+                let sorts = (0..<6).flatMap { column -> [(String, () -> Void)] in
+                    [
+                        ("\(step.0)-sorted-\(column)", { SnapshotCamera.sortByColumn(column, windowId: main) }),
+                        ("\(step.0)-sorted-\(column)-again", { SnapshotCamera.sortByColumn(column, windowId: main) }),
+                    ]
+                }
+                return [step] + sorts + [
+                    ("\(step.0)-scrolled", { SnapshotCamera.scroll(windowId: main, pages: 1) }),
+                    ("\(step.0)-row", { SnapshotCamera.selectRow(2, windowId: main) }),
+                ]
+            }
+        }
+        // `-PullwatchSnapshotTourOnly a,b` (met `-PullwatchSnapshotTourRepeat <n>`): alleen deze
+        // stappen, n keer na elkaar, om één overgang te herhalen.
+        if let only = UserDefaults.standard.string(forKey: "PullwatchSnapshotTourOnly") {
+            let names = only.split(separator: ",").map(String.init)
+            let picked = steps.filter { names.contains($0.0) }
+            steps = Array(repeating: picked, count: max(1, UserDefaults.standard.integer(forKey: "PullwatchSnapshotTourRepeat")))
+                .flatMap(\.self)
+        }
         for (name, step) in steps {
+            // De naam van de stap in stderr, zodat een melding van AppKit bij een stap te leggen is.
+            FileHandle.standardError.write(Data("SnapshotTour step \(name)\n".utf8))
             step()
             try? await Task.sleep(for: .seconds(1.5))
             SnapshotCamera.shoot(name, windowId: WindowID.main.rawValue)

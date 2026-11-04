@@ -111,12 +111,12 @@ private struct SourceRow: View {
                 Text(verbatim: source.name)
                 Text(source.summary).foregroundStyle(.secondary)
                 if source.id == .osv {
-                    Label("De enige bron voor kwetsbaarheden in packages bij GitHub- en GitLab-repo's.", systemImage: "exclamationmark.triangle")
+                    Label("De enige bron voor kwetsbaarheden in packages bij repo's op GitHub, GitLab, Bitbucket, Gitea, Forgejo en Codeberg.", systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
                 if source.id == .ciChecks {
-                    Text("Bij GitHub Enterprise en een eigen GitLab-server vraagt Pullwatch de checks aan die server.")
+                    Text("Bij GitHub Enterprise en een eigen GitLab-, Gitea- of Forgejo-server vraagt Pullwatch de checks aan die server.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

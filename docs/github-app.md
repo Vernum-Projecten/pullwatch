@@ -30,23 +30,56 @@ Apps**, **New GitHub App**:
 
 **Repository permissions**, all read-only, and nothing else:
 
-| Permission | Access | Why Pullwatch needs it |
-|---|---|---|
-| Pull requests | Read-only | find new, merged and closed pull requests (`search/issues`) |
-| Contents | Read-only | list tags; read files for the version and vulnerability checks (`git/trees`, `contents`) |
-| Metadata | Read-only | required by GitHub; lists the repositories (`user/repos`, `orgs/{org}/repos`) |
-| Repository security advisories | Read-only | the advisories a repository publishes about itself, on its page in Pullwatch (`repos/{owner}/{repo}/security-advisories?state=published`) |
-| Code scanning alerts | Read-only, optional | open CodeQL and other code scanning alerts on the repository page, in its findings and health, and (when turned on) a notification for a new critical or high one (`repos/{owner}/{repo}/code-scanning/alerts?state=open`) |
-| Secret scanning alerts | Read-only, optional | only the number of open secrets, with a link to GitHub; Pullwatch asks with `hide_secret=true` and never reads a secret (`repos/{owner}/{repo}/secret-scanning/alerts?state=open`) |
-| Checks | Read-only, optional | the check runs (GitHub Actions and other apps) on a pull request's last commit, counted per state for the checks cell (`statusCheckRollup` in GraphQL; on REST `GET /repos/{owner}/{repo}/commits/{ref}/check-runs`) |
-| Commit statuses | Read-only, optional | the commit statuses (older CI services that post a status) on the same commit, in the same count (`statusCheckRollup`; on REST `GET /repos/{owner}/{repo}/commits/{ref}/status`) |
+| Permission | Access | What it is for | Without it |
+|---|---|---|---|
+| Metadata | Read-only, mandatory | GitHub requires it; lists the repositories of the followed owners (`user/repos`, `orgs/{org}/repos`, `users/{owner}`) | GitHub does not allow an app without it |
+| Pull requests | Read-only | new, merged and closed pull requests (`search/issues`), their co-authors and merge queue position (GraphQL `pullRequest`) | no pull requests for the account |
+| Contents | Read-only | tags and releases (GraphQL `refs`, or REST `tags` and `releases`), and the files of the version and vulnerability checks (`git/trees`, `contents`) | no tags or releases, and the dependency check finds no files |
+| Repository security advisories | Read-only | the advisories a repository publishes about itself, on its page in Pullwatch (`repos/{owner}/{repo}/security-advisories?state=published`) | the repository page shows **Needs permission** next to them |
+| Checks | Read-only | the check runs (GitHub Actions and other apps) on a pull request's last commit, counted per state for the checks cell (`statusCheckRollup` with `checkRunCountsByState` in GraphQL) | no checks cell; **Checks: Needs permission** under the repository's pull requests |
+| Commit statuses | Read-only | the commit statuses (older CI services that post a status) on the same commit, in the same count (`statusContextCountsByState`) | as without Checks: GitHub refuses the whole `statusCheckRollup` |
+| Code scanning alerts | Read-only, optional | open CodeQL and other code scanning alerts on the repository page, in its findings and health, and (when turned on) a notification for a new critical or high one (`repos/{owner}/{repo}/code-scanning/alerts?state=open`) | **Needs permission** next to Code scanning on the repository page, quietly |
+| Secret scanning alerts | Read-only, optional | only the number of open secrets, with a link to GitHub; Pullwatch asks with `hide_secret=true` and never reads a secret (`repos/{owner}/{repo}/secret-scanning/alerts?state=open`) | **Needs permission** next to Secret scanning on the repository page, quietly |
 
-Without the optional permissions Pullwatch works as before: the
-repository page shows **Needs permission** next to Code scanning or Secret
-scanning, quietly, and nothing else changes. Without Checks and Commit
-statuses a pull request has no checks cell, and the repository page says
-**Checks: Needs permission** under its pull requests. Add them only if the
-people who use Pullwatch want those alerts or checks in it.
+Each of these is used by a code path in `PullwatchKit/Sources/PullwatchGitHub/`.
+Add the optional ones only if the people who use Pullwatch want those alerts in
+it.
+
+**No Packages permission.** GitHub's Packages REST API refuses every GitHub
+App token, whatever the app's Packages permission says. Checked live on
+4 November 2026 with **TEST Pullwatch**, Packages: Read turned on and accepted
+on both installations:
+
+```text
+/users/rubentalstra/packages?package_type=npm     403 Resource not accessible by integration
+/orgs/FerroHEALTH/packages?package_type=npm       403 Resource not accessible by integration
+/orgs/Vernum-Projecten/packages?package_type=npm  403 Resource not accessible by integration
+```
+
+The same requests with a GitHub CLI token that has the `read:packages` scope
+return 200, as GitHub's own docs say ("GitHub Packages only supports
+authentication using a personal access token (classic)"). So an account that
+signs in with the app reads its packages with the GitHub CLI: the account
+editor has **Read packages with the GitHub CLI** (on by default), and
+Pullwatch then asks `gh auth token` (with `--hostname` on GitHub Enterprise)
+for the token of the active `gh` account on that host and sends it only to
+the package endpoints (`/orgs/{org}/packages`, `/users/{user}/packages` and
+`…/packages/{type}/{name}/versions`). The app's own token never goes there.
+The editor shows which `gh` account that is, and says so when it differs from
+the account that signed in with the app; that still works when the `gh`
+account can see the followed owners. The Packages section and the agents'
+`list_packages` say **Needs permission** with the exact step:
+
+| Situation | Reason |
+|---|---|
+| `gh` not installed | install it (`brew install gh`) and run `gh auth login -h <host> -s read:packages` |
+| `gh` not logged in to the host | run `gh auth login -h <host> -s read:packages` |
+| `gh`'s token lacks `read:packages` | run `gh auth refresh -h <host> -s read:packages` |
+| the `gh` account may not see the owners | log in to `gh` as someone who can |
+| the setting is off | turn on **Read packages with the GitHub CLI** for the account |
+
+An app that already has the Packages permission (the test app does) may keep
+it: it does nothing.
 
 The checks need both permissions because GitHub's `statusCheckRollup` mixes
 check runs and commit statuses; GitHub's table "Permissions required for

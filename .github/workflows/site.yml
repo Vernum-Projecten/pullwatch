@@ -11,10 +11,10 @@ name: Website
 # changing the variable, run this workflow by hand to deploy again.
 
 on:
+  # Every pull request, so "build and check links" can be a required check: a
+  # pull request that does not touch the site skips the build (a skipped job
+  # counts as passed for a required check).
   pull_request:
-    paths:
-      - "site/**"
-      - ".github/workflows/site.yml"
   push:
     branches: [main]
     paths:
@@ -34,8 +34,35 @@ env:
   ASTRO_TELEMETRY_DISABLED: "1"
 
 jobs:
+  changes:
+    name: site changed
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      site: ${{ steps.files.outputs.site }}
+    steps:
+      - id: files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' \
+            | grep -qE '^(site/|\.github/workflows/site\.yml$)'; then
+            echo "site=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "site=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: build and check links
+    needs: changes
+    # On a push or a manual run there is no changes job (it is skipped), so
+    # build then; on a pull request only when it touches the site.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.outputs.site == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -80,7 +107,10 @@ jobs:
   deploy:
     name: deploy to GitHub Pages
     needs: build
-    if: (github.repository == 'alessandro823/pullwatch' || vars.PAGES_DEPLOY == 'true') && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # The changes job is skipped outside pull requests, and a skipped job
+    # further up makes the implicit success() false, so ask for the build's
+    # own result instead.
+    if: ${{ !cancelled() && needs.build.result == 'success' && (github.repository == 'alessandro823/pullwatch' || vars.PAGES_DEPLOY == 'true') && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -48,12 +48,12 @@ struct MenuView: View {
             if accounts.config.pollableAccounts.isEmpty {
                 SetupPrompt { router.show(.onboarding) }
             } else {
-                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
+                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, providerKinds: accounts.config.providerKinds, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                     app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                     router.show(.main)
                 }
                 if historyModel.hasTags {
-                    RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
+                    RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, providerKinds: accounts.config.providerKinds, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                         app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         router.show(.main)
                     }
@@ -232,6 +232,8 @@ private struct RecentSection: View {
     /// Tekst als er nog niets is; nil: dan toont het onderdeel niets.
     let empty: LocalizedStringKey?
     let items: [HistoryItem]
+    /// De dienst per account, voor het teken van het PR-nummer.
+    let providerKinds: [UUID: ProviderKind]
     /// De bron CI-checks staat aan.
     let showsChecks: Bool
     let open: (HistoryItem) -> Void
@@ -250,7 +252,7 @@ private struct RecentSection: View {
                 .padding(.horizontal, MenuMetrics.rowInset)
         } else {
             ForEach(items) { item in
-                RecentRow(item: item, showsChecks: showsChecks) { open(item) }
+                RecentRow(item: item, kind: providerKinds[item.entry.accountId] ?? .gitHub, showsChecks: showsChecks) { open(item) }
                     .contextMenu {
                         Button(item.isRead ? "Markeer als ongelezen" : "Markeer als gelezen") { setRead(item, !item.isRead) }
                         Button("Open repo \(item.entry.repo)") { openRepo(item) }
@@ -260,10 +262,13 @@ private struct RecentSection: View {
     }
 }
 
-/// Eén PR of tag: ongelezen-stip, soort, titel, en daaronder repo, auteur en wanneer. VoiceOver
-/// leest het als één zin, met "ongelezen" erbij.
+/// Eén PR of tag: ongelezen-stip, soort, titel, en daaronder repo (bij een PR kort met het nummer,
+/// `FerroFED #1570`), auteur en wanneer. VoiceOver leest het als één zin, met "ongelezen" erbij
+/// en "pull request 1570" in plaats van het teken.
 private struct RecentRow: View {
     let item: HistoryItem
+    /// De dienst van het account, voor het teken van het PR-nummer.
+    let kind: ProviderKind
     /// De bron CI-checks staat aan. Een rij leest zelf geen model (zie `ChecksBadge`).
     let showsChecks: Bool
     let action: () -> Void
@@ -297,16 +302,35 @@ private struct RecentRow: View {
                                 .font(.caption)
                         }
                     }
-                    Text("\(item.entry.repo), \(item.entry.author ?? String(localized: "onbekend")), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
+                    Text("\(repoLabel), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                        .help(item.entry.reference(kind) ?? item.entry.repo)
+                        .accessibilityLabel(spokenLine)
                 }
             }
         }
         .buttonStyle(MenuRowButtonStyle(id: item.id))
         .accessibilityElement(children: .combine)
         .accessibilityValue(item.isRead ? Text(verbatim: "") : Text("Ongelezen"))
+    }
+
+    private var author: String { item.entry.author ?? String(localized: "onbekend") }
+
+    /// Bij een PR de repo voluit met het nummer (`FerroHEALTH/FerroFED #1570`), bij een tag de repo.
+    private var repoLabel: String {
+        if case .pullRequest(let pr) = item.entry { pr.repoAndNumber(kind) } else { item.entry.repo }
+    }
+
+    /// De grijze regel voor VoiceOver: het nummer als "pull request 1570".
+    private var spokenLine: Text {
+        guard case .pullRequest(let pr) = item.entry else {
+            return Text("\(repoLabel), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
+        }
+        let repo = pr.repo
+        let number = String(pr.number)
+        return Text("\(repo), pull request \(number), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien")
     }
 }
 

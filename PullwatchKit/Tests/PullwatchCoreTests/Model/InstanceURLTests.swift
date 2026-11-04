@@ -122,6 +122,6 @@ import Testing
         #expect(legacy.instanceURL == nil)
         #expect(legacy.kind == .gitHub)
         #expect(!String(decoding: try JSONEncoder().encode(legacy), as: UTF8.self).contains("instanceURL"))
-        #expect(ProviderKind.allCases.map(\.rawValue) == ["azureDevOps", "gitHub", "gitLab"])
+        #expect(ProviderKind.allCases.map(\.rawValue) == ["azureDevOps", "gitHub", "gitLab", "bitbucket", "gitea"])
     }
 }

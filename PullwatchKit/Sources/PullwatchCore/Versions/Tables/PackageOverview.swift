@@ -76,11 +76,14 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
     public let current: [PackageUser]
     /// Repo's die het package alleen transitief hebben: niet zelf bij te werken, dus nooit "achter".
     public let transitiveOnly: [PackageUser]
+    /// Gezet als een gevolgde repository dit package zelf publiceert (`PackageMetadata.inHouse`).
+    public let inHouse: InHousePackage?
 
     public init(
         id: String, label: String, kind: String, latest: String?, since: Date?,
-        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser]
+        behind: [PackageUser], current: [PackageUser], transitiveOnly: [PackageUser], inHouse: InHousePackage? = nil
     ) {
+        self.inHouse = inHouse
         self.id = id
         self.label = label
         self.kind = kind
@@ -90,6 +93,9 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
         self.current = current
         self.transitiveOnly = transitiveOnly
     }
+
+    /// Geen repo vraagt het zelf: het staat er alleen omdat het in een repo een kwetsbaarheid heeft.
+    public var isTransitiveOnly: Bool { behind.isEmpty && current.isEmpty && !transitiveOnly.isEmpty }
 
     public var state: State {
         guard latest != nil else { return .unchecked }
@@ -178,10 +184,17 @@ extension VersionReport {
                                 updates: package.updates(latest: latest?.version, context: context)))
             }
         }
-        // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben; een
-        // package dat nergens direct gebruikt wordt krijgt geen eigen regel.
+        // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben. Een
+        // package dat nergens direct gebruikt wordt krijgt alleen een eigen regel als het een
+        // kwetsbaarheid heeft: dat moet te vinden zijn, de honderden andere niet.
         for repo in repos where repo.error == nil {
             let context = UpdateContext(repo: repo, index: index)
+            let vulnerable = Set(repo.vulnerabilities.map { "\($0.ecosystem):\($0.package)" })
+            for package in repo.otherPackages where groups[package.key] == nil && vulnerable.contains(package.key) {
+                order.append(package.key)
+                groups[package.key] = Group(label: package.name, kind: PackageVersions.kind(ofEcosystem: package.ecosystem),
+                                            latest: latestPackages[package.key]?.version)
+            }
             for package in repo.otherPackages where groups[package.key] != nil {
                 let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
                                        updates: package.updates(latest: latestPackages[package.key]?.version, context: context))
@@ -197,7 +210,8 @@ extension VersionReport {
             let behind = group.latest.map { latest in own.filter { PackageVersions.isBehind($0.version, latest: latest) } } ?? []
             return PackageSummary(
                 id: id, label: group.label, kind: group.kind, latest: group.latest, since: group.since,
-                behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly
+                behind: behind, current: own.filter { !behind.contains($0) }, transitiveOnly: transitiveOnly,
+                inHouse: packageMetadata[id]?.inHouse
             )
         }
         func rank(_ state: PackageSummary.State) -> Int {
@@ -226,7 +240,7 @@ extension VersionReport {
         }
         return VersionReport(
             checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata
+            packageMetadata: packageMetadata, format: format, publishedPackages: publishedPackages
         )
     }
 

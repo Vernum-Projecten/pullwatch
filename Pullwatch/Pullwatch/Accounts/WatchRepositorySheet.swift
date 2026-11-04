@@ -87,6 +87,8 @@ struct WatchRepositorySheet: View {
         switch account?.kind {
         case .azureDevOps?: "project/repo"
         case .gitLab?: "gitlab-org/cli"
+        case .bitbucket?: "atlassian/aui"
+        case .gitea?: "forgejo/forgejo"
         default: "openEHR/specifications-AM"
         }
     }
@@ -94,6 +96,10 @@ struct WatchRepositorySheet: View {
     @ViewBuilder private var footer: some View {
         if let account, account.kind == .gitLab {
             Text("Typ groep/project (ook met subgroepen), of plak de link van \(account.effectiveInstanceURL?.host() ?? "gitlab.com"). Ook een openbaar project van een andere groep kan; Pullwatch leest dat zo nodig zonder inloggen.", comment: "Host van de GitLab-server, bv. gitlab.com")
+        } else if account?.kind == .bitbucket {
+            Text("Typ workspace/repo, of plak de link van bitbucket.org. Ook een openbare repository van een andere workspace kan; Pullwatch leest die zo nodig zonder inloggen.")
+        } else if let account, account.kind == .gitea {
+            Text("Typ eigenaar/repo, of plak de link van \(account.effectiveInstanceURL?.host() ?? "codeberg.org"). Ook een openbare repository van een andere organisatie kan; Pullwatch leest die zo nodig zonder inloggen, als de server dat toestaat.", comment: "Host van de server, bv. codeberg.org")
         } else if account?.kind == .azureDevOps {
             Text("Typ project/repo, of plak de link van dev.azure.com. De repository moet in de organisatie \(account?.organization ?? "") staan.", comment: "Azure DevOps-organisatie")
         } else if let account, account.isGitHubEnterprise {

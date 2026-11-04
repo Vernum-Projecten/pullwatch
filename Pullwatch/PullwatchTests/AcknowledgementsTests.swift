@@ -1,4 +1,5 @@
 import Foundation
+import PullwatchCore
 import Testing
 
 @testable import Pullwatch
@@ -91,6 +92,44 @@ import Testing
             #expect(notice.contains(component.name), "NOTICE noemt \(component.name) niet")
             #expect(notice.contains(component.version), "NOTICE noemt versie \(component.version) van \(component.name) niet")
         }
+    }
+
+    /// Elk logo van een dienst (`ProviderKind.glyph` als asset) staat in NOTICE: zijn bestand in de
+    /// assetcatalogus en de zin dat Pullwatch niet bij de eigenaar hoort.
+    @Test(arguments: ProviderKind.allCases)
+    func `Every provider logo is credited in NOTICE`(kind: ProviderKind) throws {
+        guard case .asset(let asset) = kind.glyph else { return }
+        let notice = try String(contentsOf: folder.appending(path: "NOTICE"), encoding: .utf8)
+        let flat = notice.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        #expect(flat.contains("Assets.xcassets/\(asset).imageset"), "NOTICE noemt \(asset) niet")
+        // Tot het volgende logo: de zin moet bij dit logo staan.
+        let after = try #require(flat.components(separatedBy: "Assets.xcassets/\(asset).imageset").last)
+        let paragraph = after.components(separatedBy: "Assets.xcassets/").first ?? after
+        #expect(paragraph.contains("Pullwatch is not affiliated with"), "NOTICE zegt bij \(asset) niet dat Pullwatch er niet bij hoort")
+    }
+
+    /// De logo's met een licentie staan erin met hun licentietekst: Codeberg (CC0) en Forgejo
+    /// (CC BY-SA 4.0, met de naam van de maker in NOTICE).
+    @Test(arguments: [
+        ("codeberg-logo", "CC0-1.0", "CC0 1.0 Universal"),
+        ("forgejo-logo", "CC-BY-SA-4.0", "Attribution-ShareAlike 4.0 International"),
+    ])
+    func `The logos are acknowledged with their licence`(id: String, license: String, title: String) throws {
+        let component = try #require(manifest.components.first { $0.id == id })
+        #expect(component.license == license)
+        #expect(component.package == nil)
+        let text = try String(contentsOf: folder.appending(path: component.file), encoding: .utf8)
+        #expect(text.contains(title))
+        let notice = try String(contentsOf: folder.appending(path: "NOTICE"), encoding: .utf8)
+        #expect(notice.contains(license))
+    }
+
+    @Test func `NOTICE credits the maker of the Forgejo logo`() throws {
+        let notice = try String(contentsOf: folder.appending(path: "NOTICE"), encoding: .utf8)
+        #expect(notice.contains("Caesar Schinas"))
+        // Gitea zonder licentie (keuze van de eigenaar): de bron en de regel dat Pullwatch er los van staat.
+        #expect(notice.contains("https://raw.githubusercontent.com/go-gitea/gitea/main/assets/logo.svg"))
+        #expect(notice.contains("with, endorsed, sponsored, or approved by CommitGo, Inc."))
     }
 
     /// Sparkle is het enige dynamisch gelinkte onderdeel: de versie van het framework in de bundle

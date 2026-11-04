@@ -20,7 +20,7 @@ La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Pré
 |---|---|
 | ⌘N | Nouveau compte… : Réglages, Comptes, avec le choix du service |
 | ⇧⌘N | Suivre un dépôt… |
-| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur |
+| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur ; pour un paquet, sa page dans le registre |
 | ⌘W | Fermer la fenêtre |
 
 ## Édition
@@ -48,6 +48,7 @@ La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Pré
 | ⌘3 | Statistiques |
 | ⌘4 | Dépôts |
 | ⌘5 | Dépendances |
+| ⌘6 | Paquets |
 | ⌘↓ | Page du dépôt : la page du dépôt sélectionné |
 
 ## Élément
@@ -59,6 +60,7 @@ La pull request, le tag ou la version publiée sélectionnés.
 | ⇧⌘U | Marquer comme lu ou Marquer comme non lu |
 | ⌘K | Tout marquer comme lu |
 | ⇧⌘L | Copier le lien |
+| ⌥⇧⌘L | Copier la référence des pull requests sélectionnées, par exemple `FerroHEALTH/FerroFED#1570` |
 
 ## Dépôt
 
@@ -81,7 +83,7 @@ Le dépôt sélectionné, ou la page de dépôt ouverte.
 | ⌘M | Placer dans le Dock |
 | ⌘0 | Pullwatch : ouvrir la fenêtre principale ou la mettre au premier plan |
 
-Aide mène à cette documentation (Aide Pullwatch), à cette page (Raccourcis clavier), aux notes de version de votre version (Nouveautés de Pullwatch), à un nouveau ticket sur GitHub (Signaler un problème…) et aux Remerciements.
+Aide mène à cette documentation (Aide Pullwatch), à cette page (Raccourcis clavier), aux notes de version de votre version (Nouveautés de Pullwatch), à Confidentialité et sources (Réglages, Sources : chaque connexion établie par Pullwatch), à un nouveau ticket sur GitHub (Signaler un problème…) et aux Remerciements.
 
 ## Dock
 

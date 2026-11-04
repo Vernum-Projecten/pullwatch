@@ -92,13 +92,15 @@ nonisolated enum FakeWorld {
         // te werken), via express en body-parser (4.17.15, vastgehouden door body-parser) en in
         // packages/web (4.17.21), een kwetsbare qs alleen transitief en een dev-only lek. express 5
         // en vite 5 vragen een nieuwere Node; in packages/web houdt react-dom 18 react 19 tegen, en
-        // react-dom 19 vraagt react 19 als peer.
+        // react-dom 19 vraagt react 19 als peer. @octocat/greeting publiceert linguist zelf in GitHub
+        // Packages: een eigen package, met de nieuwste versie uit dat register (`publishedPackages`).
         "hello-world": [
             ".nvmrc": "16\n",
-            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}}"#,
+            "package.json": #"{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0","@octocat/greeting":"^1.2.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}}"#,
             "packages/web/package.json": #"{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}}"#,
             "package-lock.json": #"{"lockfileVersion":3,"packages":{"#
-                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}},"#
+                + #""":{"name":"hello-world","workspaces":["packages/*"],"dependencies":{"lodash":"^4.17.20","express":"^4.18.0","@octocat/greeting":"^1.2.0"},"devDependencies":{"jest":"^29.7.0","vite":"^4.5.0"}},"#
+                + #""node_modules/@octocat/greeting":{"version":"1.2.0"},"#
                 + #""packages/web":{"name":"web","dependencies":{"lodash":"4.17.21","left-pad":"1.3.0","react":"^18.3.1","react-dom":"^18.3.1"}},"#
                 + #""node_modules/web":{"resolved":"packages/web","link":true},"#
                 + #""node_modules/lodash":{"version":"4.17.20"},"#
@@ -166,6 +168,68 @@ nonisolated enum FakeWorld {
         ]
     }()
 
+    /// Met `-PullwatchFakePackages forbidden` geeft het register van octocat 403 (het account mist
+    /// het recht), met `none` publiceert octocat niets; anders publiceert hij wat hieronder staat.
+    static let packagesMode = UserDefaults.standard.string(forKey: "PullwatchFakePackages")
+
+    /// De organisatie `github` mag zijn register nooit laten lezen: een tweede account dat
+    /// `github/docs` volgt, staat in Packages als "geen toegang".
+    static let forbiddenPackageOwner = "github"
+
+    /// Een package in het nagespeelde GitHub Packages: soort, naam, repo (nil: aan geen repo
+    /// gekoppeld, zoals bij Azure Artifacts) en de versies met hoeveel dagen geleden.
+    struct FakePackage {
+        let type: String
+        let name: String
+        let repo: String?
+        let versions: [(String, Double)]
+        /// Openbaar, privé of intern: het slot of gebouw achter de naam.
+        var visibility = "private"
+    }
+
+    /// Wat octocat in GitHub Packages publiceert: per gevolgde repo één package van een andere soort
+    /// (npm van linguist, dat hello-world gebruikt; een image van hello-world; NuGet van spoon-knife),
+    /// en een npm-package dat aan geen repo hangt. GitHub noemt een npm-package zonder scope; de
+    /// scope is de eigenaar. De image heeft, zoals op ghcr.io, ook een cosign-handtekening
+    /// (`sha256-…`) en een commit-tag (`sha-…`) die nooit als versie verschijnen.
+    static let packages: [FakePackage] = [
+        FakePackage(type: "npm", name: "greeting", repo: "linguist", versions: [("1.4.0", 2.0), ("1.3.0", 20.0), ("1.2.0", 60.0)], visibility: "public"),
+        FakePackage(type: "container", name: "hello-world", repo: "hello-world", versions: [
+            ("sha256-7e0fd343419965e2b3c3151dbd7a601ac1e97f42caadbf2ef9d50f86883d1957", 0.29), ("1.3.0-beta.1", 0.3), ("sha-466930c", 1.0),
+            ("1.2.0", 3.0), ("1.1.0", 33.0),
+        ]),
+        FakePackage(type: "nuget", name: "Octocat.SpoonKnife", repo: "spoon-knife", versions: [("3.0.1", 5.0), ("3.0.0", 9.0)]),
+        FakePackage(type: "npm", name: "shared-config", repo: nil, versions: [("0.4.2", 12.0)], visibility: "internal"),
+    ]
+
+    static func publishedPackages(path: String, query: String) -> String? {
+        if path == "/orgs/\(forbiddenPackageOwner)/packages" { return #"{"message":"Permission denied"}"# }
+        let base = "/users/\(FakeGitHub.login)/packages"
+        if path == base {
+            if packagesMode == "forbidden" { return #"{"message":"Permission denied"}"# }
+            if packagesMode == "none" { return "[]" }
+            let items = packages.filter { query.contains("package_type=\($0.type)") }.map { package in
+                let repository = package.repo.map { #"{"full_name":"\#(FakeGitHub.login)/\#($0)"}"# } ?? "null"
+                return #"{"name":"\#(package.name)","package_type":"\#(package.type)","visibility":"\#(package.visibility)","#
+                    + #""html_url":"https://github.com/users/\#(FakeGitHub.login)/packages/\#(package.type)/package/\#(package.name)","#
+                    + #""updated_at":"\#(iso(package.versions.first?.1 ?? 1))","repository":\#(repository)}"#
+            }
+            return "[" + items.joined(separator: ",") + "]"
+        }
+        guard let package = packages.first(where: { path == "\(base)/\($0.type)/\($0.name)/versions" }) else { return nil }
+        // `latest` staat op de nieuwste image met een versie, niet op een handtekening.
+        let latest = package.versions.firstIndex { ContainerTag($0.0).kind == .version }
+        return "[" + package.versions.enumerated().map { index, item in
+            let (version, daysAgo) = item
+            let page = "https://github.com/users/\(FakeGitHub.login)/packages/\(package.type)/\(package.name)/\(version)"
+            // Een image heet bij GitHub naar zijn digest; de versie staat in de tags.
+            return package.type == "container"
+                ? #"{"name":"sha256:\#(String(repeating: String(index), count: 8))","created_at":"\#(iso(daysAgo))","html_url":"\#(page)","#
+                    + #""metadata":{"container":{"tags":["\#(version)"\#(index == latest ? #","latest""# : "")]}}}"#
+                : #"{"name":"\#(version)","created_at":"\#(iso(daysAgo))","html_url":"\#(page)"}"#
+        }.joined(separator: ",") + "]"
+    }
+
     static func iso(_ daysAgo: Double) -> String {
         Date(timeIntervalSinceNow: -daysAgo * 86_400).formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
     }
@@ -190,6 +254,7 @@ nonisolated enum FakeWorld {
         default:
             break
         }
+        if let published = publishedPackages(path: path, query: url.query() ?? "") { return published }
         if path == "/search/issues" { return search(query: url.query() ?? "") }
         if path.hasPrefix("/advisories/") { return advisory(ghsaId: url.lastPathComponent) }
         if path == "/graphql" {
@@ -251,6 +316,11 @@ nonisolated enum FakeWorld {
     /// De losse repo van openEHR geeft met token 404 (app niet geïnstalleerd), zonder token 200.
     static func status(of request: URLRequest) -> Int {
         let parts = request.url?.pathComponents ?? []
+        let path = request.url?.path() ?? ""
+        if path == "/orgs/\(forbiddenPackageOwner)/packages"
+            || (packagesMode == "forbidden" && path == "/users/\(FakeGitHub.login)/packages") {
+            return 403
+        }
         if parts.count >= 4, parts[1] == "repos", parts[2] == extraOwner {
             return request.value(forHTTPHeaderField: "Authorization") == nil ? 200 : 404
         }

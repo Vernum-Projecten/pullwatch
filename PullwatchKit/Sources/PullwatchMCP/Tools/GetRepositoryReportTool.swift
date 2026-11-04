@@ -24,10 +24,15 @@ enum GetRepositoryReportTool {
         let installed: [String]
         let latest: String?
         let update: String
+        let unknownReason: String?
         let usableVersion: String?
         let blocker: String?
         let declaredIn: [String]
         let requested: [String]
+        /// Transitief: de keten vanaf het directe package.
+        let via: [String]?
+        /// Gezet als een gevolgde repository het package zelf publiceert.
+        let inHouse: MCPInHouse?
     }
 
     struct Release: Encodable {
@@ -64,7 +69,8 @@ enum GetRepositoryReportTool {
                 latest version and whether an update is up_to_date, within_range (only the lock file changes), \
                 needs_manifest_change, blocked (with the blocker), unknown or not_checked. Use it to see how far behind a \
                 repository is before planning upgrades; use list_vulnerabilities for vulnerabilities and explain_update for \
-                one package. checked false means Pullwatch has not checked the repository yet. Packages are paged with limit \
+                one package (direct or transitive). Transitive packages come with group transitive and via; Pullwatch looks up \
+                the latest version only for direct packages, so their update is unknown. checked false means Pullwatch has not checked the repository yet. Packages are paged with limit \
                 and cursor; only_outdated keeps the packages with a newer version.
                 """,
             input: .object(
@@ -104,9 +110,12 @@ enum GetRepositoryReportTool {
                             "group": .string(oneOf: ["direct", "transitive", "unknown", "dev"]),
                             "installed": .array(of: .string()), "latest": .string(),
                             "update": .string(oneOf: updateValues),
+                            "unknown_reason": .string("Why update is unknown.", oneOf: MCPUpdateText.unknownReasons),
+                            "via": .array(of: .string(), "For a transitive package: the chain from the direct dependency that pulls it in."),
                             "usable_version": .string("The newest version that works now, when it differs from latest."),
                             "blocker": .string("What holds the update back, as a sentence."),
                             "declared_in": .array(of: .string()), "requested": .array(of: .string("A requested range from the manifest.")),
+                            "in_house": MCPInHouse.schema,
                         ],
                         required: ["name", "ecosystem", "workspace", "group", "installed", "update", "declared_in", "requested"]
                     )),
@@ -153,7 +162,7 @@ enum GetRepositoryReportTool {
             checked: true, checkedAt: report?.checkedAt, checkError: versions.error, runtimes: runtimes,
             latestRelease: versions.release.map { Release(tag: $0.tag, error: $0.error) },
             packages: page.items, total: packages.count, nextCursor: page.nextCursor,
-            notChecked: MCPSourceOff.skipped(versions)
+            notChecked: MCPSourceOff.skipped(versions) + permissionsMissing(packages, repository: match.repo)
         )
         if let error = versions.error {
             return try MCPToolOutput.result(output, summary: "The check of \(match.repo) failed: \(error)")
@@ -162,7 +171,17 @@ enum GetRepositoryReportTool {
         let summary = "\(match.repo): \(MCPToolOutput.count(runtimes.count, "runtime")) (\(outdated) behind or end of life), "
             + "\(MCPToolOutput.count(packages.count, "package")) listed."
             + (output.notChecked.isEmpty ? "" : " Some sources were off; see not_checked.")
+            + (report?.isOutdatedFormat == true
+                ? " This check was made by an older version of Pullwatch, which kept only the direct packages; Pullwatch checks again by itself."
+                : "")
         return try MCPToolOutput.result(output, summary: summary)
+    }
+
+    /// Eigen packages die het account niet mocht lezen, één regel per reden.
+    private static func permissionsMissing(_ packages: [Package], repository: String) -> [MCPSourceOff] {
+        packages.compactMap(\.inHouse).filter { $0.status == "needs_permission" }
+            .compactMap { $0.notChecked(repository: repository) }
+            .reduce(into: [MCPSourceOff]()) { if !$0.contains($1) { $0.append($1) } }
     }
 
     private static func runtime(_ component: ComponentVersion, versions: RepoVersions) -> Runtime {
@@ -182,7 +201,10 @@ enum GetRepositoryReportTool {
     private static func package(
         _ package: WorkspacePackage, workspace: String, group: String, versions: RepoVersions, report: VersionReport?, context: UpdateContext
     ) -> Package {
-        let registryOff = DataSourceID.registry(ecosystem: package.ecosystem).map(versions.isUnchecked) ?? false
+        // Een eigen package hangt aan het eigen register, niet aan het publieke van zijn ecosysteem.
+        let inHouse = context.metadata[package.id]?.inHouse
+        let registryOff = inHouse.map { !$0.isChecked }
+            ?? DataSourceID.registry(ecosystem: package.ecosystem).map(versions.isUnchecked) ?? false
         let latest = registryOff ? nil : report?.latestPackages[package.id]?.version
         let installs = package.installs
         let installed = installs.map(\.version).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
@@ -191,10 +213,12 @@ enum GetRepositoryReportTool {
         var updateText = "not_checked"
         var usable: String?
         var blocker: String?
+        var reason: String?
         if !registryOff {
             let updates = installs.map { PackageUpdate(ecosystem: package.ecosystem, name: package.name, install: $0, latest: latest, context: context) }
             let combined = PackageUpdate.combined(updates)
             updateText = combined.map { MCPUpdateText.status($0.status) } ?? "unknown"
+            reason = MCPUpdateText.reason(combined?.unknownReason)
             if let combined, let found = combined.usable, found != combined.latest { usable = found }
             blocker = zip(installs, updates).lazy.compactMap { install, update in
                 AgentBrief.blockerSentence(package: package.name, installed: install.version, requested: install.requested, update: update)
@@ -202,8 +226,10 @@ enum GetRepositoryReportTool {
         }
         return Package(
             name: package.name, ecosystem: PackageVersions.kind(ofEcosystem: package.ecosystem), workspace: workspace, group: group,
-            installed: installed, latest: latest, update: updateText, usableVersion: usable, blocker: blocker,
-            declaredIn: declaredIn, requested: requested
+            installed: installed, latest: latest, update: updateText, unknownReason: reason, usableVersion: usable, blocker: blocker,
+            declaredIn: declaredIn, requested: requested,
+            via: group == "transitive" ? installs.first { $0.scope == .transitive }?.via : nil,
+            inHouse: inHouse.map(MCPInHouse.init)
         )
     }
 }

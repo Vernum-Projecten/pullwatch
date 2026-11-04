@@ -1,6 +1,6 @@
 ---
 title: Autorisations des jetons
-description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps et GitLab."
+description: "Les portées et les autorisations dont Pullwatch a besoin sur GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea."
 ---
 
 Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-dessous, et rien de plus. Quand il manque une autorisation pour une partie facultative, cette partie indique **Autorisation requise** avec un lien, et le reste continue de fonctionner.
@@ -19,9 +19,24 @@ Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-d
 | Secret scanning alerts: Read | facultatif, le nombre d’alertes d’analyse des secrets ouvertes |
 | Checks: Read et Commit statuses: Read | facultatif, les checks de chaque pull request |
 
-**Classic token** : `repo`, plus `security_events` pour les alertes d’analyse du code et d’analyse des secrets.
+**Classic token** : `repo`, plus `security_events` pour les alertes d’analyse du code et d’analyse des secrets, et en option `read:packages` pour les paquets que vos dépôts publient dans GitHub Packages. Avec la GitHub CLI, ajoutez ce scope avec `gh auth refresh -s read:packages`.
 
-**Se connecter avec GitHub** utilise la GitHub App Pullwatch, qui demande les mêmes autorisations en lecture. Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
+**Se connecter avec GitHub** utilise la GitHub App Pullwatch. Elle demande ces autorisations sur les dépôts, toutes en lecture seule, et rien d’autre :
+
+| Autorisation | Accès | À quoi elle sert | Sans elle |
+|---|---|---|---|
+| Metadata | Read-only, obligatoire | les dépôts des propriétaires que vous suivez | GitHub n’accepte pas d’app sans elle |
+| Pull requests | Read-only | les pull requests, leurs co-auteurs et la merge queue | pas de pull requests |
+| Contents | Read-only | les tags, les releases et les fichiers de la vérification des dépendances | pas de tags ni de releases, pas de vérification des dépendances |
+| Repository security advisories | Read-only | les avis propres du dépôt | **Autorisation requise** sur la page du dépôt |
+| Checks | Read-only | les check runs dans les checks de chaque pull request | pas de checks pour les pull requests |
+| Commit statuses | Read-only | les statuts de commit dans les mêmes checks | pas de checks pour les pull requests |
+| Code scanning alerts | Read-only, facultatif | les alertes d’analyse du code | **Autorisation requise** à côté |
+| Secret scanning alerts | Read-only, facultatif | le nombre d’alertes d’analyse des secrets ouvertes | **Autorisation requise** à côté |
+
+Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
+
+L’app n’a pas d’autorisation Packages : GitHub ne donne les paquets à aucune GitHub App. Un compte connecté avec GitHub lit donc les paquets que ses dépôts publient avec la GitHub CLI. **Lire les paquets avec la GitHub CLI** dans l’éditeur de compte est activé quand `gh` est connecté, et montre quel compte `gh` il utilise. Ce compte a besoin du scope `read:packages` : `gh auth refresh -h github.com -s read:packages`. Sans `gh`, sans le scope ou avec l’interrupteur désactivé, **Paquets** affiche **Autorisation requise** avec la commande exacte.
 
 ## GitHub Enterprise
 
@@ -36,12 +51,38 @@ Avec la GitHub CLI, Pullwatch exécute `gh auth token --hostname <server>`. Conn
 | Code (Read) | les pull requests, les tags et la vérification des dépendances |
 | Project and Team (Read) | la liste des projets |
 | Advanced Security (Read) | facultatif, les alertes Advanced Security |
+| Packaging (Read) | facultatif, les paquets de vos flux Azure Artifacts |
 
 Avec Azure CLI, connectez-vous avec `az login` ; Pullwatch demande un jeton à `az`.
 
 ## GitLab
 
-Un jeton d’accès personnel avec la portée **read_api** couvre les merge requests, les projets, les tags, les versions publiées, les commits et les fichiers. `api` fonctionne aussi, mais donne plus que ce dont Pullwatch a besoin. Avec la GitLab CLI, Pullwatch lit `glab config get token --host <server>`.
+Un jeton d’accès personnel avec la portée **read_api** couvre les merge requests, les projets, les tags, les versions publiées, les commits et les fichiers, ainsi que les paquets et les images de conteneur que vos projets publient dans les registres de GitLab. `api` fonctionne aussi, mais donne plus que ce dont Pullwatch a besoin. Avec la GitLab CLI, Pullwatch lit `glab config get token --host <server>`.
+
+## Bitbucket
+
+Un **jeton d’API avec scopes** d’Atlassian pour l’app Bitbucket, avec l’adresse e-mail de votre compte Atlassian :
+
+| Portée | Nécessaire pour |
+|---|---|
+| `read:user:bitbucket` | votre propre compte, pour masquer vos propres pull requests |
+| `read:repository:bitbucket` | les dépôts, les tags, les statuts de build (les checks) et la vérification des dépendances |
+| `read:pullrequest:bitbucket` | les pull requests et leurs commits (les co-auteurs) |
+
+Pullwatch ne demande rien de plus. `read:workspace:bitbucket` n’est pas nécessaire : Pullwatch vérifie un workspace par ses dépôts. Les mots de passe d’application de Bitbucket ne fonctionnent plus depuis juillet 2026.
+
+## Codeberg, Forgejo et Gitea
+
+Créez un jeton sous Paramètres, Applications sur le serveur, avec ces portées, toutes en Lecture :
+
+| Portée | Utilisée pour |
+|---|---|
+| `read:user` | qui vous êtes, et les dépôts des utilisateurs que vous suivez |
+| `read:organization` | les organisations que vous suivez et leurs dépôts |
+| `read:repository` | pull requests, tags, versions publiées, statuts de commit (checks), commits et fichiers |
+| `read:issue` | la liste des pull requests, qui vient de la recherche d’issues (`/repos/issues/search`) |
+
+S’il en manque une, **Tester la connexion** nomme la portée manquante. Un jeton limité aux dépôts publics ne fonctionne que pour les dépôts publics. Il n’y a pas de connexion en ligne de commande : `tea` n’a aucune commande qui fournit son jeton.
 
 ## Connexion avec un outil en ligne de commande
 

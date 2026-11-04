@@ -121,6 +121,16 @@ final class HistoryModel {
         }
     }
 
+    /// ⌥⇧⌘L: de verwijzingen van de geselecteerde PR's (`FerroHEALTH/FerroFED#1570`), één per
+    /// regel; tags en een pagina hebben er geen.
+    func references(of target: BrowserTarget) -> [String] {
+        guard case .history(let ids) = target else { return [] }
+        let kinds = accounts.config.providerKinds
+        return history.items.filter { ids.contains($0.id) }.compactMap { item in
+            kinds[item.entry.accountId].flatMap(item.entry.reference)
+        }
+    }
+
     func open(_ item: HistoryItem) {
         NSWorkspace.shared.open(item.entry.webURL)
         markRead(item.id)

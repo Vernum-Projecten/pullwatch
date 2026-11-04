@@ -2,21 +2,24 @@ import PullwatchCore
 import SwiftUI
 
 /// Profielfoto van een GitHub-gebruiker of -organisatie, rond, zoals de accounts in RustRover.
-/// Zonder foto (Azure DevOps, GitLab, nog geen eigenaar, offline) het teken van de dienst.
+/// Zonder foto (Azure DevOps, GitLab, Gitea, nog geen eigenaar, offline) het teken van de dienst.
 struct AccountAvatar: View {
     let url: URL?
-    let kind: ProviderKind
+    let glyph: Glyph
+    let glyphScale: CGFloat
     var size: CGFloat = 24
 
     init(account: Account, size: CGFloat = 24) {
         url = account.avatarURL
-        kind = account.kind
+        glyph = account.glyph
+        glyphScale = account.glyphScale
         self.size = size
     }
 
     init(gitHubLogin login: String, size: CGFloat = 24) {
         url = Account.gitHubAvatarURL(login)
-        kind = .gitHub
+        glyph = ProviderKind.gitHub.glyph
+        glyphScale = ProviderKind.gitHub.glyphScale
         self.size = size
     }
 
@@ -37,7 +40,7 @@ struct AccountAvatar: View {
     /// Zonder foto het teken van de dienst (`ProviderMark`), met wat ruimte in de cirkel: overal
     /// hetzelfde teken als op de keuzekaarten en in het toevoeg-menu.
     private var placeholder: some View {
-        ProviderMark(kind: kind, size: size * 0.62)
+        ProviderMark(glyph: glyph, scale: glyphScale, size: size * 0.62)
             .frame(width: size, height: size)
             .background(.quaternary)
     }

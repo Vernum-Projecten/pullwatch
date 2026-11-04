@@ -12,6 +12,8 @@ Die Dokumentation für Maintainer liegt im Repository, neben dem Code, den sie b
 | [docs/github-app.md](https://github.com/alessandro823/pullwatch/blob/main/docs/github-app.md) | Die GitHub App hinter **Mit GitHub anmelden** |
 | [docs/website.md](https://github.com/alessandro823/pullwatch/blob/main/docs/website.md) | Diese Website: GitHub Pages, die eigene Domain und ihre DNS-Einträge |
 | [site/README.md](https://github.com/alessandro823/pullwatch/blob/main/site/README.md) | Diese Website starten und bauen, und eine Seite hinzufügen |
+| [CONTRIBUTING.md](https://github.com/alessandro823/pullwatch/blob/main/CONTRIBUTING.md) | Wie du eine Änderung baust, testest und einreichst, und was ein Pull Request braucht |
+| [SECURITY.md](https://github.com/alessandro823/pullwatch/blob/main/SECURITY.md) | Wie du eine Sicherheitslücke vertraulich meldest, und was dazugehört |
 | [CHANGELOG.md](https://github.com/alessandro823/pullwatch/blob/main/CHANGELOG.md) | Die Versionshinweise jeder Version |
 
 ## Aus dem Quellcode bauen

@@ -5,10 +5,12 @@ sidebar:
   label: Installation und erster Start
 ---
 
+import Screenshot from '../../../../components/Screenshot.astro';
+
 ## Was du brauchst
 
 - Einen Mac mit macOS 26.6 oder neuer. Pullwatch ist eine universelle App und läuft nativ auf Apple Silicon und auf Intel.
-- Ein Konto bei mindestens einem dieser Dienste: github.com, ein GitHub-Enterprise-Server (Server oder GHE.com), Azure DevOps oder GitLab (gitlab.com oder dein eigener Server).
+- Ein Konto bei mindestens einem dieser Dienste: github.com, ein GitHub-Enterprise-Server (Server oder GHE.com), Azure DevOps, GitLab (gitlab.com oder dein eigener Server), Bitbucket Cloud, Codeberg oder dein eigener Forgejo- oder Gitea-Server (oder gitea.com).
 
 ## Installieren
 
@@ -23,16 +25,18 @@ Jedes Release ist mit einer Developer ID signiert und von Apple notarisiert, des
 Beim ersten Start öffnet Pullwatch ein Willkommensfenster, das dich durch die Einrichtung führt:
 
 1. **Wo Pullwatch zu finden ist.** Es läuft in der Menüleiste; das Willkommensfenster zeigt dir das Symbol.
-2. **Dein erstes Konto.** Wähle GitHub, GitHub Enterprise, Azure DevOps oder GitLab. Siehe [Konten hinzufügen](/de/getting-started/accounts/) für jeden Dienst.
+2. **Dein erstes Konto.** Wähle eine von fünf Karten: GitHub (github.com oder GitHub Enterprise), Azure DevOps, GitLab (gitlab.com oder dein eigener Server), Bitbucket und eine Karte für Codeberg, Forgejo und Gitea. Siehe [Konten hinzufügen](/de/getting-started/accounts/) für jeden Dienst.
 3. **Mitteilungen.** macOS fragt einmal, ob Pullwatch Mitteilungen senden darf. Erlaube es, um von neuen Pull Requests und Tags zu erfahren, sobald sie erscheinen.
 4. **Beim Anmelden starten**, damit Pullwatch nach einem Neustart da ist.
+
+<Screenshot name="welcome" maxWidth={700} alt="Das Willkommensfenster fragt, welchen Dienst du zuerst hinzufügen willst, mit fünf Karten: GitHub, Azure DevOps, GitLab, Bitbucket sowie Codeberg, Forgejo und Gitea." />
 
 Danach fragt Pullwatch deine Konten im Hintergrund ab. Beim ersten Mal ruft es auch deine bestehenden Pull Requests ab, damit der Verlauf nicht leer ist. Diese lösen keine Mitteilung aus und kommen als gelesen markiert an.
 
 ## Wo du es findest
 
 - **Das Symbol in der Menüleiste** öffnet das [Menü](/de/using/menu/) mit den neuesten Pull Requests und Tags.
-- **Öffnen…** im Menü öffnet das Hauptfenster mit PRs, Tags und Releases, Statistiken, Repositories und Abhängigkeiten. Es merkt sich den Bereich, den du zuletzt offen hattest.
+- **Öffnen…** im Menü öffnet das Hauptfenster mit PRs, Tags und Releases, Statistiken, Repositories, Abhängigkeiten und Pakete. Es merkt sich den Bereich, den du zuletzt offen hattest.
 - **Einstellungen** ist die Zahnrad-Schaltfläche im Menü, oder ⌘, während Pullwatch im Vordergrund ist.
 
 Solange eines seiner Fenster offen ist, erscheint Pullwatch im Dock. Schließt du das letzte Fenster, läuft es nur noch in der Menüleiste. Öffnest du Pullwatch erneut, während es läuft, erscheint das Hauptfenster (oder das Willkommensfenster, solange kein Konto eingerichtet ist).

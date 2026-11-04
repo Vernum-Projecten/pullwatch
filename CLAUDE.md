@@ -52,14 +52,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Navigation/`: `AppRouter` (windows, sidebar, paths, filters; `show(_:)`
   opens a window or section; `settingsTab`, a `SettingsTab` the Settings
   window binds its tabs to, and `showSettings(_:)` to open Settings on a
-  tab), `AppCommands` (the menu bar in Apple's order,
+  tab; `SettingsTab.forNotification(_:)` opens Agents for the agent
+  approval and Accounts for an expired token), `AppCommands` (the menu bar in Apple's order,
   one `Commands` type per menu: `AppMenuCommands`, `FileCommands`,
   `EditCommands`, `ViewCommands`, `GoCommands`, `ItemCommands`,
   `RepositoryCommands`, `WindowCommands`, `HelpCommands` with the URLs in
   `HelpLinks`; `MenuBarTests` checks the order and the key items),
   `Shortcuts` (the focused values the menus read: `browserTarget`,
   `repoTarget`, `readTarget`, `searchFocus`), `SearchShortcut` and
-  `MainView` (sidebar: PRs, Tags, Repos, Versions, Statistics). The Dock
+  `MainView` (sidebar: PRs, Tags, Statistics, Repos, Dependencies, Packages). The Dock
   menu (Reload, Check All Repositories) is `AppDelegate.applicationDockMenu`.
   `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
   model asks for through `AppRouter.windowRequest`) and `MenuView` (the
@@ -75,13 +76,16 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Repositories/`: `OverviewModel` (repo summaries and sidebar), `ReposView`,
   the models of the repository page (`RepoPage`, `RepoBriefs`,
   `RepoVersions+Clipboard`) and `RepoDetail/`: `RepoDetailView` with a file
-  per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoPackagesTab`,
+  per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoDependenciesTab`,
   `RepoSecurityTab`), `RepoInspector` and `RepoDetailToolbar`; it puts the
   agent briefs behind the Overview headings and in the toolbar's More menu
   (`RepoBriefs`, one per section).
   `Dependencies/`: `VersionsModel` (the version check, the stored report and
   the one the screens show without the data of sources that are off),
   `PackagesView` and `PackageRows`.
+  `Packages/`: the Packages section (what followed repositories publish):
+  `PublishedPackagesView`, its cells, `PublishedPackageInspector` and the
+  symbol per type (`PublishedPackageType+Display`).
   `Security/`: the vulnerability table and its cells, `AdvisoryInspector`.
   `Statistics/`: `StatsView` and its charts.
   `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,
@@ -152,11 +156,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   with `-PullwatchFakeGitHub YES -PullwatchFakeData YES
   -PullwatchSnapshotTour YES` and a `config.json` with a GitHub account in
   the data folder it walks every screen of the main window
-  (`Debug/SnapshotTour.swift`), and `-PullwatchOnboardingTour YES` every step of
+  (`Debug/SnapshotTour.swift`; it writes each step's name to stderr, with
+  `-PullwatchSnapshotTourInteract YES` it also sorts every column of each
+  table both ways, scrolls and selects a row, and
+  `-PullwatchSnapshotTourOnly a,b -PullwatchSnapshotTourRepeat <n>` repeats
+  only those steps), and `-PullwatchOnboardingTour YES` every step of
   the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
   refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
-  without a window, in six modules under `Sources/`. The names start with
+  without a window, in seven modules under `Sources/`. The names start with
   `Pullwatch` so a module never shares its name with a type in it.
   `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
   `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
@@ -170,7 +178,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Vulnerabilities/` (OSV, the GitHub Advisory Database, CVSS, the
   service's own alerts), `Check/` (`VersionChecker`, `VersionReport`,
   `VersionHistory`) and `Tables/` (the rows and tables of the repository
-  page)), `DataSources/` (`DataSource` is the catalogue of data sources
+  page)), `Packages/` (what the accounts publish to their own registry:
+  `PublishedPackage`, `PublishedVersion`, `PublishedPackageType`, the result
+  per account `PublishedPackages` (`.packages`, `.needsPermission(reason:)`,
+  `.notSupported`, `.failed`) and `AccountPackages`, filled by the daily
+  version check through `PRProvider.publishedPackages(followedRepos:)` into
+  `VersionReport.publishedPackages`), `DataSources/` (`DataSource` is the catalogue of data sources
   that can be switched off, vulnerability and version sources and the CI
   checks of pull requests; `SourcesOverview` lists every connection for the
   Sources tab and its copied overview), `AgentBrief/` (turns a section of
@@ -182,10 +195,25 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `GhCLIAccounts`.
   `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
   `PullwatchGitLab/`: `GitLabProvider` (gitlab.com and self-managed, REST v4)
-  and the `glab` token source. Each provider has the same layout: the
+  and the `glab` token source. `PullwatchBitbucket/`: `BitbucketProvider`
+  (Bitbucket Cloud, REST API 2.0 on `api.bitbucket.org/2.0`; workspaces as
+  owners, Basic auth with the Atlassian account's email (`Account.email`) and
+  an API token with scopes from the Keychain, pages through `next` links on
+  the API host only, the open pull requests of a repository asked again only
+  when its `updated_on` moved or after `openRefresh`, build statuses as checks,
+  tags without releases; no CLI token source). `PullwatchGitea/`:
+  `GiteaProvider` (Gitea, Forgejo and Codeberg on the shared API v1,
+  `<server>/api/v1`; one `ProviderKind.gitea` with `Account.giteaFlavour`
+  (`GiteaFlavour`: codeberg.org, an own Forgejo server, gitea.com or an own
+  Gitea server); organisations and users as owners, pull requests per
+  owner from `/repos/issues/search?type=pulls`, pages through `Link` and
+  `X-Total-Count` on the server only, commit statuses as checks, tags with
+  releases, a 403 "required scope" as `ProviderError.missingScope`; token
+  only, `tea` hands out no token). Each provider has the same layout: the
   provider itself (accounts, repositories, pull requests), `+Tags`, `+HTTP`,
   one file of DTOs, and a `+Area` file per further area (co-authors, files,
-  checks, security, extra repositories, merge queues and trains).
+  checks, security, extra repositories, merge queues and trains,
+  published packages).
   `PullwatchProviders/`: `ProviderFactory`, the only module that knows every
   provider. `PullwatchMCP/`: the MCP server for coding agents, on the
   official MCP Swift SDK (`modelcontextprotocol/swift-sdk`, pinned to an
@@ -197,7 +225,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   a tool error (`isError`), an unknown tool as `-32602`. `Tools/` holds the
   read-only tools (`get_status`, `list_pull_requests`, `get_pull_request`,
   `list_tags`, `list_repositories`, `get_repository_report`,
-  `list_vulnerabilities`, `explain_update`, `get_agent_brief`), one type per
+  `list_vulnerabilities`, `list_packages`, `explain_update`, `get_agent_brief`), one type per
   file, built by `PullwatchMCPTools.all(dataSource:)` over an
   `MCPDataSource` (async accessors for what the app's models hold: accounts,
   history, repo summaries, the shown version report, update contexts, poll
@@ -225,13 +253,16 @@ of each part is in `docs/superpowers/specs/` and its plan in
   gets "Agents are turned off in Pullwatch: Settings, Agents";
   `whileOpen`: without a socket "Open Pullwatch to use it from an agent.";
   `always`: starts Pullwatch through `PullwatchLaunching` and waits up to
-  10 s), reconnecting once with a replayed handshake when the app restarts.
-  The app links it.
+  10 s), reconnecting once with a replayed handshake when the app restarts,
+  and never after `notifications/pullwatch/disconnected` ("Pullwatch
+  disconnected this agent. …"). The app links it. `docs/mcp.md` has the
+  architecture, the peer check, the SDK workarounds, how to add a tool and
+  how to test it end to end.
   `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
   the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
-  anonymous fallback for public repositories on github.com and gitlab.com
-  only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
+  anonymous fallback for public repositories on github.com, gitlab.com and
+  bitbucket.org only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
   screens), `PullwatchProviders` and `PullwatchMCP` (the helper only
   `PullwatchMCP`). Only what another module or the app
   uses is `public`; what only the package's own modules share is `package`.
@@ -239,7 +270,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Bundle.localized…` helper (`Support/Localization.swift`).
   `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
-  `PullwatchGitLabTests`, `PullwatchProvidersTests`, `PullwatchMCPTests`),
+  `PullwatchGitLabTests`, `PullwatchBitbucketTests`, `PullwatchGiteaTests`,
+  `PullwatchProvidersTests`,
+  `PullwatchMCPTests`),
   and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
   (starting at `Date.testStart`), `CLILocator.homebrew` and `.nothing`,
@@ -251,7 +284,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
   in step with the code. `docs/website.md`: the website on GitHub Pages, the
-  `PAGES_DOMAIN` variable and the DNS of `pullwatch.net`.
+  `PAGES_DOMAIN` variable and the DNS of `pullwatch.net`. `docs/mcp.md`: the
+  MCP server for coding agents, for developers (the user's side is the
+  website's Agents page, `site/src/content/docs/agents.md`).
   `docs/superpowers/`: Alessandro's design specs and plans (Dutch).
 - `site/`: the website, an Astro Starlight project (`site/README.md`): the
   landing page (`src/content/docs/index.mdx` with the components in
@@ -326,6 +361,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
   Intel).** One deployment target, set at the project level and in
   `PullwatchKit/Package.swift`; never per target.
 - **Every user-facing string in all four languages** (nl, en, de, fr).
+- **Every MCP tool is read-only.** A tool reads what Pullwatch already
+  fetched: no network call, no poll, no change to the app's state, and never
+  a token, Keychain item or secret value. An action (mark as read, refresh,
+  check a repository) only comes behind a future, default-off switch "Allow
+  agents to take actions", and even then never writes to GitHub, Azure
+  DevOps or GitLab (`docs/mcp.md`).
 - **Never weaken, skip or delete a test** to make a build pass.
 - **No AI attribution in commits, PRs or issues.** No `Co-authored-by`, no
   "Generated with", no robot emoji. The `commit-msg` hook strips it and the

@@ -38,7 +38,7 @@ A few rules keep the result honest:
 
 - **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift and Docker images) are compared within their release cycle, patches included. A repository on Go 1.27.3 sees that Go 1.27.4 is available, and one on Go 1.26.9 sees 1.26.10 once that is out. A newer cycle (Node 22 to 25) shows on the repository as behind instead. A version without a patch (`go 1.27`, `node:22`) is never behind on patches.
 - **Packages** are the direct dependencies, from the root and each workspace. Development-only packages are marked as such. A package without an exact version (a range without a lockfile) is not counted. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) appear once, as a package.
-- The latest version comes from the package's registry: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io and rubygems.org. Pre-releases do not count. Private modules and Swift packages end up under **Can't be checked**.
+- The latest version comes from the package's registry: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io and rubygems.org. A package one of your followed repositories publishes itself comes from your own registry instead (see [In-house packages](#in-house-packages)). Pre-releases do not count. Other private modules and Swift packages end up under **Can't be checked**.
 
 How Pullwatch knows a package is direct:
 
@@ -55,10 +55,41 @@ Development-only packages come from `devDependencies`, `require-dev`, dev groups
 
 The groups tell you what an update takes: **Can update now** fits the range in your manifest, so only the lockfile changes; **Needs a manifest change** is outside that range, such as a new major version; **Blocked** means another package holds it back, and the row says which one.
 
+A package that no repository asks for itself, and that only comes in through another package, appears under **Only transitive, with a vulnerability** when it has a known vulnerability, with the chain that pulls it in. Pullwatch looks up the latest version only for packages a repository asks for itself. For Rust, the requested ranges come from every `Cargo.toml` of a workspace, including the `[workspace.dependencies]` that members take over with `workspace = true`.
+
+## In-house packages
+
+A dependency that one of your followed repositories publishes to the registry of its own service (GitHub Packages, a GitLab registry or an Azure Artifacts feed) is an in-house package. npmjs.com or nuget.org do not know a private `@acme/ui`, so Pullwatch takes its latest version from your registry, which [Packages](/using/packages/) lists. The row says **In-house**, with a link to the repository that publishes it, and its tooltip says "Published by octocat/linguist: the latest version comes from your own registry." Ranges, the update groups and what blocks an update work as for any other package.
+
+Your private names stay private. Pullwatch reads your registries first, before it looks anything up, and leaves every in-house name out of every public lookup: registry.npmjs.org and the other public registries never see it, and neither does OSV.dev. When reading your registry fails, Pullwatch keeps what the check before found, so a bad day never sends a private name out.
+
+When Pullwatch cannot read the latest version, the row says so instead of showing it as current:
+
+- "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before stays in-house and is not looked up publicly.
+- "Not checked: no access to this account's package registry": the account may not read its registry. The tooltip says what to grant; see [What to grant](/using/packages/#what-to-grant).
+
+Switching off a public registry, such as npm, does not affect an in-house package.
+
+What is matched, by the dependency's ecosystem and its name:
+
+| Ecosystem | Matched on |
+|---|---|
+| npm | the name with its scope, exactly (`@acme/ui`). GitHub lists an npm package without its scope, so `ui` under `acme` is `@acme/ui`; a bare `ui` never matches a GitHub package, so a public package is never taken over |
+| NuGet | the id, in any case |
+| RubyGems, Packagist | the name, in any case |
+| PyPI | the name, with `-`, `_`, `.` and case treated as equal |
+| crates.io | the name, with `-` and `_` treated as equal |
+| Go | the module path, exactly |
+
+Not matched yet:
+
+- Container images and Helm charts. Pullwatch reads a Dockerfile `FROM` line only as a runtime (Node, PHP, .NET), never as a dependency, so your own image on ghcr.io or a GitLab registry is not part of the dependency check. In Packages, their **Used by** shows "-".
+- Maven. Pullwatch can match `groupId:artifactId` already, but it does not read Maven projects (`pom.xml`) for dependencies yet, so there is nothing to match.
+
 ## Per repository
 
-The **Packages** tab of a repository page shows the same per workspace: the installed version, the newest version usable now, the latest version, and whether the package is direct, comes in through another package (with the shortest chain) or is for development only.
+The **Dependencies** tab of a repository page shows the same per workspace: the installed version, the newest version usable now, the latest version, and whether the package is direct, comes in through another package (with the shortest chain) or is for development only. In-house packages say **In-house** here too.
 
-<Screenshot name="repo-packages" alt="The Packages tab of hello-world: lodash in two versions, express blocked, vite and jest for development only, body-parser and qs through express." />
+<Screenshot name="repo-packages" alt="The Dependencies tab of hello-world: lodash in two versions, express blocked, the in-house package @octocat/greeting from 1.2.0 to 1.4.0, vite and jest for development only, body-parser and qs through express." />
 
 After the daily check, one notification lists the new versions of anything a repository is behind on. The first time a package is seen stays silent. Turn it off under Settings, Notifications, **New versions**.

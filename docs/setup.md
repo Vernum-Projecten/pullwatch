@@ -11,15 +11,43 @@ repository.
 | Developer ID Application certificate (team Code24 BV) | the maintainer's login Keychain | Apple Developer, Certificates; already in place for `scripts/release/release.sh` | signed, notarised releases |
 | notarytool profile `pullwatch` | the maintainer's Keychain | `xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`; already in place | notarising releases |
 | Automation permission: the terminal may control Finder | the Mac that runs `scripts/release/release.sh` | System Settings, Privacy & Security, Automation; macOS asks on the first run of `scripts/release/package.sh` | laying out the install window of the disk image |
-| **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md); read-only permissions Pull requests, Contents, Metadata and Repository security advisories, optional Code scanning alerts, Secret scanning alerts, Checks and Commit statuses; each installation's owner accepts a new permission ([github-app.md](github-app.md), section 6) | **Sign in with GitHub** (device flow), the repository's own advisories, code scanning and the secret count, each pull request's checks |
+| **GitHub App "Pullwatch"** | the maintainer's GitHub account | [github-app.md](github-app.md); the read-only repository permissions in the table below, and no Packages; each installation's owner accepts a new permission ([github-app.md](github-app.md), section 6) | **Sign in with GitHub** (device flow), pull requests, tags, the dependency check, the repository's own advisories, code scanning and the secret count, each pull request's checks |
 | `PW_GITHUB_CLIENT_ID`, `PW_GITHUB_APP_SLUG` | `Pullwatch/Release.xcconfig` (public values) | [github-app.md](github-app.md), step 2 | release builds find the GitHub App |
 | Actions secrets `DEVELOPER_ID_P12`, `DEVELOPER_ID_P12_PASSWORD` (secret) | the repository's Actions secrets | [releasing.md](releasing.md), "Secrets, once", step 1 | the release workflow signs with the Developer ID |
 | Actions secrets `NOTARY_KEY`, `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID` (secret) | the repository's Actions secrets; the key is an App Store Connect API key of Code24 BV | [releasing.md](releasing.md), "Secrets, once", step 2 | the release workflow notarises |
 | Sparkle's EdDSA key pair: Actions secret `SPARKLE_PRIVATE_KEY` (secret) | the private half in the maintainer's login Keychain (made by `generate_keys`) and in the repository's Actions secrets; never in a file | [releasing.md](releasing.md), "Secrets, once", step 3 | the release workflow signs the update and its `appcast.xml`; without it the lane stops in its first job |
 | `SPARKLE_PUBLIC_ED_KEY` | `Pullwatch/Release.xcconfig` (public value) | [releasing.md](releasing.md), "Secrets, once", step 3 | release builds install updates in the app; empty, they only show a download button, and `check-version.sh` refuses a release |
 | `PW_RELEASES_OWNER` | `Pullwatch/App.xcconfig` (public value, `alessandro823`) | change it only in a fork that makes its own releases | where the update check and Sparkle find the releases |
-| Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app"; give it the same permissions as the release app (it has Repository security advisories; code and secret scanning, Checks and Commit statuses are not granted, so those show **Needs permission**) | Xcode's Run and the tests; replace with your own if you prefer |
+| Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app"; give it the same permissions as the release app (it has Checks and Commit statuses and Repository security advisories; Code scanning alerts and Secret scanning alerts are not granted, so those show **Needs permission**; its leftover Packages permission does nothing) | Xcode's Run and the tests; replace with your own if you prefer |
 | GitHub Pages, the repository variable `PAGES_DOMAIN` and the DNS of `pullwatch.net` | the repository's Pages settings and Actions variables; the zone at the registrar | [website.md](website.md) | the website at `https://pullwatch.net` (until then `https://alessandro823.github.io/pullwatch/`) |
+
+The GitHub App's repository permissions, all read-only; each one is used by
+code in `PullwatchKit/Sources/PullwatchGitHub/`
+([github-app.md](github-app.md) has the endpoints):
+
+| Permission | Access | What it is for | Without it |
+|---|---|---|---|
+| Metadata | Read-only, mandatory | the repositories of the followed owners | GitHub does not allow an app without it |
+| Pull requests | Read-only | pull requests, their co-authors and merge queue position | no pull requests |
+| Contents | Read-only | tags, releases and the files of the dependency check | no tags or releases, no dependency check |
+| Repository security advisories | Read-only | the advisories a repository publishes about itself | **Needs permission** on the repository page |
+| Checks | Read-only | the check runs counted in each pull request's checks cell | no checks cell, **Checks: Needs permission** |
+| Commit statuses | Read-only | the commit statuses in the same count | the same as without Checks |
+| Code scanning alerts | Read-only, optional | open code scanning alerts on the repository page | **Needs permission** next to Code scanning |
+| Secret scanning alerts | Read-only, optional | the number of open secret scanning alerts | **Needs permission** next to Secret scanning |
+
+Packages is not on the list: GitHub's Packages API answers every GitHub App
+token with 403 "Resource not accessible by integration" (verified live with
+the test app, [github-app.md](github-app.md)). An account that signs in with
+the app reads its packages with the GitHub CLI instead (**Read packages with
+the GitHub CLI** in the account editor; `gh` needs the `read:packages` scope),
+which needs nothing set up here.
+
+The MCP server for coding agents needs nothing here either. Its helper,
+`Contents/Helpers/pullwatch-mcp`, is signed by `scripts/release/release.sh`
+with the same Developer ID and its own identifier, and notarised with the
+app; the app accepts only that helper of its own team on its socket
+([mcp.md](mcp.md)).
 
 Azure DevOps needs nothing here: people sign in with the Azure CLI
 (`az login`) or a personal access token of their own.
@@ -44,7 +72,8 @@ which must be reachable over https:
   settings, Personal access tokens; the account editor's **Token maken** link
   opens the classic token page with the name and the scopes filled in).
   Classic: `repo` and `read:org`, plus `security_events` for code scanning
-  and secret scanning alerts. Fine-grained (where the server has them):
+  and secret scanning alerts, and `read:packages` for the packages the
+  repositories publish. Fine-grained (where the server has them):
   **Pull requests**, **Contents** and **Metadata** read-only on the
   repositories to follow, optionally **Code scanning alerts**, **Secret
   scanning alerts**, **Checks** and **Commit statuses** read-only (the last
@@ -69,6 +98,127 @@ an enterprise token never leaves its own server. Other repositories you add to
 an enterprise account are read with its token on that server only; the
 fallback without a token that github.com accounts have is off there, because
 GitHub Enterprise Server and GHE.com rarely allow reading without signing in.
+
+## Repository settings
+
+Settings of `alessandro823/pullwatch` that no file in the repository can
+make. Each needs admin rights on the repository; the command under each
+checks it. Set `repo=alessandro823/pullwatch` first.
+
+- [ ] **Private vulnerability reporting** on (Settings, Advanced Security),
+  so [SECURITY.md](../SECURITY.md) works. Turning it on also adds "Report a
+  vulnerability" to the issue chooser; `.github/ISSUE_TEMPLATE/config.yml`
+  therefore has no link of its own for it. Turn on with
+  `gh api -X PUT repos/$repo/private-vulnerability-reporting`.
+
+  ```bash
+  gh api repos/$repo/private-vulnerability-reporting --jq .enabled   # true
+  ```
+
+- [ ] **Dependabot alerts** and **Dependabot security updates** on
+  (Settings, Advanced Security). Version updates come from
+  `.github/dependabot.yml` and need nothing here.
+
+  ```bash
+  gh api repos/$repo/vulnerability-alerts --silent && echo alerts on    # 404 when off
+  gh api repos/$repo/automated-security-fixes --jq .enabled             # true
+  ```
+
+- [ ] **Secret scanning** and **push protection** on (Settings, Advanced
+  Security).
+
+  ```bash
+  gh api repos/$repo --jq '.security_and_analysis | {secret_scanning, secret_scanning_push_protection}'
+  # both "status": "enabled"
+  ```
+
+- [ ] **A ruleset for `main`** (Settings, Rules, Rulesets): a pull request
+  before merging, and the required checks of CI (`shell scripts and
+  workflows`, `PullwatchKit tests`, `app build, unit and UI tests`, `String
+  Catalogs in step with the code`, `unsigned release build and disk image`)
+  and Changelog (`changelog fragment`) and Website (`build and check
+  links`), all from GitHub Actions. The Website workflow runs on every pull
+  request and skips its build when nothing under `site/` changed; a skipped
+  job counts as passed, so requiring it never blocks a pull request.
+  `.github/CODEOWNERS` asks Alessandro and the fork's owner
+  (`rubentalstra`) to review every change.
+
+  ```bash
+  gh api repos/$repo/rules/branches/main --jq '.[].type'
+  # includes pull_request and required_status_checks
+  gh api repos/$repo/rules/branches/main \
+    --jq '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context'
+  ```
+
+  To create it from the command line:
+
+  ```bash
+  gh api --method POST repos/$repo/rulesets --input - <<'JSON'
+  {
+    "name": "main",
+    "target": "branch",
+    "enforcement": "active",
+    "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+    "rules": [
+      { "type": "deletion" },
+      { "type": "non_fast_forward" },
+      { "type": "pull_request", "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": false } },
+      { "type": "required_status_checks", "parameters": {
+          "strict_required_status_checks_policy": false,
+          "required_status_checks": [
+            { "context": "shell scripts and workflows", "integration_id": 15368 },
+            { "context": "PullwatchKit tests", "integration_id": 15368 },
+            { "context": "app build, unit and UI tests", "integration_id": 15368 },
+            { "context": "String Catalogs in step with the code", "integration_id": 15368 },
+            { "context": "unsigned release build and disk image", "integration_id": 15368 },
+            { "context": "changelog fragment", "integration_id": 15368 },
+            { "context": "build and check links", "integration_id": 15368 }
+          ] } }
+    ]
+  }
+  JSON
+  ```
+
+  (`15368` is the app id of GitHub Actions.)
+
+- [ ] **Discussions** off: questions go to the
+  [FAQ](https://pullwatch.net/faq/) and to Issues, as
+  `.github/ISSUE_TEMPLATE/config.yml` and [SUPPORT.md](../SUPPORT.md) say.
+
+  ```bash
+  gh api repos/$repo --jq .has_discussions   # false
+  ```
+
+- [ ] **GitHub Sponsors** for the names in `.github/FUNDING.yml`
+  (`alessandro823`, `rubentalstra`): GitHub shows a Sponsor button on the
+  repository and leaves out a name that has no Sponsors profile, so set
+  one up at https://github.com/sponsors to appear in it. Settings, General,
+  Features, **Sponsorships** must be on for the button to show.
+
+  ```bash
+  gh api graphql -f query='{ user(login:"alessandro823"){ hasSponsorsListing } }'   # true once set up
+  ```
+
+- [ ] **Reported content** from all users (Settings, Moderation options,
+  Reported content), so the reports [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
+  points to reach the maintainer. There is no REST API for this setting;
+  check it on that page.
+
+- [ ] **Description, website and topics** (the About box on the
+  repository's front page).
+
+  ```bash
+  gh api repos/$repo --jq '{description, homepage, topics}'
+  gh repo edit $repo \
+    --description "Pull requests, tags and outdated dependencies, watched from your Mac's menu bar." \
+    --homepage https://pullwatch.net \
+    --add-topic macos,swiftui,menu-bar-app,github,gitlab,azure-devops,pull-requests,mcp
+  ```
 
 ## Time Sensitive notifications (not used)
 

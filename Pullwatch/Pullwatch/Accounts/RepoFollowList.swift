@@ -269,8 +269,12 @@ private struct RepoWatchRow: View {
     var remove: (() -> Void)?
 
     private var readWithoutSignInHelp: Text {
-        if account.kind == .gitLab {
+        if account.kind == .gitea {
+            Text("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met de lagere limiet van \(account.serviceName)", comment: "Codeberg, Gitea of de host van een eigen server")
+        } else if account.kind == .gitLab {
             Text("Openbaar project waar je account niet bij mag; Pullwatch leest het zonder token, met de lagere limiet van \(account.serviceName)", comment: "GitLab of de host van een eigen server")
+        } else if account.kind == .bitbucket {
+            Text("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van Bitbucket")
         } else {
             Text("Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub")
         }

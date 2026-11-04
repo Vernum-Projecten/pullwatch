@@ -88,22 +88,28 @@ struct AccountStep: View {
             return "Log in met GitHub, kies waar je repositories staan en welke je volgt, en klik op Toevoegen."
         }
         switch (account.kind, enterprise) {
+        case (.gitea, _) where account.giteaFlavour == .codeberg:
+            return "Vul een token van Codeberg met de scopes read:user, read:organization, read:repository en read:issue en je organisaties in, en klik op Toevoegen."
+        case (.gitea, _):
+            return "Vul je server, een token met de scopes read:user, read:organization, read:repository en read:issue en je organisaties in, en klik op Toevoegen."
         case (.gitHub, true):
             return "Vul je server, een token en je gebruiker of organisatie in, en klik op Toevoegen. Met de GitHub CLI heb je geen token nodig."
         case (.gitLab, true):
             return "Vul je server, een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
         case (.gitLab, false):
             return "Vul een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
+        case (.bitbucket, _):
+            return "Vul je workspaces, het e-mailadres van je Atlassian-account en een API-token met leesrechten in, en klik op Toevoegen."
         default:
             return "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig."
         }
     }
 
-    /// `enterprise`: een eigen server (GitHub Enterprise of een eigen GitLab-server).
-    private func start(_ kind: ProviderKind, enterprise: Bool) {
-        self.enterprise = enterprise
-        // Op GitHub Enterprise bestaat de Pullwatch-app niet: daar een token.
-        draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
+    /// Een eigen server (GitHub Enterprise of een eigen GitLab-server) staat in `choice.enterprise`;
+    /// bij Gitea in de smaak van het concept.
+    private func start(_ choice: AccountChoice) {
+        enterprise = choice.enterprise
+        draft = accounts.draft(for: choice)
     }
 }
 

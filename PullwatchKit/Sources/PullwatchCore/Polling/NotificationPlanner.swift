@@ -165,6 +165,7 @@ public struct NotificationImportance: Equatable, Sendable {
         case .vulnerability, .securityAlert:
             Self(level: .active, relevance: 0.7 + 0.075 * Double(min(max(severityRank, 0), 4)), playsSound: true)
         case .packageUpdate: Self(level: .passive, relevance: 0.1, playsSound: false)
+        case .publishedPackage: Self(level: .passive, relevance: 0.15, playsSound: false)
         case .appUpdate: Self(level: .passive, relevance: 0.4, playsSound: false)
         case .account: Self(level: .active, relevance: 0.65, playsSound: true)
         // De agent wacht op het antwoord.

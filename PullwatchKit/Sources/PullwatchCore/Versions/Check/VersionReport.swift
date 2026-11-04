@@ -15,12 +15,27 @@ public struct VersionReport: Codable, Equatable, Sendable {
     /// Wat de registers per versie zeggen, per `PackageUse.key`: voor de blokkades en de nieuwste
     /// bruikbare versie (`UpdateContext`), en als cache voor de volgende check (`VersionChecker`).
     public let packageMetadata: [String: PackageMetadata]
+    /// Met welke versie van de check het rapport gemaakt is (`currentFormat`). Een ouder rapport
+    /// mist wat de check sindsdien leest (transitieve packages, gevraagde bereiken, de Cargo.toml's
+    /// van workspace-leden); de app checkt dan opnieuw (`isOutdatedFormat`).
+    public let format: Int
+    /// Wat de accounts in het register van hun dienst publiceren, één per account met de uitkomst
+    /// (`PRProvider.publishedPackages`). Alleen de dagelijkse check vult het; leeg als de bron
+    /// Packageregisters van je accounts uit stond.
+    public let publishedPackages: [AccountPackages]
+
+    /// 1: zonder `format`. 2: transitieve installs met hun ouder, de eisen uit elke Cargo.toml en
+    /// de eis van de ouder uit het register.
+    public static let currentFormat = 2
 
     public init(
         checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:],
         advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:],
-        packageMetadata: [String: PackageMetadata] = [:]
+        packageMetadata: [String: PackageMetadata] = [:], format: Int = VersionReport.currentFormat,
+        publishedPackages: [AccountPackages] = []
     ) {
+        self.format = format
+        self.publishedPackages = publishedPackages
         self.checkedAt = checkedAt
         self.latestPackages = latestPackages
         self.advisories = advisories
@@ -34,11 +49,12 @@ public struct VersionReport: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata
+        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata, format, publishedPackages
     }
 
     /// versions.json van vóór het package-overzicht heeft geen `latestPackages`, van vóór de
-    /// blokkades geen `packageMetadata`.
+    /// blokkades geen `packageMetadata`, van vóór de eigen packages geen `publishedPackages` (en
+    /// wat daarvan niet te lezen is, valt weg in plaats van het hele rapport).
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         checkedAt = try c.decode(Date.self, forKey: .checkedAt)
@@ -47,7 +63,12 @@ public struct VersionReport: Codable, Equatable, Sendable {
         advisories = try c.decodeIfPresent([String: GitHubAdvisory].self, forKey: .advisories) ?? [:]
         advisoryMisses = try c.decodeIfPresent([String: Date].self, forKey: .advisoryMisses) ?? [:]
         packageMetadata = try c.decodeIfPresent([String: PackageMetadata].self, forKey: .packageMetadata) ?? [:]
+        format = try c.decodeIfPresent(Int.self, forKey: .format) ?? 1
+        publishedPackages = ((try? c.decodeIfPresent([Lossy<AccountPackages>].self, forKey: .publishedPackages)) ?? []).compactMap(\.value)
     }
+
+    /// Gemaakt door een oudere versie van de check: het zegt minder dan een nieuwe check zou zeggen.
+    public var isOutdatedFormat: Bool { format < Self.currentFormat }
 }
 
 extension VersionReport {
@@ -62,7 +83,8 @@ extension VersionReport {
         let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
         return VersionReport(
             checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.merging(metadata) { _, new in new }
+            packageMetadata: packageMetadata.merging(metadata) { _, new in new }, format: format,
+            publishedPackages: publishedPackages
         )
     }
 
@@ -115,9 +137,14 @@ extension VersionReport {
     /// houdt zijn beveiliging.
     public func visible(disabled: Set<DataSourceID>, accountKinds: [UUID: ProviderKind]) -> VersionReport {
         guard !disabled.isEmpty else { return self }
+        let registriesOff = disabled.contains(.packageRegistries)
+        /// Een eigen package hangt aan de bron Packageregisters van je accounts, niet aan het
+        /// publieke register van zijn ecosysteem.
         func isOff(key: String) -> Bool {
-            VersionChecker.split(key).flatMap { DataSourceID.registry(ecosystem: $0.0) }.map(disabled.contains) ?? false
+            if packageMetadata[key]?.inHouse != nil { return registriesOff }
+            return VersionChecker.split(key).flatMap { DataSourceID.registry(ecosystem: $0.0) }.map(disabled.contains) ?? false
         }
+        let inHouseKeys = Set(packageMetadata.filter { $0.value.inHouse != nil }.keys)
         /// Onderdelen waarvan de releasebron uit staat: geen nieuwste versie en geen status.
         func components(_ components: [ComponentVersion]) -> (components: [ComponentVersion], skipped: Set<DataSourceID>) {
             var skipped: Set<DataSourceID> = []
@@ -146,6 +173,7 @@ extension VersionReport {
             let uses = repo.packages + repo.otherPackages
             let ecosystems = Set(uses.map(\.ecosystem))
             var skipped = repo.skippedSources.union(packageSources(hasPackages: !uses.isEmpty, ecosystems: ecosystems))
+            if registriesOff, uses.contains(where: { inHouseKeys.contains($0.key) }) { skipped.insert(.packageRegistries) }
             let shown = components(repo.components)
             skipped.formUnion(shown.skipped)
             var security = repo.security
@@ -186,7 +214,12 @@ extension VersionReport {
             latestPackages: latestPackages.filter { !isOff(key: $0.key) },
             advisories: disabled.contains(.gitHubAdvisoryDatabase) ? [:] : advisories,
             advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }
+            packageMetadata: packageMetadata.compactMapValues { metadata in
+                // Een eigen package met de bron uit: wel bekend als eigen, maar zonder versies.
+                guard let own = metadata.inHouse else { return metadata }
+                return registriesOff ? PackageMetadata(latest: nil, versions: [:], inHouse: own.with(status: .sourceOff)) : metadata
+            }.filter { $0.value.inHouse != nil || !isOff(key: $0.key) }, format: format,
+            publishedPackages: disabled.contains(.packageRegistries) ? [] : publishedPackages
         )
     }
 }

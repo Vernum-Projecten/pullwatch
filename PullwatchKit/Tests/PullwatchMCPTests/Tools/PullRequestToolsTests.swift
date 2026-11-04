@@ -23,6 +23,7 @@ import Testing
         #expect(output["not_checked"] == [])
         let first = try #require(output["pull_requests"]?.objects.first)
         #expect(first["repository"] == "acme/web")
+        #expect(first["reference"] == "acme/web#1")
         #expect(first["account_id"] == .string(FakeDataSource.gitHubId.uuidString))
         #expect(first["title"] == "Add login")
         #expect(first["state"] == "open")
@@ -127,6 +128,20 @@ import Testing
         #expect(pr["checks"]?["total"] == nil)
     }
 
+    @Test func `A GitLab merge request is referenced with an exclamation mark`() async throws {
+        let output = try await harness.output("list_pull_requests", ["repo": "group/app"])
+
+        let pr = try #require(output["pull_requests"]?.objects.first)
+        #expect(pr["number"] == 10)
+        #expect(pr["reference"] == "group/app!10")
+    }
+
+    @Test func `get_pull_request gives the reference of a GitLab merge request`() async throws {
+        let output = try await harness.output("get_pull_request", ["repo": "group/app", "number": 10])
+
+        #expect(output["pull_request"]?["reference"] == "group/app!10")
+    }
+
     // MARK: - get_pull_request
 
     @Test func `Gets one pull request with its co-authors but no e-mail address`() async throws {
@@ -134,6 +149,7 @@ import Testing
 
         let pr = try #require(output["pull_request"])
         #expect(pr["number"] == 1)
+        #expect(pr["reference"] == "acme/web#1")
         #expect(pr["co_authors"] == ["ada"])
         let wire = try await harness.wire("get_pull_request", ["repo": "acme/web", "number": 1])
         #expect(!wire.contains("ada@example.com"))

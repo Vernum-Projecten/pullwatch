@@ -18,13 +18,16 @@ struct MainView: View {
         } detail: {
             let selection = router.sidebarSelection ?? .section(storedSection)
             NavigationStack(path: Bindable(router).path) {
-                SectionRoot(selection: selection)
+                SectionRoot(selection: selection, historyTokens: router.historyTokens)
                     .navigationDestination(for: Route.self) { route in
                         RouteView(route: route)
                     }
             }
-            // Een andere keuze in de zijbalk is een nieuwe stack, met eigen zoekveld en selectie.
-            .id(selection)
+            // Een andere keuze in de zijbalk, of een sprong vanaf een andere plek, is een nieuwe
+            // stack met eigen zoekveld, filters en selectie. De oude tabel krijgt zo geen nieuwe
+            // rijen meer terwijl hij weggaat; dat laat AppKit klagen over een reentrante
+            // tabel-delegate (#204).
+            .id(DetailIdentity(selection: selection, navigation: router.navigation))
             // Lang werk (eerste sync, opnieuw ophalen, versiecheck) op één vaste plek, in elk onderdeel.
             .activityBar(app.syncStatus, cancel: app.cancelSync)
         }
@@ -44,7 +47,8 @@ struct MainView: View {
     }
 }
 
-/// De zijbalk: PR's, Tags en Statistieken onder Geschiedenis, Repo's en Versies onder Controle,
+/// De zijbalk: PR's, Tags en Statistieken onder Geschiedenis, Repo's, Afhankelijkheden en
+/// Packages onder Controle,
 /// met per onderdeel de projecten om op te filteren.
 struct SidebarView: View {
     @Binding var selection: SidebarItem?
@@ -64,6 +68,7 @@ struct SidebarView: View {
             Section("Controle") {
                 SidebarSectionRow(section: .repos, content: content, isExpanded: $reposExpanded)
                 SidebarSectionRow(section: .dependencies, content: content, isExpanded: .constant(false))
+                SidebarSectionRow(section: .packages, content: content, isExpanded: .constant(false))
             }
         }
     }
@@ -120,6 +125,8 @@ private struct SectionLabel: View {
 private struct SectionRoot: View {
     @Environment(OverviewModel.self) private var overview
     let selection: SidebarItem
+    /// De filters van de sprong hierheen, waarmee PR's of Tags beginnen.
+    let historyTokens: [HistoryToken]
 
     var body: some View {
         let groupName = overview.sidebar.name(of: selection)
@@ -130,11 +137,12 @@ private struct SectionRoot: View {
             ReposView(group: id, groupName: groupName)
         case .section(let section):
             switch section {
-            case .pullRequests: HistoryView(kind: .pullRequest)
-            case .tags: HistoryView(kind: .tag)
+            case .pullRequests: HistoryView(kind: .pullRequest, initialTokens: historyTokens)
+            case .tags: HistoryView(kind: .tag, initialTokens: historyTokens)
             case .stats: StatsView()
             case .repos: ReposView()
             case .dependencies: PackagesView()
+            case .packages: PublishedPackagesView()
             }
         }
     }
@@ -161,4 +169,10 @@ private struct RouteView: View {
             StatsView(repoId: repoId)
         }
     }
+}
+
+/// Wie de stack van het hoofdvenster is: de keuze in de zijbalk en de sprong die erheen leidde.
+private struct DetailIdentity: Hashable {
+    let selection: SidebarItem
+    let navigation: Int
 }

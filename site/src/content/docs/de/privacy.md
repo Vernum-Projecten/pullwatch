@@ -26,6 +26,7 @@ Der Tab Quellen listet jeden externen Dienst in einfacher Sprache auf. Jede Zeil
 **Versionen**
 
 - Die Paket-Registries: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io und rubygems.org. Paketnamen werden gesendet, auch bei privaten Repositories.
+- **Paket-Registrys deiner Konten**: die Pakete und Container-Images, die die Repositories, denen du folgst, in GitHub Packages, den Registries von GitLab und Azure Artifacts veröffentlichen, einmal am Tag mit dem Token jedes Kontos gelesen und nirgendwohin sonst gesendet. Hauseigene Paketnamen werden nie an die öffentlichen Registries oder OSV.dev gesendet. Aus: Keine deiner Registries wird gelesen, der Bereich Pakete ist leer, und bei hauseigenen Abhängigkeiten steht „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“.
 - **endoflife.date**: Releasezyklen und Support-Ende von Runtimes und Frameworks.
 - **swift.org**: die Swift-Releases.
 
@@ -48,7 +49,7 @@ Standardmäßig ist alles eingeschaltet. Deine Wahl wird in `config.json` gespei
 
 ## Öffentliche Repositories ohne Token
 
-Ein öffentliches Repository auf github.com oder gitlab.com, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. Pullwatch schickt das Token eines Kontos nie an einen anderen Server: Ein Token für GitHub Enterprise bleibt auf seinem eigenen Server.
+Ein öffentliches Repository auf github.com, gitlab.com oder bitbucket.org, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. Pullwatch schickt das Token eines Kontos nie an einen anderen Server: Ein Token für GitHub Enterprise bleibt auf seinem eigenen Server.
 
 ## Open-Source-Software
 

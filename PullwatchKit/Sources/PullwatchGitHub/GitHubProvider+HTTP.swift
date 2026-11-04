@@ -9,14 +9,16 @@ extension GitHubProvider {
     }
 
     /// Met `checked: false` zonder de status te controleren (de beveiligingsgegevens lezen 403
-    /// en 404 zelf). Met `anonymous` zonder token: alleen voor openbare losse repo's.
+    /// en 404 zelf). Met `anonymous` zonder token: alleen voor openbare losse repo's. `tokens`
+    /// vervangt de tokenbron van het account (de packages van een GitHub App-account via `gh`).
     func send(
         _ url: URL,
         query: [URLQueryItem] = [],
         accept: String = "application/vnd.github+json",
         body: Data? = nil,
         checked: Bool = true,
-        anonymous: Bool = false
+        anonymous: Bool = false,
+        tokens: (any TokenSource)? = nil
     ) async throws -> (data: Data, response: HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
@@ -27,7 +29,7 @@ extension GitHubProvider {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         if !anonymous {
-            let token = try await tokenSource.token()
+            let token = try await (tokens ?? tokenSource).token()
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         request.setValue(accept, forHTTPHeaderField: "Accept")

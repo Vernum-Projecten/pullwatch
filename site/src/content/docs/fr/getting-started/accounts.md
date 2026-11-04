@@ -1,6 +1,6 @@
 ---
 title: Ajouter vos comptes
-description: "Connectez GitHub, GitHub Enterprise, Azure DevOps et GitLab, et choisissez les dépôts que Pullwatch suit."
+description: "Connectez GitHub, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea, et choisissez les dépôts que Pullwatch suit."
 ---
 
 Ouvrez **Réglages** (le bouton en forme d’engrenage du panneau du menu) et allez dans **Comptes**. Ajoutez un compte avec **+**, choisissez comment Pullwatch se connecte, et utilisez **Tester la connexion** pour le vérifier. Vous pouvez ajouter autant de comptes que vous voulez, de tout type.
@@ -36,12 +36,36 @@ Laissez **Serveur** vide pour gitlab.com, ou saisissez votre propre serveur (htt
 
 Connectez-vous avec un jeton d’accès personnel avec la portée `read_api`, ou avec la GitLab CLI (`glab auth login`). **Créer un jeton** dans l’éditeur de compte ouvre la page des jetons de votre serveur avec le nom et la portée déjà remplis.
 
+## Bitbucket
+
+Choisissez **Bitbucket** sur sa carte dans la fenêtre de bienvenue, ou **Bitbucket Cloud** dans le menu **+**. Il s’agit de Bitbucket Cloud sur bitbucket.org ; Bitbucket Data Center n’est pas pris en charge. Indiquez les workspaces à suivre sous **Workspaces**, séparés par des virgules, comme `acme, acme-labs`. Le workspace est la première partie d’un lien, `bitbucket.org/<workspace>/<repo>`, et les dépôts apparaissent sous la forme `workspace/repo`.
+
+Connectez-vous avec un jeton d’API avec portées d’Atlassian et l’adresse e-mail de votre compte Atlassian, sous **Adresse e-mail**. **Créer un jeton** ouvre la page des jetons d’API de votre compte Atlassian : choisissez **Create API token with scopes**, puis **Bitbucket**, et les portées en lecture de [Autorisations des jetons](/fr/getting-started/permissions/). Les mots de passe d’application ne fonctionnent plus, et il n’existe pas d’outil en ligne de commande Bitbucket dont Pullwatch pourrait tirer un jeton. L’adresse e-mail est gardée dans les réglages, le jeton dans le trousseau.
+
+Bitbucket n’a pas de versions publiées : **Tags et versions publiées** n’affiche que des tags pour un compte Bitbucket. Les checks d’une pull request sont les statuts de build sur son dernier commit, de Bitbucket Pipelines ou de toute autre CI qui les signale. Bitbucket n’a pas de liste de toutes les pull requests d’un workspace, donc Pullwatch interroge chaque dépôt ; un dépôt qui n’a pas changé depuis la dernière interrogation est de nouveau interrogé au plus tard après 10 minutes.
+
+## Codeberg, Forgejo et Gitea
+
+Codeberg, Forgejo et Gitea partagent une carte, car ils parlent la même API. Choisissez le bouton de votre service :
+
+- Codeberg : un compte sur codeberg.org.
+- Forgejo : votre propre serveur Forgejo. Saisissez-le sous **Serveur** (https uniquement, par exemple `https://git.example.com`).
+- Gitea : laissez **Serveur** vide pour gitea.com, ou saisissez votre propre serveur Gitea.
+
+Indiquez les organisations ou utilisateurs à suivre sous **Organisations ou utilisateurs**, séparés par des virgules, comme `acme` et `jdoe`. Les dépôts apparaissent sous la forme `owner/repo`.
+
+Connectez-vous avec un jeton créé sur ce serveur sous Paramètres, Applications, avec les portées `read:user`, `read:organization`, `read:repository` et `read:issue` ([Autorisations des jetons](/fr/getting-started/permissions/) explique pourquoi). **Créer un jeton** ouvre cette page. La connexion par l’outil en ligne de commande `tea` n’existe pas : `tea` n’a aucune commande qui fournit son jeton.
+
+**Tester la connexion** dit ce qui ne va pas : un jeton non valide, une portée qui manque au jeton (nommée), une organisation ou un utilisateur qui n’existe pas, une adresse où aucun Gitea ni Forgejo ne répond, ou un certificat auquel macOS ne fait pas confiance. Pullwatch ne communique qu’en https avec des serveurs dotés d’un certificat valide : un certificat auto-signé ne fonctionne que si macOS lui fait confiance.
+
+Les pull requests arrivent en une requête par organisation ou utilisateur, quel que soit le nombre de dépôts. Pullwatch reconnaît les brouillons à leur indicateur, et sur un Gitea plus ancien à un titre qui commence par `WIP:` ou `[WIP]`. Les checks d’une pull request sont les statuts de commit sur son dernier commit, comme ceux de Forgejo Actions, Gitea Actions ou Woodpecker. Les tags arrivent avec leurs versions publiées, y compris les préversions.
+
 ## Choisir ce que vous suivez
 
 Chaque compte liste ses dépôts. Pour chaque dépôt, cochez ce que vous voulez :
 
 - **PR** : les nouvelles pull requests (ou merge requests).
-- **Tags** : les nouveaux tags et, sur GitHub et GitLab, les versions publiées qui leur sont associées. Les tags sont désactivés par défaut.
+- **Tags** : les nouveaux tags et, sur GitHub, GitLab, Codeberg, Forgejo et Gitea, les versions publiées qui leur sont associées. Les tags sont désactivés par défaut.
 - **Fusionnée** : les pull requests qui sont fusionnées.
 
 À côté de chaque case se trouve une cloche. Désactivez-la pour garder un dépôt dans le menu et l’historique sans notifications. La cloche de l’en-tête bascule d’un coup tous les dépôts visibles. Pour chaque compte, vous pouvez aussi inclure les pull requests en brouillon, masquer les vôtres, et désactiver tout le compte pour un temps.
@@ -53,13 +77,16 @@ Sous **Autres dépôts**, en bas de la liste, ajoutez un dépôt isolé qui ne f
 - GitHub : `owner/repo`, ou collez un lien github.com.
 - Azure DevOps : `project/repo` dans l’organisation du compte, ou un lien dev.azure.com.
 - GitLab : `group/subgroup/project`, ou un lien de gitlab.com ou du propre serveur du compte.
+- Bitbucket : `workspace/repo`, ou collez un lien bitbucket.org.
+- Codeberg, Forgejo et Gitea : `owner/repo`, ou un lien du serveur du compte.
 
-Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com ou gitlab.com que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Fichier et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
+Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com, gitlab.com ou bitbucket.org que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Fichier et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
 
 Un tel dépôt apparaît partout comme les autres dépôts que vous suivez, regroupé sous son propre propriétaire.
 
 - **GitHub** : cela fonctionne aussi pour un dépôt public d’une autre organisation où la GitHub App Pullwatch n’est pas installée, comme `openEHR/specifications-AM`. Les pull requests de ces dépôts arrivent par une recherche par compte, avec jusqu’à 30 dépôts par recherche.
 - **GitLab** : les liens de gitlab.com ou du propre serveur du compte fonctionnent, y compris les liens `/-/` comme `/-/merge_requests/12` ; un lien vers un autre serveur est refusé. Un projet public n’est lu sans connexion que si le serveur répond sans jeton : gitlab.com le fait, un serveur qui exige une connexion non, et le projet est alors introuvable. Chaque projet de ce type coûte une requête par interrogation pour ses merge requests (une page, les 100 plus récemment mises à jour).
+- **Codeberg, Forgejo et Gitea** : un lien doit être sur le serveur du compte. Un dépôt public est lu sans connexion si le serveur le permet, comme codeberg.org et gitea.com. Chaque dépôt de ce type coûte une requête par interrogation pour ses pull requests (une page, les 50 plus récemment mises à jour).
 
 ## À quelle fréquence Pullwatch regarde
 

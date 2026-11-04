@@ -149,7 +149,8 @@ public struct UpdateContext: Sendable {
     func check(
         ecosystem: String, name: String, install: PackageInstall, target: Version, findMinimum: Bool, needs: inout UpdateNeeds
     ) -> Check {
-        if install.scope == .transitive, let parent = install.via.last, let requested = install.requested,
+        if install.scope == .transitive, let parent = install.via.last,
+           let requested = requirement(ecosystem: ecosystem, name: name, install: install, needs: &needs),
            let range = VersionRange.parse(ecosystem: ecosystem, name: name, requested: requested), !range.contains(target) {
             let minimum = findMinimum
                 ? lowestParent(ecosystem: ecosystem, parent: parent, workspace: install.workspace, child: name, target: target, needs: &needs)
@@ -183,6 +184,39 @@ public struct UpdateContext: Sendable {
             return .blocked(.runtime(runtime: runtime, needs: requirement, installed: installed))
         }
         return .passes
+    }
+
+    /// Het bereik waarbinnen `install` kan bewegen: wat het manifest of de lockfile vraagt
+    /// (`PackageInstall.requested`), en anders voor een transitieve install wat de geïnstalleerde
+    /// ouder (`via.last`) volgens zijn register vraagt. Cargo.lock bewaart die eisen niet; het
+    /// register wel. Ontbreekt die metadata, dan komt hij in `needs`.
+    func requirement(ecosystem: String, name: String, install: PackageInstall, needs: inout UpdateNeeds) -> String? {
+        if let requested = install.requested { return requested }
+        guard install.scope == .transitive, let parent = install.via.last else { return nil }
+        let key = "\(ecosystem):\(parent)"
+        guard index.metadata[key] != nil else {
+            needs.packages.insert(key)
+            return nil
+        }
+        let wanted = Self.normalized(ecosystem: ecosystem, name: name)
+        var found: [String] = []
+        for version in installedVersions(ecosystem: ecosystem, workspace: install.workspace, name: parent) {
+            guard let parsed = Version(version), let metadata = index.metadata(key: key, version: parsed) else { continue }
+            guard let dependencies = metadata.metadata.dependencies else {
+                needs.details.insert(DetailRequest(ecosystem: ecosystem, name: parent, version: metadata.text))
+                continue
+            }
+            let all = dependencies.merging(metadata.metadata.peerDependencies) { first, _ in first }
+            if let range = all.first(where: { Self.normalized(ecosystem: ecosystem, name: $0.key) == wanted })?.value { found.append(range) }
+        }
+        // Bij meer versies van de ouder: de eis die de geïnstalleerde versie toelaat.
+        return found.first { VersionRange.parse(ecosystem: ecosystem, name: name, requested: $0)?.contains(install.version) == true } ?? found.first
+    }
+
+    /// Als `requirement(ecosystem:name:install:needs:)`, zonder bij te houden wat ontbreekt.
+    public func requirement(ecosystem: String, name: String, install: PackageInstall) -> String? {
+        var needs = UpdateNeeds()
+        return requirement(ecosystem: ecosystem, name: name, install: install, needs: &needs)
     }
 
     /// Een ander package in dezelfde workspace dat `name` als peer vraagt met een bereik zonder

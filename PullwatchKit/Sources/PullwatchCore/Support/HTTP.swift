@@ -29,6 +29,13 @@ public struct URLSessionHTTPClient: HTTPClient {
         }
     }
 
+    /// Een certificaat dat macOS niet vertrouwt: zelfondertekend, van een onbekende CA, verlopen
+    /// of nog niet geldig. Pullwatch maakt daar geen uitzondering voor (het token gaat erheen).
+    static let untrustedCertificateCodes: Set<URLError.Code> = [
+        .serverCertificateUntrusted, .serverCertificateHasUnknownRoot, .serverCertificateHasBadDate,
+        .serverCertificateNotYetValid,
+    ]
+
     /// Wat een fout van `URLSession` voor Pullwatch betekent. Een timeout krijgt een eigen,
     /// vertaalde tekst met de host; de rest blijft een netwerkfout met de tekst van het systeem.
     static func providerError(for error: any Error, request: URLRequest) -> ProviderError {
@@ -37,6 +44,8 @@ public struct URLSessionHTTPClient: HTTPClient {
             return error
         case let error as URLError where error.code == .timedOut:
             return .timeout(command: request.url?.host() ?? request.url?.absoluteString ?? "")
+        case let error as URLError where untrustedCertificateCodes.contains(error.code):
+            return .untrustedCertificate(request.url?.host() ?? request.url?.absoluteString ?? "")
         default:
             return .network(error.localizedDescription)
         }

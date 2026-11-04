@@ -20,7 +20,7 @@ Die Menüleiste folgt der Reihenfolge von Apple: Pullwatch, Ablage, Bearbeiten, 
 |---|---|
 | ⌘N | Neues Konto …: Einstellungen, Konten, mit der Wahl des Dienstes |
 | ⇧⌘N | Einem Repository folgen… |
-| ⌘O | Die Auswahl (oder das offene Repository) im Browser öffnen |
+| ⌘O | Die Auswahl (oder das offene Repository) im Browser öffnen; bei einem Paket seine Seite in der Registry |
 | ⌘W | Das Fenster schließen |
 
 ## Bearbeiten
@@ -48,6 +48,7 @@ Die Menüleiste folgt der Reihenfolge von Apple: Pullwatch, Ablage, Bearbeiten, 
 | ⌘3 | Statistiken |
 | ⌘4 | Repositories |
 | ⌘5 | Abhängigkeiten |
+| ⌘6 | Pakete |
 | ⌘↓ | Repository-Seite: die Seite des ausgewählten Repositorys |
 
 ## Objekt
@@ -59,6 +60,7 @@ Der ausgewählte Pull Request, Tag oder das ausgewählte Release.
 | ⇧⌘U | Als gelesen markieren oder Als ungelesen markieren |
 | ⌘K | Alle als gelesen markieren |
 | ⇧⌘L | Link kopieren |
+| ⌥⇧⌘L | Verweis kopieren: der ausgewählten Pull Requests, etwa `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 
@@ -81,7 +83,7 @@ Das ausgewählte Repository oder die offene Seite eines Repositorys.
 | ⌘M | Im Dock ablegen |
 | ⌘0 | Pullwatch: das Hauptfenster öffnen oder nach vorne holen |
 
-Hilfe führt zu dieser Dokumentation (Pullwatch-Hilfe), zu dieser Seite (Tastaturkurzbefehle), zu den Versionshinweisen deiner Version (Neu in Pullwatch), zu einem neuen Issue auf GitHub (Problem melden …) und zu den Danksagungen.
+Hilfe führt zu dieser Dokumentation (Pullwatch-Hilfe), zu dieser Seite (Tastaturkurzbefehle), zu den Versionshinweisen deiner Version (Neu in Pullwatch), zu Datenschutz und Quellen (Einstellungen, Quellen: jede Verbindung, die Pullwatch aufbaut), zu einem neuen Issue auf GitHub (Problem melden …) und zu den Danksagungen.
 
 ## Dock
 

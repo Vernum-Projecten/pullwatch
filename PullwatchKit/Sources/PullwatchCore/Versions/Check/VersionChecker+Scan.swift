@@ -110,7 +110,8 @@ extension VersionChecker {
             } catch ProviderError.server(status: 404) {
                 continue
             }
-            scan.versions += StackDetector.detect(path: path, content: content)
+            // Een Cargo.toml van een lid telt alleen voor de packages; de rust-version staat in de root.
+            if StackDetector.isRelevant(path) { scan.versions += StackDetector.detect(path: path, content: content) }
             dependencyFiles.append((path, content))
             if path.hasSuffix("go.mod") {
                 replacedGoModules.formUnion(StackDetector.localGoReplacements(path: path, content: content))

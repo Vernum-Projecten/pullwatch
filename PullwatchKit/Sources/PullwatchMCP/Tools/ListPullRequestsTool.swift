@@ -19,7 +19,7 @@ enum ListPullRequestsTool {
             name: name,
             title: "List pull requests",
             description: """
-                Lists the pull requests Pullwatch has seen in the repositories it follows (GitHub, Azure DevOps and GitLab), \
+                Lists the pull requests Pullwatch has seen in the repositories it follows (GitHub, Azure DevOps, GitLab, Gitea, Forgejo and Codeberg), \
                 newest first, with their state, CI checks, merge queue and read state. Use it to answer questions like \
                 "which of my pull requests have failing checks?" or "what is open in acme/web?". Reads only what Pullwatch \
                 already fetched; it never calls the services. Filters: repo, account_id, state (default open), author, mine, \
@@ -58,6 +58,7 @@ enum ListPullRequestsTool {
         let followed = MCPFollowedRepos(accounts: accounts, summaries: await source.repoSummaries(), history: history)
         let checksOff = await source.disabledSources().contains(.ciChecks)
         let userIds = await source.currentUserIds()
+        let kinds = Dictionary(accounts.map { ($0.id, $0.kind) }, uniquingKeysWith: { first, _ in first })
 
         var match: MCPFollowedRepos.Match?
         if let repo = arguments.string("repo") {
@@ -75,7 +76,7 @@ enum ListPullRequestsTool {
 
         var matching: [MCPPullRequest] = []
         for item in history {
-            guard case .pullRequest(let pr) = item.entry, accountIds.contains(pr.accountId),
+            guard case .pullRequest(let pr) = item.entry, accountIds.contains(pr.accountId), let kind = kinds[pr.accountId],
                   followed.contains(accountId: pr.accountId, repo: pr.repo) else { continue }
             if let match, match.account.id != pr.accountId || match.repo.caseInsensitiveCompare(pr.repo) != .orderedSame { continue }
             guard matches(pr, state: state) else { continue }
@@ -84,7 +85,7 @@ enum ListPullRequestsTool {
             if let mine, MCPPullRequest.isMine(pr, userId: userIds[pr.accountId]) != mine { continue }
             if let unread, item.isRead == unread { continue }
             if let checks, pr.checks?.state != checks { continue }
-            matching.append(MCPPullRequest(pr, item: item, userId: userIds[pr.accountId], checksOff: checksOff))
+            matching.append(MCPPullRequest(pr, kind: kind, item: item, userId: userIds[pr.accountId], checksOff: checksOff))
         }
         matching.sort {
             if $0.createdAt != $1.createdAt { return $0.createdAt > $1.createdAt }

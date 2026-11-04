@@ -20,7 +20,7 @@ De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, G
 |---|---|
 | ⌘N | Nieuw account…: Instellingen, Accounts, met de keuze van de dienst |
 | ⇧⌘N | Volg een repository… |
-| ⌘O | De selectie (of de open repository) in de browser openen |
+| ⌘O | De selectie (of de open repository) in de browser openen; bij een package de pagina in het register |
 | ⌘W | Het venster sluiten |
 
 ## Wijzig
@@ -48,6 +48,7 @@ De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, G
 | ⌘3 | Statistieken |
 | ⌘4 | Repo's |
 | ⌘5 | Afhankelijkheden |
+| ⌘6 | Packages |
 | ⌘↓ | Repositorypagina: de pagina van de gekozen repository |
 
 ## Onderdeel
@@ -59,6 +60,7 @@ De gekozen pull request, tag of release.
 | ⇧⌘U | Markeer als gelezen of Markeer als ongelezen |
 | ⌘K | Alles als gelezen markeren |
 | ⇧⌘L | Kopieer link |
+| ⌥⇧⌘L | Kopieer verwijzing: van de gekozen pull requests, zoals `FerroHEALTH/FerroFED#1570` |
 
 ## Repository
 
@@ -81,7 +83,7 @@ De gekozen repository, of de open pagina van een repository.
 | ⌘M | Minimaliseren |
 | ⌘0 | Pullwatch: het hoofdvenster openen of naar voren halen |
 
-Help leidt naar deze documentatie (Pullwatch-help), naar deze pagina (Toetscombinaties), naar de release notes van jouw versie (Nieuw in Pullwatch), naar een nieuw issue op GitHub (Meld een probleem…) en naar Erkenningen.
+Help leidt naar deze documentatie (Pullwatch-help), naar deze pagina (Toetscombinaties), naar de release notes van jouw versie (Nieuw in Pullwatch), naar Privacy en bronnen (Instellingen, Bronnen: elke verbinding die Pullwatch maakt), naar een nieuw issue op GitHub (Meld een probleem…) en naar Erkenningen.
 
 ## Dock
 

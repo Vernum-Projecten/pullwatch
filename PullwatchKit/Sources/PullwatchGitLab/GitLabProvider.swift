@@ -13,7 +13,7 @@ public actor GitLabProvider: PRProvider {
     }
 
     let accountId: UUID
-    private let owners: [String]
+    let owners: [String]
     let tokenSource: any TokenSource
     let http: any HTTPClient
     let now: @Sendable () -> Date

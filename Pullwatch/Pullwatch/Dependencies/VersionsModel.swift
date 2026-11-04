@@ -18,6 +18,9 @@ final class VersionsModel {
     /// (`VersionReport.visible(disabled:accountKinds:)`): wat de schermen en meldingen tonen.
     private(set) var versionReport: VersionReport?
     private(set) var packageSummaries: [PackageSummary] = []
+    /// Wat de gevolgde repo's zelf publiceren, met wie het gebruikt (het onderdeel Packages, de regel
+    /// op het Overzicht van een repo); leeg als de bron uit staat.
+    private(set) var publishedPackages: [PublishedPackageSummary] = []
     /// Voortgang van "Afhankelijkheden checken"; `nil` als er niets loopt.
     private(set) var versionCheck: CheckProgress?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
@@ -96,6 +99,7 @@ final class VersionsModel {
         }
         versionReport = visible
         packageSummaries = visible?.packageSummaries() ?? []
+        publishedPackages = visible?.publishedPackageSummaries() ?? []
         registryIndex = RegistryIndex(visible?.packageMetadata ?? [:])
         updateContexts = [:]
         if notify { didChangeReport() }
@@ -143,12 +147,14 @@ final class VersionsModel {
         checkTask?.cancel()
     }
 
-    /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat.
+    /// Eens per dag (`VersionReport.autoInterval`) vanzelf, als de instelling aan staat; meteen
+    /// als het bewaarde rapport door een oudere versie van de check gemaakt is, want dat mist wat
+    /// de check nu leest (transitieve packages, gevraagde bereiken).
     func startAutoVersionCheckIfDue() {
         guard config.autoVersionCheck, versionCheck == nil, !config.pollableAccounts.isEmpty else { return }
         let now = Date()
         if let nextAutoVersionAttempt, now < nextAutoVersionAttempt { return }
-        if let last = storedReport?.checkedAt, now.timeIntervalSince(last) < VersionReport.autoInterval { return }
+        if let stored = storedReport, !stored.isOutdatedFormat, now.timeIntervalSince(stored.checkedAt) < VersionReport.autoInterval { return }
         nextAutoVersionAttempt = now + VersionReport.autoRetryInterval
         startCheck(automatic: true)
     }
@@ -170,7 +176,7 @@ final class VersionsModel {
     }
 
     private func runVersionCheck(automatic: Bool) async {
-        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: storedReport, disabledSources: config.disabledSources, accounts: config.accounts)
         let fresh = await checker.run(accounts: config.pollableAccounts) { @MainActor [weak self] done, total in
             self?.versionCheck = CheckProgress(done: done, total: total)
         }
@@ -192,8 +198,9 @@ final class VersionsModel {
         }
         let previous = storedReport
         // GitHubs adviezen: wat de vorige check al had blijft, alleen nieuwe GHSA-ids gaan de deur uit.
+        // Eigen packages van een account waarvan het register nu niet lukte, blijven van de vorige check.
         let report = await checker.completingAdvisories(
-            of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous),
+            of: fresh.carryingSeenDates(from: previous).carryingAdvisories(from: previous).carryingPublishedPackages(from: previous),
             accounts: config.pollableAccounts
         )
         // Een volledige check dekt alles wat nu gevolgd wordt.
@@ -234,7 +241,7 @@ final class VersionsModel {
     }
 
     private func runRefresh(of repo: RepoSummary, account: Account) async {
-        let checker = services.versionChecker(metadataCache: storedReport?.packageMetadata ?? [:], disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: storedReport, disabledSources: config.disabledSources, accounts: config.accounts)
         let (fresh, latest, metadata) = await checker.run(account: account, repo: repo.repo)
         guard let report = storedReport else { return }
         let updated = await checker.completingAdvisories(
@@ -275,7 +282,7 @@ final class VersionsModel {
     }
 
     private func runNewRepoCheck(from start: VersionReport) async {
-        let checker = services.versionChecker(metadataCache: start.packageMetadata, disabledSources: config.disabledSources)
+        let checker = services.versionChecker(previous: start, disabledSources: config.disabledSources, accounts: config.accounts)
         let fresh = await checker.runMissing(accounts: config.pollableAccounts, in: start) { @MainActor done, total in
             self.versionCheck = CheckProgress(done: done, total: total)
         }
@@ -324,6 +331,10 @@ final class VersionsModel {
         if settings.packageUpdates,
            let content = builder.packageUpdates(report.newPackageVersions(since: previous, onlyCanUpdateNow: settings.onlyUpdatesYouCanTake)) {
             notifier.deliver([content])
+        }
+        // Een nieuwe versie van een eigen package: wat de schermen tonen, dus niets als de bron uit staat.
+        if settings.publishedPackages {
+            notifier.deliver(shown.newPublishedVersions(since: previous).map(builder.publishedVersion))
         }
     }
 }

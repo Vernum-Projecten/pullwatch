@@ -11,7 +11,11 @@ La fenêtre principale (**Ouvrir…** dans le panneau du menu) commence par deux
 
 ## Pull requests
 
-Chaque ligne affiche l’icône d’état aux couleurs de GitHub (ouverte, brouillon, en file d’attente, fusionnée, fermée), les checks, le titre, le dépôt, l’auteur avec les coauteurs (« mona et 2 autres ») et la date d’ouverture. Cherchez par titre, auteur ou dépôt, et double-cliquez sur une ligne pour l’ouvrir dans le navigateur.
+Chaque ligne affiche l’icône d’état aux couleurs de GitHub (ouverte, brouillon, en file d’attente, fusionnée, fermée), les checks, le titre, le dépôt avec le numéro, l’auteur avec les coauteurs (« mona et 2 autres ») et la date d’ouverture. Cherchez par titre, numéro, auteur ou dépôt, et double-cliquez sur une ligne pour l’ouvrir dans le navigateur.
+
+Le numéro est écrit comme le service l’écrit : FerroHEALTH/FerroFED #1570 sur GitHub, Bitbucket, Gitea, Forgejo et Codeberg, group/project !42 pour une merge request sur GitLab et une pull request sur Azure DevOps. Le panneau du menu l’affiche sous le titre, une page de dépôt avant le titre et une notification après le dépôt. Survolez-le pour voir la référence complète, `FerroHEALTH/FerroFED#1570`. Trier sur Repo garde ensemble les pull requests d’un dépôt, par numéro.
+
+Pour retrouver une pull request, cherchez `1570`, `#1570`, `!42`, `FerroFED#1570` ou `FerroHEALTH/FerroFED#1570`. Un numéro seul trouve aussi les titres qui le contiennent. **Copier la référence** dans le menu Élément (⌥⇧⌘L) place `FerroHEALTH/FerroFED#1570` dans le presse-papiers, prêt pour un message de commit, une issue ou un chat.
 
 Une pull request ouverte qui attend d’être fusionnée automatiquement apparaît en file d’attente, avec une icône orange : dans une merge queue sur GitHub, dans un merge train ou programmée pour être fusionnée quand le pipeline réussit sur GitLab, ou avec l’auto-complete sur Azure DevOps.
 

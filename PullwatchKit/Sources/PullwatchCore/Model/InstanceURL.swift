@@ -30,6 +30,12 @@ public enum InstanceURL {
     /// wordt "github.com".
     public static func parse(_ text: String, for kind: ProviderKind) -> URL? {
         guard let url = parse(text) else { return nil }
+        // Gitea en Forgejo: "https://git.example.com/api/v1" wordt "https://git.example.com".
+        if kind == .gitea, var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           components.path.lowercased().hasSuffix("/api/v1") {
+            components.path.removeLast("/api/v1".count)
+            return components.url ?? url
+        }
         guard kind == .gitHub, var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let host = components.host else { return url }
         for suffix in ["/api/v3", "/api/graphql"] where components.path.lowercased().hasSuffix(suffix) {
