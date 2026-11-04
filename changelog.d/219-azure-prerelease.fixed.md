@@ -1,0 +1,1 @@
+- An Azure Artifacts package whose newest version is a pre-release no longer shows that pre-release as its latest version: the highest stable release is the latest, as for container images, and the newer pre-release is mentioned next to it. Dependencies on the stable release no longer read as behind.
