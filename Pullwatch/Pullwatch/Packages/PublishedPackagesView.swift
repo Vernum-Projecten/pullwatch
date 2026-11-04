@@ -257,9 +257,9 @@ private struct PublishedPackagesNotices: View {
                     HStack(alignment: .firstTextBaseline) {
                         Label {
                             if let name = permission.accountName {
-                                Text("Niet gecontroleerd: \(name) mag het register niet lezen", comment: "Accountnaam")
+                                Text("Geen toegang tot het packageregister van \(name)", comment: "Accountnaam, zoals \"github op GitHub\"")
                             } else {
-                                Text("Niet gecontroleerd: een account mag het register niet lezen")
+                                Text("Geen toegang tot het packageregister van een account")
                             }
                         } icon: {
                             Image(systemName: "lock")

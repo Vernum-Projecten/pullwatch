@@ -5852,16 +5852,16 @@
     "De GitHub CLI is niet geïnstalleerd: installeer hem (brew install gh) en log in met gh auth login -h %@ -s read:packages.": {
       "comment": "De host van GitHub; de opdrachten niet vertalen",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The GitHub CLI is not installed: install it (brew install gh) and log in with gh auth login -h %@ -s read:packages."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die GitHub CLI ist nicht installiert: Installiere sie (brew install gh) und melde dich mit gh auth login -h %@ -s read:packages an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The GitHub CLI is not installed: install it (brew install gh) and log in with gh auth login -h %@ -s read:packages."
           }
         },
         "fr": {
@@ -8219,6 +8219,51 @@
         }
       }
     },
+    "Geen toegang tot het packageregister van %@": {
+      "comment": "Accountnaam, zoals \"github op GitHub\"",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Zugriff auf die Paket-Registry von %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to the package registry of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas d’accès au registre de paquets de %@"
+          }
+        }
+      }
+    },
+    "Geen toegang tot het packageregister van een account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Zugriff auf die Paket-Registry eines Kontos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to the package registry of an account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas d’accès au registre de paquets d’un compte"
+          }
+        }
+      }
+    },
     "Geen toegang tot het register": {
       "localizations": {
         "de": {
@@ -9068,16 +9113,16 @@
     },
     "GitHub geeft packages niet aan de GitHub App; Pullwatch leest ze met gh.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with gh."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "GitHub gibt Pakete nicht an die GitHub App heraus; Pullwatch liest sie mit gh."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with gh."
           }
         },
         "fr": {
@@ -9090,16 +9135,16 @@
     },
     "GitHub geeft packages niet aan de GitHub App; Pullwatch leest ze met het token van gh, met de scope read:packages.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with the token of gh, with the read:packages scope."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "GitHub gibt Pakete nicht an die GitHub App heraus; Pullwatch liest sie mit dem Token von gh, mit dem Scope read:packages."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with the token of gh, with the read:packages scope."
           }
         },
         "fr": {
@@ -11452,10 +11497,10 @@
     "Leest met gh als %@, niet als %@: dat werkt als %@ de packages van de gevolgde eigenaren mag zien.": {
       "comment": "Het gh-account, het account van de GitHub App, nog eens het gh-account",
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leest met gh als %1$@, niet als %2$@: dat werkt als %3$@ de packages van de gevolgde eigenaren mag zien."
+            "value": "Liest mit gh als %1$@, nicht als %2$@: Das funktioniert, wenn %3$@ die Pakete der gefolgten Eigentümer sehen darf."
           }
         },
         "en": {
@@ -11464,16 +11509,16 @@
             "value": "Reads with gh as %1$@, not as %2$@: this works when %3$@ can see the packages of the followed owners."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Liest mit gh als %1$@, nicht als %2$@: Das funktioniert, wenn %3$@ die Pakete der gefolgten Eigentümer sehen darf."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Lit avec gh en tant que %1$@, pas en tant que %2$@ : cela fonctionne si %3$@ peut voir les paquets des propriétaires suivis."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leest met gh als %1$@, niet als %2$@: dat werkt als %3$@ de packages van de gevolgde eigenaren mag zien."
           }
         }
       }
@@ -11481,16 +11526,16 @@
     "Leest met gh als %@.": {
       "comment": "Het gh-account dat de packages leest",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reads with gh as %@."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Liest mit gh als %@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads with gh as %@."
           }
         },
         "fr": {
@@ -12529,29 +12574,6 @@
         }
       }
     },
-    "Niet gecontroleerd: %@ mag het register niet lezen": {
-      "comment": "Accountnaam",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht geprüft: %@ darf die Registry nicht lesen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not checked: %@ may not read the registry"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non vérifié : %@ ne peut pas lire le registre"
-          }
-        }
-      }
-    },
     "Niet gecontroleerd: bron %@ staat uit": {
       "comment": "Naam van een bron die uitgezet is (Instellingen, Bronnen)",
       "localizations": {
@@ -12577,28 +12599,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niet gecontroleerd: bron %@ staat uit"
-          }
-        }
-      }
-    },
-    "Niet gecontroleerd: een account mag het register niet lezen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht geprüft: ein Account darf die Registry nicht lesen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not checked: an account may not read the registry"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non vérifié : un compte ne peut pas lire le registre"
           }
         }
       }
@@ -15726,16 +15726,16 @@
     },
     "Packages lezen met de GitHub CLI": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read packages with the GitHub CLI"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pakete mit der GitHub CLI lesen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read packages with the GitHub CLI"
           }
         },
         "fr": {
@@ -22209,10 +22209,10 @@
     "gh is niet ingelogd op %@: log in met gh auth login -h %@ -s read:packages.": {
       "comment": "De host van GitHub, twee keer; de opdracht niet vertalen",
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "gh is niet ingelogd op %1$@: log in met gh auth login -h %2$@ -s read:packages."
+            "value": "gh ist nicht bei %1$@ angemeldet: Melde dich mit gh auth login -h %2$@ -s read:packages an."
           }
         },
         "en": {
@@ -22221,16 +22221,16 @@
             "value": "gh is not logged in to %1$@: log in with gh auth login -h %2$@ -s read:packages."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "gh ist nicht bei %1$@ angemeldet: Melde dich mit gh auth login -h %2$@ -s read:packages an."
-          }
-        },
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "gh n'est pas connecté à %1$@ : connectez-vous avec gh auth login -h %2$@ -s read:packages."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gh is niet ingelogd op %1$@: log in met gh auth login -h %2$@ -s read:packages."
           }
         }
       }
