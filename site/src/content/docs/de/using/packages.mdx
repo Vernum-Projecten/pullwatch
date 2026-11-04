@@ -49,7 +49,7 @@ Pullwatch liest nur. Ein Konto ohne Zugriff sagt das; der Rest von Pullwatch fun
 
 | Dienst | Was es braucht |
 |---|---|
-| GitHub, angemeldet mit GitHub | GitHub gibt einer GitHub App keinen Zugriff auf Pakete, deshalb liest Pullwatch sie mit der GitHub CLI: melde dich mit `gh` an und füge den Scope mit `gh auth refresh -h github.com -s read:packages` hinzu |
+| GitHub, angemeldet mit GitHub | die GitHub CLI: GitHub gibt Pakete an keine GitHub App heraus, deshalb liest Pullwatch sie mit `gh`. Schalte **Pakete mit der GitHub CLI lesen** im Konto-Editor ein (von selbst an, wenn `gh` angemeldet ist) und gib `gh` den Scope mit `gh auth refresh -h github.com -s read:packages` |
 | GitHub, mit `gh` oder einem Classic token | den Scope `read:packages` (`gh auth refresh -s read:packages`) |
 | GitLab | `read_api`, das Pullwatch ohnehin braucht |
 | Azure DevOps, mit einem Token | Packaging (Read) |
