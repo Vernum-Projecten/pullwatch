@@ -8,7 +8,7 @@ Pullwatch runs on your Mac and nowhere else. It has no account, no server of its
 ## What stays on your Mac
 
 - **Tokens** live in the macOS Keychain, under `nl.torrisi.pullwatch`. When you sign in with `gh`, `az` or `glab`, the token stays with that tool.
-- **Settings, history and check results** are JSON files in `~/Library/Application Support/Pullwatch/`: `config.json`, `seen.json`, `history.json`, `versions.json` and `version-history.json`.
+- **Settings, history and check results** are JSON files in `~/Library/Application Support/Pullwatch/`: `config.json`, `seen.json`, `history.json`, `versions.json` and `version-history.json`. Every full check adds a compact snapshot to `version-history.json` (versions, states, vulnerability counts and package updates per repository, at most 730 snapshots), kept for statistics over time.
 
 Removing an account removes its history too.
 
@@ -44,7 +44,7 @@ Each of these has a switch. A source that is off is called nowhere: not in the d
 
 **Copy overview** puts the whole list, with the version, the date and the state of each source, on the clipboard as plain text, to paste into an email or chat, for example for your security team.
 
-Everything is on by default. Your choice is stored in `config.json`.
+Everything is on by default. Your choice is stored in `config.json`, as `disabledSources`.
 
 ## Public repositories without a token
 

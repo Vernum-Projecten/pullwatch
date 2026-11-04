@@ -54,7 +54,12 @@ Under **Other repositories** at the bottom of the list, add a single repository 
 - Azure DevOps: `project/repo` inside the account's organization, or a dev.azure.com link.
 - GitLab: `group/subgroup/project`, or a link from gitlab.com or the account's own server.
 
-Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com or gitlab.com that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, also in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
+Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com or gitlab.com that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, in the Go menu and in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
+
+Such a repository shows up everywhere like the others you follow, grouped under its own owner.
+
+- **GitHub**: this also works for a public repository of another organization where the Pullwatch GitHub App is not installed, such as `openEHR/specifications-AM`. The pull requests of these repositories come in one search per account, with up to 30 repositories per search.
+- **GitLab**: links from gitlab.com or the account's own server work, also `/-/` links such as `/-/merge_requests/12`; a link to another server is refused. A public project is read without signing in only when the server answers without a token: gitlab.com does, a server that requires signing in does not, and then the project is not found. Each such project costs one request per poll for its merge requests (one page, the 100 most recently updated).
 
 ## How often Pullwatch looks
 
