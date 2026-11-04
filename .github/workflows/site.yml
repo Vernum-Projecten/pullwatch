@@ -51,8 +51,10 @@ jobs:
           node-version-file: site/.nvmrc
           cache: npm
           cache-dependency-path: site/package-lock.json
+      # No package needs its install scripts (sharp, esbuild and Pagefind ship
+      # prebuilt binaries as optional packages), so none of them runs.
       - name: npm ci
-        run: npm ci --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
       # The other address first, so both builds are checked whatever the
       # variable holds; the build that is deployed comes last.
       - name: build for a custom domain and check its links

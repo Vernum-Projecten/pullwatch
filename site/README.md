@@ -11,8 +11,8 @@ You need the Node version in `.nvmrc` (with nvm: `nvm use`).
 
 ```sh
 cd site
-npm ci                 # the exact versions of package-lock.json
-npm run dev            # http://localhost:4321/pullwatch/, reloads on every change
+npm ci --ignore-scripts   # the exact versions of package-lock.json, no install scripts
+npm run dev               # http://localhost:4321/pullwatch/, reloads on every change
 ```
 
 Astro's telemetry is off in CI; turn it off on your Mac too with
