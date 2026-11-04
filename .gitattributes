@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+
+# Text is stored and checked out with LF line endings.
+* text=auto eol=lf
+*.swift text eol=lf
+*.md text eol=lf
+*.xcstrings text eol=lf
+*.pbxproj text eol=lf
+*.xcconfig text eol=lf
+*.sh text eol=lf
+
+# Images, and the layers of the Icon Composer app icon, are never diffed or
+# merged as text.
+*.png binary
+*.jpg binary
+*.icns binary
+**/*.icon/Assets/** binary
+
+# The language bar counts the app, not the website.
+site/** linguist-documentation
