@@ -54,5 +54,7 @@ features let an AI agent you already use work with what Pullwatch knows:
 
 Pullwatch itself sends nothing anywhere for these features. What an agent
 does with the answers it gets, such as sending them to its model provider,
-is between you and that agent. See [SECURITY.md](SECURITY.md) for how to
-report a problem with the helper or its socket.
+is between you and that agent. The website's
+[Agents](https://pullwatch.net/agents/) page explains the setup,
+[docs/mcp.md](docs/mcp.md) the design, and [SECURITY.md](SECURITY.md) how
+to report a problem with the helper or its socket.
