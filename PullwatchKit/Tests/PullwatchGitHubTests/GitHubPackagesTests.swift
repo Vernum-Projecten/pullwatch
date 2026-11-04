@@ -201,6 +201,42 @@ import PullwatchTestSupport
         #expect(urls(http).filter { $0.contains("/packages?") }.count == 1, "na de eerste weigering niets meer")
     }
 
+    /// Zo ging het met een echt account (#204-onderzoek, 4 november): de GitHub App staat niet op
+    /// het eigen account, dus `/users/{user}/packages` geeft 403, maar de organisaties wel. Die
+    /// weigering mag de packages van de organisatie niet tegenhouden.
+    @Test func `A refused owner does not hide the packages of the other owners`() async throws {
+        let http = MockHTTPClient()
+        http.on("users/ruben/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
+        http.on("users/ruben", body: #"{"login":"ruben","type":"User"}"#)
+        http.on("packages/npm/web/versions", body: "[\(version("1.2.0", type: "npm"))]")
+        http.on("orgs/acme/packages?package_type=npm&", body: "[\(package("web", type: "npm", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+        organization(http)
+        let provider = GitHubProvider(
+            accountId: fixedAccountId, owners: ["ruben", "acme"], authMethod: .gitHubApp, tokenSource: StaticTokenSource(token: "ghtok"), http: http
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result.packages.map(\.name) == ["web"])
+        #expect(result.packages.first?.owner == "acme")
+    }
+
+    @Test func `Every owner refused needs permission`() async throws {
+        let http = MockHTTPClient()
+        http.on("users/ruben/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
+        http.on("users/ruben", body: #"{"login":"ruben","type":"User"}"#)
+        http.on("orgs/acme/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
+        organization(http)
+        let provider = GitHubProvider(
+            accountId: fixedAccountId, owners: ["ruben", "acme"], authMethod: .gitHubApp, tokenSource: StaticTokenSource(token: "ghtok"), http: http
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .gitHubApp)))
+    }
+
     @Test func `Refused versions need permission too`() async throws {
         let http = MockHTTPClient()
         organization(http)
