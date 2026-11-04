@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Het menu Ga: terug, de onderdelen van de zijbalk (⌘1 tot ⌘5) en de pagina van de gekozen
+/// Het menu Ga: terug, de onderdelen van de zijbalk (⌘1 tot ⌘6) en de pagina van de gekozen
 /// repository. Vooruit ontbreekt: `AppRouter` houdt alleen een pad bij, geen weg vooruit.
 struct GoCommands: Commands {
     let model: AppModel

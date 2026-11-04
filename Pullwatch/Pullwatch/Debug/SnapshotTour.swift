@@ -66,8 +66,21 @@ enum SnapshotTour {
             ("stats", { model.router.show(.stats) }),
             ("repos", { model.router.show(.repos) }),
             ("versions", { model.router.show(.dependencies) }),
+            // Wat de repo's publiceren: de lijst, een package met wie het gebruikt, en het filter op één repo.
+            ("packages", { model.router.show(.packages) }),
             ("history-author-token", { model.router.showHistory(.pullRequest, author: "mona") }),
         ]
+        if let package = model.versions.publishedPackages.first(where: { !$0.users.isEmpty }) ?? model.versions.publishedPackages.first {
+            steps.append(("packages-inspector", {
+                model.router.show(.packages)
+                model.router.publishedPackagesRequest = PublishedPackagesRequest(selection: package.id)
+            }))
+        }
+        if let publisher = model.versions.publishedPackages.first(where: { $0.package.repository != nil })?.package {
+            steps.append(("packages-repo", {
+                model.router.showPublishedPackages(of: HistoryRepo(accountId: publisher.accountId, repo: publisher.repository ?? ""))
+            }))
+        }
         if let group {
             steps.append(("history-group", { model.router.sidebarSelection = .group(.pullRequest, group.id) }))
         }
@@ -83,8 +96,8 @@ enum SnapshotTour {
                 steps.append(("repo-check-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .check, rowId: advisory.id) }))
             }
             // Packages, met een package dat iets tegenhoudt in het inspectievenster.
-            steps.append(("repo-packages", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .packages) }))
-            steps.append(("repo-packages-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .packages, rowId: "|npm:express") }))
+            steps.append(("repo-packages", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .dependencies) }))
+            steps.append(("repo-packages-inspector", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .dependencies, rowId: "|npm:express") }))
             // De beveiliging van GitHub zelf, met een melding van code scanning.
             steps.append(("repo-security", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .security) }))
             if let alert = repo.versions?.security?.findingRows.first {

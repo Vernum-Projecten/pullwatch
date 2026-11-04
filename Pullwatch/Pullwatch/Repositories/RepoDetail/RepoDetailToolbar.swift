@@ -66,7 +66,7 @@ private struct RepoFilterMenu: View {
     private var isActive: Bool {
         switch tab {
         case .check: page.vulnerabilityFilter.isActive || page.onlyOutdatedComponents
-        case .packages: page.packageFilter.isActive
+        case .dependencies: page.packageFilter.isActive
         case .overview, .security: false
         }
     }
@@ -77,7 +77,7 @@ private struct RepoFilterMenu: View {
             case .check:
                 VulnerabilityFilterItems(filter: $page.vulnerabilityFilter, onlyOutdated: $page.onlyOutdatedComponents,
                                          releaseTag: page.summary?.comparedWith)
-            case .packages:
+            case .dependencies:
                 PackageFilterItems(filter: $page.packageFilter)
             case .overview, .security:
                 EmptyView()

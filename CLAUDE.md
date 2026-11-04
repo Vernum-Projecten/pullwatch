@@ -60,7 +60,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `HelpLinks`; `MenuBarTests` checks the order and the key items),
   `Shortcuts` (the focused values the menus read: `browserTarget`,
   `repoTarget`, `readTarget`, `searchFocus`), `SearchShortcut` and
-  `MainView` (sidebar: PRs, Tags, Repos, Versions, Statistics). The Dock
+  `MainView` (sidebar: PRs, Tags, Statistics, Repos, Dependencies, Packages). The Dock
   menu (Reload, Check All Repositories) is `AppDelegate.applicationDockMenu`.
   `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
   model asks for through `AppRouter.windowRequest`) and `MenuView` (the
@@ -76,13 +76,16 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Repositories/`: `OverviewModel` (repo summaries and sidebar), `ReposView`,
   the models of the repository page (`RepoPage`, `RepoBriefs`,
   `RepoVersions+Clipboard`) and `RepoDetail/`: `RepoDetailView` with a file
-  per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoPackagesTab`,
+  per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoDependenciesTab`,
   `RepoSecurityTab`), `RepoInspector` and `RepoDetailToolbar`; it puts the
   agent briefs behind the Overview headings and in the toolbar's More menu
   (`RepoBriefs`, one per section).
   `Dependencies/`: `VersionsModel` (the version check, the stored report and
   the one the screens show without the data of sources that are off),
   `PackagesView` and `PackageRows`.
+  `Packages/`: the Packages section (what followed repositories publish):
+  `PublishedPackagesView`, its cells, `PublishedPackageInspector` and the
+  symbol per type (`PublishedPackageType+Display`).
   `Security/`: the vulnerability table and its cells, `AdvisoryInspector`.
   `Statistics/`: `StatsView` and its charts.
   `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,
@@ -218,7 +221,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   a tool error (`isError`), an unknown tool as `-32602`. `Tools/` holds the
   read-only tools (`get_status`, `list_pull_requests`, `get_pull_request`,
   `list_tags`, `list_repositories`, `get_repository_report`,
-  `list_vulnerabilities`, `explain_update`, `get_agent_brief`), one type per
+  `list_vulnerabilities`, `list_packages`, `explain_update`, `get_agent_brief`), one type per
   file, built by `PullwatchMCPTools.all(dataSource:)` over an
   `MCPDataSource` (async accessors for what the app's models hold: accounts,
   history, repo summaries, the shown version report, update contexts, poll

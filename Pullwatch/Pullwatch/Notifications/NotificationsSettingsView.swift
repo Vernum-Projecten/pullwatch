@@ -43,6 +43,8 @@ struct NotificationsSettingsView: View {
                 Toggle("Alleen voor updates die nu kunnen", isOn: Bindable(app).notificationSettings.onlyUpdatesYouCanTake)
                     .disabled(!app.notificationSettings.packageUpdates)
                     .help("Alleen een melding als een repo de nieuwe versie binnen zijn bereik kan nemen, zonder manifest aan te passen of eerst iets anders bij te werken")
+                kindToggle(.publishedPackage, "Nieuwe versies van je eigen packages", isOn: Bindable(app).notificationSettings.publishedPackages)
+                    .help("Een melding als een package dat een gevolgde repo publiceert een nieuwe versie heeft (het onderdeel Packages)")
             } header: {
                 Text("Afhankelijkheden en kwetsbaarheden")
             } footer: {

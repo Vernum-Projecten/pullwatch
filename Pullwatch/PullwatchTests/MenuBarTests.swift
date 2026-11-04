@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import SwiftUI
 import Testing
 
 @testable import Pullwatch
@@ -65,6 +66,15 @@ import Testing
         #expect(reference.title == String(localized: "Kopieer verwijzing"))
         #expect(item.index(of: reference) == item.index(of: link) + 1)
         #expect(!reference.isAlternate, "Kopieer verwijzing staat er altijd, niet alleen met ⌥")
+    }
+
+    @Test func `The Go menu lists every section in sidebar order, Packages on Command-6`() throws {
+        let go = try #require(menus[safe: 4])
+        let sections = MainSection.allCases.compactMap { section in
+            go.item(key: section.shortcut.character.description, modifiers: [.command])
+        }
+        #expect(sections.map(\.title) == MainSection.allCases.map { String(localized: $0.title) })
+        #expect(go.item(key: "6", modifiers: [.command])?.title == String(localized: MainSection.packages.title))
     }
 
     @Test func `The Window menu brings back the main window`() throws {

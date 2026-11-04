@@ -11,7 +11,7 @@ import Testing
 
     static let names = [
         "get_status", "list_pull_requests", "get_pull_request", "list_tags", "list_repositories", "get_repository_report",
-        "list_vulnerabilities", "explain_update", "get_agent_brief",
+        "list_vulnerabilities", "list_packages", "explain_update", "get_agent_brief",
     ]
 
     /// Elke tool met argumenten die zoveel mogelijk uitvoer geven.
@@ -24,6 +24,7 @@ import Testing
         ("get_repository_report", ["repo": "acme/web", "limit": 100]),
         ("get_repository_report", ["repo": "group/app"]),
         ("list_vulnerabilities", ["limit": 100]),
+        ("list_packages", ["limit": 100]),
         ("explain_update", ["repo": "acme/web", "package": "body-parser"]),
         ("get_agent_brief", ["repo": "acme/web", "section": "security"]),
         ("get_agent_brief", ["repo": "acme/web", "section": "check"]),
@@ -54,7 +55,7 @@ import Testing
         #expect(!wire.contains("acme/old"))
     }
 
-    @Test(arguments: names.filter { ["get_pull_request", "get_repository_report", "explain_update", "get_agent_brief", "list_pull_requests", "list_tags", "list_vulnerabilities"].contains($0) })
+    @Test(arguments: names.filter { ["get_pull_request", "get_repository_report", "explain_update", "get_agent_brief", "list_pull_requests", "list_tags", "list_vulnerabilities", "list_packages"].contains($0) })
     func `Every tool that takes a repository refuses one that is not followed`(name: String) async throws {
         let arguments: [String: Value] = ["repo": "evil/other", "number": 1, "package": "x", "section": "check"]
         let schema = try #require(PullwatchMCPTools.all(dataSource: FakeDataSource()).first { $0.name == name }?.inputSchema.jsonSchema)

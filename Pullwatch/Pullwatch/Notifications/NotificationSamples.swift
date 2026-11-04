@@ -80,6 +80,13 @@ struct NotificationSamples {
         )
     }
 
+    private var publishedPackage: PublishedPackage {
+        PublishedPackage(
+            accountId: Self.accountId, name: "@octo-org/ui", type: .npm, owner: "octo-org", repository: Self.repo,
+            versions: [PublishedVersion(version: "2.4.0")]
+        )
+    }
+
     var accounts: [Account] {
         [Account(id: Self.accountId, kind: .gitHub, organization: "octo-org", authMethod: .gitHubApp, login: "mona")]
     }
@@ -97,6 +104,7 @@ struct NotificationSamples {
         case .vulnerability: builder.vulnerability(vulnerability)
         case .securityAlert: builder.securityAlert(securityAlert)
         case .packageUpdate: builder.packageUpdates([packageUpdate])
+        case .publishedPackage: builder.publishedVersion(publishedPackage)
         case .appUpdate: builder.appUpdate(AvailableUpdate(version: "2.0.0", pageURL: Self.web, downloadURL: nil, installsInApp: true))
         case .account: builder.authFailure(accounts[0])
         case .agent: builder.agentApproval(clientName: "claude-code", displayName: "Claude Code")

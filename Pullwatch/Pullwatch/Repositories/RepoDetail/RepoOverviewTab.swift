@@ -26,7 +26,11 @@ struct RepoOverviewTab: View {
                 health: summary.health,
                 accountName: account?.displayName,
                 latestTag: summary.latestTag,
-                checkedAt: summary.versions == nil ? nil : versions.versionReport?.checkedAt
+                checkedAt: summary.versions == nil ? nil : versions.versionReport?.checkedAt,
+                published: versions.publishedPackages.map(\.package).filter {
+                    $0.accountId == summary.accountId && $0.repository?.caseInsensitiveCompare(summary.repo) == .orderedSame
+                },
+                showPublished: { router.showPublishedPackages(of: historyRepo) }
             )
             RepoPullRequestsSection(
                 items: pullRequests,

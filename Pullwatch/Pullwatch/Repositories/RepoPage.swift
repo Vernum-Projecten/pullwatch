@@ -121,7 +121,7 @@ final class RepoPage {
         }
         switch request.tab {
         case .check: vulnerabilitySelection = request.rowId
-        case .packages: packageSelection = request.rowId
+        case .dependencies: packageSelection = request.rowId
         case .security: securitySelection = request.rowId
         case .overview: return
         }
@@ -139,8 +139,8 @@ final class RepoPage {
         switch filter {
         case .vulnerabilities: tab == .check && !onlyOutdatedComponents
         case .outdated: tab == .check && onlyOutdatedComponents
-        case .canUpdate: tab == .packages && packageFilter.status == .category(.canUpdateNow)
-        case .blocked: tab == .packages && packageFilter.status == .category(.blocked)
+        case .canUpdate: tab == .dependencies && packageFilter.status == .category(.canUpdateNow)
+        case .blocked: tab == .dependencies && packageFilter.status == .category(.blocked)
         case .security: tab == .security
         }
     }
@@ -159,10 +159,10 @@ final class RepoPage {
             return .check
         case .canUpdate:
             packageFilter.status = wasActive ? nil : .category(.canUpdateNow)
-            return .packages
+            return .dependencies
         case .blocked:
             packageFilter.status = wasActive ? nil : .category(.blocked)
-            return .packages
+            return .dependencies
         case .security:
             return .security
         }
@@ -175,7 +175,7 @@ final class RepoPage {
         switch activeTab {
         case .overview: break
         case .check: recomputeVulnerabilities()
-        case .packages: recomputePackages()
+        case .dependencies: recomputePackages()
         case .security: recomputeSecurity()
         }
     }

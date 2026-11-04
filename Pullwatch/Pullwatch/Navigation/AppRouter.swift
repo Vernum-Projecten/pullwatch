@@ -46,6 +46,9 @@ final class AppRouter {
     var historyTokens: [HistoryToken] = []
     /// Zoektekst die het onderdeel Versies bij openen overneemt (sprong vanaf een CVE).
     var packagesSearch: String?
+    /// Filter dat het onderdeel Packages bij openen overneemt (een repo vanaf zijn Overzicht, een
+    /// package vanaf een melding); het onderdeel zet dit weer op nil.
+    var publishedPackagesRequest: PublishedPackagesRequest?
     /// Het laatst gekozen tabblad van de repo-pagina; geldt voor elke repo.
     var repoTab: RepoTab = UserDefaults.standard.string(forKey: "repoTab").flatMap(RepoTab.init) ?? .overview {
         didSet { UserDefaults.standard.set(repoTab.rawValue, forKey: "repoTab") }
@@ -119,6 +122,18 @@ final class AppRouter {
     func showPackage(_ name: String) {
         navigate(to: .dependencies)
         packagesSearch = name
+    }
+
+    /// Packages, gefilterd op wat één repo publiceert.
+    func showPublishedPackages(of repo: HistoryRepo) {
+        navigate(to: .packages)
+        publishedPackagesRequest = PublishedPackagesRequest(repo: repo)
+    }
+
+    /// Packages, gezocht op een package (vanaf een melding).
+    func showPublishedPackage(_ name: String) {
+        navigate(to: .packages)
+        publishedPackagesRequest = PublishedPackagesRequest(search: name)
     }
 
     /// Statistieken van één repo, bovenop de repo-pagina.

@@ -271,6 +271,24 @@ struct NotificationContentBuilder {
         )
     }
 
+    /// Een nieuwe nieuwste versie van een package dat een gevolgde repo publiceert (het onderdeel
+    /// Packages); een klik opent dat onderdeel, gezocht op het package.
+    func publishedVersion(_ package: PublishedPackage) -> NotificationContent {
+        let version = package.latestVersion ?? ""
+        return NotificationContent(
+            identifier: "published-\(package.accountId.uuidString)/\(package.id)@\(version)",
+            kind: .publishedPackage,
+            title: String(localized: "Nieuwe versie van \(package.name)", bundle: bundle, comment: "Meldingstitel; naam van een package dat een gevolgde repo publiceert"),
+            subtitle: package.repository ?? package.owner,
+            body: String(localized: "Versie \(version) gepubliceerd", bundle: bundle, comment: "Meldingstekst; het nieuwe versienummer van een eigen package"),
+            threadIdentifier: "packages",
+            category: nil,
+            importance: .of(.publishedPackage, quiet: quiet),
+            avatarURL: nil,
+            payload: NotificationPayload(section: MainSection.packages.rawValue, package: package.name)
+        )
+    }
+
     /// Een klik opent Sparkle's venster om te installeren, of zonder Sparkle de DMG (of de
     /// releasepagina als die er niet bij staat).
     func appUpdate(_ update: AvailableUpdate) -> NotificationContent {
