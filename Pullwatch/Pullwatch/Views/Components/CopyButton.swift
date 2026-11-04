@@ -14,8 +14,7 @@ struct CopyButton: View {
 
     var body: some View {
         let button = Button {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text(), forType: .string)
+            Pasteboard.copy(text())
             copied = true
             Task {
                 try? await Task.sleep(for: .seconds(1.5))
