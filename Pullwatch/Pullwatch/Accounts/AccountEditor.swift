@@ -46,8 +46,11 @@ struct AccountEditor: View {
     /// Op een eigen server in plaats van github.com of gitlab.com: GitHub Enterprise (Server of
     /// GHE.com), of een eigen GitLab-server. Alleen dan staat er een veld voor het adres.
     private let isEnterprise: Bool
-    /// GitLab: de groepen en gebruikers zoals getypt, met komma's; `draft.owners` volgt.
+    /// GitLab: de groepen en gebruikers, Bitbucket: de workspaces, zoals getypt, met komma's;
+    /// `draft.owners` volgt.
     @State private var ownersText: String
+    /// Bitbucket: het e-mailadres van het Atlassian-account zoals getypt; `draft.email` volgt.
+    @State private var emailText: String
     /// Hoe het account inlogde toen de editor openging; een bestaand `gh`-account houdt die keuze.
     private let originalAuthMethod: AuthMethod
 
@@ -73,9 +76,10 @@ struct AccountEditor: View {
         isEnterprise = switch original.kind {
         case .gitHub: enterprise || original.isGitHubEnterprise
         case .gitLab: enterprise || original.instanceURL != nil
-        case .azureDevOps: false
+        case .azureDevOps, .bitbucket: false
         }
         _ownersText = State(initialValue: original.owners.joined(separator: ", "))
+        _emailText = State(initialValue: original.email ?? "")
         originalAuthMethod = original.authMethod
         isNew = !accounts.config.accounts.contains { $0.id == original.id }
         self.onSaved = onSaved
@@ -89,9 +93,28 @@ struct AccountEditor: View {
     }
 
     /// `gh` alleen nog voor accounts die het al gebruiken, of zolang er geen GitHub App is; op
-    /// GitHub Enterprise altijd (`gh auth login --hostname`).
+    /// GitHub Enterprise altijd (`gh auth login --hostname`). Bitbucket heeft geen officiële CLI
+    /// die een token leesbaar bewaart, dus daar nooit.
     private var offersCLI: Bool {
-        draft.kind != .gitHub || isEnterprise || originalAuthMethod == .cli || !accounts.gitHubApp.isConfigured
+        switch draft.kind {
+        case .bitbucket: false
+        case .gitHub: isEnterprise || originalAuthMethod == .cli || !accounts.gitHubApp.isConfigured
+        case .azureDevOps, .gitLab: true
+        }
+    }
+
+    /// Bitbucket logt alleen in met een API-token: dan valt er niets te kiezen.
+    private var offersChoice: Bool {
+        offersGitHubApp || offersCLI
+    }
+
+    /// Bitbucket: het e-mailadres van het Atlassian-account hoort bij het token.
+    private var needsEmail: Bool {
+        draft.kind == .bitbucket
+    }
+
+    private var lacksEmail: Bool {
+        needsEmail && (draft.email ?? "").isEmpty
     }
 
     /// Of er een veld voor het adres van de server staat.
@@ -109,6 +132,7 @@ struct AccountEditor: View {
         case .azureDevOps: "Azure CLI (az login)"
         case .gitHub: "GitHub CLI (gh auth login)"
         case .gitLab: "GitLab CLI (glab auth login)"
+        case .bitbucket: "API-token met scopes"
         }
     }
 
@@ -130,6 +154,9 @@ struct AccountEditor: View {
         switch draft.kind {
         case .gitLab:
             return URL(string: base.absoluteString + "/-/user_settings/personal_access_tokens?name=Pullwatch&scopes=read_api")
+        case .bitbucket:
+            // Atlassian kan de scopes niet vooraf invullen; de hint noemt ze.
+            return URL(string: "https://id.atlassian.com/manage-profile/security/api-tokens")
         case .gitHub where draft.isGitHubEnterprise:
             return URL(string: base.absoluteString + "/settings/tokens/new?description=Pullwatch&scopes=repo,read:org")
         default:
@@ -138,15 +165,17 @@ struct AccountEditor: View {
     }
 
     private var tokenHint: LocalizedStringKey {
-        draft.kind == .gitLab
-            ? "Een personal access token met de scope read_api"
-            : "Een classic token met de scopes repo en read:org, of een fine-grained token met leestoegang"
+        switch draft.kind {
+        case .gitLab: "Een personal access token met de scope read_api"
+        case .bitbucket: "Kies Create API token with scopes, dan Bitbucket, met read:user:bitbucket, read:repository:bitbucket en read:pullrequest:bitbucket"
+        default: "Een classic token met de scopes repo en read:org, of een fine-grained token met leestoegang"
+        }
     }
 
     var body: some View {
         Form {
-            Section("Inloggen") {
-                if isNew {
+            Section {
+                if isNew && offersChoice {
                     Picker("Authenticatie", selection: $draft.authMethod) {
                         if offersGitHubApp {
                             Text("Inloggen met GitHub").tag(AuthMethod.gitHubApp)
@@ -193,15 +222,21 @@ struct AccountEditor: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                if draft.kind == .gitLab {
-                    TextField(String(localized: "Groepen of gebruikers"), text: $ownersText, prompt: Text(verbatim: "acme, acme/platform"))
-                        .autocorrectionDisabled()
-                        .accessibilityIdentifier("account.organization")
-                        .help("Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.")
-                        .onChange(of: ownersText) { _, text in
-                            let owners = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-                            if owners != draft.owners { draft.owners = owners }
-                        }
+                if draft.kind == .gitLab || draft.kind == .bitbucket {
+                    TextField(
+                        draft.kind == .bitbucket ? String(localized: "Workspaces") : String(localized: "Groepen of gebruikers"),
+                        text: $ownersText,
+                        prompt: Text(verbatim: draft.kind == .bitbucket ? "acme, acme-labs" : "acme, acme/platform")
+                    )
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("account.organization")
+                    .help(draft.kind == .bitbucket
+                          ? "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo."
+                          : "Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.")
+                    .onChange(of: ownersText) { _, text in
+                        let owners = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                        if owners != draft.owners { draft.owners = owners }
+                    }
                 } else if draft.authMethod != .gitHubApp {
                     // Een voorbeeld in het veld, zodat je ziet waar je typt en wat er hoort.
                     TextField(
@@ -227,11 +262,25 @@ struct AccountEditor: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                if needsEmail {
+                    TextField(String(localized: "E-mailadres"), text: $emailText, prompt: Text(verbatim: "name@example.com"))
+                        .textContentType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .accessibilityIdentifier("account.email")
+                        .help("Het e-mailadres van je Atlassian-account; Bitbucket wil het samen met het API-token.")
+                        .onChange(of: emailText) { _, text in
+                            let email = text.trimmingCharacters(in: .whitespaces)
+                            draft.email = email.isEmpty ? nil : email
+                        }
+                }
                 if draft.authMethod == .pat {
                     SecureField(
-                        storedPAT ? String(localized: "Opgeslagen, laat leeg om te behouden") : String(localized: "Token"),
+                        storedPAT
+                            ? String(localized: "Opgeslagen, laat leeg om te behouden")
+                            : (draft.kind == .bitbucket ? String(localized: "API-token") : String(localized: "Token")),
                         text: $pat
                     )
+                    .accessibilityIdentifier("account.token")
                     if let tokenPage {
                         LabeledContent {
                             Link("Token maken", destination: tokenPage)
@@ -260,6 +309,12 @@ struct AccountEditor: View {
                         connectionStatus
                     }
                     .accessibilityIdentifier("account.connection")
+                }
+            } header: {
+                Text("Inloggen")
+            } footer: {
+                if draft.kind == .bitbucket {
+                    Text("Bitbucket kent geen releases: bij Tags en releases staan voor dit account alleen tags.")
                 }
             }
 
@@ -385,7 +440,7 @@ struct AccountEditor: View {
             if !isNew { app.updateAccount(account) }
         }
         // De repositories laden vanzelf, opnieuw als de plekken of het inloggen veranderen.
-        .task(id: RepoLoad(owners: draft.owners, instanceURL: draft.instanceURL, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
+        .task(id: RepoLoad(owners: draft.owners, email: draft.email, instanceURL: draft.instanceURL, method: draft.authMethod, cliUser: draft.cliUser, hasNewToken: !pat.isEmpty, signedIn: signIn?.isSignedIn ?? false, reload: reloadCount)) {
             await loadRepos()
         }
         .onDisappear {
@@ -427,7 +482,7 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    private var hasRequiredFields: Bool { draft.isComplete }
+    private var hasRequiredFields: Bool { draft.isComplete && !lacksEmail }
 
     private var validationMessage: LocalizedStringKey? {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
@@ -441,8 +496,10 @@ struct AccountEditor: View {
             case .azureDevOps: return "Vul de organisatie in"
             case .gitHub: return "Vul de owner in"
             case .gitLab: return "Vul een groep of gebruiker in"
+            case .bitbucket: return "Vul een workspace in"
             }
         }
+        if lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }
@@ -481,6 +538,7 @@ struct AccountEditor: View {
     /// Wanneer de repositories opnieuw moeten laden.
     private struct RepoLoad: Equatable {
         let owners: [String]
+        let email: String?
         let instanceURL: URL?
         let method: AuthMethod
         let cliUser: String?
@@ -492,13 +550,13 @@ struct AccountEditor: View {
     private var methodName: LocalizedStringKey {
         switch draft.authMethod {
         case .gitHubApp: "Inloggen met GitHub"
-        case .pat: "Personal Access Token"
+        case .pat: draft.kind == .bitbucket ? "API-token met scopes" : "Personal Access Token"
         case .cli: cliName
         }
     }
 
     private func loadRepos() async {
-        guard draft.isComplete, draft.authMethod != .gitHubApp || signIn?.isSignedIn == true,
+        guard hasRequiredFields, draft.authMethod != .gitHubApp || signIn?.isSignedIn == true,
               draft.authMethod != .pat || storedPAT || !pat.isEmpty else {
             isLoadingRepos = false
             return

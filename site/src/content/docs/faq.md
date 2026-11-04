@@ -13,7 +13,7 @@ macOS 26.6 or later, on Apple silicon and on Intel. It is one universal app.
 
 ## Which services does it support?
 
-GitHub (github.com, GitHub Enterprise Server and GHE.com), Azure DevOps, and GitLab (gitlab.com and your own server). See [Add your accounts](/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server and GHE.com), Azure DevOps, GitLab (gitlab.com and your own server), and Bitbucket Cloud (bitbucket.org). See [Add your accounts](/getting-started/accounts/).
 
 ## Can Pullwatch change anything in my repositories?
 
@@ -33,7 +33,7 @@ Tags without a release, merged pull requests and new versions arrive quietly on 
 
 ## Can I follow a repository that is not mine?
 
-Yes. Add it under **Other repositories** in its account, or with **Watch a Repository…** (⇧⌘N). A public repository on github.com or gitlab.com works even when your token cannot read it.
+Yes. Add it under **Other repositories** in its account, or with **Watch a Repository…** (⇧⌘N). A public repository on github.com, gitlab.com or bitbucket.org works even when your token cannot read it.
 
 ## Which languages does Pullwatch speak?
 
@@ -43,6 +43,6 @@ English, Dutch, German and French. It follows macOS, or you choose under Setting
 
 Pullwatch looks for updates once a day and installs them for you. See [Updates](/getting-started/install/#updates).
 
-## Is Pullwatch affiliated with GitHub, GitLab or Microsoft?
+## Is Pullwatch affiliated with GitHub, GitLab, Atlassian or Microsoft?
 
-No. GitHub is a trademark of GitHub, Inc., GITLAB is a trademark of GitLab Inc., and Azure DevOps is a trademark of the Microsoft group of companies.
+No. GitHub is a trademark of GitHub, Inc., GITLAB is a trademark of GitLab Inc., Bitbucket is a trademark of Atlassian, and Azure DevOps is a trademark of the Microsoft group of companies.

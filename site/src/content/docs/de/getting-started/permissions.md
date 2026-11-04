@@ -1,6 +1,6 @@
 ---
 title: Token-Berechtigungen
-description: Die Scopes und Berechtigungen, die Pullwatch auf GitHub, GitHub Enterprise, Azure DevOps und GitLab braucht.
+description: Die Scopes und Berechtigungen, die Pullwatch auf GitHub, GitHub Enterprise, Azure DevOps, GitLab und Bitbucket braucht.
 ---
 
 Pullwatch liest nur. Gib einem Token die unten genannten Leseberechtigungen und nichts weiter. Fehlt eine Berechtigung für einen optionalen Teil, zeigt dieser Teil **Berechtigung nötig** mit einem Link, und der Rest funktioniert weiter.
@@ -42,6 +42,18 @@ Mit der Azure CLI meldest du dich mit `az login` an; Pullwatch fragt `az` nach e
 ## GitLab
 
 Ein Personal Access Token mit dem Scope **read_api** deckt Merge Requests, Projekte, Tags, Releases, Commits und Dateien ab. `api` funktioniert auch, gibt aber mehr frei, als Pullwatch braucht. Mit der GitLab CLI liest Pullwatch `glab config get token --host <server>`.
+
+## Bitbucket
+
+Ein **API-Token mit Scopes** von Atlassian für die App Bitbucket, zusammen mit der E-Mail-Adresse deines Atlassian-Kontos:
+
+| Scope | Benötigt für |
+|---|---|
+| `read:user:bitbucket` | dein eigenes Konto, um deine eigenen Pull Requests auszublenden |
+| `read:repository:bitbucket` | Repositories, Tags, Build-Status (die Checks) und die Prüfung der Abhängigkeiten |
+| `read:pullrequest:bitbucket` | Pull Requests und ihre Commits (die Co-Autoren) |
+
+Mehr verlangt Pullwatch nicht. `read:workspace:bitbucket` ist nicht nötig: Pullwatch prüft einen Workspace über seine Repositories. Die App-Passwörter von Bitbucket funktionieren seit Juli 2026 nicht mehr.
 
 ## Anmelden mit einem Kommandozeilenwerkzeug
 

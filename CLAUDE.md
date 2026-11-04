@@ -157,7 +157,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
   refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
-  without a window, in six modules under `Sources/`. The names start with
+  without a window, in seven modules under `Sources/`. The names start with
   `Pullwatch` so a module never shares its name with a type in it.
   `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
   `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
@@ -183,7 +183,13 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `GhCLIAccounts`.
   `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
   `PullwatchGitLab/`: `GitLabProvider` (gitlab.com and self-managed, REST v4)
-  and the `glab` token source. Each provider has the same layout: the
+  and the `glab` token source. `PullwatchBitbucket/`: `BitbucketProvider`
+  (Bitbucket Cloud, REST API 2.0 on `api.bitbucket.org/2.0`; workspaces as
+  owners, Basic auth with the Atlassian account's email (`Account.email`) and
+  an API token with scopes from the Keychain, pages through `next` links on
+  the API host only, the open pull requests of a repository asked again only
+  when its `updated_on` moved or after `openRefresh`, build statuses as checks,
+  tags without releases; no CLI token source). Each provider has the same layout: the
   provider itself (accounts, repositories, pull requests), `+Tags`, `+HTTP`,
   one file of DTOs, and a `+Area` file per further area (co-authors, files,
   checks, security, extra repositories, merge queues and trains).
@@ -234,8 +240,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
   the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
-  anonymous fallback for public repositories on github.com and gitlab.com
-  only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
+  anonymous fallback for public repositories on github.com, gitlab.com and
+  bitbucket.org only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
   screens), `PullwatchProviders` and `PullwatchMCP` (the helper only
   `PullwatchMCP`). Only what another module or the app
   uses is `public`; what only the package's own modules share is `package`.
@@ -243,7 +249,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Bundle.localized…` helper (`Support/Localization.swift`).
   `Tests/`: one Swift Testing target per module (`PullwatchCoreTests`,
   `PullwatchGitHubTests`, `PullwatchAzureDevOpsTests`,
-  `PullwatchGitLabTests`, `PullwatchProvidersTests`, `PullwatchMCPTests`),
+  `PullwatchGitLabTests`, `PullwatchBitbucketTests`, `PullwatchProvidersTests`,
+  `PullwatchMCPTests`),
   and `PullwatchTestSupport` with the shared
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
   (starting at `Date.testStart`), `CLILocator.homebrew` and `.nothing`,

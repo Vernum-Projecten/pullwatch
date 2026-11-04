@@ -48,7 +48,7 @@ Tout est activé par défaut. Votre choix est enregistré dans `config.json`, so
 
 ## Dépôts publics sans jeton
 
-Un dépôt public sur github.com ou gitlab.com que votre jeton ne peut pas lire est lu sans connexion. Pullwatch n’envoie jamais le jeton d’un compte à un autre serveur : un jeton GitHub Enterprise reste sur son propre serveur.
+Un dépôt public sur github.com, gitlab.com ou bitbucket.org que votre jeton ne peut pas lire est lu sans connexion. Pullwatch n’envoie jamais le jeton d’un compte à un autre serveur : un jeton GitHub Enterprise reste sur son propre serveur.
 
 ## Logiciels open source
 

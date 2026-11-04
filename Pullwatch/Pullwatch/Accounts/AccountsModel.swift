@@ -274,12 +274,12 @@ final class AccountsModel {
 
     /// Hoe een nieuw account standaard inlogt: GitHub via de GitHub App (als die er is),
     /// Azure DevOps via `az login`, GitLab met een personal access token (`glab` staat op minder
-    /// Macs dan een token in de Keychain).
+    /// Macs dan een token in de Keychain), Bitbucket met een API-token (iets anders is er niet).
     func defaultAuthMethod(for kind: ProviderKind) -> AuthMethod {
         switch kind {
         case .gitHub: gitHubApp.isConfigured ? .gitHubApp : .cli
         case .azureDevOps: .cli
-        case .gitLab: .pat
+        case .gitLab, .bitbucket: .pat
         }
     }
 

@@ -1,4 +1,5 @@
 import Foundation
+import PullwatchCore
 import Testing
 
 @testable import Pullwatch
@@ -91,6 +92,20 @@ import Testing
             #expect(notice.contains(component.name), "NOTICE noemt \(component.name) niet")
             #expect(notice.contains(component.version), "NOTICE noemt versie \(component.version) van \(component.name) niet")
         }
+    }
+
+    /// Elk logo van een dienst (`ProviderKind.glyph` als asset) staat in NOTICE: zijn bestand in de
+    /// assetcatalogus en de zin dat Pullwatch niet bij de eigenaar hoort.
+    @Test(arguments: ProviderKind.allCases)
+    func `Every provider logo is credited in NOTICE`(kind: ProviderKind) throws {
+        guard case .asset(let asset) = kind.glyph else { return }
+        let notice = try String(contentsOf: folder.appending(path: "NOTICE"), encoding: .utf8)
+        let flat = notice.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        #expect(flat.contains("Assets.xcassets/\(asset).imageset"), "NOTICE noemt \(asset) niet")
+        // Tot het volgende logo: de zin moet bij dit logo staan.
+        let after = try #require(flat.components(separatedBy: "Assets.xcassets/\(asset).imageset").last)
+        let paragraph = after.components(separatedBy: "Assets.xcassets/").first ?? after
+        #expect(paragraph.contains("Pullwatch is not affiliated with"), "NOTICE zegt bij \(asset) niet dat Pullwatch er niet bij hoort")
     }
 
     /// Sparkle is het enige dynamisch gelinkte onderdeel: de versie van het framework in de bundle

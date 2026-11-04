@@ -1,5 +1,6 @@
 import Foundation
 import PullwatchAzureDevOps
+import PullwatchBitbucket
 public import PullwatchCore
 public import PullwatchGitHub
 import PullwatchGitLab
@@ -33,6 +34,9 @@ public enum ProviderFactory {
                     host: GitHubEndpoints(instanceURL: account.effectiveInstanceURL).cliHost
                 )
             case .gitLab: tokens = GlabCLISource(runner: runner, host: account.effectiveInstanceURL?.host() ?? "gitlab.com")
+            case .bitbucket:
+                // Bitbucket heeft geen officiële CLI die een token leesbaar bewaart: dan geen token.
+                tokens = KeychainPATSource(store: secrets, accountId: account.id)
             }
         case .gitHubApp:
             tokens = GitHubAppTokenSource(
@@ -65,6 +69,15 @@ public enum ProviderFactory {
                 owners: account.owners,
                 extraRepos: account.extraRepos,
                 instanceURL: account.effectiveInstanceURL,
+                tokenSource: tokens,
+                http: http
+            )
+        case .bitbucket:
+            return BitbucketProvider(
+                accountId: account.id,
+                workspaces: account.owners,
+                email: account.email,
+                extraRepos: account.extraRepos,
                 tokenSource: tokens,
                 http: http
             )

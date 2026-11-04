@@ -263,6 +263,20 @@ an account connects to GitLab: on the account choice of the welcome window,
 the account cards in Settings and the add-account menu. Pullwatch is not
 affiliated with, endorsed, sponsored, or approved by GitLab Inc.
 
+Bitbucket and Atlassian are trademarks of Atlassian, which is their sole owner
+(Atlassian Trademark Guidelines, https://www.atlassian.com/legal/trademark).
+Pullwatch shows the Bitbucket icon, unmodified and in its brand colours on
+light and dark backgrounds, from Atlassian's own logo component: the "brand"
+appearance of bitbucket/icon in the npm package @atlaskit/logo 23.3.1
+(https://atlassian.design/components/logo/, the same icon as in
+bitbucket_attribution.zip at https://atlassian.design/foundations/logos), with
+its two colour variables written as their default values (#94c748 and
+#101214), in Pullwatch/Pullwatch/Assets.xcassets/BitbucketMark.imageset. It
+appears only to say that an account connects to Bitbucket Cloud: on the account
+choice of the welcome window, the account cards in Settings and the
+add-account menu. Pullwatch is not affiliated with, endorsed, sponsored, or
+approved by Atlassian.
+
 Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
 uses only the name, with the SF Symbol cloud.circle.fill; Microsoft permits
 its Azure icons only in architecture diagrams, training materials and

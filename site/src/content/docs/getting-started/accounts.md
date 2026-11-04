@@ -1,6 +1,6 @@
 ---
 title: Add your accounts
-description: Connect GitHub, GitHub Enterprise, Azure DevOps and GitLab, and choose which repositories Pullwatch follows.
+description: Connect GitHub, GitHub Enterprise, Azure DevOps, GitLab and Bitbucket, and choose which repositories Pullwatch follows.
 ---
 
 Open **Settings** (the gear button in the menu panel) and go to **Accounts**. Add an account with **+**, choose how Pullwatch signs in, and use **Test connection** to check it. You can add as many accounts as you like, of any kind.
@@ -36,6 +36,14 @@ Leave **Server** empty for gitlab.com, or enter your own server (https only, for
 
 Sign in with a personal access token with the `read_api` scope, or with the GitLab CLI (`glab auth login`). **Create token** in the account editor opens your server's token page with the name and scope filled in.
 
+## Bitbucket
+
+Choose **Bitbucket** on its card in the welcome window, or **Bitbucket Cloud** in the **+** menu. This is Bitbucket Cloud on bitbucket.org; Bitbucket Data Center is not supported. List the workspaces to follow under **Workspaces**, separated by commas, such as `acme, acme-labs`. The workspace is the first part of a link, `bitbucket.org/<workspace>/<repo>`, and repositories appear as `workspace/repo`.
+
+Sign in with an Atlassian API token with scopes and the email address of your Atlassian account, under **Email address**. **Create token** opens the API tokens page of your Atlassian account: choose **Create API token with scopes**, then **Bitbucket**, and the read scopes in [Token permissions](/getting-started/permissions/). App passwords no longer work, and there is no Bitbucket command-line tool that Pullwatch could take a token from. The email address is kept in the settings, the token in the Keychain.
+
+Bitbucket has no releases, so **Tags and Releases** shows only tags for a Bitbucket account. The checks of a pull request are the build statuses on its latest commit, from Bitbucket Pipelines or any other CI that reports them. Bitbucket has no list of all pull requests in a workspace, so Pullwatch asks each repository; a repository that did not change since the last poll is asked again after 10 minutes at the latest.
+
 ## Choose what to follow
 
 Each account lists its repositories. Per repository, tick what you want:
@@ -53,8 +61,9 @@ Under **Other repositories** at the bottom of the list, add a single repository 
 - GitHub: `owner/repo`, or paste a github.com link.
 - Azure DevOps: `project/repo` inside the account's organization, or a dev.azure.com link.
 - GitLab: `group/subgroup/project`, or a link from gitlab.com or the account's own server.
+- Bitbucket: `workspace/repo`, or paste a bitbucket.org link.
 
-Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com or gitlab.com that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, in the File menu and in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
+Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com, gitlab.com or bitbucket.org that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, in the File menu and in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
 
 Such a repository shows up everywhere like the others you follow, grouped under its own owner.
 

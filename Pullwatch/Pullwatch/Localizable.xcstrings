@@ -2773,6 +2773,50 @@
         }
       }
     },
+    "API-token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API token"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-Token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeton d'API"
+          }
+        }
+      }
+    },
+    "API-token met scopes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API token with scopes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API-Token mit Scopes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeton d'API avec scopes"
+          }
+        }
+      }
+    },
     "Aan": {
       "localizations": {
         "de": {
@@ -4774,6 +4818,50 @@
         }
       }
     },
+    "Bitbucket kent geen releases: bij Tags en releases staan voor dit account alleen tags.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitbucket has no releases: Tags and Releases shows only tags for this account."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitbucket kennt keine Releases: Unter Tags und Releases stehen für dieses Konto nur Tags."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitbucket n'a pas de versions publiées : Tags et versions publiées n'affiche que des tags pour ce compte."
+          }
+        }
+      }
+    },
+    "Bitbucket-account toevoegen op bitbucket.org": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a Bitbucket account on bitbucket.org"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitbucket-Konto auf bitbucket.org hinzufügen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte Bitbucket sur bitbucket.org"
+          }
+        }
+      }
+    },
     "Bots verbergen": {
       "localizations": {
         "de": {
@@ -6115,6 +6203,28 @@
         }
       }
     },
+    "E-mailadres": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email address"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail-Adresse"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse e-mail"
+          }
+        }
+      }
+    },
     "EOL": {
       "localizations": {
         "de": {
@@ -6525,6 +6635,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Een schakelaar omzetten start geen check. Wat eerder van een bron kwam die nu uit staat, telt niet meer als actueel."
+          }
+        }
+      }
+    },
+    "Een workspace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Workspace"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un workspace"
+          }
+        }
+      }
+    },
+    "Een workspace op bitbucket.org (Bitbucket Cloud)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A workspace on bitbucket.org (Bitbucket Cloud)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Workspace auf bitbucket.org (Bitbucket Cloud)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un workspace sur bitbucket.org (Bitbucket Cloud)"
           }
         }
       }
@@ -8371,6 +8525,28 @@
         }
       }
     },
+    "Het e-mailadres van je Atlassian-account; Bitbucket wil het samen met het API-token.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email address of your Atlassian account; Bitbucket needs it together with the API token."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die E-Mail-Adresse deines Atlassian-Kontos; Bitbucket braucht sie zusammen mit dem API-Token."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'adresse e-mail de votre compte Atlassian ; Bitbucket la demande avec le jeton d'API."
+          }
+        }
+      }
+    },
     "Het gevraagde bereik %@ is niet te lezen.": {
       "localizations": {
         "de": {
@@ -9271,6 +9447,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisissez Tout pour voir tous les tags."
+          }
+        }
+      }
+    },
+    "Kies Create API token with scopes, dan Bitbucket, met read:user:bitbucket, read:repository:bitbucket en read:pullrequest:bitbucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Create API token with scopes, then Bitbucket, with read:user:bitbucket, read:repository:bitbucket and read:pullrequest:bitbucket"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle Create API token with scopes, dann Bitbucket, mit read:user:bitbucket, read:repository:bitbucket und read:pullrequest:bitbucket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez Create API token with scopes, puis Bitbucket, avec read:user:bitbucket, read:repository:bitbucket et read:pullrequest:bitbucket"
           }
         }
       }
@@ -13028,6 +13226,28 @@
         }
       }
     },
+    "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van Bitbucket": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public repository your account cannot access; Pullwatch reads it without a token, with a lower limit from Bitbucket"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentliches Repository, auf das dein Konto keinen Zugriff hat; Pullwatch liest es ohne Token, mit einem niedrigeren Limit von Bitbucket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dépôt public auquel votre compte n'a pas accès ; Pullwatch le lit sans jeton, avec une limite plus basse de Bitbucket"
+          }
+        }
+      }
+    },
     "Openbare repository waar je account niet bij mag; Pullwatch leest hem zonder token, met een lagere limiet van GitHub": {
       "localizations": {
         "de": {
@@ -15483,6 +15703,28 @@
         }
       }
     },
+    "Scheid meerdere met een komma. De workspace staat in de link: bitbucket.org/workspace/repo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate several with a comma. The workspace is in the link: bitbucket.org/workspace/repo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trenne mehrere mit einem Komma. Der Workspace steht im Link: bitbucket.org/workspace/repo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Séparez-les par une virgule. Le workspace figure dans le lien : bitbucket.org/workspace/repo."
+          }
+        }
+      }
+    },
     "Scheid meerdere met een komma. Een groep volgt ook zijn subgroepen.": {
       "localizations": {
         "de": {
@@ -16914,6 +17156,28 @@
         }
       }
     },
+    "Typ workspace/repo, of plak de link van bitbucket.org. Ook een openbare repository van een andere workspace kan; Pullwatch leest die zo nodig zonder inloggen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type workspace/repo, or paste the link from bitbucket.org. A public repository from another workspace works too; Pullwatch reads it without signing in if needed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib workspace/repo ein oder füge den Link von bitbucket.org ein. Auch ein öffentliches Repository eines anderen Workspace geht; Pullwatch liest es bei Bedarf ohne Anmeldung."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez workspace/dépôt, ou collez le lien de bitbucket.org. Un dépôt public d'un autre workspace fonctionne aussi ; Pullwatch le lit sans connexion si nécessaire."
+          }
+        }
+      }
+    },
     "Uit: Pullwatch haalt niets op voor dit account en stuurt er geen meldingen over. Wat je volgt blijft bewaard.": {
       "localizations": {
         "de": {
@@ -18046,6 +18310,28 @@
         }
       }
     },
+    "Vul een workspace in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a workspace"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen Workspace ein"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez un workspace"
+          }
+        }
+      }
+    },
     "Vul het adres van je GitHub Enterprise-server in": {
       "localizations": {
         "de": {
@@ -18090,6 +18376,28 @@
         }
       }
     },
+    "Vul het e-mailadres van je Atlassian-account in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the email address of your Atlassian account"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die E-Mail-Adresse deines Atlassian-Kontos ein"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez l'adresse e-mail de votre compte Atlassian"
+          }
+        }
+      }
+    },
     "Vul je server, een token en je gebruiker of organisatie in, en klik op Toevoegen. Met de GitHub CLI heb je geen token nodig.": {
       "localizations": {
         "de": {
@@ -18130,6 +18438,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez votre serveur, un jeton avec la portée read_api et vos groupes, puis cliquez sur Ajouter. Avec la GitLab CLI (glab auth login), aucun jeton n’est nécessaire."
+          }
+        }
+      }
+    },
+    "Vul je workspaces, het e-mailadres van je Atlassian-account en een API-token met leesrechten in, en klik op Toevoegen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your workspaces, the email address of your Atlassian account and an API token with read scopes, then click Add."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deine Workspaces, die E-Mail-Adresse deines Atlassian-Kontos und ein API-Token mit Leserechten ein und klicke auf Hinzufügen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez vos workspaces, l'adresse e-mail de votre compte Atlassian et un jeton d'API avec des droits de lecture, puis cliquez sur Ajouter."
           }
         }
       }
@@ -18684,6 +19014,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Espace de travail"
+          }
+        }
+      }
+    },
+    "Workspaces": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspaces"
           }
         }
       }

@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import PullwatchAzureDevOps
+import PullwatchBitbucket
 import PullwatchCore
 import PullwatchGitHub
 import PullwatchGitLab
@@ -12,6 +13,29 @@ import PullwatchTestSupport
         #expect(ProviderFactory.make(Account.fixture(kind: .azureDevOps)) is AzureDevOpsProvider)
         #expect(ProviderFactory.make(Account.fixture(kind: .gitHub)) is GitHubProvider)
         #expect(ProviderFactory.make(Account.fixture(kind: .gitLab)) is GitLabProvider)
+        #expect(ProviderFactory.make(Account.fixture(kind: .bitbucket)) is BitbucketProvider)
+    }
+
+    @Test func `Bitbucket signs in with the account email and the token from the Keychain`() async throws {
+        let http = MockHTTPClient()
+        http.on("https://api.bitbucket.org/2.0/user", body: #"{"uuid":"{1}","display_name":"Jane"}"#)
+        var account = Account.fixture(kind: .bitbucket)
+        account.email = "jane@example.com"
+        let secrets = InMemorySecretStore()
+        try secrets.write("ATATT-stored", account: account.id.uuidString)
+        #expect(try await ProviderFactory.make(account, secrets: secrets, http: http).currentUserId() == "{1}")
+        let expected = "Basic " + Data("jane@example.com:ATATT-stored".utf8).base64EncodedString()
+        #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == expected)
+    }
+
+    @Test func `Bitbucket uses a typed token before the Keychain`() async throws {
+        let http = MockHTTPClient()
+        http.on("https://api.bitbucket.org/2.0/user", body: #"{"uuid":"{1}","display_name":"Jane"}"#)
+        var account = Account.fixture(kind: .bitbucket)
+        account.email = "jane@example.com"
+        _ = try await ProviderFactory.make(account, pat: "ATATT-typed", secrets: InMemorySecretStore(), http: http).currentUserId()
+        let expected = "Basic " + Data("jane@example.com:ATATT-typed".utf8).base64EncodedString()
+        #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == expected)
     }
 
     @Test func gitLabTalksToItsOwnServer() async throws {

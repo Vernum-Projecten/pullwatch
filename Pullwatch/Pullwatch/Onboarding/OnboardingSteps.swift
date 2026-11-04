@@ -94,6 +94,8 @@ struct AccountStep: View {
             return "Vul je server, een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
         case (.gitLab, false):
             return "Vul een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig."
+        case (.bitbucket, _):
+            return "Vul je workspaces, het e-mailadres van je Atlassian-account en een API-token met leesrechten in, en klik op Toevoegen."
         default:
             return "Vul de gegevens in en klik op Toevoegen. Met de Azure CLI (az login) heb je geen token nodig."
         }

@@ -24,13 +24,18 @@ nonisolated extension ProviderKind {
     /// brand.github.com/foundations/logo). GitLab: het logomark uit de perskit van GitLab
     /// (gitlab-logo-500-rgb.svg), onveranderd en in volle kleur op licht en donker; een bewuste
     /// keuze van de eigenaar (fork-issue #174), terug te draaien met dit ene geval en de asset.
+    /// Bitbucket: het icoon van Bitbucket uit Atlassians eigen logo-component (`@atlaskit/logo`
+    /// 23.3.1, `bitbucket/icon`, de variant "brand"), onveranderd; Atlassian geeft één variant voor
+    /// licht en donker. Ook een keuze van de eigenaar (fork-issue #175), terug te draaien met dit
+    /// ene geval en de asset.
     /// Azure DevOps: Microsoft staat de Azure-iconen alleen toe in diagrammen en documentatie,
-    /// dus een gevuld SF Symbol, even zwaar als de twee logo's.
+    /// dus een gevuld SF Symbol, even zwaar als de logo's.
     var glyph: Glyph {
         switch self {
         case .gitHub: .asset("GitHubMark")
         case .azureDevOps: .system("cloud.circle.fill")
         case .gitLab: .asset("GitLabMark")
+        case .bitbucket: .asset("BitbucketMark")
         }
     }
 
@@ -43,9 +48,12 @@ nonisolated extension ProviderKind {
     /// bestand van GitLab houdt de vrije ruimte die GitLab eromheen voorschrijft in zijn canvas
     /// (het teken vult 41 procent van de breedte); die ruimte is doorzichtig en valt buiten het
     /// vak, het bestand zelf blijft onveranderd. De Invertocat en een SF Symbol vullen hun vak al.
+    /// Het icoon van Bitbucket is een gevuld vierkant tot in de hoeken; op de volle maat oogt het
+    /// groter dan de ronde tekens, dus iets kleiner.
     var glyphScale: CGFloat {
         switch self {
         case .gitLab: 2.3
+        case .bitbucket: 0.86
         case .gitHub, .azureDevOps: 1
         }
     }

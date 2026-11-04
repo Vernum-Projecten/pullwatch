@@ -52,6 +52,14 @@ import Testing
         #expect(ProviderKind.gitLab.glyphKeepsItsColours)
     }
 
+    /// Het Bitbucket-icoon blijft zoals Atlassian het geeft, in zijn eigen kleuren: geen template.
+    @Test func `Bitbucket mark keeps its colours`() throws {
+        let logo = try #require(NSImage(named: "BitbucketMark"))
+        #expect(!logo.isTemplate)
+        #expect(ProviderKind.bitbucket.glyph == .asset("BitbucketMark"))
+        #expect(ProviderKind.bitbucket.glyphKeepsItsColours)
+    }
+
     @Test(arguments: NotificationGlyph.allCases)
     func notificationGlyphsExist(_ glyph: NotificationGlyph) {
         #expect(exists(glyph.glyph))
