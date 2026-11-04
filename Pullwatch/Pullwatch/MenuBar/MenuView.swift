@@ -318,9 +318,9 @@ private struct RecentRow: View {
 
     private var author: String { item.entry.author ?? String(localized: "onbekend") }
 
-    /// Bij een PR de korte repo-naam met het nummer, bij een tag de repo voluit.
+    /// Bij een PR de repo voluit met het nummer (`FerroHEALTH/FerroFED #1570`), bij een tag de repo.
     private var repoLabel: String {
-        if case .pullRequest(let pr) = item.entry { pr.shortReference(kind) } else { item.entry.repo }
+        if case .pullRequest(let pr) = item.entry { pr.repoAndNumber(kind) } else { item.entry.repo }
     }
 
     /// De grijze regel voor VoiceOver: het nummer als "pull request 1570".
@@ -328,7 +328,7 @@ private struct RecentRow: View {
         guard case .pullRequest(let pr) = item.entry else {
             return Text("\(repoLabel), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
         }
-        let repo = PullRequest.shortName(of: pr.repo)
+        let repo = pr.repo
         let number = String(pr.number)
         return Text("\(repo), pull request \(number), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien")
     }
