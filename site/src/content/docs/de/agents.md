@@ -3,7 +3,7 @@ title: Agenten (MCP)
 description: Lass einen Coding-Agenten wie Claude Code, Codex, Cursor oder VS Code Pullwatch über MCP nach deinen Pull Requests, Repositories und Schwachstellen fragen.
 ---
 
-Pullwatch hat einen lokalen [Model Context Protocol](https://modelcontextprotocol.io)-Server. Ein Coding-Agent auf deinem Mac kann Pullwatch also fragen, was es weiß: „Welche meiner Pull Requests haben fehlgeschlagene Checks?“, „Was ist in `acme/web` kritisch?“, „Warum kann ich `express` nicht aktualisieren?“. Der Agent nutzt, was Pullwatch mit deinen Konten bereits abgerufen hat, und braucht deshalb kein eigenes Token.
+Pullwatch hat einen lokalen [Model Context Protocol](https://modelcontextprotocol.io)-Server. Ein Coding-Agent auf deinem Mac kann Pullwatch also fragen, was es weiß: „Welche meiner Pull Requests haben fehlgeschlagene Checks?“, „Was ist in `acme/web` kritisch?“, „Warum kann ich `express` nicht aktualisieren?“, „Wer ist noch auf einem alten `@acme/ui`?“. Der Agent nutzt, was Pullwatch mit deinen Konten bereits abgerufen hat, und braucht deshalb kein eigenes Token.
 
 Agenten lesen nur. Sie sehen nur die Repositories, denen du folgst, bekommen nie ein Token und können auf GitHub, Azure DevOps oder GitLab nichts ändern. Nichts wird geteilt, bevor du es einschaltest.
 
@@ -114,24 +114,24 @@ Die Konten (ID, Dienst, Name und Host), wie ihre letzte Abfrage lief, was gerade
 
 ### list_pull_requests
 
-Pull Requests aus dem Verlauf, neueste zuerst, mit ihren Checks. Argumente: `repo`, `account_id`, `state` (standardmäßig `open`, mit Entwürfen und Warteschlange; oder `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (nur deine), `unread` (`true` oder `false`), `checks` (`failed`, `pending` oder `passed`), `limit`, `cursor`.
+Pull Requests aus dem Verlauf, neueste zuerst, mit ihren Checks. Jeder hat eine `reference` in der Schreibweise seines Dienstes: `acme/web#1` auf GitHub, Bitbucket, Codeberg, Forgejo und Gitea, `group/project!42` auf GitLab und `project/repo!42` auf Azure DevOps. Argumente: `repo`, `account_id`, `state` (standardmäßig `open`, mit Entwürfen und Warteschlange; oder `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (nur deine), `unread` (`true` oder `false`), `checks` (`failed`, `pending` oder `passed`), `limit`, `cursor`.
 
 ```jsonc
 // list_pull_requests {"checks":"failed"}
 // "1 pull request (open), 1 with failing checks."
-{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"title":"Add login","author":"octo",
+{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"reference":"acme/web#1","title":"Add login","author":"octo",
   "state":"open","is_mine":true,"is_read":false,"checks":{"status":"failed","failed":1,"passed":3,"pending":0,"total":4},
   "url":"https://github.com/acme/web/pull/1"}]}
 ```
 
 ### get_pull_request
 
-Ein Pull Request: Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
+Ein Pull Request: seine `reference`, Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
 // "acme/web #3 (queued): Ready to merge"
-{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"title":"Ready to merge","author":"ada","co_authors":[],
+{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"reference":"acme/web#3","title":"Ready to merge","author":"ada","co_authors":[],
   "is_queued":true,"merge_queue":{"kind":"merge_queue","position":1},"checks":{"status":"passed","passed":4,"total":4},
   "url":"https://github.com/acme/web/pull/3"}}
 ```
@@ -164,7 +164,7 @@ Die Repositories, denen du folgst, schlechteste zuerst, mit ihrem Zustand (`prob
 
 ### get_repository_report
 
-Die Runtimes, Frameworks und Pakete eines Repositorys: installierte und neueste Version, was zurückliegt oder sein Lebensende erreicht hat, und was jedes Update aufhält. Argumente: `repo` (erforderlich), `account_id`, `only_outdated`, `limit`, `cursor` (sie blättern durch die Pakete).
+Die Runtimes, Frameworks und Pakete eines Repositorys: installierte und neueste Version, was zurückliegt oder sein Lebensende erreicht hat, und was jedes Update aufhält. Ein Paket, das eines der Repositories, denen du folgst, veröffentlicht, hat `in_house` (siehe unten). Argumente: `repo` (erforderlich), `account_id`, `only_outdated`, `limit`, `cursor` (sie blättern durch die Pakete).
 
 ```jsonc
 // get_repository_report {"repo":"acme/web","only_outdated":true,"limit":1}
@@ -190,9 +190,24 @@ Bekannte Schwachstellen in Paketen und die Warnungen von Code-Scanning und Advan
    "fixes":["Update express so it pulls in body-parser 1.20.3 or newer."]}]}
 ```
 
+### list_packages
+
+Die Pakete und Container-Images, die die Repositories, denen du folgst, in der Registry ihres eigenen Dienstes veröffentlichen (GitHub Packages, eine Registry von GitLab, ein Feed von Azure Artifacts), eines pro Paket, wie in [Pakete](/de/using/packages/): Typ, Konto, Owner, das veröffentlichende Repository (fehlt bei Azure Artifacts), die neueste Version und ihr Datum, Sichtbarkeit, die Seite in der Registry, die letzten Versionen mit ihrem Tag und Run, und `used_by`: die Repositories, denen du folgst und die davon abhängen, mit ihren Versionen und ob sie es selbst verlangen. `usage_known` ist `false` für Typen, die die Prüfung der Abhängigkeiten noch nicht abgleicht (Container-Images, Helm); ein leeres `used_by` heißt dort also unbekannt und nie ungenutzt. `needs_permission` listet die Konten, die ihre Registry nicht lesen dürfen, mit dem Grund, und `not_checked` nennt die Quelle, wenn **Paket-Registrys deiner Konten** aus ist. Argumente: `repo` (nur was dieses Repository veröffentlicht), `type` (`npm`, `container`, `nuget`, `maven`, `rubygems`, `pypi`, `helm`, `generic` und mehr), `account_id`, `limit`, `cursor`.
+
+```jsonc
+// list_packages {"repo":"acme/web"}
+// "1 published package."
+{"total":1,"not_checked":[],"needs_permission":[],"packages":[{"name":"ui","type":"npm","owner":"acme","repository":"acme/web",
+  "latest_version":"2.3.0","visibility":"private","url":"https://github.com/orgs/acme/packages/npm/package/ui",
+  "recent_versions":[{"version":"2.3.0","tag":"v2.3.0"},{"version":"2.2.0"}],
+  "used_by":[{"repository":"acme/admin","versions":["2.2.0"],"is_direct":true}],"usage_known":true}]}
+```
+
 ### explain_update
 
 Warum sich ein Paket nicht einfach aktualisieren lässt, pro Installation: der verlangte Bereich, der Schritt (Patch, Minor oder Major), was ihn aufhält und welche Schwachstellen ein Update behebt. Argumente: `repo` und `package` (beide erforderlich), `ecosystem` (nur wenn der Name mehrdeutig ist), `account_id`. Auch ein Paket, das nur über ein anderes Paket hereinkommt (jedes Paket aus einer Lockfile), wird erklärt: `via` nennt die Kette, und die Erklärung sagt, was das Beheben einer Schwachstelle verlangt, nur die Lockfile oder zuerst ein neueres Elternpaket.
+
+Für ein hauseigenes Paket fügen dieses Tool und `get_repository_report` beide `in_house` hinzu: `source` (das veröffentlichende Repository oder das Projekt in Azure DevOps), `repository`, `owner`, `url` (die Seite des Repositorys), `registry_url` (das Paket in deiner eigenen Registry), `status` und `reason`. Mit `status` `checked` kommt die neueste Version aus deiner eigenen Registry. Mit `source_off` oder `needs_permission` wurde sie nicht gelesen: `update` ist `not_checked`, `not_checked` nennt die Quelle oder die fehlende Berechtigung, und `reason` sagt, was du freigeben musst. Hauseigene Namen werden nie an eine öffentliche Registry oder OSV.dev gesendet.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

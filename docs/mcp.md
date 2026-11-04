@@ -4,7 +4,8 @@ How Pullwatch serves coding agents over the Model Context Protocol, for the
 people who work on it. What a user sees and does is on the website's
 [Agents page](../site/src/content/docs/agents.md) (`/agents/`). The epic is
 fork issue #139; the pieces landed in #146 (core), #147 (tools), #148
-(connection), #165 (Settings, Agents and approval) and #185 (menu panel).
+(connection), #165 (Settings, Agents and approval), #185 (menu panel)
+and #170 and #171 (`list_packages`, `in_house`).
 
 ## Architecture
 
@@ -121,6 +122,43 @@ anything; a message over the limit gets `-32600` and the session goes on.
 - In Xcode, the SDK's packages build with `-suppress-warnings`, so
   `SWIFT_TREAT_WARNINGS_AS_ERRORS` lives in the project's configurations and
   is never passed to `xcodebuild` on the command line (CLAUDE.md, Gates).
+
+## The tools
+
+`PullwatchMCPTools.all(dataSource:)` registers, in this order:
+`get_status`, `list_pull_requests`, `get_pull_request`, `list_tags`,
+`list_repositories`, `get_repository_report`, `list_vulnerabilities`,
+`list_packages`, `explain_update` and `get_agent_brief`. The website's
+Agents page documents each with its arguments and an example. Fields that
+need care:
+
+- **`reference`** (`MCPPullRequest`, in `list_pull_requests` and
+  `get_pull_request`, required): `PullRequest.reference(_:)`, the number as
+  the service writes it, `owner/name#1570` on GitHub, Bitbucket and Gitea,
+  `group/project!42` on GitLab, `project/repo!42` on Azure DevOps.
+- **`list_packages`** (`ListPackagesTool`, #170): one item per published
+  package from `VersionReport.publishedPackageSummaries()`, with `name`,
+  `type`, `account_id`, `owner`, `repository` (absent for Azure Artifacts),
+  `latest_version`, `published_at`, `visibility`, `url` (through
+  `withoutCredentials`), `recent_versions` (`version`, `published_at`,
+  `url`, `tag`, `run_url`; at most 10), `used_by` (followed repositories
+  only: `repository`, `versions` oldest first, `is_direct`) and
+  `usage_known` (`false` for types the dependency check does not match,
+  container images and Helm, so an empty `used_by` is not read as unused).
+  Filters `repo` (resolved with `MCPFollowedRepos`, so an unfollowed
+  repository is refused), `type`, `account_id`; paged. With the
+  `packageRegistries` source off it returns no packages and names the
+  source in `not_checked`; `needs_permission` lists each account whose
+  registry answered `.needsPermission(reason:)`, with that reason. Packages
+  of a repository that is no longer followed never appear.
+- **`in_house`** (`MCPInHouse`, in `get_repository_report` per package and
+  in `explain_update`, #171): `source`, `repository`, `owner`, `url`,
+  `registry_url`, `status` (`checked`, `source_off`, `needs_permission`) and
+  `reason`. When the registry was not read, `update` is `not_checked` and
+  `not_checked` names the source or the missing permission, never up to
+  date. The tools only read `PackageMetadata.inHouse`; that in-house names
+  never reach a public registry or OSV.dev is `VersionChecker`'s job
+  (`VersionCheckerInHouseTests`).
 
 ## Adding a tool
 

@@ -84,7 +84,25 @@ the same data folder, so the menu has content) for the menu panel and the
 notifications. The main window draws its sidebar empty, so crop the shots
 to the content to the right of it, at 2x. For another language, pass
 `-AppleLanguages '(nl)' -AppleLocale nl_NL` (or `de`, `fr`). A window that
-opens on a 1x display is drawn at 1x: take that run again.
+opens on a 1x display is drawn at 1x: take that run again, or pin the
+window to the built-in display through the argument domain, such as
+`"-NSWindow Frame main" "60 200 1360 572 0 0 1512 949 "`.
+
+The site's set uses a `config.json` with two GitHub accounts: `octocat`
+following `octocat/hello-world`, `octocat/spoon-knife`, `octocat/linguist`
+and the extra repository `openEHR/specifications-AM`, and a second account
+for the owner `github` following `github/docs`. The fake `github`
+organisation always answers 403 on its packages, so Packages shows the line
+that one account has no access to its package registry. The fake octocat
+publishes one package per followed repository (npm `greeting`, used by
+hello-world as the in-house `@octocat/greeting`, a container image and a
+NuGet package) plus `shared-config` without a repository. For the empty
+states of Packages, `-PullwatchFakePackages forbidden` makes octocat's
+registry answer 403 and `-PullwatchFakePackages none` publish nothing. The
+tour shoots `packages`, `packages-inspector` and `packages-repo` (Packages
+filtered on one repository). `-PullwatchOnboardingTour YES` on an empty
+data folder walks the welcome window instead (`onboarding-account` is the
+choice of service).
 
 ## Languages
 

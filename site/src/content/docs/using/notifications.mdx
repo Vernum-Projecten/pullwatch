@@ -11,7 +11,7 @@ Each notification says what happened in the title ("New Pull Request", "Pull Req
 
 ## Loud and quiet
 
-New pull requests, releases, vulnerabilities and security alerts arrive with a banner and a sound. Tags without a release, merged pull requests and new versions arrive quietly, in Notification Center only. The most serious vulnerability leads the stack.
+New pull requests, releases, vulnerabilities and security alerts arrive with a banner and a sound. Tags without a release, merged pull requests, new versions and new versions of your own packages arrive quietly, in Notification Center only. The most serious vulnerability leads the stack.
 
 macOS groups the notifications per account and repository. Up to 20 items per poll each get their own notification; above that, one notification per repository says how many there are and lists the first three.
 
@@ -26,6 +26,7 @@ macOS groups the notifications per account and repository. Up to 20 items per po
 
 - A switch per kind: new pull requests, merged pull requests, releases, tags, vulnerabilities, security alerts and new versions, each with a preview.
 - **Failed checks on your own pull requests** (off by default) tells you when the checks of one of your own open pull requests fail.
+- **New versions of your own packages** (off by default) tells you, after the daily check, when a package that a followed repository publishes has a new latest version ("New version of greeting", "Version 1.4.0 published"), quietly. See [Packages](/using/packages/).
 - **Quiet hours**: between two times, notifications arrive without sound and in Notification Center only. Focus and Do Not Disturb still come from macOS.
 - The unread count on the Dock icon, and a dot on the menu bar icon while something is unread.
 

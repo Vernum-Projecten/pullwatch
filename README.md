@@ -23,7 +23,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
-  <img src="docs/images/hero-light.png" alt="The PRs list in the Pullwatch main window: pull requests from four repositories, each with its state icon, checks such as 4 of 8, title, repository, author and age.">
+  <img src="docs/images/hero-light.png" alt="The PRs list in the Pullwatch main window: pull requests from four repositories, each with its state icon, checks such as 4 of 8, title, repository and number, author and age.">
 </picture>
 
 Pullwatch is a menu bar app for macOS. It tells you about new pull requests,
@@ -42,9 +42,11 @@ known vulnerabilities. It speaks English, Dutch, German and French.
   list, and charts of opened and merged pull requests per author and
   repository.
 - **Repositories**: every repository you follow, worst first, with a page
-  per repository for its pull requests, versions, packages and security.
+  per repository for its pull requests, versions, dependencies and security.
 - **Dependencies**: outdated runtimes, frameworks and packages from your
   manifests and lockfiles, and what holds each update back.
+- **Packages**: what your repositories publish to their own registry, and
+  who uses it; your own packages are checked against that registry.
 - **Vulnerabilities**: known advisories from OSV.dev and the GitHub Advisory
   Database, plus the code scanning, secret scanning and Advanced Security
   alerts of GitHub and Azure DevOps.

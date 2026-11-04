@@ -1,0 +1,66 @@
+---
+title: Packages
+description: De packages en container-images die je repositories in het register van hun eigen dienst publiceren, welke repositories ze gebruiken, en wat je moet toestaan als Pullwatch ze niet mag lezen.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Packages** in de zijbalk (⌘6) zet op een rij wat de repositories die je volgt publiceren in het register van hun eigen dienst: npm-, NuGet-, Maven-, RubyGems-, PyPI- en Composer-packages, container-images, Helm-charts en meer, uit GitHub Packages, de package- en containerregisters van GitLab en de feeds van Azure Artifacts. Pullwatch leest ze eens per dag met de versiecheck, en opnieuw met **Alles checken** (⌘R in dit onderdeel). **Afhankelijkheden** laat zien wat een repository gebruikt; **Packages** laat zien wat het publiceert.
+
+<Screenshot name="packages" alt="Het onderdeel Packages: greeting van octocat/linguist op 1.4.0, gebruikt door 1 repository, het container-image hello-world op 1.3.0-beta.1, Octocat.SpoonKnife van octocat/spoon-knife, en shared-config zonder repository, onder een regel dat één account geen toegang heeft tot zijn packageregister." />
+
+## Eén rij per package
+
+Elk package heeft één rij, gegroepeerd per eigenaar (de gebruiker, organisatie of groep, of bij Azure Artifacts het project van de feed), niet één rij per versie. De kolommen, elk sorteerbaar:
+
+- **Package**: de naam, met een symbool voor de soort.
+- **Repository**: de repository die het publiceert, voluit (`octocat/linguist`). Een package dat niet aan een repository hangt, zoals een in een Azure Artifacts-feed, toont zijn eigenaar in grijs.
+- **Nieuwste versie** en **Gepubliceerd**: de nieuwste versie en wanneer die verscheen.
+- **Gebruikt door**: hoeveel van de repositories die je volgt ervan afhangen, uit de dependency-check. Een container-image of Helm-chart toont "-": de check herkent die nog niet als dependency, dus het aantal is onbekend, nooit nul.
+
+Het zoekveld vindt een package op zijn naam, op de repository die het publiceert of op een repository die het gebruikt. Het menu **Soort** in de knoppenbalk toont maar één soort, zoals npm of **Container-image**.
+
+## Het inspectievenster
+
+Kies een package om in het inspectievenster te zien wie het publiceert, de zichtbaarheid, het account en:
+
+- **Recente versies**, nieuwste eerst, elk met de datum, de tag waar het vandaan komt (die opent Tags en releases voor die repository), de run of pipeline die het publiceerde en de pagina in het register.
+- **Gebruikt door**: elke repository die het package gebruikt, met zijn versies: groen als het op de nieuwste versie zit, oranje als het achterloopt, en **Alleen via andere packages** als het alleen via een ander package binnenkomt. Klik op een repository om zijn pagina te openen.
+- **Open in het register** opent de pagina van het package in het register. ⌘O doet hetzelfde voor het gekozen package.
+
+Pullwatch toont geen downloadaantallen of volledige geschiedenis: die staan op de pagina van het register zelf.
+
+<Screenshot name="packages-inspector" maxWidth={300} alt="Het inspectievenster van het npm-package greeting: gepubliceerd door octocat/linguist, privé, versies 1.4.0, 1.3.0 en 1.2.0, gebruikt door octocat/hello-world op 1.2.0, en Open in het register." />
+
+Op de pagina van een repository heeft het tabblad Overzicht een regel **Publiceert** met de namen en nieuwste versies van wat die repository publiceert. Die opent Packages met alleen de packages van die repository, tot je **Toon alles** kiest.
+
+## Als het onderdeel leeg is
+
+- **Nog niet gecheckt**: er liep nog geen versiecheck sinds het onderdeel er is. Kies **Alles checken**.
+- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. **Open Bronnen** brengt je daar.
+- **Geen toegang tot het register**: geen van je accounts mag zijn packageregister lezen. Elk account staat erbij met wat het nodig heeft, en **Over de rechten** leidt naar [Rechten van tokens](/nl/getting-started/permissions/).
+- **Geen packages**: de repositories die je volgt publiceren niets in het register van hun dienst.
+
+Kunnen sommige accounts hun register lezen en één niet, dan zegt een oranje regel boven de tabel dat ("Geen toegang tot het packageregister van github op GitHub"), met de reden in de tooltip en **Over de rechten** ernaast.
+
+## Wat je toestaat
+
+Pullwatch leest alleen. Een account zonder toegang zegt dat; de rest van Pullwatch blijft werken.
+
+| Dienst | Wat het nodig heeft |
+|---|---|
+| GitHub, ingelogd met GitHub | GitHub geeft een GitHub App geen toegang tot packages, dus Pullwatch leest ze met de GitHub CLI: log in met `gh` en voeg de scope toe met `gh auth refresh -h github.com -s read:packages` |
+| GitHub, met `gh` of een klassiek token | de scope `read:packages` (`gh auth refresh -s read:packages`) |
+| GitLab | `read_api`, dat Pullwatch al nodig heeft |
+| Azure DevOps, met een token | Packaging (Read) |
+| Azure DevOps, met `az` | de rol Feed Reader op de feed, of een token met Packaging (Read) |
+
+Bitbucket, Codeberg, Forgejo en Gitea worden niet gelezen voor packages. Zie [Rechten van tokens](/nl/getting-started/permissions/) voor elke scope.
+
+## Een melding bij een nieuwe versie
+
+Instellingen, Meldingen, **Nieuwe versies van je eigen packages** laat je weten wanneer een package dat een gevolgde repository publiceert een nieuwe nieuwste versie heeft: "Nieuwe versie van greeting", met de repository en "Versie 1.4.0 gepubliceerd". Hij staat standaard uit. Hij komt na de dagelijkse check, één per package waarvan de nieuwste versie veranderde sinds de check ervoor, stil, alleen in het Berichtencentrum. Een eerste check en een nieuw package blijven stil. Klik erop en Packages opent, gezocht op dat package.
+
+## In-house dependencies
+
+Hangt een repository die je volgt af van een package dat een andere gevolgde repository publiceert, dan haalt de dependency-check de nieuwste versie uit je eigen register in plaats van het openbare, en zegt het package **In-house**. Zie [In-house packages](/nl/using/dependencies/#in-house-packages).

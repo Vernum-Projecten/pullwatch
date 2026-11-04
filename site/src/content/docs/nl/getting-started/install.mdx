@@ -5,10 +5,12 @@ sidebar:
   label: Installeren en eerste start
 ---
 
+import Screenshot from '../../../../components/Screenshot.astro';
+
 ## Wat je nodig hebt
 
 - Een Mac met macOS 26.6 of nieuwer. Pullwatch is een universele app en draait dus native op Apple silicon en op Intel.
-- Een account op minstens een van deze: github.com, een GitHub Enterprise-server (Server of GHE.com), Azure DevOps of GitLab (gitlab.com of je eigen server).
+- Een account op minstens een van deze: github.com, een GitHub Enterprise-server (Server of GHE.com), Azure DevOps, GitLab (gitlab.com of je eigen server), Bitbucket Cloud, Codeberg, of je eigen Forgejo- of Gitea-server (of gitea.com).
 
 ## Installeren
 
@@ -23,16 +25,18 @@ Elke release is ondertekend met een Developer ID en door Apple gecontroleerd (no
 Bij de eerste start opent Pullwatch een welkomstvenster dat je door de installatie leidt:
 
 1. **Waar Pullwatch staat.** Het draait in de menubalk; het welkomstvenster wijst het icoon aan.
-2. **Je eerste account.** Kies GitHub, GitHub Enterprise, Azure DevOps of GitLab. Zie [Je accounts toevoegen](/nl/getting-started/accounts/) voor elk ervan.
+2. **Je eerste account.** Kies een van de vijf kaarten: GitHub (github.com of GitHub Enterprise), Azure DevOps, GitLab (gitlab.com of je eigen server), Bitbucket, en één kaart voor Codeberg, Forgejo en Gitea. Zie [Je accounts toevoegen](/nl/getting-started/accounts/) voor elk ervan.
 3. **Meldingen.** macOS vraagt één keer of Pullwatch meldingen mag sturen. Sta het toe om nieuwe pull requests en tags te zien zodra ze er zijn.
 4. **Starten bij inloggen**, zodat Pullwatch er na een herstart weer is.
+
+<Screenshot name="welcome" maxWidth={700} alt="Het welkomstvenster dat vraagt welke dienst je eerst toevoegt, met vijf kaarten: GitHub, Azure DevOps, GitLab, Bitbucket, en Codeberg, Forgejo en Gitea." />
 
 Daarna kijkt Pullwatch op de achtergrond bij je accounts. De eerste keer haalt het ook je bestaande pull requests op, zodat de geschiedenis niet leeg is. Die geven geen melding en komen binnen als gelezen.
 
 ## Waar je het vindt
 
 - **Het icoon in de menubalk** opent het [menupaneel](/nl/using/menu/) met de nieuwste pull requests en tags.
-- **Openen…** in het menupaneel opent het hoofdvenster met PR's, Tags en releases, Statistieken, Repo's en Afhankelijkheden. Het onthoudt welk onderdeel je het laatst open had.
+- **Openen…** in het menupaneel opent het hoofdvenster met PR's, Tags en releases, Statistieken, Repo's, Afhankelijkheden en Packages. Het onthoudt welk onderdeel je het laatst open had.
 - **Instellingen** is de knop met het tandwiel in het menupaneel, of ⌘, als Pullwatch vooraan staat.
 
 Zolang een van de vensters open is, staat Pullwatch in het Dock. Sluit je het laatste venster, dan draait het alleen nog in de menubalk. Open je Pullwatch opnieuw terwijl het draait, dan komt het hoofdvenster tevoorschijn (of het welkomstvenster zolang er geen account is ingesteld).

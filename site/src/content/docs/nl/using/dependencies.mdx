@@ -38,7 +38,7 @@ Een paar regels houden de uitkomst eerlijk:
 
 - **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift en Docker-images) worden vergeleken binnen hun releasecyclus, patches inbegrepen. Een repository op Go 1.27.3 ziet dat Go 1.27.4 beschikbaar is, en een op Go 1.26.9 ziet 1.26.10 zodra die uit is. Een nieuwere cyclus (Node 22 naar 25) staat in plaats daarvan bij de repository als achter. Een versie zonder patch (`go 1.27`, `node:22`) loopt nooit achter op patches.
 - **Packages** zijn de directe afhankelijkheden, uit de root en elke workspace. Packages die alleen voor ontwikkeling zijn, worden zo gemarkeerd. Een package zonder exacte versie (een bereik zonder lockfile) telt niet mee. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) staan er één keer, als package.
-- De nieuwste versie komt uit het register van het package: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io en rubygems.org. Pre-releases tellen niet. Privémodules en Swift-packages komen onder **Niet te checken** terecht.
+- De nieuwste versie komt uit het register van het package: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io en rubygems.org. Een package dat een van je gevolgde repositories zelf publiceert, komt in plaats daarvan uit je eigen register (zie [In-house packages](#in-house-packages)). Pre-releases tellen niet. Andere privémodules en Swift-packages komen onder **Niet te checken** terecht.
 
 Zo weet Pullwatch dat een package direct is:
 
@@ -57,10 +57,39 @@ De groepen zeggen wat een update vraagt: **Kan nu bijwerken** past binnen het be
 
 Een package dat geen repo zelf vraagt en dat alleen via een ander package binnenkomt, staat onder **Alleen transitief, met een kwetsbaarheid** als het een bekende kwetsbaarheid heeft, met de keten die het binnenhaalt. Pullwatch zoekt de nieuwste versie alleen op voor packages die een repo zelf vraagt. Voor Rust komen de gevraagde bereiken uit elke `Cargo.toml` van een workspace, ook uit `[workspace.dependencies]` dat leden overnemen met `workspace = true`.
 
+## In-house packages
+
+Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts) is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
+
+Je privénamen blijven privé. Pullwatch leest eerst je registers, voordat het iets opzoekt, en laat elke in-house naam weg uit elke openbare opzoeking: registry.npmjs.org en de andere openbare registers zien hem nooit, en OSV.dev ook niet. Lukt het lezen van je register niet, dan houdt Pullwatch wat de check ervoor vond, zodat een slechte dag nooit een privénaam naar buiten stuurt.
+
+Kan Pullwatch de nieuwste versie niet lezen, dan zegt de rij dat, in plaats van hem als actueel te tonen:
+
+- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. Een package dat eerder in-house was, blijft in-house en wordt niet openbaar opgezocht.
+- "Niet gecontroleerd: geen toegang tot het packageregister van dit account": het account mag zijn register niet lezen. De tooltip zegt wat je moet toestaan; zie [Wat je toestaat](/nl/using/packages/#wat-je-toestaat).
+
+Een openbaar register uitzetten, zoals npm, raakt een in-house package niet.
+
+Wat er gematcht wordt, op het ecosysteem en de naam van de dependency:
+
+| Ecosysteem | Gematcht op |
+|---|---|
+| npm | de naam met zijn scope, precies (`@acme/ui`). GitHub noemt een npm-package zonder scope, dus `ui` onder `acme` is `@acme/ui`; een kale `ui` matcht nooit een GitHub-package, zodat een openbaar package nooit wordt overgenomen |
+| NuGet | de id, hoofdletters maken niet uit |
+| RubyGems, Packagist | de naam, hoofdletters maken niet uit |
+| PyPI | de naam, met `-`, `_`, `.` en hoofdletters als gelijk |
+| crates.io | de naam, met `-` en `_` als gelijk |
+| Go | het modulepad, precies |
+
+Nog niet gematcht:
+
+- Container-images en Helm-charts. Pullwatch leest een regel `FROM` in een Dockerfile alleen als runtime (Node, PHP, .NET), nooit als dependency, dus je eigen image op ghcr.io of in een register van GitLab hoort niet bij de dependency-check. In Packages staat bij **Gebruikt door** dan "-".
+- Maven. Pullwatch kan `groupId:artifactId` al matchen, maar leest Maven-projecten (`pom.xml`) nog niet op dependencies, dus er is niets om te matchen.
+
 ## Per repository
 
-Het tabblad **Packages** van de pagina van een repository toont hetzelfde per workspace: de geïnstalleerde versie, de nieuwste versie die nu kan, de allernieuwste versie, en of het package direct is, via een ander package binnenkomt (met de kortste keten) of alleen voor ontwikkeling is.
+Het tabblad **Afhankelijkheden** van de pagina van een repository toont hetzelfde per workspace: de geïnstalleerde versie, de nieuwste versie die nu kan, de allernieuwste versie, en of het package direct is, via een ander package binnenkomt (met de kortste keten) of alleen voor ontwikkeling is. In-house packages zeggen ook hier **In-house**.
 
-<Screenshot name="repo-packages" alt="Het tabblad Packages van hello-world: lodash in twee versies, express geblokkeerd, vite en jest met Alleen dev, body-parser en qs via express." />
+<Screenshot name="repo-packages" alt="Het tabblad Afhankelijkheden van hello-world: lodash in twee versies, express geblokkeerd, het in-house package @octocat/greeting van 1.2.0 naar 1.4.0, vite en jest met Alleen dev, body-parser en qs via express." />
 
 Na de dagelijkse check zet één melding de nieuwe versies op een rij van alles waarop een repository achterloopt. De eerste keer dat een package gezien wordt, blijft het stil. Zet het uit onder Instellingen, Meldingen, **Nieuwe versies**.

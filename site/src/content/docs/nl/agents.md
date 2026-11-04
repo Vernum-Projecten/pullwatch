@@ -3,7 +3,7 @@ title: Agents (MCP)
 description: Laat een coding agent zoals Claude Code, Codex, Cursor of VS Code Pullwatch via MCP vragen naar je pull requests, repositories en kwetsbaarheden.
 ---
 
-Pullwatch heeft een lokale [Model Context Protocol](https://modelcontextprotocol.io)-server, zodat een coding agent op je Mac kan vragen wat Pullwatch weet: "welke van mijn pull requests hebben falende checks?", "wat is kritiek in `acme/web`?", "waarom kan ik `express` niet bijwerken?". De agent gebruikt wat Pullwatch al met je accounts heeft opgehaald, dus hij heeft geen eigen token nodig.
+Pullwatch heeft een lokale [Model Context Protocol](https://modelcontextprotocol.io)-server, zodat een coding agent op je Mac kan vragen wat Pullwatch weet: "welke van mijn pull requests hebben falende checks?", "wat is kritiek in `acme/web`?", "waarom kan ik `express` niet bijwerken?", "wie zit nog op een oude `@acme/ui`?". De agent gebruikt wat Pullwatch al met je accounts heeft opgehaald, dus hij heeft geen eigen token nodig.
 
 Agents lezen alleen. Ze zien alleen de repositories die je volgt, krijgen nooit een token en kunnen niets veranderen op GitHub, Azure DevOps of GitLab. Er wordt niets gedeeld tot je het aanzet.
 
@@ -114,24 +114,24 @@ De accounts (id, dienst, naam en host), hoe hun laatste poll ging, wat er bijgew
 
 ### list_pull_requests
 
-Pull requests uit de geschiedenis, nieuwste eerst, met hun checks. Argumenten: `repo`, `account_id`, `state` (standaard `open`, met drafts en wachtrij; of `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (alleen die van jou), `unread` (`true` of `false`), `checks` (`failed`, `pending` of `passed`), `limit`, `cursor`.
+Pull requests uit de geschiedenis, nieuwste eerst, met hun checks. Elke heeft een `reference` zoals de dienst hem schrijft: `acme/web#1` op GitHub, Bitbucket, Codeberg, Forgejo en Gitea, `group/project!42` op GitLab en `project/repo!42` op Azure DevOps. Argumenten: `repo`, `account_id`, `state` (standaard `open`, met drafts en wachtrij; of `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (alleen die van jou), `unread` (`true` of `false`), `checks` (`failed`, `pending` of `passed`), `limit`, `cursor`.
 
 ```jsonc
 // list_pull_requests {"checks":"failed"}
 // "1 pull request (open), 1 with failing checks."
-{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"title":"Add login","author":"octo",
+{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"reference":"acme/web#1","title":"Add login","author":"octo",
   "state":"open","is_mine":true,"is_read":false,"checks":{"status":"failed","failed":1,"passed":3,"pending":0,"total":4},
   "url":"https://github.com/acme/web/pull/1"}]}
 ```
 
 ### get_pull_request
 
-Eén pull request: staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
+Eén pull request: de `reference`, staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
 // "acme/web #3 (queued): Ready to merge"
-{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"title":"Ready to merge","author":"ada","co_authors":[],
+{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"reference":"acme/web#3","title":"Ready to merge","author":"ada","co_authors":[],
   "is_queued":true,"merge_queue":{"kind":"merge_queue","position":1},"checks":{"status":"passed","passed":4,"total":4},
   "url":"https://github.com/acme/web/pull/3"}}
 ```
@@ -164,7 +164,7 @@ De repositories die je volgt, slechtste eerst, met hun staat (`problem`, `behind
 
 ### get_repository_report
 
-De runtimes, frameworks en packages van één repository: geïnstalleerde en nieuwste versie, wat achterloopt of end of life is, en wat elke update tegenhoudt. Argumenten: `repo` (verplicht), `account_id`, `only_outdated`, `limit`, `cursor` (die bladeren door de packages).
+De runtimes, frameworks en packages van één repository: geïnstalleerde en nieuwste versie, wat achterloopt of end of life is, en wat elke update tegenhoudt. Een package dat een van je gevolgde repositories publiceert, heeft `in_house` (zie hieronder). Argumenten: `repo` (verplicht), `account_id`, `only_outdated`, `limit`, `cursor` (die bladeren door de packages).
 
 ```jsonc
 // get_repository_report {"repo":"acme/web","only_outdated":true,"limit":1}
@@ -190,9 +190,24 @@ Bekende kwetsbaarheden in packages en de meldingen van code scanning en Advanced
    "fixes":["Update express so it pulls in body-parser 1.20.3 or newer."]}]}
 ```
 
+### list_packages
+
+De packages en container-images die je gevolgde repositories publiceren in het register van hun eigen dienst (GitHub Packages, een register van GitLab, een feed van Azure Artifacts), één per package, zoals in [Packages](/nl/using/packages/): soort, account, eigenaar, de repository die het publiceert (ontbreekt bij Azure Artifacts), de nieuwste versie en de datum, zichtbaarheid, de pagina in het register, de recente versies met hun tag en run, en `used_by`: de gevolgde repositories die ervan afhangen, met hun versies en of ze het zelf vragen. `usage_known` is `false` voor soorten die de dependency-check nog niet matcht (container-images, Helm), dus een lege `used_by` betekent daar onbekend, niet ongebruikt. `needs_permission` noemt de accounts die hun register niet mogen lezen, met de reden, en `not_checked` noemt de bron als **Packageregisters van je accounts** uit staat. Argumenten: `repo` (alleen wat die gevolgde repository publiceert), `type` (`npm`, `container`, `nuget`, `maven`, `rubygems`, `pypi`, `helm`, `generic` en meer), `account_id`, `limit`, `cursor`.
+
+```jsonc
+// list_packages {"repo":"acme/web"}
+// "1 published package."
+{"total":1,"not_checked":[],"needs_permission":[],"packages":[{"name":"ui","type":"npm","owner":"acme","repository":"acme/web",
+  "latest_version":"2.3.0","visibility":"private","url":"https://github.com/orgs/acme/packages/npm/package/ui",
+  "recent_versions":[{"version":"2.3.0","tag":"v2.3.0"},{"version":"2.2.0"}],
+  "used_by":[{"repository":"acme/admin","versions":["2.2.0"],"is_direct":true}],"usage_known":true}]}
+```
+
 ### explain_update
 
 Waarom één package niet zomaar bij te werken is, per installatie: het gevraagde bereik, de stap (patch, minor of major), wat hem tegenhoudt en welke kwetsbaarheden een update oplost. Argumenten: `repo` en `package` (allebei verplicht), `ecosystem` (alleen als de naam dubbelzinnig is), `account_id`. Ook een package dat alleen via een ander package binnenkomt (elk package uit een lockfile) krijgt uitleg: `via` noemt de keten, en de uitleg zegt wat het oplossen van een kwetsbaarheid vraagt, alleen de lockfile of eerst een nieuwere ouder.
+
+Voor een in-house package voegen deze tool en `get_repository_report` `in_house` toe: `source` (de repository die het publiceert, of het Azure DevOps-project), `repository`, `owner`, `url` (de pagina van de repository), `registry_url` (het package in je eigen register), `status` en `reason`. Met `status` `checked` komt de nieuwste versie uit je eigen register. Met `source_off` of `needs_permission` is het niet gelezen: `update` is `not_checked`, `not_checked` noemt de bron of het ontbrekende recht, en `reason` zegt wat je moet toestaan. In-house namen gaan nooit naar een openbaar register of OSV.dev.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}
