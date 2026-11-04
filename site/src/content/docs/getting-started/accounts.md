@@ -42,7 +42,7 @@ Each account lists its repositories. Per repository, tick what you want:
 
 - **PRs**: new pull requests (or merge requests).
 - **Tags**: new tags, and on GitHub and GitLab the releases made for them. Tags are off by default.
-- **Completed**: pull requests that get merged.
+- **Merged**: pull requests that get merged.
 
 Next to each tick is a bell. Turn it off to keep a repository in the menu and the history without notifications. The bell in the header switches all visible repositories at once. Per account you can also include draft pull requests, hide your own, and turn the whole account off for a while.
 
