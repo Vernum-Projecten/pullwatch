@@ -51,7 +51,7 @@ extension GitLabProvider {
         return result
     }
 
-    private func nextPage(after current: URL, response: HTTPURLResponse, base: URL, query: [URLQueryItem]) -> URL? {
+    func nextPage(after current: URL, response: HTTPURLResponse, base: URL, query: [URLQueryItem]) -> URL? {
         if let page = response.value(forHTTPHeaderField: "x-next-page")?.trimmingCharacters(in: .whitespaces), !page.isEmpty {
             guard Int(page) != nil else { return nil }
             return Self.withQuery(base, query + [

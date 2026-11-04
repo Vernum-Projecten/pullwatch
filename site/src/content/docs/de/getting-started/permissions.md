@@ -36,12 +36,13 @@ Mit der GitHub CLI führt Pullwatch `gh auth token --hostname <server>` aus. Mel
 | Code (Read) | Pull Requests, Tags und die Prüfung der Abhängigkeiten |
 | Project and Team (Read) | die Liste der Projekte |
 | Advanced Security (Read) | optional, Warnungen aus Advanced Security |
+| Packaging (Read) | optional, die Pakete in deinen Feeds von Azure Artifacts |
 
 Mit der Azure CLI meldest du dich mit `az login` an; Pullwatch fragt `az` nach einem Token.
 
 ## GitLab
 
-Ein Personal Access Token mit dem Scope **read_api** deckt Merge Requests, Projekte, Tags, Releases, Commits und Dateien ab. `api` funktioniert auch, gibt aber mehr frei, als Pullwatch braucht. Mit der GitLab CLI liest Pullwatch `glab config get token --host <server>`.
+Ein Personal Access Token mit dem Scope **read_api** deckt Merge Requests, Projekte, Tags, Releases, Commits und Dateien ab, dazu die Pakete und Container-Images, die deine Projekte in den Registries von GitLab veröffentlichen. `api` funktioniert auch, gibt aber mehr frei, als Pullwatch braucht. Mit der GitLab CLI liest Pullwatch `glab config get token --host <server>`.
 
 ## Bitbucket
 
