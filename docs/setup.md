@@ -83,8 +83,9 @@ make. Each needs admin rights on the repository; the command under each
 checks it. Set `repo=alessandro823/pullwatch` first.
 
 - [ ] **Private vulnerability reporting** on (Settings, Advanced Security),
-  so [SECURITY.md](../SECURITY.md) and the issue chooser's "Report a
-  vulnerability" link work. Turn on with
+  so [SECURITY.md](../SECURITY.md) works. Turning it on also adds "Report a
+  vulnerability" to the issue chooser; `.github/ISSUE_TEMPLATE/config.yml`
+  therefore has no link of its own for it. Turn on with
   `gh api -X PUT repos/$repo/private-vulnerability-reporting`.
 
   ```bash
@@ -117,7 +118,8 @@ checks it. Set `repo=alessandro823/pullwatch` first.
   `site/`, and GitHub waits forever for a required check that never runs,
   so add it once `site.yml` runs on every pull request; until then it
   still has to pass on every pull request that changes the website.
-  `.github/CODEOWNERS` asks the maintainer to review every change.
+  `.github/CODEOWNERS` asks Alessandro and the fork's owner
+  (`rubentalstra`) to review every change.
 
   ```bash
   gh api repos/$repo/rules/branches/main --jq '.[].type'
