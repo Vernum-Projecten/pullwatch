@@ -107,7 +107,10 @@ jobs:
   deploy:
     name: deploy to GitHub Pages
     needs: build
-    if: (github.repository == 'alessandro823/pullwatch' || vars.PAGES_DEPLOY == 'true') && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # The changes job is skipped outside pull requests, and a skipped job
+    # further up makes the implicit success() false, so ask for the build's
+    # own result instead.
+    if: ${{ !cancelled() && needs.build.result == 'success' && (github.repository == 'alessandro823/pullwatch' || vars.PAGES_DEPLOY == 'true') && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
