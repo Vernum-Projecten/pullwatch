@@ -9,6 +9,86 @@ release wait as fragments in `changelog.d/` until the cut writes them here.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-04
+
+### Added
+
+- Coding agents such as Claude Code, Codex, Cursor and VS Code can ask Pullwatch about your pull requests and their checks, tags, repositories, outdated packages, vulnerabilities and what holds an update back, over MCP. Turn it on in Settings, Agents (off by default; Pullwatch can also start in the background when an agent asks), where you also find the setup command or JSON for each agent. Agents only read what Pullwatch already fetched, see only the repositories you follow, never get a token, and cannot change anything on GitHub, Azure DevOps or GitLab (Vernum-Projecten/pullwatch#139).
+- Pullwatch asks once, in a notification, before a new agent gets any data, and Settings, Agents lists the agents you allowed and the ones connected now, with Disconnect. While an agent is connected, the menu panel shows an agents button, with an orange dot when one waits for your approval (Vernum-Projecten/pullwatch#139).
+- A new section, Packages (Command-6), lists what the repositories you
+  follow publish to the registry of their own service: npm, NuGet, Maven and
+  other packages and container images from GitHub Packages, GitLab and Azure
+  Artifacts. One row per package with its latest version and which of your
+  repositories use it; the inspector shows the recent versions and who is on
+  which one. A repository's Overview names what it publishes, and a new
+  notification, off by default, tells you about a new version of your own
+  packages. Agents can ask for the same with the new `list_packages` tool (Vernum-Projecten/pullwatch#167).
+- A dependency that one of your repositories publishes now gets its latest
+  version from your own registry and says In-house, instead of being
+  unknown. Its name is never sent to a public registry or OSV.dev. Settings,
+  Sources has a switch for the package registries of your accounts (Vernum-Projecten/pullwatch#167).
+- The repository page's Packages tab is now called Dependencies, the same
+  as the section in the sidebar (Vernum-Projecten/pullwatch#167).
+- Codeberg, Forgejo and Gitea accounts: one card in the welcome window with a
+  button for each, for codeberg.org, your own Forgejo server, and gitea.com or
+  your own Gitea server. Pullwatch follows the pull requests (drafts
+  included), tags and releases of the organisations and users you choose,
+  shows the commit statuses as checks, checks the dependencies, and reads a
+  public repository without signing in where the server allows it. Sign in
+  with a token with the scopes read:user, read:organization,
+  read:repository and read:issue; Test connection names a missing scope, an
+  unknown owner, an address that is no Gitea or Forgejo, and a certificate
+  macOS does not trust (Vernum-Projecten/pullwatch#176).
+- Bitbucket Cloud accounts: follow the pull requests and tags of the
+  repositories in your workspaces on bitbucket.org, with their build statuses
+  as checks, co-authors from the commits, the dependency check and single
+  public repositories from other workspaces. Sign in with an Atlassian API
+  token with read scopes and the email address of your Atlassian account.
+  Bitbucket has no releases, so Tags and Releases shows only tags for these
+  accounts (Vernum-Projecten/pullwatch#177).
+- Pull requests show their number as the service writes it: `#1570` on
+  GitHub, Bitbucket, Gitea, Forgejo and Codeberg, `!42` for GitLab merge requests and Azure DevOps pull
+  requests. The Repo column of the list shows the repository in full,
+  `FerroHEALTH/FerroFED #1570`, and sorts a repository's pull requests by
+  number, the menu panel and the repository
+  page show the number, and a notification names
+  `FerroHEALTH/FerroFED #1570`. Search finds a pull request by `1570`,
+  `#1570`, `!42`, `FerroFED#1570` or `FerroHEALTH/FerroFED#1570`. Item, Copy
+  Reference (Option-Shift-Command-L) copies `FerroHEALTH/FerroFED#1570`, and
+  agents get the same `reference` from `list_pull_requests` and
+  `get_pull_request`. The pull requests on a repository page show their
+  state with the same icon as the list instead of a text label (Vernum-Projecten/pullwatch#193).
+
+### Changed
+
+- The welcome window's account choice is clearer: GitHub, Azure DevOps and
+  GitLab each get a card of the same shape with a button per place your
+  account can live (GitHub.com or GitHub Enterprise, dev.azure.com, GitLab.com
+  or your own server), centred in the window. GitLab accounts now show
+  GitLab's logo there, in Settings and in the add-account menu, which also
+  offers GitLab Self-Managed (Vernum-Projecten/pullwatch#174).
+- A complete menu bar in Apple's order instead of one Go menu that held everything: File (New Account…, Watch a Repository…, Open in Browser), Edit with Find, View with the sidebar, toolbar, Reload and full screen, Go, Item (read and unread, Copy Link), Repository, Window with Pullwatch (⌘0), and Help with the documentation, keyboard shortcuts, release notes, a link to report an issue and the acknowledgements. Check for Updates… is in the Pullwatch menu, and the Dock icon's menu offers Reload and Check All Repositories (Vernum-Projecten/pullwatch#179).
+
+### Fixed
+
+- Bots such as `github-actions[bot]` and `renovate[bot]` now show their own picture next to their pull requests. Pullwatch uses the picture GitHub and GitLab send with each pull request instead of guessing one from the name; pull requests already in the history get it at the next poll (Vernum-Projecten/pullwatch#150).
+- The app now includes the licenses of the open-source software it uses (Sparkle, the MCP Swift SDK with SwiftLog, Swift System and EventSource, and GitHub Octicons), next to its own license and NOTICE. Read them under About Pullwatch, Acknowledgements, or Help, Acknowledgements (Vernum-Projecten/pullwatch#166).
+- Rust packages get an update status again: Pullwatch reads the requested
+  range from every `Cargo.toml` of a workspace, including the
+  `[workspace.dependencies]` that members take over with `workspace = true`,
+  renamed packages, dev, build and target-specific dependencies. A status
+  that stays unknown now says why (no latest version, no requested range,
+  a range it cannot read), in the app and for agents (Vernum-Projecten/pullwatch#187).
+- A vulnerable package that only comes in through another package can be
+  found and explained: Dependencies lists it under "Only transitive, with a
+  vulnerability" with the chain that pulls it in, and `explain_update` and
+  `get_repository_report` explain it too, including whether the fix only
+  changes the lockfile or needs a newer parent first. A version check made
+  by an older Pullwatch runs again by itself (Vernum-Projecten/pullwatch#187).
+- Leaving a pull request or tag list that was filtered on an author or a
+  repository no longer reloads that list while it closes, which made macOS
+  log a warning about the table that a future macOS turns into a crash (Vernum-Projecten/pullwatch#204).
+
 ## [0.7.0] - 2026-11-04
 
 ### Thank you again, Ruben
@@ -313,7 +393,8 @@ before this changelog existed. The fork starts from this version.
 - The repository overview is calculated once instead of on every screen
   update.
 
-[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/alessandro823/pullwatch/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/alessandro823/pullwatch/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/alessandro823/pullwatch/releases/tag/v0.5.0
