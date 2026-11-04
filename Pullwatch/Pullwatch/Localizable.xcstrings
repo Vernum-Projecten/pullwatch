@@ -3586,6 +3586,28 @@
         }
       }
     },
+    "Algemeen package": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generic package"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generisches Paket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paquet générique"
+          }
+        }
+      }
+    },
     "Alle PR's van %@ volgen": {
       "comment": "Gebruiker of organisatie",
       "localizations": {
@@ -3828,6 +3850,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vérifier tous les dépôts"
+          }
+        }
+      }
+    },
+    "Alle soorten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All types"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Arten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les types"
           }
         }
       }
@@ -4232,6 +4276,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uniquement pour les mises à jour possibles maintenant"
+          }
+        }
+      }
+    },
+    "Alleen wat %@ publiceert": {
+      "comment": "Volledige naam van een repository",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only what %@ publishes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur was %@ veröffentlicht"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniquement ce que publie %@"
           }
         }
       }
@@ -5087,6 +5154,28 @@
         }
       }
     },
+    "Cargo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargo"
+          }
+        }
+      }
+    },
     "Check": {
       "localizations": {
         "de": {
@@ -5565,6 +5654,50 @@
         }
       }
     },
+    "Composer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Composer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Composer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Composer"
+          }
+        }
+      }
+    },
+    "Conan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conan"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conan"
+          }
+        }
+      }
+    },
     "Concept-pull request %@: %@": {
       "localizations": {
         "de": {
@@ -5589,6 +5722,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Concept-pull request %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "Container-image": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Container image"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Container-Image"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image de conteneur"
           }
         }
       }
@@ -5893,6 +6048,28 @@
         }
       }
     },
+    "De repo's die je volgt publiceren geen packages in het register van hun dienst.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The repositories you follow publish no packages to the registry of their service."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Repositorys, denen du folgst, veröffentlichen keine Pakete in der Registry ihres Dienstes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les dépôts que vous suivez ne publient aucun paquet dans le registre de leur service."
+          }
+        }
+      }
+    },
     "De versie is geen versienummer dat Pullwatch kan vergelijken.": {
       "localizations": {
         "de": {
@@ -6189,6 +6366,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Récupérer ce compte"
+          }
+        }
+      }
+    },
+    "Docker": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker"
           }
         }
       }
@@ -6665,6 +6864,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Une notification quand les checks (CI) d'une de vos pull requests ouvertes échouent, même si vos propres PR sont masquées"
+          }
+        }
+      }
+    },
+    "Een melding als een package dat een gevolgde repo publiceert een nieuwe versie heeft (het onderdeel Packages)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification when a package that a followed repository publishes has a new version (the Packages section)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Mitteilung, wenn ein Paket, das ein gefolgtes Repository veröffentlicht, eine neue Version hat (der Bereich Pakete)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une notification quand un paquet publié par un dépôt suivi a une nouvelle version (la section Paquets)"
           }
         }
       }
@@ -7356,6 +7577,127 @@
         }
       }
     },
+    "Gebruik onbekend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage unknown"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwendung unbekannt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation inconnue"
+          }
+        }
+      }
+    },
+    "Gebruikt door": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used by"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwendet von"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisé par"
+          }
+        }
+      }
+    },
+    "Gebruikt door %lld repo's": {
+      "comment": "Aantal gevolgde repo's dat een eigen package gebruikt",
+      "localizations": {
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Gebruikt door %lld repo"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Gebruikt door %lld repo's"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Used by %lld repository"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Used by %lld repositories"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Von %lld Repository verwendet"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Von %lld Repositorys verwendet"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Utilisé par %lld dépôt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Utilisé par %lld dépôts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Gebruikt het pad van deze Pullwatch. Verplaats je de app, stel de agent dan opnieuw in.": {
       "localizations": {
         "de": {
@@ -7594,6 +7936,28 @@
         }
       }
     },
+    "Geen gevolgde repo gebruikt dit package.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No followed repository uses this package."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein gefolgtes Repository verwendet dieses Paket."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun dépôt suivi n'utilise ce paquet."
+          }
+        }
+      }
+    },
     "Geen gevraagd bereik gevonden in het manifest of bij de ouder.": {
       "localizations": {
         "de": {
@@ -7828,6 +8192,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geen talen of frameworks herkend"
+          }
+        }
+      }
+    },
+    "Geen toegang tot het register": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to the registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Zugriff auf die Registry"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas d’accès au registre"
+          }
+        }
+      }
+    },
+    "Geen versies bekend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No versions known"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Versionen bekannt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune version connue"
           }
         }
       }
@@ -8117,6 +8525,51 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publié"
+          }
+        }
+      }
+    },
+    "Gepubliceerd %@": {
+      "comment": "Relatieve datum",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié %@"
+          }
+        }
+      }
+    },
+    "Gepubliceerd door": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par"
           }
         }
       }
@@ -8706,6 +9159,28 @@
         }
       }
     },
+    "Go": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        }
+      }
+    },
     "Goedkeuren": {
       "localizations": {
         "de": {
@@ -8840,6 +9315,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Haalt de PR's van alle accounts opnieuw op binnen de bewaartermijn, één account tegelijk (zonder meldingen)"
+          }
+        }
+      }
+    },
+    "Helm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helm"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helm"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helm"
           }
         }
       }
@@ -9594,6 +10091,28 @@
         }
       }
     },
+    "Intern": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Internal"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intern"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interne"
+          }
+        }
+      }
+    },
     "Ja": {
       "localizations": {
         "de": {
@@ -9999,6 +10518,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisissez un paquet pour voir ses détails."
+          }
+        }
+      }
+    },
+    "Kies een package om de versies te zien en wie het gebruikt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a package to see its versions and who uses it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Paket, um seine Versionen zu sehen und wer es verwendet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un paquet pour voir ses versions et qui l’utilise."
           }
         }
       }
@@ -11298,6 +11839,28 @@
         }
       }
     },
+    "Maven": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maven"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maven"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maven"
+          }
+        }
+      }
+    },
     "Meer": {
       "localizations": {
         "de": {
@@ -11758,6 +12321,29 @@
         }
       }
     },
+    "Niet aan een repository gekoppeld; gepubliceerd onder %@": {
+      "comment": "Eigenaar of Azure-project van een package",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not tied to a repository; published under %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit keinem Repository verknüpft; veröffentlicht unter %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lié à aucun dépôt ; publié sous %@"
+          }
+        }
+      }
+    },
     "Niet beschikbaar": {
       "localizations": {
         "de": {
@@ -11824,6 +12410,29 @@
         }
       }
     },
+    "Niet gecontroleerd: %@ mag het register niet lezen": {
+      "comment": "Accountnaam",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: %@ may not read the registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: %@ darf die Registry nicht lesen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : %@ ne peut pas lire le registre"
+          }
+        }
+      }
+    },
     "Niet gecontroleerd: bron %@ staat uit": {
       "comment": "Naam van een bron die uitgezet is (Instellingen, Bronnen)",
       "localizations": {
@@ -11849,6 +12458,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niet gecontroleerd: bron %@ staat uit"
+          }
+        }
+      }
+    },
+    "Niet gecontroleerd: een account mag het register niet lezen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: an account may not read the registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: ein Account darf die Registry nicht lesen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : un compte ne peut pas lire le registre"
           }
         }
       }
@@ -12541,6 +13172,29 @@
         }
       }
     },
+    "Nieuwe versie van %@": {
+      "comment": "Meldingstitel; naam van een package dat een gevolgde repo publiceert",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Version von %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle version de %@"
+          }
+        }
+      }
+    },
     "Nieuwe versies": {
       "localizations": {
         "de": {
@@ -12559,6 +13213,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nouvelles versions"
+          }
+        }
+      }
+    },
+    "Nieuwe versies van je eigen packages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New versions of your own packages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Versionen deiner eigenen Pakete"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelles versions de vos propres paquets"
           }
         }
       }
@@ -12670,6 +13346,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dernière depuis %@"
+          }
+        }
+      }
+    },
+    "Nieuwste versie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière version"
           }
         }
       }
@@ -12906,6 +13604,50 @@
         }
       }
     },
+    "Nog niet bekend: de check herkent dit soort package nog niet als dependency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not known yet: the check does not recognise this type of package as a dependency yet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht bekannt: die Prüfung erkennt diese Art Paket noch nicht als Abhängigkeit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore connu : la vérification ne reconnaît pas encore ce type de paquet comme dépendance"
+          }
+        }
+      }
+    },
+    "Nog niet bekend: de check herkent dit soort package nog niet als dependency.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not known yet: the check does not recognise this type of package as a dependency yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht bekannt: die Prüfung erkennt diese Art Paket noch nicht als Abhängigkeit."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore connu : la vérification ne reconnaît pas encore ce type de paquet comme dépendance."
+          }
+        }
+      }
+    },
     "Nog niet gecheckt": {
       "localizations": {
         "de": {
@@ -13059,6 +13801,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nu verversen"
+          }
+        }
+      }
+    },
+    "NuGet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NuGet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NuGet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NuGet"
           }
         }
       }
@@ -13330,6 +14094,28 @@
         }
       }
     },
+    "Open Bronnen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Sources"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellen öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Sources"
+          }
+        }
+      }
+    },
     "Open Console": {
       "localizations": {
         "de": {
@@ -13540,6 +14326,72 @@
         }
       }
     },
+    "Open de pagina van het package bij het register (⌘O)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the package page in the registry (⌘O)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne die Seite des Pakets in der Registry (⌘O)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la page du paquet dans le registre (⌘O)"
+          }
+        }
+      }
+    },
+    "Open de run die deze versie publiceerde": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the run that published this version"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne den Lauf, der diese Version veröffentlicht hat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir l’exécution qui a publié cette version"
+          }
+        }
+      }
+    },
+    "Open deze versie bij het register": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open this version in the registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Version in der Registry öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir cette version dans le registre"
+          }
+        }
+      }
+    },
     "Open github.com": {
       "localizations": {
         "de": {
@@ -13608,6 +14460,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ouvrir dans le navigateur, statistiques et copie"
+          }
+        }
+      }
+    },
+    "Open in het register": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Registry"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Registry öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans le registre"
           }
         }
       }
@@ -13742,6 +14616,28 @@
           "stringUnit": {
             "state": "new",
             "value": "Open: %1$lld, draft: %2$lld, gemerged: %3$lld, gesloten: %4$lld"
+          }
+        }
+      }
+    },
+    "Openbaar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffentlich"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
           }
         }
       }
@@ -14247,6 +15143,28 @@
         }
       }
     },
+    "Over de rechten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About permissions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über die Berechtigungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos des autorisations"
+          }
+        }
+      }
+    },
     "Overige verbindingen": {
       "localizations": {
         "de": {
@@ -14715,6 +15633,28 @@
         }
       }
     },
+    "Packages ophalen…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetching Packages…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete werden geladen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupération des paquets…"
+          }
+        }
+      }
+    },
     "Packages:": {
       "localizations": {
         "de": {
@@ -14925,6 +15865,28 @@
         }
       }
     },
+    "Privé": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privé"
+          }
+        }
+      }
+    },
     "Probleem": {
       "localizations": {
         "de": {
@@ -15015,6 +15977,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Project"
+          }
+        }
+      }
+    },
+    "Publiceert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publishes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publie"
           }
         }
       }
@@ -15647,6 +16631,28 @@
         }
       }
     },
+    "Pullwatch leest wat je repo's publiceren in het register van hun dienst.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch reads what your repositories publish to the registry of their service."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch liest, was deine Repositorys in der Registry ihres Dienstes veröffentlichen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch lit ce que vos dépôts publient dans le registre de leur service."
+          }
+        }
+      }
+    },
     "Pullwatch mag de checks van deze PR's niet lezen. Bij GitHub keurt de eigenaar de rechten Checks en Commit statuses (lezen) van de Pullwatch-app goed; bij Azure DevOps en GitLab mag het token de builds of pipelines lezen.": {
       "localizations": {
         "de": {
@@ -15845,6 +16851,28 @@
         }
       }
     },
+    "PyPI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PyPI"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PyPI"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PyPI"
+          }
+        }
+      }
+    },
     "Rapport": {
       "localizations": {
         "de": {
@@ -15863,6 +16891,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rapport"
+          }
+        }
+      }
+    },
+    "Recente versies": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent versions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Versionen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versions récentes"
           }
         }
       }
@@ -16315,6 +17365,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Racine"
+          }
+        }
+      }
+    },
+    "RubyGems": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RubyGems"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RubyGems"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RubyGems"
+          }
+        }
+      }
+    },
+    "Run": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lauf"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exécution"
           }
         }
       }
@@ -17175,6 +18269,28 @@
         }
       }
     },
+    "Terraform": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terraform"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terraform"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terraform"
+          }
+        }
+      }
+    },
     "Terug": {
       "localizations": {
         "de": {
@@ -17541,6 +18657,50 @@
         }
       }
     },
+    "Toon alleen packages van één soort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only packages of one type"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Pakete einer Art anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher uniquement les paquets d’un type"
+          }
+        }
+      }
+    },
+    "Toon alles": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show All"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout afficher"
+          }
+        }
+      }
+    },
     "Toon de PR's van %@": {
       "localizations": {
         "de": {
@@ -17569,6 +18729,28 @@
         }
       }
     },
+    "Toon de tags van deze repo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the tags of this repository"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tags dieses Repositorys anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les tags de ce dépôt"
+          }
+        }
+      }
+    },
     "Toon details": {
       "localizations": {
         "de": {
@@ -17587,6 +18769,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Afficher les détails"
+          }
+        }
+      }
+    },
+    "Toon deze packages in Packages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show these packages in Packages"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Pakete in Pakete anzeigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher ces paquets dans Paquets"
           }
         }
       }
@@ -17632,6 +18836,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Afficher ou masquer les détails de la ligne choisie (Espace)"
+          }
+        }
+      }
+    },
+    "Toon of verberg het inspectievenster": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show or hide the inspector"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspektor ein- oder ausblenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher ou masquer l’inspecteur"
           }
         }
       }
@@ -17879,6 +19105,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Désactivé"
+          }
+        }
+      }
+    },
+    "Universal Package": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Universal Package"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Universal Package"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Universal Package"
           }
         }
       }
@@ -18367,6 +19615,29 @@
           "stringUnit": {
             "state": "new",
             "value": "Versie %1$@ (%2$@)"
+          }
+        }
+      }
+    },
+    "Versie %@ gepubliceerd": {
+      "comment": "Meldingstekst; het nieuwe versienummer van een eigen package",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ published"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ veröffentlicht"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ publiée"
           }
         }
       }
@@ -19835,6 +21106,28 @@
         }
       }
     },
+    "Zichtbaarheid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visibility"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichtbarkeit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visibilité"
+          }
+        }
+      }
+    },
     "Zie je het icoon niet? Bij een volle menubalk of de camera-uitsparing kan macOS het verbergen; onder Systeeminstellingen → Menubalk bepaal je welke icoontjes er staan.": {
       "localizations": {
         "de": {
@@ -19853,6 +21146,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vous ne voyez pas l’icône ? macOS peut la masquer si la barre des menus est pleine ou derrière l’encoche de la caméra ; Réglages Système → Barre des menus détermine les icônes affichées."
+          }
+        }
+      }
+    },
+    "Zie wat je repo's publiceren (npm, container-images, NuGet en meer) en welke repo's het gebruiken.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See what your repositories publish (npm, container images, NuGet and more) and which repositories use it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sieh, was deine Repositorys veröffentlichen (npm, Container-Images, NuGet und mehr) und welche Repositorys es verwenden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voyez ce que vos dépôts publient (npm, images de conteneur, NuGet et plus) et quels dépôts l’utilisent."
           }
         }
       }
@@ -20881,6 +22196,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "nog niet gecheckt"
+          }
+        }
+      }
+    },
+    "npm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "npm"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "npm"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "npm"
           }
         }
       }

@@ -4,7 +4,7 @@ import SwiftUI
 /// Het teken van een soort melding als bijlage als er geen profielfoto is: de Octicon van de PR
 /// zoals in de lijsten, of een SF Symbol, in de kleur van de soort.
 nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
-    case pullRequest, merged, checksFailed, release, tag, vulnerability, securityAlert, packageUpdate
+    case pullRequest, merged, checksFailed, release, tag, vulnerability, securityAlert, packageUpdate, publishedPackage
 
     init?(kind: NotificationKind) {
         switch kind {
@@ -16,6 +16,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .vulnerability: self = .vulnerability
         case .securityAlert: self = .securityAlert
         case .packageUpdate: self = .packageUpdate
+        case .publishedPackage: self = .publishedPackage
         // Het icoon van Pullwatch staat er al; een tweede plaatje zegt niets.
         case .appUpdate, .account, .agent: return nil
         }
@@ -31,6 +32,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .vulnerability: .system("exclamationmark.shield.fill")
         case .securityAlert: .system("shield.lefthalf.filled")
         case .packageUpdate: .system("arrow.up.circle.fill")
+        case .publishedPackage: .system("shippingbox.and.arrow.backward.fill")
         }
     }
 
@@ -43,6 +45,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .vulnerability: .red
         case .securityAlert: .orange
         case .packageUpdate: .blue
+        case .publishedPackage: .indigo
         }
     }
 

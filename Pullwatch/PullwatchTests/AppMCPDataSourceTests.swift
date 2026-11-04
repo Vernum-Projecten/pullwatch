@@ -116,10 +116,11 @@ import Testing
         #expect(models.reads > before)
     }
 
-    @Test func `The app gives agents the nine tools over its models`() throws {
+    @Test func `The app gives agents the ten tools over its models`() throws {
         let names = AppModel.shared.mcpTools().map(\.name)
         #expect(names == PullwatchMCPTools.all(dataSource: AppModel.shared.mcpDataSource).map(\.name))
-        #expect(names.count == 9)
+        #expect(names.count == 10)
+        #expect(names.contains("list_packages"))
         #expect(names.contains("get_status"))
     }
 }

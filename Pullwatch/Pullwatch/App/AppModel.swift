@@ -216,7 +216,7 @@ final class AppModel {
             return
         }
         switch router.mainSection {
-        case .repos, .dependencies:
+        case .repos, .dependencies, .packages:
             versions.startCheck()
         case .pullRequests, .tags, .stats:
             polling.refresh()
@@ -347,7 +347,11 @@ final class AppModel {
             if payload.section == "settings" {
                 router.showSettings(SettingsTab.forNotification(payload))
             } else if let section = payload.section.flatMap(MainSection.init(rawValue:)) {
-                if section == .dependencies, let package = payload.package { router.showPackage(package) } else { router.navigate(to: section) }
+                switch (section, payload.package) {
+                case (.dependencies, let package?): router.showPackage(package)
+                case (.packages, let package?): router.showPublishedPackage(package)
+                default: router.navigate(to: section)
+                }
                 router.show(.main)
             } else if payload.url == nil, let accountId = payload.accountId, let repo = payload.repo {
                 // Een samenvatting van een repo: de repopagina.

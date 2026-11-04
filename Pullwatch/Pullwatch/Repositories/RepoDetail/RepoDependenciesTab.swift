@@ -2,8 +2,8 @@ import AppKit
 import PullwatchCore
 import SwiftUI
 
-/// Het tabblad Packages van de repo-pagina: de tabel met elk package per workspace.
-struct RepoPackagesTab: View {
+/// Het tabblad Afhankelijkheden van de repo-pagina: de tabel met elk package per workspace.
+struct RepoDependenciesTab: View {
     let versions: RepoVersions?
     @Bindable var page: RepoPage
     let width: TableWidth

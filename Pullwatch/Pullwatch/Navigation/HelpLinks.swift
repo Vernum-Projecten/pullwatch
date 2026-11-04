@@ -11,6 +11,9 @@ enum HelpLinks {
     static var documentation: URL { website }
     /// De pagina uit `site/src/content/docs/using/keyboard-shortcuts.md`.
     static var keyboardShortcuts: URL { website.appending(path: "using/keyboard-shortcuts/") }
+    /// De pagina uit `site/src/content/docs/getting-started/permissions.md`: welke rechten een
+    /// token of de GitHub App nodig heeft, ook voor de packageregisters.
+    static var permissions: URL { website.appending(path: "getting-started/permissions/") }
     static var newIssue: URL { repository.appending(path: "issues/new") }
 
     /// De release notes van deze versie.

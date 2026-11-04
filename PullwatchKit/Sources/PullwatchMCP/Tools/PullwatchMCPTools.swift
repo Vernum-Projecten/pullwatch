@@ -12,6 +12,7 @@ public enum PullwatchMCPTools {
             ListRepositoriesTool.make(dataSource),
             GetRepositoryReportTool.make(dataSource),
             ListVulnerabilitiesTool.make(dataSource),
+            ListPackagesTool.make(dataSource),
             ExplainUpdateTool.make(dataSource),
             GetAgentBriefTool.make(dataSource),
         ]

@@ -25,7 +25,7 @@ struct RepoInspector: View {
                 } else {
                     NoSelectionView(text: Text("Kies een kwetsbaarheid om de details te zien."))
                 }
-            case .packages:
+            case .dependencies:
                 if let selected = page.selectedPackage {
                     PackageInspector(
                         row: selected,

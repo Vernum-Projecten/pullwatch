@@ -16,11 +16,11 @@ struct AgentBriefMenu: View {
                 Section(RepoTab.check.title) {
                     Button(RepoTab.check.title) { briefs.vulnerabilities().map(Pasteboard.copy) }
                 }
-                Section(RepoTab.packages.title) {
+                Section(RepoTab.dependencies.title) {
                     Button("Packages met nieuwe versie") { Pasteboard.copy(briefs.packageUpdates()) }
                     let workspaces = briefs.workspaces
                     if workspaces.count == 1, let workspace = workspaces.first {
-                        Button(RepoTab.packages.title) { Pasteboard.copy(briefs.packages(workspace)) }
+                        Button(RepoTab.dependencies.title) { Pasteboard.copy(briefs.packages(workspace)) }
                     } else {
                         ForEach(workspaces) { workspace in
                             Button(Workspace.name(workspace.workspace)) { Pasteboard.copy(briefs.packages(workspace)) }

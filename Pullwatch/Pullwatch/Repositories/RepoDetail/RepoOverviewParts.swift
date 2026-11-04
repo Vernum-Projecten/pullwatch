@@ -8,6 +8,10 @@ struct RepoOverviewSection: View {
     let accountName: String?
     let latestTag: String?
     let checkedAt: Date?
+    /// Wat de repo zelf publiceert (het onderdeel Packages); leeg als niets of de bron uit staat.
+    var published: [PublishedPackage] = []
+    /// Opent Packages, gefilterd op deze repo.
+    var showPublished: () -> Void = {}
 
     var body: some View {
         Section {
@@ -28,6 +32,9 @@ struct RepoOverviewSection: View {
                     Text("Geen")
                 }
             }
+            if !published.isEmpty {
+                RepoPublishedRow(packages: published, show: showPublished)
+            }
             LabeledContent("Gecheckt") {
                 if let checkedAt {
                     Text(checkedAt, format: .dateTime.day().month().year().hour().minute())
@@ -35,6 +42,25 @@ struct RepoOverviewSection: View {
                     Text("Nog niet gecheckt")
                 }
             }
+        }
+    }
+}
+
+/// Eén regel: wat de repo publiceert, met de nieuwste versies, als link naar het onderdeel Packages.
+struct RepoPublishedRow: View {
+    let packages: [PublishedPackage]
+    let show: () -> Void
+
+    var body: some View {
+        LabeledContent("Publiceert") {
+            Button(action: show) {
+                Text(verbatim: packages.map { package in
+                    package.latestVersion.map { "\(package.name) \($0)" } ?? package.name
+                }.formatted(.list(type: .and)))
+                .multilineTextAlignment(.trailing)
+            }
+            .buttonStyle(.link)
+            .help(Text("Toon deze packages in Packages"))
         }
     }
 }

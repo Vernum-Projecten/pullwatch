@@ -4,7 +4,7 @@ import SwiftUI
 
 /// De pagina van één repo. Bovenaan de tellingen (elk een filter), daaronder het gekozen
 /// tabblad: Overzicht (status, PR's, activiteit, volgen), Controle (runtimes en kwetsbaarheden),
-/// Packages en Beveiliging. Een gekozen rij toont zijn details in het inspectievenster rechts.
+/// Afhankelijkheden en Beveiliging. Een gekozen rij toont zijn details in het inspectievenster rechts.
 struct RepoDetailView: View {
     @Environment(AccountsModel.self) private var accounts
     @Environment(VersionsModel.self) private var versions
@@ -119,8 +119,8 @@ private struct RepoTabContent: View {
                     advisoryDetailsOff: !accounts.config.isEnabled(.gitHubAdvisoryDatabase),
                     openAdvisory: { NSWorkspace.shared.open($0.pageURL) }
                 )
-            case .packages:
-                RepoPackagesTab(versions: summary.versions, page: page, width: width, isChecking: versions.versionCheck != nil)
+            case .dependencies:
+                RepoDependenciesTab(versions: summary.versions, page: page, width: width, isChecking: versions.versionCheck != nil)
             case .security:
                 RepoSecurityTab(
                     scan: summary.versions?.security, skipped: summary.versions?.skippedSecuritySource,
@@ -137,7 +137,7 @@ extension RepoTab {
     var searchPrompt: LocalizedStringResource {
         switch self {
         case .overview, .check: "Zoek op CVE, package of versie…"
-        case .packages: "Zoek op package of versie…"
+        case .dependencies: "Zoek op package of versie…"
         case .security: "Zoek op titel of bestand…"
         }
     }

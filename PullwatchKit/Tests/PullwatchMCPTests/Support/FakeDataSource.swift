@@ -199,6 +199,29 @@ struct FakeDataSource: MCPDataSource {
             "npm:left-pad": PackageLatest(version: "1.3.0", seenAt: checkedAt),
             "npm:body-parser": PackageLatest(version: "1.20.3", seenAt: checkedAt),
             "PyPI:requests": PackageLatest(version: "2.32.3", seenAt: checkedAt),
+        ],
+        publishedPackages: [
+            AccountPackages(accountId: gitHubId, result: .packages(publishedPackages), checkedAt: checkedAt),
+            AccountPackages(accountId: gitLabId, result: .needsPermission(reason: "Needs read_api."), checkedAt: checkedAt),
         ]
     )
+
+    /// Wat acme publiceert: een npm-package van acme/web met twee versies, een image van acme/api,
+    /// een package zonder repository en een van de niet meer gevolgde acme/old.
+    static let publishedPackages: [PublishedPackage] = [
+        PublishedPackage(
+            accountId: gitHubId, name: "ui", type: .npm, owner: "acme", repository: "acme/web", visibility: .private,
+            webURL: URL(string: "https://github.com/orgs/acme/packages/npm/package/ui"),
+            versions: [
+                PublishedVersion(version: "2.3.0", publishedAt: checkedAt, webURL: URL(string: "https://github.com/orgs/acme/packages/npm/ui/2.3.0"), tag: "v2.3.0"),
+                PublishedVersion(version: "2.2.0", publishedAt: checkedAt.addingTimeInterval(-86_400)),
+            ]
+        ),
+        PublishedPackage(
+            accountId: gitHubId, name: "api", type: .container, owner: "acme", repository: "acme/api",
+            versions: [PublishedVersion(version: "1.0.0", publishedAt: checkedAt)]
+        ),
+        PublishedPackage(accountId: gitHubId, name: "shared", type: .npm, owner: "acme", repository: nil),
+        PublishedPackage(accountId: gitHubId, name: "hidden", type: .npm, owner: "acme", repository: "acme/old", latestVersion: "9.9.9"),
+    ]
 }

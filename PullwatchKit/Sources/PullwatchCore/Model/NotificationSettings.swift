@@ -12,12 +12,14 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
     case account
     /// Een coding agent die voor het eerst Pullwatch wil gebruiken (Toestaan of Niet toestaan).
     case agent
+    /// Een nieuwe nieuwste versie van een package dat een gevolgde repo zelf publiceert.
+    case publishedPackage
 
     public var id: Self { self }
 
     /// De soorten met een eigen schakelaar, in de volgorde van de instellingen.
     static let switchable: [NotificationKind] = [
-        .pullRequest, .merged, .checksFailed, .release, .tag, .vulnerability, .securityAlert, .packageUpdate,
+        .pullRequest, .merged, .checksFailed, .release, .tag, .vulnerability, .securityAlert, .packageUpdate, .publishedPackage,
     ]
 }
 
@@ -81,6 +83,8 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
     public var packageUpdates: Bool
     /// De melding van een nieuwe versie alleen als een repo hem nu binnen zijn bereik kan nemen.
     public var onlyUpdatesYouCanTake: Bool
+    /// Standaard uit: een nieuwe versie van een eigen package (de Packages-sectie).
+    public var publishedPackages: Bool
     public var quietHours: QuietHours
     /// Het aantal ongelezen op het Dock-icoon, zolang er een venster open is.
     public var dockBadge: Bool
@@ -90,7 +94,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
     public init(
         pullRequests: Bool = true, merged: Bool = true, checksFailed: Bool = false, releases: Bool = true, tags: Bool = true,
         vulnerabilities: Bool = true, securityAlerts: Bool = false, packageUpdates: Bool = true,
-        onlyUpdatesYouCanTake: Bool = true, quietHours: QuietHours = QuietHours(),
+        onlyUpdatesYouCanTake: Bool = true, publishedPackages: Bool = false, quietHours: QuietHours = QuietHours(),
         dockBadge: Bool = true, menuBarDot: Bool = true
     ) {
         self.pullRequests = pullRequests
@@ -102,6 +106,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         self.securityAlerts = securityAlerts
         self.packageUpdates = packageUpdates
         self.onlyUpdatesYouCanTake = onlyUpdatesYouCanTake
+        self.publishedPackages = publishedPackages
         self.quietHours = quietHours
         self.dockBadge = dockBadge
         self.menuBarDot = menuBarDot
@@ -123,6 +128,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         securityAlerts = try value(.securityAlerts, defaults.securityAlerts)
         packageUpdates = try value(.packageUpdates, defaults.packageUpdates)
         onlyUpdatesYouCanTake = try value(.onlyUpdatesYouCanTake, defaults.onlyUpdatesYouCanTake)
+        publishedPackages = try value(.publishedPackages, defaults.publishedPackages)
         quietHours = try c.decodeIfPresent(QuietHours.self, forKey: .quietHours) ?? defaults.quietHours
         dockBadge = try value(.dockBadge, defaults.dockBadge)
         menuBarDot = try value(.menuBarDot, defaults.menuBarDot)
@@ -141,6 +147,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .vulnerability: vulnerabilities
             case .securityAlert: securityAlerts
             case .packageUpdate: packageUpdates
+            case .publishedPackage: publishedPackages
             case .appUpdate, .account, .agent: true
             }
         }
@@ -154,6 +161,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .vulnerability: vulnerabilities = newValue
             case .securityAlert: securityAlerts = newValue
             case .packageUpdate: packageUpdates = newValue
+            case .publishedPackage: publishedPackages = newValue
             case .appUpdate, .account, .agent: break
             }
         }

@@ -1,12 +1,14 @@
 import PullwatchCore
 import SwiftUI
 
-/// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk en van ⌘1 tot ⌘5.
+/// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk en van ⌘1 tot ⌘6.
 enum MainSection: String, CaseIterable, Identifiable {
     // `dependencies` heette vroeger Versies; de rawValue blijft "versions", zodat een bewaard
     // laatste onderdeel en meldingen (`userInfo["section"]`) blijven werken.
     case pullRequests, tags, stats, repos
     case dependencies = "versions"
+    /// Wat de gevolgde repo's zelf publiceren (npm, images, NuGet); niet wat ze gebruiken.
+    case packages
 
     var id: Self { self }
 
@@ -17,6 +19,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .stats: "Statistieken"
         case .repos: "Repo's"
         case .dependencies: "Afhankelijkheden"
+        case .packages: "Packages"
         }
     }
 
@@ -27,17 +30,22 @@ enum MainSection: String, CaseIterable, Identifiable {
         case .stats: .system("chart.bar")
         case .repos: .system("folder")
         case .dependencies: .system("shippingbox")
+        case .packages: .system(PublishedPackagesView.symbol)
         }
     }
 }
 
 /// De tabbladen van de repo-pagina, in de knoppenbalk: overzicht, de controle (runtimes en
-/// kwetsbaarheden), de packages en de beveiliging van de dienst zelf.
+/// kwetsbaarheden), de afhankelijkheden en de beveiliging van de dienst zelf.
 enum RepoTab: String, CaseIterable, Identifiable {
-    case overview, check, packages, security
+    case overview, check
+    // Heette Packages; de rawValue blijft "packages", zodat het bewaarde tabblad blijft werken.
+    // "Packages" is nu alleen wat een repo publiceert (het onderdeel Packages).
+    case dependencies = "packages"
+    case security
 
     /// Of de tellers (kwetsbaarheden, verouderd, bij te werken, geblokkeerd) bij dit tabblad horen.
-    var showsCheckSummary: Bool { self == .check || self == .packages }
+    var showsCheckSummary: Bool { self == .check || self == .dependencies }
 
     var id: Self { self }
 
@@ -45,7 +53,7 @@ enum RepoTab: String, CaseIterable, Identifiable {
         switch self {
         case .overview: "Overzicht"
         case .check: "Controle"
-        case .packages: "Packages"
+        case .dependencies: "Afhankelijkheden"
         case .security: "Beveiliging"
         }
     }
@@ -61,6 +69,14 @@ struct RepoSelectionRequest: Equatable {
     /// De id van de rij (`VulnerabilityTableRow.id`, `RepoPackageTableRow.id`, `SecurityFindingRow.id`);
     /// nil toont het tabblad met het inspectievenster dicht.
     var rowId: String? = nil
+}
+
+/// Wat het onderdeel Packages bij openen toont: alleen wat één repo publiceert, of een zoektekst.
+struct PublishedPackagesRequest: Equatable {
+    var repo: HistoryRepo?
+    var search: String?
+    /// Een package om te kiezen, met het inspectievenster open (`PublishedPackageSummary.id`).
+    var selection: String?
 }
 
 /// Selectie in de zijbalk: een onderdeel, of één project onder PR's, Tags of Repo's.
@@ -111,7 +127,7 @@ struct SidebarContent: Equatable {
         case .pullRequests: pullRequestGroups
         case .tags: tagGroups
         case .repos: repoGroups
-        case .stats, .dependencies: []
+        case .stats, .dependencies, .packages: []
         }
     }
 

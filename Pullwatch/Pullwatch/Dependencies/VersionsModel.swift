@@ -18,6 +18,9 @@ final class VersionsModel {
     /// (`VersionReport.visible(disabled:accountKinds:)`): wat de schermen en meldingen tonen.
     private(set) var versionReport: VersionReport?
     private(set) var packageSummaries: [PackageSummary] = []
+    /// Wat de gevolgde repo's zelf publiceren, met wie het gebruikt (het onderdeel Packages, de regel
+    /// op het Overzicht van een repo); leeg als de bron uit staat.
+    private(set) var publishedPackages: [PublishedPackageSummary] = []
     /// Voortgang van "Afhankelijkheden checken"; `nil` als er niets loopt.
     private(set) var versionCheck: CheckProgress?
     /// Repo's (`RepoVersions.id`) die nu los opnieuw gecheckt worden.
@@ -96,6 +99,7 @@ final class VersionsModel {
         }
         versionReport = visible
         packageSummaries = visible?.packageSummaries() ?? []
+        publishedPackages = visible?.publishedPackageSummaries() ?? []
         registryIndex = RegistryIndex(visible?.packageMetadata ?? [:])
         updateContexts = [:]
         if notify { didChangeReport() }
@@ -327,6 +331,10 @@ final class VersionsModel {
         if settings.packageUpdates,
            let content = builder.packageUpdates(report.newPackageVersions(since: previous, onlyCanUpdateNow: settings.onlyUpdatesYouCanTake)) {
             notifier.deliver([content])
+        }
+        // Een nieuwe versie van een eigen package: wat de schermen tonen, dus niets als de bron uit staat.
+        if settings.publishedPackages {
+            notifier.deliver(shown.newPublishedVersions(since: previous).map(builder.publishedVersion))
         }
     }
 }
