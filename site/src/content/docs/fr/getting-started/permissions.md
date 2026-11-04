@@ -19,9 +19,9 @@ Pullwatch ne fait que lire. Donnez à un jeton les autorisations en lecture ci-d
 | Secret scanning alerts: Read | facultatif, le nombre d’alertes d’analyse des secrets ouvertes |
 | Checks: Read et Commit statuses: Read | facultatif, les checks de chaque pull request |
 
-**Classic token** : `repo`, plus `security_events` pour les alertes d’analyse du code et d’analyse des secrets.
+**Classic token** : `repo`, plus `security_events` pour les alertes d’analyse du code et d’analyse des secrets, et en option `read:packages` pour les paquets que vos dépôts publient dans GitHub Packages. Avec la GitHub CLI, ajoutez ce scope avec `gh auth refresh -s read:packages`.
 
-**Se connecter avec GitHub** utilise la GitHub App Pullwatch, qui demande les mêmes autorisations en lecture. Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
+**Se connecter avec GitHub** utilise la GitHub App Pullwatch, qui demande les mêmes autorisations en lecture, plus l’autorisation facultative Packages: Read pour les paquets que vos dépôts publient ; sans elle, ces paquets indiquent qu’une autorisation manque. Le propriétaire de chaque installation les accepte ; quand l’app obtient une nouvelle autorisation, GitHub demande au propriétaire de l’accepter une nouvelle fois.
 
 ## GitHub Enterprise
 

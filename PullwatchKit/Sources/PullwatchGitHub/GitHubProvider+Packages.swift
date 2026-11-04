@@ -1,14 +1,20 @@
 import Foundation
 public import PullwatchCore
 
+/// Eén regel per account en per verzoek, op Info zodat `log show` ze ziet: dienst, manier van
+/// inloggen, pad met de soort, status en aantal; bij een fout GitHubs `message`. Nooit een token
+/// of een header.
+private let logger = Log(category: "Packages")
+
 /// De eigen packages in GitHub Packages: per gevolgde eigenaar en per soort één lijst
 /// (`/orgs/{org}/packages` of `/users/{user}/packages`, 100 per pagina, `Link`-header voor de
 /// volgende), gekoppeld aan de gevolgde repo's via `repository.full_name`. De recente versies
 /// alleen voor packages van een gevolgde repo. Alleen in de dagelijkse versiecheck.
 ///
-/// GitHub leest het register alleen met `read:packages` (een `gh`-token of een persoonlijk token
-/// (classic)); de GitHub App kent dat recht niet. Een 401 of 403 is daarom `.needsPermission`
-/// met de reden, nooit een mislukte check.
+/// GitHub leest het register met de scope `read:packages` (een `gh`-token of een persoonlijk token
+/// (classic)) of, bij de GitHub App, met het repository-recht Packages (lezen), dat optioneel is
+/// (docs/github-app.md). Een 401 of 403 is daarom `.needsPermission` met de reden voor de manier
+/// van inloggen van het account, nooit een mislukte check.
 extension GitHubProvider {
     /// De soorten die de REST API van GitHub Packages kent (`package_type`, verplicht).
     static let packageTypes: [PublishedPackageType] = [.npm, .maven, .rubyGems, .docker, .nuGet, .container]
@@ -17,13 +23,24 @@ extension GitHubProvider {
     /// digests), dus ruim genoeg om er `PublishedPackage.recentVersionLimit` met tag over te houden.
     static let versionPageSize = 30
 
-    /// Wat er nodig is als GitHub het register weigert.
-    static var packagesPermissionReason: String {
-        String(
-            localized: "GitHub Packages is alleen te lezen met het recht read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages. De GitHub App kan dat recht niet krijgen.",
-            bundle: .localizedGitHub,
-            comment: "Reden waarom de packages van een GitHub-account niet te lezen zijn; read:packages en de gh-opdracht niet vertalen"
-        )
+    /// Wat er nodig is als GitHub het register weigert, per manier van inloggen: bij de GitHub App
+    /// het recht Packages van de app (de eigenaar van de app zet het aan, elke installatie keurt
+    /// het goed, docs/github-app.md sectie 6), anders de scope `read:packages` van het token.
+    static func packagesPermissionReason(for authMethod: AuthMethod) -> String {
+        switch authMethod {
+        case .gitHubApp:
+            String(
+                localized: "Pullwatch heeft het recht Packages (lezen) op zijn GitHub App nodig: de eigenaar van de app zet het aan, daarna keur je het nieuwe recht goed (docs/github-app.md).",
+                bundle: .localizedGitHub,
+                comment: "Reden waarom de packages van een GitHub-account via de GitHub App niet te lezen zijn; Packages is de naam van het recht bij GitHub"
+            )
+        case .pat, .cli:
+            String(
+                localized: "GitHub Packages is alleen te lezen met de scope read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages.",
+                bundle: .localizedGitHub,
+                comment: "Reden waarom de packages van een GitHub-account met de GitHub CLI of een token niet te lezen zijn; read:packages en de gh-opdracht niet vertalen"
+            )
+        }
     }
 
     public func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages {
@@ -53,9 +70,33 @@ extension GitHubProvider {
                 }
             }
         } catch PackagesAccess.needsPermission {
-            return .needsPermission(reason: Self.packagesPermissionReason)
+            logger.info("\(logPrefix): geen recht op het register, needsPermission")
+            return .needsPermission(reason: Self.packagesPermissionReason(for: authMethod))
+        } catch {
+            logger.info("\(logPrefix): mislukt: \((error as? ProviderError)?.userMessage ?? error.localizedDescription)")
+            throw error
         }
+        logger.info("\(logPrefix): \(packages.count) packages van \(owners.count) eigenaren")
         return .packages(packages)
+    }
+
+    /// "gitHub/gitHubApp account <id>" voor elke logregel.
+    private var logPrefix: String {
+        "\(ProviderKind.gitHub.rawValue)/\(authMethod.rawValue) account \(accountId.uuidString)"
+    }
+
+    /// Eén logregel voor een verzoek aan het register: pad met de soort (geen andere query), status,
+    /// het aantal packages of versies, en bij een fout GitHubs `message`.
+    private func logRequest(_ url: URL, type: String?, response: HTTPURLResponse, data: Data, count: Int?) {
+        let path = url.path(percentEncoded: true) + (type.map { "?package_type=\($0)" } ?? "")
+        let status = response.statusCode
+        if (200..<300).contains(status) {
+            logger.info("\(logPrefix): \(path) \(status), \(count ?? 0)")
+        } else {
+            struct Message: Decodable { let message: String? }
+            let message = (try? JSONDecoder().decode(Message.self, from: data))?.message ?? ""
+            logger.info("\(logPrefix): \(path) \(status) \(message)")
+        }
     }
 
     /// De nieuwste versies van één package, nieuwste eerst; een image zonder tag telt niet. Een
@@ -67,9 +108,11 @@ extension GitHubProvider {
             let (data, response) = try await send(
                 url, query: [URLQueryItem(name: "per_page", value: String(Self.versionPageSize))], checked: false
             )
+            let items = (200..<300).contains(response.statusCode)
+                ? try JSONDecoding.decode([PackageVersionDTO].self, from: data, snakeCase: true) : []
+            logRequest(url, type: nil, response: response, data: data, count: items.count)
             guard try Self.checkPackagesAccess(response) else { return [] }
             try HTTPStatus.check(response, now: now())
-            let items = try JSONDecoding.decode([PackageVersionDTO].self, from: data, snakeCase: true)
             return Array(items.compactMap { $0.version(type: type) }.prefix(PublishedPackage.recentVersionLimit))
         } catch PackagesAccess.needsPermission {
             throw PackagesAccess.needsPermission
@@ -87,9 +130,14 @@ extension GitHubProvider {
         var pages = 0
         while let current = next, pages < maxPages {
             let (data, response) = try await send(current.url, query: current.query, checked: false)
+            let page = (200..<300).contains(response.statusCode)
+                ? try JSONDecoding.decode([PackageDTO].self, from: data, snakeCase: true) : []
+            let type = (current.query + (URLComponents(url: current.url, resolvingAgainstBaseURL: false)?.queryItems ?? []))
+                .first { $0.name == "package_type" }?.value
+            logRequest(current.url, type: type, response: response, data: data, count: page.count)
             guard try Self.checkPackagesAccess(response) else { break }
             try HTTPStatus.check(response, now: now())
-            items += try JSONDecoding.decode([PackageDTO].self, from: data, snakeCase: true)
+            items += page
             next = Self.nextLink(response).map { ($0, []) }
             pages += 1
         }

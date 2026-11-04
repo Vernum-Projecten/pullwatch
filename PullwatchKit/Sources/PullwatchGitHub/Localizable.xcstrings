@@ -29,31 +29,31 @@
         }
       }
     },
-    "GitHub Packages is alleen te lezen met het recht read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages. De GitHub App kan dat recht niet krijgen.": {
-      "comment": "Reden waarom de packages van een GitHub-account niet te lezen zijn; read:packages en de gh-opdracht niet vertalen",
+    "GitHub Packages is alleen te lezen met de scope read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages.": {
+      "comment": "Reden waarom de packages van een GitHub-account met de GitHub CLI of een token niet te lezen zijn; read:packages en de gh-opdracht niet vertalen",
       "localizations": {
-        "nl": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "GitHub Packages is alleen te lezen met het recht read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages. De GitHub App kan dat recht niet krijgen."
+            "value": "GitHub Packages lässt sich nur mit dem Scope read:packages lesen: Verwende die GitHub CLI (gh auth refresh -s read:packages) oder ein persönliches Zugriffstoken (classic) mit read:packages."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "GitHub Packages can only be read with the read:packages permission: use the GitHub CLI (gh auth refresh -s read:packages) or a personal access token (classic) with read:packages. The GitHub App cannot get that permission."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GitHub Packages lässt sich nur mit der Berechtigung read:packages lesen: Verwende die GitHub CLI (gh auth refresh -s read:packages) oder ein persönliches Zugriffstoken (classic) mit read:packages. Die GitHub App kann diese Berechtigung nicht erhalten."
+            "value": "GitHub Packages can only be read with the read:packages scope: use the GitHub CLI (gh auth refresh -s read:packages) or a personal access token (classic) with read:packages."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "GitHub Packages ne peut être lu qu'avec l'autorisation read:packages : utilisez la GitHub CLI (gh auth refresh -s read:packages) ou un jeton d'accès personnel (classic) avec read:packages. La GitHub App ne peut pas obtenir cette autorisation."
+            "value": "GitHub Packages ne peut être lu qu'avec le scope read:packages : utilisez la GitHub CLI (gh auth refresh -s read:packages) ou un jeton d'accès personnel (classic) avec read:packages."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub Packages is alleen te lezen met de scope read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages."
           }
         }
       }
@@ -222,6 +222,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Log opnieuw in bij GitHub."
+          }
+        }
+      }
+    },
+    "Pullwatch heeft het recht Packages (lezen) op zijn GitHub App nodig: de eigenaar van de app zet het aan, daarna keur je het nieuwe recht goed (docs/github-app.md).": {
+      "comment": "Reden waarom de packages van een GitHub-account via de GitHub App niet te lezen zijn; Packages is de naam van het recht bij GitHub",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch braucht die Berechtigung Packages (Lesen) für seine GitHub App: Der Eigentümer der App schaltet sie ein, danach akzeptierst du die neue Berechtigung (docs/github-app.md)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch needs the Packages permission (read) on its GitHub App: the owner of the app turns it on, then you accept the new permission (docs/github-app.md)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch a besoin de l'autorisation Packages (lecture) sur sa GitHub App : le propriétaire de l'app l'active, puis vous acceptez la nouvelle autorisation (docs/github-app.md)."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch heeft het recht Packages (lezen) op zijn GitHub App nodig: de eigenaar van de app zet het aan, daarna keur je het nieuwe recht goed (docs/github-app.md)."
           }
         }
       }

@@ -40,13 +40,23 @@ Apps**, **New GitHub App**:
 | Secret scanning alerts | Read-only, optional | only the number of open secrets, with a link to GitHub; Pullwatch asks with `hide_secret=true` and never reads a secret (`repos/{owner}/{repo}/secret-scanning/alerts?state=open`) |
 | Checks | Read-only, optional | the check runs (GitHub Actions and other apps) on a pull request's last commit, counted per state for the checks cell (`statusCheckRollup` in GraphQL; on REST `GET /repos/{owner}/{repo}/commits/{ref}/check-runs`) |
 | Commit statuses | Read-only, optional | the commit statuses (older CI services that post a status) on the same commit, in the same count (`statusCheckRollup`; on REST `GET /repos/{owner}/{repo}/commits/{ref}/status`) |
+| Packages | Read-only, optional | the packages and container images the followed repositories publish to GitHub Packages, with their recent versions, read once a day by the version check (`GET /orgs/{org}/packages?package_type=…` or `/users/{user}/packages?package_type=…` per type, and `…/packages/{type}/{name}/versions` for packages of followed repositories) |
 
 Without the optional permissions Pullwatch works as before: the
 repository page shows **Needs permission** next to Code scanning or Secret
 scanning, quietly, and nothing else changes. Without Checks and Commit
 statuses a pull request has no checks cell, and the repository page says
-**Checks: Needs permission** under its pull requests. Add them only if the
-people who use Pullwatch want those alerts or checks in it.
+**Checks: Needs permission** under its pull requests. Without Packages the
+Packages section says **Needs permission** for the account, with the reason
+(the owner of the app turns Packages on, then each installation accepts it,
+section 6). Add them only if the people who use Pullwatch want those alerts,
+checks or packages in it.
+
+GitHub's docs disagree on whether a GitHub App user token can read GitHub
+Packages: the REST reference names only OAuth app tokens and personal access
+tokens (classic) with `read:packages`, while "Endpoints available for GitHub
+App user access tokens" lists the package endpoints. Pullwatch treats a 401
+or 403 from those endpoints as **Needs permission**, never as a failed check.
 
 The checks need both permissions because GitHub's `statusCheckRollup` mixes
 check runs and commit statuses; GitHub's table "Permissions required for

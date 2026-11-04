@@ -197,8 +197,7 @@ import PullwatchTestSupport
 
         let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
 
-        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason))
-        #expect(GitHubProvider.packagesPermissionReason.contains("read:packages"))
+        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .pat)))
         #expect(urls(http).filter { $0.contains("/packages?") }.count == 1, "na de eerste weigering niets meer")
     }
 
@@ -211,7 +210,25 @@ import PullwatchTestSupport
 
         let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
 
-        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason))
+        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .pat)))
+    }
+
+    /// De scope en het pad naar de documentatie blijven in elke taal staan.
+    @Test(arguments: [(AuthMethod.gitHubApp, "docs/github-app.md"), (.cli, "read:packages"), (.pat, "read:packages")])
+    func `The reason names what the way of signing in misses`(authMethod: AuthMethod, missing: String) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("orgs/acme/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
+        let provider = GitHubProvider(
+            accountId: fixedAccountId, owners: ["acme"], authMethod: authMethod, tokenSource: StaticTokenSource(token: "ghtok"), http: http
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        let reason = GitHubProvider.packagesPermissionReason(for: authMethod)
+        #expect(result == .needsPermission(reason: reason))
+        #expect(reason.contains(missing))
+        #expect(reason.contains("read:packages") == (authMethod != .gitHubApp), "de GitHub App heeft een recht, geen scope")
     }
 
     @Test func `A rate limit is an error for the next check, not missing permission`() async {

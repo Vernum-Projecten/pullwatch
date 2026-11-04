@@ -56,6 +56,7 @@ public enum ProviderFactory {
                 owners: account.owners,
                 extraRepos: account.extraRepos,
                 instanceURL: account.effectiveInstanceURL,
+                authMethod: account.authMethod,
                 tokenSource: tokens,
                 http: http
             )
