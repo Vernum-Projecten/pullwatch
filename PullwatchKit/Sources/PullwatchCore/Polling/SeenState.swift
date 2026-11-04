@@ -18,11 +18,11 @@ import Foundation
 /// met `seen`.
 public struct SeenState: Codable, Equatable, Sendable {
     public var seen: [String: Date] = [:]
-    public var lastSettings: [String: FilterSettings] = [:]
-    public var tagSeeded: [String: Date] = [:]
-    public var syncMarks: [String: SyncMark] = [:]
+    var lastSettings: [String: FilterSettings] = [:]
+    var tagSeeded: [String: Date] = [:]
+    var syncMarks: [String: SyncMark] = [:]
     public var coAuthors: [String: CoAuthorMark] = [:]
-    public var tagFingerprints: [String: String] = [:]
+    var tagFingerprints: [String: String] = [:]
     public var checks: [String: CheckMark] = [:]
 
     public init() {}
@@ -47,7 +47,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         seen[key] != nil
     }
 
-    public mutating func mark(_ key: String, at date: Date) {
+    mutating func mark(_ key: String, at date: Date) {
         seen[key] = date
     }
 
@@ -75,7 +75,7 @@ public struct SeenState: Codable, Equatable, Sendable {
     }
 
     /// Verwijdert `seen`-, `tagSeeded`- en `coAuthors`-entries waarvan de key niet met één van `keyPrefixes` begint.
-    public mutating func retain(onlyKeyPrefixes keyPrefixes: [String]) {
+    mutating func retain(onlyKeyPrefixes keyPrefixes: [String]) {
         seen = seen.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         tagSeeded = tagSeeded.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         coAuthors = coAuthors.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
@@ -84,14 +84,14 @@ public struct SeenState: Codable, Equatable, Sendable {
     }
 
     /// Vingerafdrukken horen bij een `tagSeeded`-entry: zonder die entry seedt de repo opnieuw.
-    public mutating func dropOrphanFingerprints() {
+    mutating func dropOrphanFingerprints() {
         tagFingerprints = tagFingerprints.filter { tagSeeded[$0.key] != nil }
     }
 
     /// Ververst de `seen`-datum van alle tags (en hun releases) van één tag-repo
     /// (`"{accountId}:{repo.lowercased()}"`), ook die deze poll niet ophaalde: anders zou prune ze
     /// na een maand vergeten en meldt de volgende volledige poll ze als nieuw.
-    public mutating func refreshTags(ofRepo repoKey: String, at date: Date) {
+    mutating func refreshTags(ofRepo repoKey: String, at date: Date) {
         let prefix = repoKey + ":tag:"
         for key in seen.keys where key.hasPrefix(prefix) {
             seen[key] = date
@@ -132,7 +132,7 @@ public struct CheckMark: Codable, Equatable, Sendable {
 /// Moment en context van de laatste geslaagde geschiedenis-sync van een account. Wijken de
 /// sync-relevante filtersettings (`FilterSettings.sameSyncScope`) of de bewaartermijn af, dan is
 /// de volgende sync weer een volledige eerste sync.
-public struct SyncMark: Codable, Equatable, Sendable {
+struct SyncMark: Codable, Equatable, Sendable {
     public var at: Date
     public var settings: FilterSettings
     public var retention: HistoryRetention

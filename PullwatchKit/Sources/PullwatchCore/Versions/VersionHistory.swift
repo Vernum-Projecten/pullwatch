@@ -21,7 +21,7 @@ public struct VersionSnapshot: Codable, Equatable, Sendable {
 /// Momentopnames van elke volledige versiecheck, oudste eerst.
 public struct VersionHistory: Codable, Equatable, Sendable {
     /// Ongeveer twee jaar bij één check per dag.
-    public static let maxSnapshots = 730
+    static let maxSnapshots = 730
 
     public private(set) var snapshots: [VersionSnapshot] = []
 

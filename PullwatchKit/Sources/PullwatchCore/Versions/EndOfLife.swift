@@ -17,7 +17,7 @@ public enum VersionStatus: String, Codable, Sendable, Comparable {
 }
 
 /// Eén releasecyclus van een product bij endoflife.date (bv. Go "1.27", .NET "8").
-public struct EndOfLifeRelease: Equatable, Sendable {
+struct EndOfLifeRelease: Equatable, Sendable {
     public let name: String
     /// "yyyy-MM-dd".
     public let releaseDate: String
@@ -33,7 +33,7 @@ public struct EndOfLifeRelease: Equatable, Sendable {
     }
 }
 
-public enum EndOfLife {
+enum EndOfLife {
     public static func url(product: String) -> URL {
         URL(string: "https://endoflife.date/api/v1/products")!.appending(path: product)
     }
@@ -71,14 +71,14 @@ public enum EndOfLife {
     }
 
     /// Cyclus waar `version` in valt: de langste naam die er een prefix van is ("1.27" voor "1.27.3").
-    public static func cycle(of version: String, releases: [EndOfLifeRelease]) -> EndOfLifeRelease? {
+    static func cycle(of version: String, releases: [EndOfLifeRelease]) -> EndOfLifeRelease? {
         releases
             .filter { version == $0.name || version.hasPrefix($0.name + ".") }
             .max { $0.name.count < $1.name.count }
     }
 
     /// Patches tellen niet: alleen een nieuwere cyclus (major/minor) maakt een versie "achter".
-    public static func evaluate(version: String, releases: [EndOfLifeRelease], now: Date) -> (status: VersionStatus, latest: String?) {
+    static func evaluate(version: String, releases: [EndOfLifeRelease], now: Date) -> (status: VersionStatus, latest: String?) {
         let today = now.formatted(Date.ISO8601FormatStyle(timeZone: .gmt).year().month().day())
         let released = releases.filter { $0.releaseDate <= today }
         guard let newest = released.max(by: { $0.releaseDate < $1.releaseDate }) else { return (.unknown, nil) }
@@ -90,7 +90,7 @@ public enum EndOfLife {
 }
 
 /// Swift-releases van swift.org. Swift heeft geen EOL-beleid: een versie is actueel of achter, nooit EOL.
-public enum SwiftReleases {
+enum SwiftReleases {
     public static let url = URL(string: "https://www.swift.org/api/v1/install/releases.json")!
 
     /// Patches ("6.2.1") samengevoegd tot cycli ("6.2"): datum van de eerste, nieuwste patch als `latest`.

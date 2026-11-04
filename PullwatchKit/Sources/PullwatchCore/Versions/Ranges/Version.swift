@@ -9,7 +9,7 @@ import Foundation
 /// in de praktijk ook: `1.0.dev1` < `1.0a1` < `1.0rc1` < `1.0` < `1.0.post1`. Build-metadata en
 /// lokale labels (`+incompatible`, `+ubuntu1`) tellen bij vergelijken niet mee.
 public struct Version: Comparable, Hashable, Sendable, CustomStringConvertible {
-    public let epoch: Int
+    let epoch: Int
     public let release: [Int]
     /// Pre-release-delen (`["beta", "2"]`); leeg voor een release.
     public let prerelease: [String]
@@ -223,4 +223,9 @@ public enum UpdateStep: String, Codable, Hashable, Sendable, Comparable {
     }
 
     public static func < (lhs: UpdateStep, rhs: UpdateStep) -> Bool { lhs.order < rhs.order }
+}
+
+extension StringProtocol {
+    /// Zonder de "v" vooraan die Go-modules en tags hebben: "v1.2.3" wordt "1.2.3".
+    var droppingVersionPrefix: String { hasPrefix("v") ? String(dropFirst()) : String(self) }
 }

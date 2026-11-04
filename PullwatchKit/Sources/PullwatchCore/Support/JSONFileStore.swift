@@ -28,7 +28,7 @@ public struct JSONFileStore<Value: Codable & Sendable>: Sendable {
 public enum AppPaths {
     /// Launch-argument (`-PullwatchDataDirectory <map>`) waarmee de app met een eigen, lege
     /// datamap start: voor UI-tests, zodat die nooit de echte config en geschiedenis gebruiken.
-    public static let directoryOverrideKey = "PullwatchDataDirectory"
+    static let directoryOverrideKey = "PullwatchDataDirectory"
 
     public static func file(_ name: String, defaults: UserDefaults = .standard) -> URL {
         directory(defaults: defaults).appending(path: name)

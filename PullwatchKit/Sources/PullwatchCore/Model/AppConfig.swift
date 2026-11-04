@@ -1,7 +1,7 @@
 import Foundation
 
 public struct AppConfig: Codable, Equatable, Sendable {
-    public static let intervalRange = 60...900
+    static let intervalRange = 60...900
 
     public var accounts: [Account]
     public var pollInterval: Int
@@ -102,20 +102,20 @@ public struct AppConfig: Codable, Equatable, Sendable {
     }
 
     /// Melding als er een nieuwe versie is van een package of runtime die een repo gebruikt.
-    public var notifyPackageUpdates: Bool {
+    var notifyPackageUpdates: Bool {
         get { notifications.packageUpdates }
         set { notifications.packageUpdates = newValue }
     }
 
     /// Die melding alleen voor updates die een repo nu binnen zijn bereik kan nemen. Standaard aan.
-    public var notifyOnlyUpdatesYouCanTake: Bool {
+    var notifyOnlyUpdatesYouCanTake: Bool {
         get { notifications.onlyUpdatesYouCanTake }
         set { notifications.onlyUpdatesYouCanTake = newValue }
     }
 
     /// Melding bij een nieuwe critical- of high-melding van code scanning of Advanced Security.
     /// Standaard uit: die meldingen staan ook bij GitHub of Azure DevOps.
-    public var notifySecurityAlerts: Bool {
+    var notifySecurityAlerts: Bool {
         get { notifications.securityAlerts }
         set { notifications.securityAlerts = newValue }
     }

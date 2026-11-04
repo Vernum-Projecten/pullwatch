@@ -4,7 +4,7 @@ import Foundation
 /// tot ze `lifetime` oud zijn: de periode schuift op, dus na een tijd klopt de grafiek niet meer.
 public struct ActivityStatsCache {
     /// Hoe lang een berekening geldt.
-    public static let lifetime: TimeInterval = 600
+    static let lifetime: TimeInterval = 600
 
     private struct Key: Hashable {
         let period: StatsPeriod

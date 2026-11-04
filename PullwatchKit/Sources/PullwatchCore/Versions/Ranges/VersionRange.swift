@@ -4,9 +4,9 @@ import Foundation
 /// meer alternatieven (`||`), elk een rij voorwaarden die allemaal moeten gelden. De parsers per
 /// ecosysteem (`NpmRange`, `ComposerConstraint`, `PEP440Specifier`, `CargoRequirement`,
 /// `NuGetRange`, `GemRequirement`, `GoModuleRequirement`, `SwiftRequirement`) maken er een van.
-public struct VersionRange: Hashable, Sendable {
-    public struct Comparator: Hashable, Sendable {
-        public enum Operator: Hashable, Sendable {
+struct VersionRange: Hashable, Sendable {
+    struct Comparator: Hashable, Sendable {
+        enum Operator: Hashable, Sendable {
             case equal, notEqual, less, lessOrEqual, greater, greaterOrEqual
             /// Releasedeel lager dan de grens, ook pre-releases van de grens uitgesloten: de
             /// bovengrens van `^1.2` (npm `<2.0.0-0`, RubyGems `~>`: `release < bump`).
@@ -59,7 +59,7 @@ public struct VersionRange: Hashable, Sendable {
     }
 
     /// Wanneer een pre-release in het bereik mag vallen.
-    public enum Prereleases: Hashable, Sendable {
+    enum Prereleases: Hashable, Sendable {
         /// node-semver en Cargo: alleen als een voorwaarde in hetzelfde alternatief een
         /// pre-release met hetzelfde major.minor.patch noemt.
         case sameRelease
@@ -69,10 +69,10 @@ public struct VersionRange: Hashable, Sendable {
     }
 
     /// Of (`||`) van en (`,` of spatie); leeg betekent niets.
-    public let alternatives: [[Comparator]]
-    public let prereleases: Prereleases
+    let alternatives: [[Comparator]]
+    let prereleases: Prereleases
     /// Het bereik staat pre-releases uitdrukkelijk toe (Composer `@dev`, NuGet `1.0.0-*`).
-    public let allowsPrereleases: Bool
+    let allowsPrereleases: Bool
 
     public init(_ alternatives: [[Comparator]], prereleases: Prereleases = .whenNamed, allowsPrereleases: Bool = false) {
         self.alternatives = alternatives
@@ -104,7 +104,7 @@ public struct VersionRange: Hashable, Sendable {
     }
 
     /// Of `version` binnen het gevraagde bereik valt, zodat bijwerken alleen de lockfile verandert.
-    public func allowsUpdate(to version: String) -> Bool {
+    func allowsUpdate(to version: String) -> Bool {
         contains(version)
     }
 

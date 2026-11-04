@@ -235,7 +235,7 @@ public struct CVSSRating: Codable, Hashable, Sendable {
     /// 0.0 t/m 10.0, uitgerekend met `CVSSCalculator`.
     public let score: Double
     /// `severity[].source`: "NVD", "CNA" of "SELF"; nil is de database van het record zelf.
-    public let assessor: String?
+    let assessor: String?
 
     public init(vector: String, score: Double, assessor: String? = nil) {
         self.vector = vector

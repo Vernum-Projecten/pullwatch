@@ -101,7 +101,7 @@ public enum NotificationPlanner {
 
     /// Laat weg waarvoor de repo op "geen melding" staat; het item zelf blijft gevolgd. Een
     /// account dat er niet (meer) is meldt alles.
-    public static func audible(
+    static func audible(
         pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest], accounts: [Account]
     ) -> (pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest]) {
         let byId = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })

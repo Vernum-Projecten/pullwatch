@@ -21,7 +21,7 @@ extension VersionReport {
     /// Wat de volgende opzoeking moet vragen: GHSA-ids zonder (verse) gegevens, en CVE's van
     /// vondsten zonder GHSA-id waar nog geen advies bij gevonden is. Een eerdere misser wordt pas
     /// na `GitHubAdvisory.missRetryInterval` opnieuw gevraagd.
-    public func missingAdvisoryLookups(now: Date) -> (ghsaIds: Set<String>, cves: Set<String>) {
+    func missingAdvisoryLookups(now: Date) -> (ghsaIds: Set<String>, cves: Set<String>) {
         func due(_ key: String) -> Bool {
             advisoryMisses[key].map { now.timeIntervalSince($0) >= GitHubAdvisory.missRetryInterval } ?? true
         }

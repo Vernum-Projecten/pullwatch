@@ -1,7 +1,7 @@
 import Foundation
 
 /// Nieuwste stabiele versie van een package, rechtstreeks uit het register van het ecosysteem.
-public enum PackageRegistry {
+enum PackageRegistry {
     /// crates.io weigert verzoeken zonder User-Agent; de andere registers krijgen hem ook.
     static let userAgent = "Pullwatch (https://github.com/alessandro823/pullwatch)"
 
@@ -35,14 +35,14 @@ public enum PackageRegistry {
     }
 
     /// nil als het register geen stabiele versie geeft (alleen pre-releases of een Go-pseudo-versie).
-    public static func decodeLatest(ecosystem: String, name: String, data: Data) throws -> String? {
+    static func decodeLatest(ecosystem: String, name: String, data: Data) throws -> String? {
         switch ecosystem {
         case "Go":
             struct Info: Decodable { let Version: String }
             let version = try JSONDecoding.decode(Info.self, from: data).Version
             // Zonder tags geeft de proxy een pseudo-versie (v0.0.0-20240101120000-abcdef123456).
             guard version.firstMatch(of: /\d{14}-[0-9a-f]{12}$/) == nil else { return nil }
-            return version.hasPrefix("v") ? String(version.dropFirst()) : version
+            return version.droppingVersionPrefix
         case "npm":
             struct Info: Decodable { let version: String }
             return try JSONDecoding.decode(Info.self, from: data).version
@@ -52,7 +52,7 @@ public enum PackageRegistry {
                 let packages: [String: [Package]]
             }
             let packages = try JSONDecoding.decode(Response.self, from: data).packages[name.lowercased()] ?? []
-            return highestStable(packages.map { $0.version.hasPrefix("v") ? String($0.version.dropFirst()) : $0.version })
+            return highestStable(packages.map(\.version.droppingVersionPrefix))
         case "NuGet":
             struct Index: Decodable { let versions: [String] }
             return highestStable(try JSONDecoding.decode(Index.self, from: data).versions)

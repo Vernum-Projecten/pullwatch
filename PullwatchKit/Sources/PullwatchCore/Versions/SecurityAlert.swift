@@ -75,7 +75,7 @@ public struct SecurityAlert: Codable, Hashable, Sendable, Identifiable {
     }
 
     /// Critical of high: telt mee in de gezondheid van de repo en geeft (als dat aan staat) een melding.
-    public var isSerious: Bool { severityRank >= 3 }
+    var isSerious: Bool { severityRank >= 3 }
 
     /// Ernstigste eerst, dan het nieuwste.
     static func sorted(_ alerts: [SecurityAlert]) -> [SecurityAlert] {
@@ -148,15 +148,15 @@ public struct SecurityScan: Codable, Hashable, Sendable {
         feeds.first { $0.kind == kind }
     }
 
-    public func isAvailable(_ kind: SecurityFeed.Kind) -> Bool {
+    func isAvailable(_ kind: SecurityFeed.Kind) -> Bool {
         feed(kind)?.availability == .available
     }
 
     /// Critical en high, voor de bevindingen en de gezondheid in Repo's.
-    public var seriousAlerts: [SecurityAlert] { alerts.filter(\.isSerious) }
+    var seriousAlerts: [SecurityAlert] { alerts.filter(\.isSerious) }
 
     /// Iets om te laten zien: meldingen, geheimen of eigen adviezen.
-    public var hasFindings: Bool { !alerts.isEmpty || (secretCount ?? 0) > 0 || !advisories.isEmpty }
+    var hasFindings: Bool { !alerts.isEmpty || (secretCount ?? 0) > 0 || !advisories.isEmpty }
 }
 
 extension VersionReport {

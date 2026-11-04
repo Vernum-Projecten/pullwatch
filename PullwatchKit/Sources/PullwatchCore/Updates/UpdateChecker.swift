@@ -37,7 +37,7 @@ public enum UpdateChecker {
     /// De eigenaar van de releases als de build er geen noemt (`PW_RELEASES_OWNER`).
     public static let defaultOwner = "alessandro823"
 
-    public static func latestReleaseURL(owner: String) -> URL {
+    static func latestReleaseURL(owner: String) -> URL {
         URL(string: "https://api.github.com/repos/\(owner)/\(UpdateFeed.repositoryName)/releases/latest")!
     }
 
@@ -69,7 +69,7 @@ public enum UpdateChecker {
         let (data, response) = try await http.send(request)
         try HTTPStatus.check(response, now: now)
         let release = try JSONDecoding.decode(Release.self, from: data, snakeCase: true)
-        let version = release.tagName.hasPrefix("v") ? String(release.tagName.dropFirst()) : release.tagName
+        let version = release.tagName.droppingVersionPrefix
         guard isNewer(version, than: current) else { return nil }
         return AvailableUpdate(
             version: version,

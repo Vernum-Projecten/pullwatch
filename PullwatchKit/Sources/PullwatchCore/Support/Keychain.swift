@@ -7,11 +7,11 @@ public protocol SecretStore: Sendable {
     func delete(account: String) throws
 }
 
-public struct KeychainError: Error, Equatable {
+struct KeychainError: Error, Equatable {
     public let status: OSStatus
 }
 
-public struct KeychainStore: SecretStore {
+struct KeychainStore: SecretStore {
     private let service: String
 
     public init(service: String = "nl.torrisi.pullwatch") {

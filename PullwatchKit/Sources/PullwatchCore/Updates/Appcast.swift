@@ -7,11 +7,11 @@ public struct AppcastItem: Equatable, Sendable {
     /// `sparkle:shortVersionString`: de versie (CFBundleShortVersionString); leeg als die ontbreekt.
     public let version: String
     /// `sparkle:channel`; nil is het standaardkanaal dat iedereen krijgt.
-    public let channel: String?
+    let channel: String?
     /// `sparkle:minimumSystemVersion` ("26.6"); nil als de appcast er geen noemt.
     public let minimumSystemVersion: String?
     /// Het adres van de zip (`enclosure url`).
-    public let archiveURL: URL?
+    let archiveURL: URL?
 
     public init(build: String, version: String, channel: String?, minimumSystemVersion: String?, archiveURL: URL?) {
         self.build = build
@@ -30,7 +30,7 @@ public struct AppcastItem: Equatable, Sendable {
     }
 
     /// De releasepagina op GitHub (`…/releases/tag/<tag>`), of nil als de zip niet op GitHub staat.
-    public var releasePage: URL? {
+    var releasePage: URL? {
         guard let archiveURL, let tag, var components = URLComponents(url: archiveURL, resolvingAgainstBaseURL: false)
         else { return nil }
         let parts = archiveURL.pathComponents
@@ -41,7 +41,7 @@ public struct AppcastItem: Equatable, Sendable {
     }
 
     /// De versie zoals een mens hem leest: de tag zonder "v" ("0.6.0-beta.1"), anders de versie.
-    public var displayVersion: String {
+    var displayVersion: String {
         if let tag, tag.hasPrefix("v") { return String(tag.dropFirst()) }
         return version.isEmpty ? build : version
     }
@@ -50,7 +50,7 @@ public struct AppcastItem: Equatable, Sendable {
 /// Leest een Sparkle-appcast en kiest de update die deze app mag installeren, met dezelfde regels
 /// als Sparkle zelf: een hoger buildnummer, een kanaal dat de app toelaat en een macOS die
 /// minstens het minimum van de update is.
-public enum Appcast {
+enum Appcast {
     /// Alle items in de feed, in de volgorde van de feed. Onleesbare XML geeft een lege lijst.
     public static func items(_ data: Data) -> [AppcastItem] {
         let reader = Reader()
@@ -80,14 +80,10 @@ public enum Appcast {
 
     /// Vergelijkt buildnummers per getal ("10" na "9", "1.2.10" na "1.2.9"), zoals Sparkle's
     /// standaardvergelijking voor de nummers die Pullwatch gebruikt.
-    public static func isNewer(_ candidate: String, than current: String) -> Bool {
+    static func isNewer(_ candidate: String, than current: String) -> Bool {
         let a = numbers(candidate), b = numbers(current)
         guard !a.isEmpty else { return false }
-        for i in 0..<max(a.count, b.count) {
-            let x = i < a.count ? a[i] : 0, y = i < b.count ? b[i] : 0
-            if x != y { return x > y }
-        }
-        return false
+        return Version.compare(a, b) == .orderedDescending
     }
 
     /// Of macOS `system` minstens `minimum` ("26.6", "26.6.1") is.

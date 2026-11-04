@@ -32,7 +32,7 @@ public struct PackageUpdate: Hashable, Sendable {
         }
 
         /// Wat de update tegenhoudt; nil als niets.
-        public var blocker: UpdateBlocker? {
+        var blocker: UpdateBlocker? {
             switch self {
             case .blockedByPackage(let parent, let range, let minimum): .package(parent: parent, parentRange: range, minimumParentVersion: minimum)
             case .blockedByPeer(let name, let needs, let installed): .peer(name: name, needs: needs, installed: installed)

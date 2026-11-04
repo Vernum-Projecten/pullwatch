@@ -136,7 +136,7 @@ public struct ActivityStats: Sendable {
     public let authorStates: [String: PRStateCounts]
     public let repoStates: [String: PRStateCounts]
 
-    public static func compute(
+    static func compute(
         history: History, period: StatsPeriod, filter: ActivityFilter, now: Date = Date(), calendar: Calendar = .current
     ) -> ActivityStats {
         let currentStart = calendar.dateInterval(of: period.component, for: now)?.start ?? now

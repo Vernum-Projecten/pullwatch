@@ -14,7 +14,7 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
     public var id: Self { self }
 
     /// De soorten met een eigen schakelaar, in de volgorde van de instellingen.
-    public static let switchable: [NotificationKind] = [
+    static let switchable: [NotificationKind] = [
         .pullRequest, .merged, .checksFailed, .release, .tag, .vulnerability, .securityAlert, .packageUpdate,
     ]
 }

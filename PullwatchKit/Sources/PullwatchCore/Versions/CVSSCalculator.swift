@@ -3,7 +3,7 @@ import Foundation
 /// Rekent de score van een CVSS-vector uit, zoals FIRST dat doet: CVSS 3.0 en 3.1 (de basisscore
 /// uit de specificatie) en CVSS 4.0 (de MacroVector-tabel met interpolatie uit FIRSTs eigen
 /// calculator, github.com/FIRSTdotorg/cvss-v4-calculator). OSV geeft alleen de vector, geen getal.
-public enum CVSSCalculator {
+enum CVSSCalculator {
     /// De score van 0.0 t/m 10.0; nil als de vector geen geldige CVSS 3.x of 4.0 is.
     /// Bij 3.x telt alleen de basisgroep; bij 4.0 tellen threat- en omgevingsmetrieken mee als
     /// de vector ze noemt (CVSS-BT, -BE, -BTE), zoals in FIRSTs calculator.
@@ -24,7 +24,7 @@ public enum CVSSCalculator {
 
     /// De kwalitatieve ernst bij een score, met de namen van GitHub en OSV: "CRITICAL" (9.0 en
     /// hoger), "HIGH" (7.0), "MODERATE" (4.0), "LOW" (0.1); nil bij 0.0 ("None").
-    public static func rating(_ score: Double) -> String? {
+    static func rating(_ score: Double) -> String? {
         switch score {
         case 9.0...: "CRITICAL"
         case 7.0..<9.0: "HIGH"
