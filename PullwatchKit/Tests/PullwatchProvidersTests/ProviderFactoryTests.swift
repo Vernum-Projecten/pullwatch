@@ -74,6 +74,24 @@ import PullwatchTestSupport
         #expect(http.requests.isEmpty)
     }
 
+    @Test(arguments: [nil, ""])
+    func `Bitbucket without an email sends no request and no token`(email: String?) async throws {
+        let http = MockHTTPClient()
+        http.on("api.bitbucket.org", body: #"{"uuid":"{1}","display_name":"Jane","values":[]}"#)
+        var account = Account.fixture(kind: .bitbucket)
+        account.email = email
+        let secrets = InMemorySecretStore()
+        try secrets.write("ATATT-stored", account: account.id.uuidString)
+        let provider = ProviderFactory.make(account, secrets: secrets, http: http)
+        await #expect(throws: ProviderError.missingEmail) { try await provider.testConnection() }
+        await #expect(throws: ProviderError.missingEmail) { try await provider.openPullRequests() }
+        _ = try? await provider.listRepos()
+        _ = try? await provider.pullRequests(updatedSince: nil, limit: 10)
+        _ = try? await provider.tags(in: ["acme/api"])
+        _ = try? await provider.checkRepository("other/tool")
+        #expect(http.requests.isEmpty)
+    }
+
     @Test(arguments: [ProviderKind.gitHub, .gitLab, .gitea])
     func `An http server from the config sends no request and no token`(kind: ProviderKind) async throws {
         let http = MockHTTPClient()

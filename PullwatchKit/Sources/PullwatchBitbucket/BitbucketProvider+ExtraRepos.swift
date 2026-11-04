@@ -95,6 +95,10 @@ extension BitbucketProvider {
     /// ook 401; met inloggen is 401 een ongeldig token en dus een fout.
     private func readableRepository(_ url: URL, anonymous: Bool) async throws -> RepositoryDTO? {
         let (data, response) = try await send(url, anonymous: anonymous, checked: false)
+        // Een token zonder de scope voor repo's: dat zegt de fout, de repo bestaat misschien wel.
+        if !anonymous, response.statusCode == 403, let scope = Self.missingScope(in: data) {
+            throw ProviderError.missingScope(scope)
+        }
         do {
             try HTTPStatus.check(response, now: now())
         } catch ProviderError.unauthorized where anonymous || response.statusCode == 403 {
@@ -123,6 +127,10 @@ extension BitbucketProvider {
                 throw ProviderError.unauthorized
             } catch ProviderError.missingToken {
                 throw ProviderError.missingToken
+            } catch ProviderError.missingEmail {
+                throw ProviderError.missingEmail
+            } catch ProviderError.missingScope(let scope) {
+                throw ProviderError.missingScope(scope)
             } catch {
                 names.append(repo) // netwerk: de naam uit de instellingen
             }

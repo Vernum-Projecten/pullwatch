@@ -178,8 +178,8 @@ private struct AccountCard: View {
                     }
                     Spacer(minLength: 0)
                 }
-                // Een eigen server zonder bruikbaar adres: het account wordt niet opgehaald.
-                if let problem = account.serverProblemMessage {
+                // Een eigen server zonder bruikbaar adres of Bitbucket zonder e-mailadres: het account wordt niet opgehaald.
+                if let problem = account.setupProblemMessage {
                     Label {
                         Text(verbatim: problem).font(.caption).fixedSize(horizontal: false, vertical: true)
                     } icon: {
