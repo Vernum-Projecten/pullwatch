@@ -1,0 +1,26 @@
+---
+title: Das Menü
+description: Was das Symbol von Pullwatch in der Menüleiste zeigt und was du von dort aus tun kannst.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Klicke auf das Pullwatch-Symbol in der Menüleiste, um das Menü zu öffnen.
+
+<Screenshot name="menu" maxWidth={400} alt="Das Menü von Pullwatch mit fünf Pull Requests und ihren Checks sowie fünf Tags und Releases." />
+
+## Was es zeigt
+
+- **Pull Requests**: die neuesten aus den Repositories, denen du folgst. Jede Zeile hat das Status-Symbol (offen, Entwurf, gemergt oder geschlossen), den Titel, die Checks (etwa `4/8`, mit einem roten Kreuz, wenn einer fehlgeschlagen ist) und darunter das Repository, den Autor und wann Pullwatch den Pull Request gesehen hat.
+- **Tags und Releases**: die neuesten Tags, mit dem Titel des Releases vor dem Namen des Tags, wenn es ein Release gibt.
+- Unten jedes Konto mit dem Stand seiner letzten Abfrage. So siehst du sofort, wenn ein Token abgelaufen oder ein Server nicht erreichbar ist.
+- Ein Banner, wenn eine neue Version von Pullwatch verfügbar ist, und **Widerrufen**, nachdem du ein Repository aus einer Mitteilung heraus stummgeschaltet hast.
+
+Ein kleiner Punkt vor einer Zeile bedeutet, dass sie ungelesen ist. Unter Einstellungen, Mitteilungen kannst du auch einen Punkt am Symbol in der Menüleiste selbst anzeigen lassen, solange etwas ungelesen ist.
+
+## Was du tun kannst
+
+- **Klicke auf eine Zeile**, um den Pull Request, den Tag oder das Release im Browser zu öffnen. Er wird dann als gelesen markiert.
+- **Klicke mit der rechten Maustaste auf eine Zeile**, um sie als gelesen oder ungelesen zu markieren oder die Seite des Repositorys in Pullwatch zu öffnen.
+- Die Schaltflächen oben: **Über Pullwatch**, **Jetzt aktualisieren** (⌘R) und **Einstellungen** (⌘,).
+- Unten: **Alle gelesen** (⌘K), **Öffnen…** (⌘O) für das Hauptfenster und **Pullwatch beenden** (⌘Q).

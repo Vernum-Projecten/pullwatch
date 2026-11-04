@@ -1,0 +1,34 @@
+---
+title: Repositories
+description: Die Liste der Repositories, denen du folgst, das schlechteste zuerst, und die Seite jedes Repositorys.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Repositories** in der Seitenleiste listet jedes Repository, dem du folgst, das schlechteste zuerst:
+
+- Rot bei bekannten Schwachstellen oder einer Runtime nach ihrem Support-Ende;
+- Orange bei einer veralteten Runtime oder Paketen mit neuer Version;
+- Grün, wenn alles aktuell ist;
+- Grau, wenn es noch nicht geprüft wurde.
+
+<Screenshot name="repos" alt="Die Liste Repositories: hello-world mit 4 CVEs, 2 offenen Warnungen, Node 16 EOL und 5 neuen Versionen; linguist mit veraltetem Go; spoon-knife mit 1 neuen Version; specifications-AM aktuell." />
+
+Die Spalte Befunde fasst den Grund zusammen, und die Liste zeigt die offenen Pull Requests und den neuesten Tag jedes Repositorys. **+** in der Symbolleiste folgt einem einzelnen Repository außerhalb deiner Konten (siehe [Repositories außerhalb deines Kontos](/de/getting-started/accounts/#repositories-außerhalb-deines-kontos)).
+
+## Die Seite eines Repositorys
+
+Klicke auf ein Repository, um seine Seite zu öffnen. Sie hat vier Tabs.
+
+<Screenshot name="repo-detail" alt="Der Tab Übersicht eines Repositorys: Status, Konto, neuester Tag, wann es geprüft wurde, und seine offenen, wartenden, gemergten und geschlossenen Pull Requests." />
+
+- **Übersicht**: der Status, das Konto, der neueste Tag, wann zuletzt geprüft wurde, und die offenen und letzten Pull Requests mit ihren Checks. Links führen zu allen Pull Requests und Tags des Repositorys.
+- **Prüfung**: Runtimes und Frameworks mit ihren Versionen und die bekannten Schwachstellen. Siehe [Sicherheit](/de/using/security/).
+- **Pakete**: jedes Paket mit der installierten Version, der neuesten Version, die du jetzt nutzen kannst, und der allerneuesten. Siehe [Abhängigkeiten](/de/using/dependencies/).
+- **Sicherheit**: was der Dienst selbst weiß: Code-Scanning, Secret-Scanning und die eigenen Advisories des Repositorys.
+
+Die Symbolleiste hat **Prüfen** (dieses Repository erneut prüfen), eine Schaltfläche, um seine Versionen und Schwachstellen als Text zu kopieren, und ein Menü, um ihm zu folgen (PRs, Tags, Gemergt, jeweils mit eigener Glocke), ohne in die Einstellungen zu gehen. Seine Statistiken sind einen Sprung entfernt.
+
+## Für einen KI-Agenten kopieren
+
+Jeder Abschnitt des Tabs Übersicht und das Menü Mehr in der Symbolleiste haben **Für einen KI-Agenten kopieren**: Es legt diesen Abschnitt als Auftrag in Markdown in die Zwischenablage, bereit zum Einfügen in einen Coding-Agenten.

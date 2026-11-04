@@ -1,0 +1,34 @@
+---
+title: Mitteilungen
+description: Was jede Mitteilung von Pullwatch sagt, ihre Schaltflächen und wie du sie einstellst.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Jede Mitteilung sagt im Titel, was passiert ist („Neuer Pull Request“, „Pull Request gemergt“, „Neues Release v1.2.0“, „Kritische Sicherheitslücke“), im Untertitel das Repository und im Text den Titel mit Autor und Co-Autoren („von mona und 2 weiteren Personen“). Das Profilbild eines Autors auf GitHub wird angehängt (einmal abgerufen und eine Woche aufbewahrt); sonst zeigt die Mitteilung das Symbol ihrer Art.
+
+<Screenshot name="notifications" maxWidth={420} alt="Fünf Mitteilungen von Pullwatch: ein neuer Pull Request, ein gemergter Pull Request, ein neues Release, ein neuer Tag und eine kritische Sicherheitslücke in lodash." />
+
+## Laut und leise
+
+Neue Pull Requests, Releases, Schwachstellen und Sicherheitswarnungen kommen mit Banner und Ton. Tags ohne Release, gemergte Pull Requests und neue Versionen kommen leise an, nur in der Mitteilungszentrale. Die schwerwiegendste Schwachstelle steht oben im Stapel.
+
+macOS gruppiert die Mitteilungen pro Konto und Repository. Bis zu 20 Einträge pro Abfrage bekommen jeweils eine eigene Mitteilung. Darüber sagt eine Mitteilung pro Repository, wie viele es sind, und listet die ersten drei.
+
+## Schaltflächen
+
+- Bei einem Pull Request, Release oder Tag: **Als gelesen markieren**, **Repository-Seite öffnen** (in Pullwatch) und **Repository stummschalten**.
+- Bei einer Schwachstelle: **In Pullwatch zeigen**, **Advisory-ID kopieren** und **Repository-Seite öffnen**.
+
+**Repository stummschalten** schaltet diese Art von Mitteilung für dieses Repository aus, genau wie seine Glocke in den Einstellungen, und das Menü bietet **Widerrufen** an, bis du es schließt. Ein Klick auf die Mitteilung selbst öffnet den Pull Request, das Release oder das Advisory und markiert es als gelesen. Liest du einen Eintrag in Pullwatch, verschwindet seine Mitteilung aus der Mitteilungszentrale.
+
+## Einstellungen, Mitteilungen
+
+- Ein Schalter pro Art: neue Pull Requests, gemergte Pull Requests, Releases, Tags, Schwachstellen, Sicherheitswarnungen und neue Versionen, jeweils mit Vorschau.
+- **Fehlgeschlagene Checks deiner eigenen Pull Requests** (standardmäßig aus) sagt dir, wenn die Checks eines deiner eigenen offenen Pull Requests fehlschlagen.
+- **Ruhezeiten**: Zwischen zwei Uhrzeiten kommen Mitteilungen ohne Ton und nur in der Mitteilungszentrale an. Fokus und Nicht stören kommen weiterhin von macOS.
+- Die Anzahl ungelesener Einträge im Dock-Symbol und ein Punkt am Symbol in der Menüleiste, solange etwas ungelesen ist.
+
+Pro Repository schaltet die Glocke daneben unter Einstellungen, Konten seine Mitteilungen aus, während du ihm weiter folgst.
+
+Mitteilungen respektieren Fokus. Pullwatch nutzt keine dringlichen Mitteilungen, dafür wäre ein Provisioning-Profil nötig.

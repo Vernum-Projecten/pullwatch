@@ -1,0 +1,118 @@
+---
+title: Pullwatch
+description: Eine macOS-App für die Menüleiste, die neue Pull Requests, Tags und Releases auf GitHub, Azure DevOps und GitLab meldet und deine Repositories auf veraltete Runtimes, Pakete und bekannte Schwachstellen prüft.
+template: splash
+editUrl: false
+lastUpdated: false
+pagefind: false
+hero:
+  title: Pullwatch
+  tagline: Neue Pull Requests, Tags und Releases von GitHub, Azure DevOps und GitLab, direkt in deiner Menüleiste. Dazu eine tägliche Prüfung jedes Repositorys auf veraltete Runtimes, Pakete und bekannte Schwachstellen.
+  image:
+    file: ../../../assets/pullwatch-icon.png
+    alt: Das App-Symbol von Pullwatch
+  actions:
+    - text: Für Mac laden
+      link: https://github.com/alessandro823/pullwatch/releases/latest
+      icon: download
+      variant: primary
+    - text: Quellcode auf GitHub
+      link: https://github.com/alessandro823/pullwatch
+      icon: github
+      variant: minimal
+---
+
+import Feature from '../../../components/Feature.astro';
+import Closing from '../../../components/Closing.astro';
+
+<p class="pw-requirements">Kostenlos und Open Source. macOS 26.6 oder neuer, Apple Silicon und Intel. Auf Englisch, Niederländisch, Deutsch und Französisch.</p>
+
+<Feature
+	id="pull-requests"
+	kicker="Pull Requests"
+	title="Jeder Pull Request, sobald er geöffnet wird"
+	shot="pull-requests"
+	alt="Die Liste PRs in Pullwatch: Pull Requests aus mehreren Repositories mit Status-Symbol, Checks wie 4 von 8 bestanden, Autor und Alter."
+	href="/de/using/pull-requests-and-tags/"
+	more="Pull Requests und Tags"
+>
+	<p>Pullwatch folgt deinen Konten auf github.com, GitHub Enterprise, Azure DevOps und GitLab und meldet neue Pull Requests und Merge Requests, sobald sie eintreffen. Jeder zeigt seinen Status und seine Checks so, wie GitHub es tut: bestanden von allen, ein rotes Kreuz, wenn einer fehlgeschlagen ist, und Gelb, solange sie laufen.</p>
+	<p>Alles landet in einem Verlauf, den du nach Titel, Autor und Repository durchsuchen kannst, zusammen mit neuen Tags und Releases.</p>
+</Feature>
+
+<Feature
+	id="menu"
+	kicker="Menüleiste"
+	title="Von überall einen Klick entfernt"
+	shot="menu"
+	alt="Das Menü von Pullwatch mit den neuesten Pull Requests und ihren Checks sowie den neuesten Tags und Releases."
+	href="/de/using/menu/"
+	more="Das Menü"
+	tall
+>
+	<p>Das Menü zeigt die neuesten Pull Requests und Tags mit ihren Checks. Klicke auf einen Eintrag, um ihn im Browser zu öffnen, aktualisiere oder öffne das Hauptfenster. Ein Punkt am Symbol in der Menüleiste zeigt dir, dass etwas ungelesen ist.</p>
+</Feature>
+
+<Feature
+	id="repositories"
+	kicker="Repositories"
+	title="Wo jedes Repository steht"
+	shot="repo-detail"
+	alt="Die Seite eines Repositorys in Pullwatch: Status Problem, das Konto, der neueste Tag und die offenen, wartenden, gemergten und geschlossenen Pull Requests."
+	href="/de/using/repositories/"
+	more="Repositories"
+>
+	<p>Jedes Repository, dem du folgst, bekommt eine Seite mit seinen offenen und letzten Pull Requests, dem neuesten Tag und dem Ergebnis seiner Prüfung. In der Liste steht das schlechteste oben. Du kannst auch einzelnen Repositories außerhalb deiner Organisationen folgen, etwa einem öffentlichen Projekt, von dem du abhängst.</p>
+</Feature>
+
+<Feature
+	id="dependencies"
+	kicker="Abhängigkeiten"
+	title="Sieh, was ein Update aufhält"
+	shot="dependencies"
+	alt="Der Bereich Abhängigkeiten: Pakete gruppiert nach Jetzt aktualisierbar, Manifest muss geändert werden und Blockiert, mit den Repositories, die veraltet sind, und dem Grund."
+	href="/de/using/dependencies/"
+	more="Abhängigkeiten"
+>
+	<p>Einmal am Tag liest Pullwatch die Manifeste und Lockfiles deiner Repositories und vergleicht sie mit den Paket-Registries und endoflife.date. Es zeigt, welche Repositories veraltet sind, ob ein Update in den aktuellen Bereich passt und welches Paket es blockiert.</p>
+</Feature>
+
+<Feature
+	id="security"
+	kicker="Sicherheit"
+	title="Schwachstellen, und woher sie kommen"
+	shot="repo-check"
+	alt="Der Tab Prüfung eines Repositorys: eine Node-Version am Ende ihres Supports und vier Advisories für lodash, qs und semver, mit installierter Version, Korrektur und wie jedes Paket hineingekommen ist."
+	href="/de/using/security/"
+	more="Sicherheit"
+>
+	<p>Bekannte Schwachstellen kommen von OSV.dev, mit den Details aus der GitHub Advisory Database: Schweregrad, CVSS, CWE und die Version mit der Korrektur. Pullwatch zeigt, ob ein Paket direkt eingebunden ist oder über ein anderes kam, und ergänzt die eigenen Warnungen des Repositorys aus Code-Scanning, Secret-Scanning und Advanced Security.</p>
+</Feature>
+
+<Feature
+	id="notifications"
+	kicker="Mitteilungen"
+	title="Mitteilungen, die sagen, was passiert ist"
+	shot="notifications"
+	alt="Mitteilungen von Pullwatch zu einem neuen Pull Request, einem gemergten Pull Request, einem neuen Release, einem neuen Tag und einer kritischen Sicherheitslücke."
+	href="/de/using/notifications/"
+	more="Mitteilungen"
+	tall
+	flip
+>
+	<p>Der Titel sagt, was passiert ist, der Untertitel wo und der Text wer. Schalte jede Art ein oder aus, schalte ein Repository direkt aus der Mitteilung stumm und lege Ruhezeiten fest.</p>
+</Feature>
+
+<Feature
+	id="statistics"
+	kicker="Statistiken"
+	title="Wie dein Team liefert"
+	shot="stats"
+	alt="Der Bereich Statistiken: geöffnete Pull Requests, Entwürfe, gemergte und geschlossene, die mediane Durchlaufzeit, ein Diagramm der Aktivität pro Monat und Ranglisten von Autoren und Repositories."
+	href="/de/using/statistics/"
+	more="Statistiken"
+>
+	<p>Geöffnete und gemergte Pull Requests pro Woche, Monat oder Jahr, die mediane Zeit bis zum Merge, die aktivsten Autoren und die aktivsten Repositories, aus dem Verlauf, den Pullwatch ohnehin führt.</p>
+</Feature>
+
+<Closing />
