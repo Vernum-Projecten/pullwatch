@@ -499,6 +499,28 @@
         }
       }
     },
+    "%@ mag Pullwatch gebruiken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ can use Pullwatch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ darf Pullwatch verwenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ peut utiliser Pullwatch"
+          }
+        }
+      }
+    },
     "%@ valt binnen %@: alleen de lockfile verandert.": {
       "localizations": {
         "de": {
@@ -607,6 +629,29 @@
           "stringUnit": {
             "state": "new",
             "value": "%1$@ vraagt %2$@ %3$@; deze workspace heeft %4$@."
+          }
+        }
+      }
+    },
+    "%@ wil Pullwatch gebruiken": {
+      "comment": "Meldingstitel; naam van een coding agent, zoals Claude Code",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wants to use Pullwatch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ möchte Pullwatch verwenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ veut utiliser Pullwatch"
           }
         }
       }
@@ -3103,6 +3148,72 @@
         }
       }
     },
+    "Agents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agents"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agents"
+          }
+        }
+      }
+    },
+    "Agents lezen alleen wat Pullwatch al heeft opgehaald en kunnen niets veranderen op GitHub, Azure DevOps of GitLab.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agents only read what Pullwatch has already fetched and cannot change anything on GitHub, Azure DevOps or GitLab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenten lesen nur, was Pullwatch bereits abgerufen hat, und können auf GitHub, Azure DevOps oder GitLab nichts ändern."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les agents lisent uniquement ce que Pullwatch a déjà récupéré et ne peuvent rien modifier sur GitHub, Azure DevOps ou GitLab."
+          }
+        }
+      }
+    },
+    "Agents toestaan Pullwatch te gebruiken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow agents to use Pullwatch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenten erlauben, Pullwatch zu verwenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser les agents à utiliser Pullwatch"
+          }
+        }
+      }
+    },
     "Algemeen": {
       "localizations": {
         "de": {
@@ -3812,6 +3923,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alles gelezen"
+          }
+        }
+      }
+    },
+    "Altijd": {
+      "comment": "Instellingen, Agents: agents mogen Pullwatch altijd gebruiken; de helper start de app als die niet draait",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toujours"
           }
         }
       }
@@ -4990,6 +5124,29 @@
         }
       }
     },
+    "De agent leest dan je pull requests, repo's en kwetsbaarheden in Pullwatch. Wat hij leest, gaat naar zijn modelaanbieder.": {
+      "comment": "Melding als een coding agent voor het eerst Pullwatch wil gebruiken",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The agent can then read your pull requests, repositories and vulnerabilities in Pullwatch. What it reads is sent to its model provider."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Agent liest dann deine Pull Requests, Repositorys und Schwachstellen in Pullwatch. Was er liest, geht an seinen Modellanbieter."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’agent pourra alors lire vos pull requests, dépôts et vulnérabilités dans Pullwatch. Ce qu’il lit est envoyé au fournisseur de son modèle."
+          }
+        }
+      }
+    },
     "De dagelijkse check staat uit onder Algemeen, dus deze meldingen komen nu niet.": {
       "localizations": {
         "de": {
@@ -5030,6 +5187,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Le service ne fournit ni code scanning, ni secrets, ni avis propres pour ce dépôt."
+          }
+        }
+      }
+    },
+    "De eerste keer dat een agent Pullwatch gebruikt, vraagt Pullwatch het met een melding. Tot je toestaat, krijgt de agent geen gegevens.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first time an agent uses Pullwatch, Pullwatch asks you in a notification. Until you allow it, the agent gets no data."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn ein Agent Pullwatch zum ersten Mal verwendet, fragt Pullwatch dich mit einer Mitteilung. Bis du es erlaubst, erhält der Agent keine Daten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La première fois qu’un agent utilise Pullwatch, Pullwatch vous le demande par une notification. Tant que vous ne l’autorisez pas, l’agent ne reçoit aucune donnée."
           }
         }
       }
@@ -5614,6 +5793,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Een PR telt ook voor iedereen die eraan meewerkte, naast wie hem opende"
+          }
+        }
+      }
+    },
+    "Een agent die je hierboven hebt ingesteld, verschijnt hier zodra hij Pullwatch gebruikt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An agent you set up above appears here as soon as it uses Pullwatch."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Agent, den du oben eingerichtet hast, erscheint hier, sobald er Pullwatch verwendet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un agent configuré ci-dessus apparaît ici dès qu’il utilise Pullwatch."
+          }
+        }
+      }
+    },
+    "Een agent instellen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up an Agent"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenten einrichten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurer un agent"
           }
         }
       }
@@ -6385,6 +6608,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aucun compte sélectionné"
+          }
+        }
+      }
+    },
+    "Geen agent verbonden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Agent Connected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Agent verbunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun agent connecté"
           }
         }
       }
@@ -7390,6 +7635,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Groupes ou utilisateurs"
+          }
+        }
+      }
+    },
+    "Haal %@ van de lijst; Pullwatch vraagt het dan opnieuw": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@ from the list; Pullwatch will ask again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ von der Liste entfernen; Pullwatch fragt dann erneut"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer %@ de la liste ; Pullwatch le demandera à nouveau"
           }
         }
       }
@@ -8828,6 +9095,28 @@
         }
       }
     },
+    "Kopieer voor %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy for %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für %@ kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier pour %@"
+          }
+        }
+      }
+    },
     "Kopieer voor een AI-agent": {
       "localizations": {
         "de": {
@@ -8846,6 +9135,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copier pour un agent IA"
+          }
+        }
+      }
+    },
+    "Kopieer wat %@ nodig heeft om Pullwatch te gebruiken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy what %@ needs to use Pullwatch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieren, was %@ braucht, um Pullwatch zu verwenden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier ce dont %@ a besoin pour utiliser Pullwatch"
+          }
+        }
+      }
+    },
+    "Koppel %@ los, zonder iets te onthouden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect %@ without remembering anything"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ trennen, ohne etwas zu speichern"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter %@ sans rien mémoriser"
           }
         }
       }
@@ -9043,6 +9376,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Laatste tag %@:"
+          }
+        }
+      }
+    },
+    "Laatste tool: %@, %@": {
+      "comment": "Instellingen, Agents; naam van een MCP-tool en hoe lang geleden",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatste tool: %1$@, %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last tool: %1$@, %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letztes Tool: %1$@, %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier outil : %1$@, %2$@"
           }
         }
       }
@@ -9271,6 +9633,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "En retard"
+          }
+        }
+      }
+    },
+    "Loskoppelen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trennen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter"
           }
         }
       }
@@ -10900,6 +11284,28 @@
         }
       }
     },
+    "Nog geen agent toegestaan.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No agent allowed yet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch kein Agent erlaubt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun agent autorisé pour l’instant."
+          }
+        }
+      }
+    },
     "Nog geen nieuwe PR's": {
       "localizations": {
         "de": {
@@ -10996,6 +11402,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nog niet gecheckt"
+          }
+        }
+      }
+    },
+    "Nooit": {
+      "comment": "Instellingen, Agents: agents mogen Pullwatch nooit gebruiken",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jamais"
           }
         }
       }
@@ -14251,6 +14680,28 @@
         }
       }
     },
+    "Sluit de verbinding van deze agent met Pullwatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this agent’s connection to Pullwatch"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung dieses Agenten mit Pullwatch trennen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer la connexion de cet agent à Pullwatch"
+          }
+        }
+      }
+    },
     "Sluiten": {
       "localizations": {
         "de": {
@@ -14297,6 +14748,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soort"
+          }
+        }
+      }
+    },
+    "Sta niet toe": {
+      "comment": "Knop op een melding: een coding agent mag Pullwatch niet gebruiken en wordt losgekoppeld",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don’t Allow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht erlauben"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne pas autoriser"
+          }
+        }
+      }
+    },
+    "Sta toe": {
+      "comment": "Knop op een melding: een coding agent mag Pullwatch gebruiken",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlauben"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser"
           }
         }
       }
@@ -14959,6 +15456,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Titel"
+          }
+        }
+      }
+    },
+    "Toegestane agents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved Agents"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlaubte Agenten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agents autorisés"
           }
         }
       }
@@ -15708,6 +16227,29 @@
         }
       }
     },
+    "Verbinden…": {
+      "comment": "Instellingen, Agents: een agent is verbonden maar heeft nog niet gezegd wie hij is",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecting…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion…"
+          }
+        }
+      }
+    },
     "Verbinding": {
       "localizations": {
         "de": {
@@ -15732,6 +16274,51 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verbinding"
+          }
+        }
+      }
+    },
+    "Verbonden %@": {
+      "comment": "Instellingen, Agents; hoe lang geleden, bv. 5 minuten geleden",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté %@"
+          }
+        }
+      }
+    },
+    "Verbonden agents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected Agents"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbundene Agenten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agents connectés"
           }
         }
       }
@@ -16047,6 +16634,28 @@
         }
       }
     },
+    "Verwijder %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ entfernen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer %@"
+          }
+        }
+      }
+    },
     "Verwijderen": {
       "localizations": {
         "de": {
@@ -16110,6 +16719,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajoutez un compte GitHub ou Azure DevOps pour suivre les pull requests et les tags."
+          }
+        }
+      }
+    },
+    "Voer uit in Terminal.": {
+      "comment": "Instellingen, Agents: waar de opdracht voor een agent heen moet",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run in Terminal."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Terminal ausführen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À exécuter dans Terminal."
           }
         }
       }
@@ -16582,6 +17214,28 @@
         }
       }
     },
+    "Wacht op toestemming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for approval"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartet auf Erlaubnis"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente d’autorisation"
+          }
+        }
+      }
+    },
     "Wachten op de installatie op github.com…": {
       "localizations": {
         "de": {
@@ -16672,6 +17326,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wanneer"
+          }
+        }
+      }
+    },
+    "Wat een agent in Pullwatch leest, gaat naar de aanbieder van zijn model.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What an agent reads in Pullwatch is sent to its model provider."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was ein Agent in Pullwatch liest, geht an den Anbieter seines Modells."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce qu’un agent lit dans Pullwatch est envoyé au fournisseur de son modèle."
           }
         }
       }
@@ -17004,6 +17680,52 @@
         }
       }
     },
+    "Zet in .vscode/mcp.json van je project.": {
+      "comment": "Instellingen, Agents: het configuratiebestand van VS Code",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to .vscode/mcp.json in your project."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In .vscode/mcp.json deines Projekts eintragen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À ajouter dans .vscode/mcp.json de votre projet."
+          }
+        }
+      }
+    },
+    "Zet in ~/.cursor/mcp.json.": {
+      "comment": "Instellingen, Agents: het configuratiebestand van Cursor",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to ~/.cursor/mcp.json."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In ~/.cursor/mcp.json eintragen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À ajouter dans ~/.cursor/mcp.json."
+          }
+        }
+      }
+    },
     "Zie je het icoon niet? Bij een volle menubalk of de camera-uitsparing kan macOS het verbergen; onder Systeeminstellingen → Menubalk bepaal je welke icoontjes er staan.": {
       "localizations": {
         "de": {
@@ -17308,6 +18030,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zoeken"
+          }
+        }
+      }
+    },
+    "Zolang Pullwatch open is": {
+      "comment": "Instellingen, Agents: agents mogen Pullwatch gebruiken zolang de app draait",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While Pullwatch is open"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solange Pullwatch geöffnet ist"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tant que Pullwatch est ouvert"
           }
         }
       }

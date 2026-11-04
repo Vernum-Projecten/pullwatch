@@ -44,10 +44,13 @@ nonisolated struct NotificationPayload: Equatable, Sendable {
     var package: String?
     /// Wat "Advies-id kopiëren" op het klembord zet.
     var advisoryId: String?
+    /// De agent (`clientInfo.name`) die Toestaan of Niet toestaan geldt.
+    var agentName: String?
 
     private enum Key {
         static let url = "url", key = "key", keys = "keys", section = "section", action = "action"
         static let accountId = "accountId", repo = "repo", watchKinds = "watchKinds", package = "package", advisoryId = "advisoryId"
+        static let agentName = "agentName"
     }
 
     var userInfo: [String: any Sendable] {
@@ -65,13 +68,14 @@ nonisolated struct NotificationPayload: Equatable, Sendable {
         if !watchKinds.isEmpty { info[Key.watchKinds] = watchKinds.map(\.rawValue) }
         if let package { info[Key.package] = package }
         if let advisoryId { info[Key.advisoryId] = advisoryId }
+        if let agentName { info[Key.agentName] = agentName }
         return info
     }
 
     init(
         url: URL? = nil, historyKeys: [String] = [], section: String? = nil, installsUpdate: Bool = false,
         accountId: UUID? = nil, repo: String? = nil, watchKinds: [WatchKind] = [], package: String? = nil,
-        advisoryId: String? = nil
+        advisoryId: String? = nil, agentName: String? = nil
     ) {
         self.url = url
         self.historyKeys = historyKeys
@@ -82,6 +86,7 @@ nonisolated struct NotificationPayload: Equatable, Sendable {
         self.watchKinds = watchKinds
         self.package = package
         self.advisoryId = advisoryId
+        self.agentName = agentName
     }
 
     /// Leest `userInfo` terug, ook van een melding die een oudere Pullwatch verstuurde.
@@ -95,6 +100,7 @@ nonisolated struct NotificationPayload: Equatable, Sendable {
         watchKinds = (userInfo[Key.watchKinds] as? [String] ?? []).compactMap(WatchKind.init(rawValue:))
         package = userInfo[Key.package] as? String
         advisoryId = userInfo[Key.advisoryId] as? String
+        agentName = userInfo[Key.agentName] as? String
     }
 }
 
@@ -108,6 +114,8 @@ nonisolated enum NotificationCategory: String, CaseIterable, Sendable {
     case vulnerability
     /// Een beveiligingsmelding, of meerdere kwetsbaarheden van één repository.
     case finding
+    /// Een agent die voor het eerst Pullwatch wil gebruiken.
+    case agent
 
     var identifier: String { "nl.torrisi.pullwatch.\(rawValue)" }
 
@@ -123,13 +131,14 @@ nonisolated enum NotificationCategory: String, CaseIterable, Sendable {
         case .summary: [.markAllRead, .openRepository, .mute]
         case .vulnerability: [.showInPullwatch, .copyAdvisoryId, .openRepository]
         case .finding: [.openRepository]
+        case .agent: [.allowAgent, .denyAgent]
         }
     }
 }
 
 /// Een knop op een melding.
 nonisolated enum NotificationAction: String, CaseIterable, Sendable {
-    case markRead, markAllRead, openRepository, mute, showInPullwatch, copyAdvisoryId
+    case markRead, markAllRead, openRepository, mute, showInPullwatch, copyAdvisoryId, allowAgent, denyAgent
 
     var identifier: String { "nl.torrisi.pullwatch.action.\(rawValue)" }
 
@@ -146,6 +155,8 @@ nonisolated enum NotificationAction: String, CaseIterable, Sendable {
         case .mute: "bell.slash"
         case .showInPullwatch: "shippingbox"
         case .copyAdvisoryId: "doc.on.doc"
+        case .allowAgent: "checkmark.circle"
+        case .denyAgent: "xmark.circle"
         }
     }
 
@@ -160,6 +171,8 @@ nonisolated enum NotificationAction: String, CaseIterable, Sendable {
         case .mute: String(localized: "Repo dempen", comment: "Knop op een melding: geen meldingen meer van deze soort voor deze repo")
         case .showInPullwatch: String(localized: "Toon in Pullwatch", comment: "Knop op een melding van een kwetsbaarheid: opent Afhankelijkheden")
         case .copyAdvisoryId: String(localized: "Advies-id kopiëren", comment: "Knop op een melding van een kwetsbaarheid: zet CVE of GHSA op het klembord")
+        case .allowAgent: String(localized: "Sta toe", comment: "Knop op een melding: een coding agent mag Pullwatch gebruiken")
+        case .denyAgent: String(localized: "Sta niet toe", comment: "Knop op een melding: een coding agent mag Pullwatch niet gebruiken en wordt losgekoppeld")
         }
     }
 }

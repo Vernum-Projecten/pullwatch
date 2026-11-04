@@ -167,6 +167,8 @@ public struct NotificationImportance: Equatable, Sendable {
         case .packageUpdate: Self(level: .passive, relevance: 0.1, playsSound: false)
         case .appUpdate: Self(level: .passive, relevance: 0.4, playsSound: false)
         case .account: Self(level: .active, relevance: 0.65, playsSound: true)
+        // De agent wacht op het antwoord.
+        case .agent: Self(level: .active, relevance: 0.66, playsSound: true)
         }
         return quiet ? Self(level: .passive, relevance: base.relevance, playsSound: false) : base
     }

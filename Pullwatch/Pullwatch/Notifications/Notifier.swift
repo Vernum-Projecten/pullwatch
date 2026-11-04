@@ -212,6 +212,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         removals.yield(unread)
     }
 
+    /// Haalt de meldingen met deze id's weg, zoals de vraag van een agent als het antwoord er is.
+    func removeDelivered(identifiers: [String]) {
+        if Self.isSuppressed || identifiers.isEmpty { return }
+        center.removeDeliveredNotifications(withIdentifiers: identifiers)
+    }
+
     private func removeDelivered(keepingUnread unread: Set<String>) async {
         let delivered = await center.deliveredNotifications()
         let identifiers = delivered.compactMap { notification -> String? in

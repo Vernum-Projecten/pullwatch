@@ -61,6 +61,13 @@ import Testing
         #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
     }
 
+    /// Instellingen, Agents: het tabblad en een verbonden agent, en de knop om een toegestane
+    /// agent van de lijst te halen.
+    @Test(arguments: [AgentsSettingsView.symbol, "minus.circle"])
+    func `Agent symbols exist`(_ name: String) {
+        #expect(NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil)
+    }
+
     @Test(arguments: MainSection.allCases)
     func sectionSymbolsExist(_ section: MainSection) {
         #expect(exists(section.glyph))
