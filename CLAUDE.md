@@ -195,10 +195,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
   in step with the code. `docs/superpowers/`: Alessandro's design specs and
   plans (Dutch).
 - `.github/workflows/`: `ci.yml` (every pull request and push to `main`:
-  shellcheck and actionlint, the changelog fragment guard, `swift test`, `xcodebuild test` with the unit
+  shellcheck and actionlint, `swift test`, `xcodebuild test` with the unit
   and UI tests, `release.sh --unsigned` with a universal check of the app
-  and `pullwatch-mcp`, and the helper in the DMG and zip; no secrets)
-  and `release.yml` (a `v*` tag: check, sign, notarise, package, draft
+  and `pullwatch-mcp`, and the helper in the DMG and zip; no secrets),
+  `changelog.yml` (the changelog fragment guard on every pull request, also
+  when a label is added or removed, so `no-changelog` set after opening
+  counts without a new push) and `release.yml` (a `v*` tag: check, sign, notarise, package, draft
   release). `.github/actionlint.yaml` names the `xcode-27` runner label.
   `CHANGELOG.md` (Keep a Changelog) gives each release its notes, assembled
   from the fragments in `changelog.d/`.
@@ -338,7 +340,7 @@ the missing ones. `docs/releasing.md` has the procedure and the secret
 names. `release.sh` on his Mac (notarytool profile `pullwatch`) still makes
 the same files. Every change worth noting adds a fragment under
 `changelog.d/` (`changelog.d/README.md`), never a line under `[Unreleased]`
-in `CHANGELOG.md`: the `changelog` CI job (`scripts/checks/changelog-guard.sh`)
+in `CHANGELOG.md`: the `Changelog` workflow (`changelog.yml`, `scripts/checks/changelog-guard.sh`)
 fails a pull request that writes there, and one that changes `Pullwatch/` or
 `PullwatchKit/Sources/` without a fragment unless it has the `no-changelog`
 label. The release branch runs `scripts/release/changelog.sh --assemble
