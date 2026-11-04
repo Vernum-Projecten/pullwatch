@@ -50,9 +50,9 @@ known vulnerabilities. It speaks English, Dutch, German and French.
   alerts of GitHub and Azure DevOps.
 - **Notifications** with buttons to mark as read, open the repository or
   mute it, quiet hours, and a switch per kind.
-- **Agents via MCP** (coming): coding agents on your Mac will be able to ask
-  Pullwatch what it knows. Today, **Copy for an AI Agent** turns a section of
-  a repository page into a Markdown brief.
+- **Agents via MCP**: Claude Code, Codex, Cursor or VS Code ask Pullwatch
+  about your pull requests, repositories and vulnerabilities, read-only and
+  off by default ([Agents](https://pullwatch.net/agents/)).
 
 ## Supported services
 
@@ -128,7 +128,8 @@ xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
 `scripts/release/release.sh --unsigned` makes an ad hoc signed disk image in
 `dist/`. Signing, the release lane and the repository layout are in
 [For maintainers](https://pullwatch.net/maintainers/) and
-[docs/releasing.md](docs/releasing.md).
+[docs/releasing.md](docs/releasing.md); the MCP server for agents in
+[docs/mcp.md](docs/mcp.md).
 
 ## Contributing
 

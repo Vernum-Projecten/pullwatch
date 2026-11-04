@@ -21,6 +21,12 @@ repository.
 | Test GitHub App for development | Vernum-Projecten ("TEST Pullwatch"), values in `Pullwatch/Debug.xcconfig` | [github-app.md](github-app.md), "Development builds use a test app"; give it the same permissions as the release app (it has Repository security advisories; code and secret scanning, Checks and Commit statuses are not granted, so those show **Needs permission**) | Xcode's Run and the tests; replace with your own if you prefer |
 | GitHub Pages, the repository variable `PAGES_DOMAIN` and the DNS of `pullwatch.net` | the repository's Pages settings and Actions variables; the zone at the registrar | [website.md](website.md) | the website at `https://pullwatch.net` (until then `https://alessandro823.github.io/pullwatch/`) |
 
+The MCP server for coding agents needs nothing here either. Its helper,
+`Contents/Helpers/pullwatch-mcp`, is signed by `scripts/release/release.sh`
+with the same Developer ID and its own identifier, and notarised with the
+app; the app accepts only that helper of its own team on its socket
+([mcp.md](mcp.md)).
+
 Azure DevOps needs nothing here: people sign in with the Azure CLI
 (`az login`) or a personal access token of their own.
 

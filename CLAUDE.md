@@ -52,7 +52,8 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Navigation/`: `AppRouter` (windows, sidebar, paths, filters; `show(_:)`
   opens a window or section; `settingsTab`, a `SettingsTab` the Settings
   window binds its tabs to, and `showSettings(_:)` to open Settings on a
-  tab), `AppCommands` (the menu bar in Apple's order,
+  tab; `SettingsTab.forNotification(_:)` opens Agents for the agent
+  approval and Accounts for an expired token), `AppCommands` (the menu bar in Apple's order,
   one `Commands` type per menu: `AppMenuCommands`, `FileCommands`,
   `EditCommands`, `ViewCommands`, `GoCommands`, `ItemCommands`,
   `RepositoryCommands`, `WindowCommands`, `HelpCommands` with the URLs in
@@ -225,8 +226,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   gets "Agents are turned off in Pullwatch: Settings, Agents";
   `whileOpen`: without a socket "Open Pullwatch to use it from an agent.";
   `always`: starts Pullwatch through `PullwatchLaunching` and waits up to
-  10 s), reconnecting once with a replayed handshake when the app restarts.
-  The app links it.
+  10 s), reconnecting once with a replayed handshake when the app restarts,
+  and never after `notifications/pullwatch/disconnected` ("Pullwatch
+  disconnected this agent. …"). The app links it. `docs/mcp.md` has the
+  architecture, the peer check, the SDK workarounds, how to add a tool and
+  how to test it end to end.
   `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
   the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
@@ -251,7 +255,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both
   in step with the code. `docs/website.md`: the website on GitHub Pages, the
-  `PAGES_DOMAIN` variable and the DNS of `pullwatch.net`.
+  `PAGES_DOMAIN` variable and the DNS of `pullwatch.net`. `docs/mcp.md`: the
+  MCP server for coding agents, for developers (the user's side is the
+  website's Agents page, `site/src/content/docs/agents.md`).
   `docs/superpowers/`: Alessandro's design specs and plans (Dutch).
 - `site/`: the website, an Astro Starlight project (`site/README.md`): the
   landing page (`src/content/docs/index.mdx` with the components in
@@ -326,6 +332,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
   Intel).** One deployment target, set at the project level and in
   `PullwatchKit/Package.swift`; never per target.
 - **Every user-facing string in all four languages** (nl, en, de, fr).
+- **Every MCP tool is read-only.** A tool reads what Pullwatch already
+  fetched: no network call, no poll, no change to the app's state, and never
+  a token, Keychain item or secret value. An action (mark as read, refresh,
+  check a repository) only comes behind a future, default-off switch "Allow
+  agents to take actions", and even then never writes to GitHub, Azure
+  DevOps or GitLab (`docs/mcp.md`).
 - **Never weaken, skip or delete a test** to make a build pass.
 - **No AI attribution in commits, PRs or issues.** No `Co-authored-by`, no
   "Generated with", no robot emoji. The `commit-msg` hook strips it and the
