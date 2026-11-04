@@ -321,7 +321,7 @@ private actor EvidenceProvider: PRProvider {
         var publisher = subject.account
         publisher.isPaused = stale == .accountPaused
         let user = Account(kind: .gitHub, organization: "acme", authMethod: .pat, repoWatch: ["acme/web": .prs])
-        let cached = VersionChecker.metadata(of: Self.published(subject), repositoryURL: nil)
+        let cached = try #require(VersionChecker.metadata(of: Self.published(subject), repositoryURL: nil))
         let previous = AccountPackages(
             accountId: publisher.id, result: .packages(stale == .packageUnlisted ? [] : [Self.published(subject)]), checkedAt: now
         )

@@ -16,6 +16,10 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         case sourceOff
         /// Het account mag het register niet lezen; `reason` zegt wat er nodig is.
         case needsPermission(reason: String)
+        /// Het register noemde het package, maar zonder nieuwste versie: het lezen van de versies
+        /// mislukte, of het package heeft er geen. De naam staat alleen in het eigen register, dus
+        /// de check vraagt geen publiek register en OSV niets (#215): niet gecontroleerd.
+        case readFailed
     }
 
     /// Het account waarvan het register het package noemt.
@@ -84,7 +88,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
     }
 
     private enum StatusKey: String, Codable {
-        case checked, sourceOff, needsPermission
+        case checked, sourceOff, needsPermission, readFailed
     }
 
     /// Account, naam, soort en eigenaar zijn nodig; de rest mag ontbreken. Een stand die Pullwatch
@@ -102,6 +106,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         switch try? c.decodeIfPresent(StatusKey.self, forKey: .status) {
         case .checked?: status = .checked
         case .needsPermission?: status = .needsPermission(reason: (try? c.decodeIfPresent(String.self, forKey: .reason)) ?? "")
+        case .readFailed?: status = .readFailed
         case .sourceOff?, nil: status = .sourceOff
         }
         isPublicName = (try? c.decodeIfPresent(Bool.self, forKey: .isPublicName)) ?? false
@@ -124,6 +129,8 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         case .needsPermission(let reason):
             try c.encode(StatusKey.needsPermission, forKey: .status)
             try c.encode(reason, forKey: .reason)
+        case .readFailed:
+            try c.encode(StatusKey.readFailed, forKey: .status)
         }
         if isPublicName { try c.encode(true, forKey: .isPublicName) }
     }

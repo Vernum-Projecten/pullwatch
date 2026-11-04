@@ -79,6 +79,7 @@ Quand Pullwatch ne peut pas lire la dernière version, la ligne le dit au lieu d
 
 - « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste avec la même preuve et n’est pas recherché publiquement.
 - « Non vérifié : aucun accès au registre de paquets de ce compte » : le compte ne peut pas lire son registre. L’infobulle dit ce qu’il faut accorder ; voir [Les autorisations à accorder](/fr/using/packages/#les-autorisations-à-accorder).
+- « Non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version » : le registre nomme le paquet, mais la lecture de ses versions a échoué, ou il n’en a aucune (par exemple un paquet sans dépôt lié). La dernière version de la vérification précédente reste, s’il y en avait une. Un nom que le registre public connaît aussi y est recherché pour cette vérification et contrôlé par OSV.dev ; un nom que seul votre propre registre connaît n’est envoyé nulle part.
 
 Désactiver un registre public, comme npm, n’a aucun effet sur un paquet interne.
 

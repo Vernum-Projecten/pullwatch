@@ -333,6 +333,67 @@ import PullwatchTestSupport
         #expect(result.packages.first?.versions == [])
     }
 
+    /// Hoe het lezen van de versies van één package mislukt (#215).
+    enum VersionsFailure: String, CaseIterable, Sendable {
+        case serverError, timeout, undecodable
+    }
+
+    func versionsFail(_ failure: VersionsFailure, _ http: MockHTTPClient, path: String) {
+        switch failure {
+        case .serverError: http.on(path, status: 503, body: #"{"message":"Service Unavailable"}"#)
+        case .timeout: http.fail(path, with: ProviderError.timeout(command: "api.github.com"))
+        case .undecodable: http.on(path, body: #"{"unexpected":"object"}"#)
+        }
+    }
+
+    @Test(arguments: VersionsFailure.allCases)
+    func `A failed versions read marks the package as failed, not as a package without versions`(_ failure: VersionsFailure) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        versionsFail(failure, http, path: "packages/npm/web/versions")
+        http.on("orgs/acme/packages?package_type=npm&", body: "[\(package("web", type: "npm", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
+
+        let found = try #require(result.packages.first)
+        #expect(result.packages.count == 1, "het package blijft in de Packages-sectie")
+        #expect(found.versionsReadFailed)
+        #expect(found.latestVersion == nil)
+        #expect(VersionChecker.metadata(of: found, repositoryURL: nil) == nil, "nooit een gecontroleerd eigen package")
+    }
+
+    @Test(arguments: VersionsFailure.allCases)
+    func `A failed first page of image versions marks the image as failed`(_ failure: VersionsFailure) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        versionsFail(failure, http, path: "packages/container/web/versions")
+        http.on("orgs/acme/packages?package_type=container&", body: "[\(package("web", type: "container", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.versionsReadFailed)
+        #expect(found.latestVersion == nil)
+    }
+
+    @Test func `A package without a repository stays listed but has no version to check`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("orgs/acme/packages?package_type=npm&", body: "[\(package("loose", type: "npm", repo: nil))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
+
+        let found = try #require(result.packages.first)
+        #expect(found.name == "loose")
+        #expect(found.repository == nil)
+        #expect(found.latestVersion == nil)
+        #expect(!found.versionsReadFailed, "niet gevraagd is niet mislukt")
+        #expect(!urls(http).contains { $0.contains("/versions") })
+        #expect(VersionChecker.metadata(of: found, repositoryURL: nil) == nil, "zonder versie geen bewijs voor een eigen package")
+    }
+
     // MARK: - Rechten
 
     @Test(arguments: [401, 403])

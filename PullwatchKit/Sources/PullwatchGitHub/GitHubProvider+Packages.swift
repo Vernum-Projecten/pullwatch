@@ -104,15 +104,21 @@ extension GitHubProvider {
                 tokens: tokens
             )
             for item in listed {
-                // Een package van een repo die niet gevolgd wordt, hoort niet in Pullwatch.
+                // Een package van een repo die niet gevolgd wordt, hoort niet in Pullwatch. Een
+                // package zonder gekoppelde repo staat wel in de Packages-sectie, maar zonder versies
+                // (die worden niet gevraagd), en is daarmee nooit een gecontroleerd eigen package (#215).
                 let repo = item.repository.flatMap { followed[$0.fullName.lowercased()] }
                 if item.repository != nil, repo == nil { continue }
                 if type == .container {
                     let images = repo == nil ? [] : try await containerImages(of: item, type: type, base: base, tokens: tokens)
-                    packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, images: images))
+                    packages.append(item.package(
+                        accountId: accountId, type: type, owner: owner, repository: repo, images: images ?? [], readFailed: images == nil
+                    ))
                 } else {
                     let versions = repo == nil ? [] : try await recentVersions(of: item, type: type, base: base, tokens: tokens)
-                    packages.append(item.package(accountId: accountId, type: type, owner: owner, repository: repo, versions: versions))
+                    packages.append(item.package(
+                        accountId: accountId, type: type, owner: owner, repository: repo, versions: versions ?? [], readFailed: versions == nil
+                    ))
                 }
             }
         }
@@ -138,11 +144,13 @@ extension GitHubProvider {
         }
     }
 
-    /// De nieuwste versies van één package dat geen image is, nieuwste eerst. Een fout hier
-    /// (behalve een recht dat ontbreekt) laat het package zonder versies staan.
+    /// De nieuwste versies van één package dat geen image is, nieuwste eerst. nil als het lezen
+    /// mislukte (een 5xx, een time-out, een antwoord dat niet te lezen is): dat is een mislukking
+    /// van dit package, gelogd, nooit een package dat geen versies heeft (#215). Een recht dat
+    /// ontbreekt gaat door.
     private func recentVersions(
         of item: PackageDTO, type: PublishedPackageType, base: URL, tokens: (any TokenSource)?
-    ) async throws -> [PublishedVersion] {
+    ) async throws -> [PublishedVersion]? {
         // `appending(component:)` codeert een "/" in de naam ("acme/web" als image) als %2F.
         let url = base.appending(path: "packages").appending(path: type.rawValue).appending(component: item.name).appending(path: "versions")
         do {
@@ -159,17 +167,24 @@ extension GitHubProvider {
         } catch let refused as PackagesAccess {
             throw refused
         } catch {
-            return []
+            logReadFailure(url, error: error)
+            return nil
         }
+    }
+
+    /// Eén logregel voor versies die niet te lezen waren: het pad en de fout, nooit een token.
+    private func logReadFailure(_ url: URL, error: any Error) {
+        let message = (error as? ProviderError)?.userMessage ?? error.localizedDescription
+        logger.error("\(logPrefix): \(url.path(percentEncoded: true)) versies niet te lezen: \(message)")
     }
 
     /// De images van een container-package met hun tags, nieuwste eerst: pagina's van honderd tot
     /// er genoeg versietags zijn (`containerVersionPages`). Een fout op de eerste pagina (behalve
-    /// een recht dat ontbreekt) laat het package zonder versies; op een latere pagina blijft wat
-    /// al gelezen is.
+    /// een recht dat ontbreekt) is nil, een mislukking van dit package (#215); op een latere
+    /// pagina blijft wat al gelezen is.
     private func containerImages(
         of item: PackageDTO, type: PublishedPackageType, base: URL, tokens: (any TokenSource)?
-    ) async throws -> [ContainerVersions.Image] {
+    ) async throws -> [ContainerVersions.Image]? {
         let url = base.appending(path: "packages").appending(path: type.rawValue).appending(component: item.name).appending(path: "versions")
         var images: [ContainerVersions.Image] = []
         var next: (url: URL, query: [URLQueryItem])? = (url, [URLQueryItem(name: "per_page", value: String(Self.containerVersionPageSize))])
@@ -187,6 +202,8 @@ extension GitHubProvider {
             } catch let refused as PackagesAccess {
                 throw refused
             } catch {
+                logReadFailure(current.url, error: error)
+                if pages == 0 { return nil }
                 break
             }
             pages += 1
@@ -277,23 +294,25 @@ private struct PackageDTO: Decodable {
 
     /// Een container-package: de versies uit de tags van zijn images.
     func package(
-        accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, images: [ContainerVersions.Image]
+        accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, images: [ContainerVersions.Image],
+        readFailed: Bool
     ) -> PublishedPackage {
         PublishedPackage(
             accountId: accountId, name: name, type: type, owner: owner, repository: repository,
             container: ContainerVersions(images: images), fallbackDate: updatedAt.flatMap(DateParsing.parse),
-            visibility: visibility.flatMap(PublishedPackage.Visibility.init(rawValue:)), webURL: htmlUrl.flatMap(URL.init(string:))
+            visibility: visibility.flatMap(PublishedPackage.Visibility.init(rawValue:)), webURL: htmlUrl.flatMap(URL.init(string:)),
+            versionsReadFailed: readFailed
         )
     }
 
     func package(
-        accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, versions: [PublishedVersion]
+        accountId: UUID, type: PublishedPackageType, owner: String, repository: String?, versions: [PublishedVersion], readFailed: Bool
     ) -> PublishedPackage {
         PublishedPackage(
             accountId: accountId, name: name, type: type, owner: owner, repository: repository,
             publishedAt: versions.first?.publishedAt ?? updatedAt.flatMap(DateParsing.parse),
             visibility: visibility.flatMap(PublishedPackage.Visibility.init(rawValue:)),
-            webURL: htmlUrl.flatMap(URL.init(string:)), versions: versions
+            webURL: htmlUrl.flatMap(URL.init(string:)), versions: versions, versionsReadFailed: readFailed
         )
     }
 }

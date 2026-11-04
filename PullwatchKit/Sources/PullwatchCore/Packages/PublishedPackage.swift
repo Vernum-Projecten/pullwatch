@@ -60,11 +60,16 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
     public let latestKind: LatestKind
     /// Waar `latest` naar wijst; alleen bij een container-image iets anders dan `.absent`.
     public let latestTag: LatestTag
+    /// De lijst noemde het package, maar het lezen van zijn versies mislukte (een 5xx, een time-out,
+    /// een antwoord dat niet te lezen is). Het package staat in de Packages-sectie, maar is voor de
+    /// check op eigen packages geen bron van een nieuwste versie (#215).
+    public let versionsReadFailed: Bool
 
     public init(
         accountId: UUID, name: String, type: PublishedPackageType, owner: String, repository: String?,
         latestVersion: String? = nil, publishedAt: Date? = nil, visibility: Visibility? = nil, webURL: URL? = nil,
-        versions: [PublishedVersion] = [], latestKind: LatestKind = .version, latestTag: LatestTag = .absent
+        versions: [PublishedVersion] = [], latestKind: LatestKind = .version, latestTag: LatestTag = .absent,
+        versionsReadFailed: Bool = false
     ) {
         self.accountId = accountId
         self.name = name
@@ -78,18 +83,21 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         self.webURL = webURL
         self.latestKind = latestKind
         self.latestTag = latestTag
+        self.versionsReadFailed = versionsReadFailed
     }
 
     /// Een container-image uit zijn tags: de nieuwste versie, de datum en de recente versies uit
     /// `ContainerVersions`.
     public init(
         accountId: UUID, name: String, type: PublishedPackageType, owner: String, repository: String?,
-        container: ContainerVersions, fallbackDate: Date? = nil, visibility: Visibility? = nil, webURL: URL? = nil
+        container: ContainerVersions, fallbackDate: Date? = nil, visibility: Visibility? = nil, webURL: URL? = nil,
+        versionsReadFailed: Bool = false
     ) {
         self.init(
             accountId: accountId, name: name, type: type, owner: owner, repository: repository,
             latestVersion: container.latestVersion, publishedAt: container.publishedAt ?? fallbackDate, visibility: visibility,
-            webURL: webURL, versions: container.versions, latestKind: container.latestKind, latestTag: container.latestTag
+            webURL: webURL, versions: container.versions, latestKind: container.latestKind, latestTag: container.latestTag,
+            versionsReadFailed: versionsReadFailed
         )
     }
 
@@ -123,6 +131,7 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case accountId, name, type, owner, repository, latestVersion, publishedAt, visibility, webURL, versions, latestKind, latestTag
+        case versionsReadFailed
     }
 
     /// Naam, soort, eigenaar en account zijn nodig; de rest mag ontbreken of onbekend zijn (een
@@ -142,5 +151,23 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         // Ontbreekt in gegevens van voor #209, of een waarde van een nieuwere Pullwatch: een versie.
         latestKind = (try? c.decodeIfPresent(LatestKind.self, forKey: .latestKind)) ?? .version
         latestTag = (try? c.decodeIfPresent(LatestTag.self, forKey: .latestTag)) ?? .absent
+        versionsReadFailed = ((try? c.decodeIfPresent(Bool.self, forKey: .versionsReadFailed)) ?? nil) ?? false
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(accountId, forKey: .accountId)
+        try c.encode(name, forKey: .name)
+        try c.encode(type, forKey: .type)
+        try c.encode(owner, forKey: .owner)
+        try c.encodeIfPresent(repository, forKey: .repository)
+        try c.encodeIfPresent(latestVersion, forKey: .latestVersion)
+        try c.encodeIfPresent(publishedAt, forKey: .publishedAt)
+        try c.encodeIfPresent(visibility, forKey: .visibility)
+        try c.encodeIfPresent(webURL, forKey: .webURL)
+        try c.encode(versions, forKey: .versions)
+        try c.encode(latestKind, forKey: .latestKind)
+        try c.encode(latestTag, forKey: .latestTag)
+        if versionsReadFailed { try c.encode(true, forKey: .versionsReadFailed) }
     }
 }

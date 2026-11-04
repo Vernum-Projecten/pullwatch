@@ -79,6 +79,7 @@ Kann Pullwatch die neueste Version nicht lesen, sagt die Zeile das, statt sie al
 
 - „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt mit demselben Nachweis hauseigen und wird nicht öffentlich nachgeschlagen.
 - „Nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos“: Das Konto darf seine Registry nicht lesen. Der Tooltip sagt, was du freigeben musst; siehe [Welche Berechtigung nötig ist](/de/using/packages/#welche-berechtigung-nötig-ist).
+- „Nicht geprüft: die Paket-Registry dieses Kontos lieferte keine neueste Version“: Die Registry nennt das Paket, aber das Lesen seiner Versionen schlug fehl, oder es hat keine (zum Beispiel ein Paket ohne verknüpftes Repository). Die neueste Version der vorigen Prüfung bleibt, wenn es eine gab. Einen Namen, den auch die öffentliche Registry kennt, schlägt die Prüfung diesmal dort nach und lässt ihn von OSV.dev prüfen; ein Name, den nur deine eigene Registry kennt, geht nirgendwohin.
 
 Schaltest du eine öffentliche Registry aus, etwa npm, betrifft das kein hauseigenes Paket.
 

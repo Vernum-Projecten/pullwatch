@@ -103,8 +103,8 @@ extension GitLabProvider {
                 let container = try await recentTags(of: image.image, in: image.repo, anonymous: image.anonymous)
                 packages.append(PublishedPackage(
                     accountId: accountId, name: image.image.path, type: .container, owner: Self.namespace(of: image.repo),
-                    repository: image.repo, container: container,
-                    webURL: webURL(image.repo, "container_registry", String(image.image.id))
+                    repository: image.repo, container: container ?? ContainerVersions(images: []),
+                    webURL: webURL(image.repo, "container_registry", String(image.image.id)), versionsReadFailed: container == nil
                 ))
             }
             logger.info("\(logPrefix): \(packages.count) packages van \(followedRepos.count) gevolgde projecten")
@@ -166,9 +166,9 @@ extension GitLabProvider {
 
     /// De versies van een image uit zijn nieuwste tags (`ContainerVersions`): een pagina van honderd
     /// tags, nieuwste eerst (keyset, `order_by=published_at`), en de details (datum, digest) van de
-    /// gekozen nieuwste versie en van `latest`. Een fout hier (behalve een recht dat ontbreekt) laat
-    /// de image zonder versies staan.
-    private func recentTags(of image: RegistryRepositoryDTO, in repo: String, anonymous: Bool) async throws -> ContainerVersions {
+    /// gekozen nieuwste versie en van `latest`. Een fout hier (behalve een recht dat ontbreekt) is
+    /// nil: een mislukking van deze image, gelogd, nooit een image zonder versies (#215).
+    private func recentTags(of image: RegistryRepositoryDTO, in repo: String, anonymous: Bool) async throws -> ContainerVersions? {
         let tagsURL = endpoint("projects", repo, "registry", "repositories", String(image.id), "tags")
         let link = webURL(repo, "container_registry", String(image.id))
         do {
@@ -189,7 +189,9 @@ extension GitLabProvider {
         } catch PackagesDenied.needsPermission {
             throw PackagesDenied.needsPermission
         } catch {
-            return ContainerVersions(images: [])
+            let message = (error as? ProviderError)?.userMessage ?? error.localizedDescription
+            logger.error("\(logPrefix): \(tagsURL.path(percentEncoded: true)) tags niet te lezen: \(message)")
+            return nil
         }
     }
 
