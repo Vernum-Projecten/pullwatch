@@ -12,8 +12,8 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
 here="$(cd "$(dirname "$0")" && pwd)"
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
-# Must stay inside the repository: catalog-tidy.py reads only files there.
-derived="${DERIVED:-$root/build/DerivedData}"
+# Fixed: catalog-tidy.py finds the extracted text here by itself.
+derived="$root/build/DerivedData"
 
 build=(-project "$root/Pullwatch/Pullwatch.xcodeproj" -scheme Pullwatch -configuration Debug
   -destination 'platform=macOS' -derivedDataPath "$derived"
@@ -31,12 +31,6 @@ sync() {
   while IFS= read -r f; do data+=("$f"); done < <(find "$intermediates/$built" -path "*/Objects-normal/$arch/*" -name '*.stringsdata')
   if ((${#data[@]})); then
     xcrun xcstringstool sync "$catalog" --stringsdata "${data[@]}"
-    # Then: drop every entry the compiler no longer extracts (stale or never
-    # marked), and write `"key": value` with sorted keys as the catalogs here
-    # are (xcstringstool writes `"key" : value`), so a diff shows only real
-    # changes. An entry with "shouldTranslate": false stays.
-    python3 -I "$here/catalog-tidy.py" "$catalog" "${data[@]}"
-    echo "$(python3 -I -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["strings"]))' "$catalog") strings in ${catalog#"$root"/}"
   fi
 }
 sync "$root/Pullwatch/Pullwatch/Localizable.xcstrings" "Pullwatch.build/Debug/Pullwatch.build"
@@ -50,3 +44,8 @@ for catalog in "$root"/PullwatchKit/Sources/*/Localizable.xcstrings; do
   fi
   sync "$catalog" "PullwatchKit.build/Debug/$module-t.build"
 done
+# Then: drop from every catalog each entry the compiler no longer extracts
+# (stale or never marked), and write `"key": value` with sorted keys as the
+# catalogs here are (xcstringstool writes `"key" : value`), so a diff shows
+# only real changes. An entry with "shouldTranslate": false stays.
+python3 -I "$here/catalog-tidy.py"
