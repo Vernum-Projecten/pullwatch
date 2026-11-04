@@ -12,6 +12,8 @@ De documentatie voor maintainers staat in de repository, naast de code die ze be
 | [docs/github-app.md](https://github.com/alessandro823/pullwatch/blob/main/docs/github-app.md) | De GitHub-app achter **Inloggen met GitHub** |
 | [docs/website.md](https://github.com/alessandro823/pullwatch/blob/main/docs/website.md) | Deze website: GitHub Pages, het eigen domein en de DNS-records ervan |
 | [site/README.md](https://github.com/alessandro823/pullwatch/blob/main/site/README.md) | Deze website draaien en bouwen, en een pagina toevoegen |
+| [CONTRIBUTING.md](https://github.com/alessandro823/pullwatch/blob/main/CONTRIBUTING.md) | Hoe je een wijziging bouwt, test en instuurt, en wat een pull request nodig heeft |
+| [SECURITY.md](https://github.com/alessandro823/pullwatch/blob/main/SECURITY.md) | Hoe je een kwetsbaarheid vertrouwelijk meldt, en wat eronder valt |
 | [CHANGELOG.md](https://github.com/alessandro823/pullwatch/blob/main/CHANGELOG.md) | De release notes van elke versie |
 
 ## Bouwen uit de broncode

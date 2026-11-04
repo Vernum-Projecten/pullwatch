@@ -12,6 +12,8 @@ La documentation des mainteneurs se trouve dans le dépôt, à côté du code qu
 | [docs/github-app.md](https://github.com/alessandro823/pullwatch/blob/main/docs/github-app.md) | La GitHub App derrière **Se connecter avec GitHub** |
 | [docs/website.md](https://github.com/alessandro823/pullwatch/blob/main/docs/website.md) | Ce site : GitHub Pages, le domaine personnalisé et ses enregistrements DNS |
 | [site/README.md](https://github.com/alessandro823/pullwatch/blob/main/site/README.md) | Lancer et compiler ce site, et ajouter une page |
+| [CONTRIBUTING.md](https://github.com/alessandro823/pullwatch/blob/main/CONTRIBUTING.md) | Comment compiler, tester et proposer une modification, et ce qu'une pull request doit contenir |
+| [SECURITY.md](https://github.com/alessandro823/pullwatch/blob/main/SECURITY.md) | Comment signaler une vulnérabilité en privé, et ce qui est concerné |
 | [CHANGELOG.md](https://github.com/alessandro823/pullwatch/blob/main/CHANGELOG.md) | Les notes de version de chaque version |
 
 ## Compiler à partir des sources
