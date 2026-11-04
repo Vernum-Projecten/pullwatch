@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: Pullwatch contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Weekly version updates, one grouped pull request per ecosystem.
+# - GitHub Actions stay pinned to a commit SHA: Dependabot updates the SHA and
+#   the version comment on the same line.
+# - The website's npm packages change nothing in the app, so their pull
+#   requests carry no-changelog, as the Actions ones do.
+# - Swift: Dependabot reads Package.swift, so it updates PullwatchKit's
+#   packages. It does not read the Xcode project: Sparkle, and the project's
+#   own Package.resolved that must pin the same versions, are updated by hand
+#   in the same pull request, with the acknowledgements
+#   (scripts/checks/acknowledgements.sh fails otherwise). A package bump may
+#   change the app, so the maintainer chooses between a fragment and
+#   no-changelog.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    labels: [dependencies, no-changelog]
+    commit-message:
+      prefix: ci
+      include: scope
+
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: weekly
+    groups:
+      site:
+        patterns: ["*"]
+    labels: [dependencies, no-changelog]
+    commit-message:
+      prefix: chore
+      include: scope
+
+  - package-ecosystem: swift
+    directory: /PullwatchKit
+    schedule:
+      interval: weekly
+    groups:
+      swift:
+        patterns: ["*"]
+    labels: [dependencies]
+    commit-message:
+      prefix: chore
+      include: scope
