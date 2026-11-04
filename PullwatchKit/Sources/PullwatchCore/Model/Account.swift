@@ -128,6 +128,18 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         return URL(string: "\(base)/\(encoded).png?size=\(size)")
     }
 
+    /// De foto van een auteur: `provided` (wat de API gaf) als die er is, anders de gok
+    /// `gitHubAvatarURL(login)`. Een bot (`github-actions[bot]`, `renovate[bot]`) is een GitHub
+    /// App: zijn foto staat niet onder `/<naam>.png` (404, met of zonder `[bot]`), dus zonder
+    /// foto van de API geen gok maar het persoonssymbool. Een naam met spaties is geen login.
+    public static func authorAvatarURL(
+        _ provided: URL?, login: String, kind: ProviderKind, size: Int, web: URL? = nil
+    ) -> URL? {
+        if let provided { return provided }
+        guard !login.contains(" "), !login.hasSuffix("[bot]") else { return nil }
+        return gitHubAvatarURL(login, kind: kind, size: size, web: web)
+    }
+
     public init(
         id: UUID = UUID(),
         kind: ProviderKind,

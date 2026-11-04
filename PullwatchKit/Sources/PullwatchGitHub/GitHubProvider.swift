@@ -268,6 +268,7 @@ public actor GitHubProvider: PRProvider {
             title: item.title,
             authorId: item.user.login,
             authorName: item.user.login,
+            authorAvatarURL: item.user.avatarUrl.flatMap(URL.init(string:)),
             isDraft: item.draft ?? false,
             createdAt: createdAt,
             webURL: webURL,

@@ -39,12 +39,12 @@ struct NotificationContentBuilder {
             title = newPullRequestTitle(pr, account: account)
             body = [pr.title, byline(pr.authorName, others: pr.coAuthors.map(\.handle))]
             url = pr.webURL
-            avatar = gitHubAvatar(pr.authorName, account: account)
+            avatar = authorAvatar(pr, account: account)
         case .merged(let pr):
             title = mergedTitle(account)
             body = [pr.title, byline(pr.authorName, others: pr.coAuthors.map(\.handle))]
             url = pr.webURL
-            avatar = gitHubAvatar(pr.authorName, account: account)
+            avatar = authorAvatar(pr, account: account)
         case .checksFailed(let pr):
             title = String(localized: "Checks mislukt", bundle: bundle, comment: "Meldingstitel; de checks (CI) van een eigen PR mislukten")
             body = [pr.title, pr.checks?.counts.map(failedLine)]
@@ -368,10 +368,11 @@ struct NotificationContentBuilder {
         parts.compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: "\n")
     }
 
-    /// `/<login>.png` op github.com of de eigen GitHub Enterprise-server; GitLab en Azure DevOps
-    /// geven geen foto zonder inloggen.
-    private func gitHubAvatar(_ login: String, account: Account?) -> URL? {
-        guard let account, account.kind == .gitHub else { return nil }
-        return Account.gitHubAvatarURL(login, kind: .gitHub, size: 64, web: account.effectiveInstanceURL)
+    /// De foto die de provider gaf (ook van een bot), anders `/<login>.png` op github.com of de
+    /// eigen GitHub Enterprise-server; voor een bot zonder foto van de API niets, want die route
+    /// kent geen GitHub App. Azure DevOps geeft geen foto zonder inloggen.
+    private func authorAvatar(_ pr: PullRequest, account: Account?) -> URL? {
+        guard let account else { return pr.authorAvatarURL }
+        return Account.authorAvatarURL(pr.authorAvatarURL, login: pr.authorName, kind: account.kind, size: 64, web: account.effectiveInstanceURL)
     }
 }

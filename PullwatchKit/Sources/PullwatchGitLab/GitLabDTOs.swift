@@ -19,6 +19,9 @@ struct MergeRequestDTO: Decodable {
     struct Author: Decodable {
         let username: String
         let name: String?
+        /// Absoluut (gitlab.com, Gravatar) of, op een eigen server, een pad als
+        /// `/uploads/-/system/user/avatar/1/avatar.png`.
+        let avatarUrl: String?
     }
 
     struct References: Decodable {

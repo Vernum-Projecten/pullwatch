@@ -209,6 +209,7 @@ public actor GitLabProvider: PRProvider {
             title: dto.title,
             authorId: dto.author.username,
             authorName: dto.author.username,
+            authorAvatarURL: Self.avatarURL(dto.author.avatarUrl, instanceURL: instanceURL),
             isDraft: dto.draft ?? dto.workInProgress ?? false,
             createdAt: createdAt,
             webURL: webURL,
@@ -222,6 +223,20 @@ public actor GitLabProvider: PRProvider {
         )
         if let name = dto.author.name, !name.isEmpty { authorNames[pullRequest.dedupKey] = name }
         return pullRequest
+    }
+
+    /// De foto uit `avatar_url`: een absolute URL (gitlab.com, Gravatar) zoals hij is, een pad
+    /// (eigen server) op de server. Een pad dat al met het pad van de server begint (GitLab onder
+    /// `/gitlab`) komt er niet dubbel achter.
+    static func avatarURL(_ raw: String?, instanceURL: URL) -> URL? {
+        guard let raw, !raw.isEmpty else { return nil }
+        guard raw.hasPrefix("/") else { return URL(string: raw) }
+        let serverPath = instanceURL.path(percentEncoded: true).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        if !serverPath.isEmpty, raw.hasPrefix("/\(serverPath)/") {
+            return URL(string: raw, relativeTo: instanceURL)?.absoluteURL
+        }
+        let base = instanceURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return URL(string: base + raw)
     }
 
     /// "groep/subgroep/project" uit `references.full` ("groep/project!12"), anders uit de

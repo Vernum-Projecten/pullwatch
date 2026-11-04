@@ -4,6 +4,9 @@ import Foundation
 
 struct UserDTO: Decodable {
     let login: String
+    /// De foto die GitHub zelf geeft: `avatars.githubusercontent.com/u/…`, voor een bot (een
+    /// GitHub App) `…/in/<app-id>`, op GitHub Enterprise de eigen server.
+    let avatarUrl: String?
 }
 
 struct OwnerDTO: Decodable {

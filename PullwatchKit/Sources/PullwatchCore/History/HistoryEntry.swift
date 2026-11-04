@@ -56,10 +56,10 @@ public enum HistoryEntry: Codable, Hashable, Sendable {
         }
     }
 
-    /// Foto van de auteur van een tag (GitHub); `nil` voor PR's.
+    /// Foto van de auteur zoals de provider hem gaf (PR of tag); `nil` als die er niet is.
     public var authorAvatarURL: URL? {
         switch self {
-        case .pullRequest: return nil
+        case .pullRequest(let pr): return pr.authorAvatarURL
         case .tag(let tag): return tag.authorAvatarURL
         }
     }
