@@ -11,6 +11,15 @@ let package = Package(
         .library(name: "PullwatchCore", targets: ["PullwatchCore"]),
         .library(name: "PullwatchGitHub", targets: ["PullwatchGitHub"]),
         .library(name: "PullwatchProviders", targets: ["PullwatchProviders"]),
+        .library(name: "PullwatchMCP", targets: ["PullwatchMCP"]),
+    ],
+    dependencies: [
+        // De officiële MCP Swift SDK, op een exacte release: JSON-RPC, de levenscyclus en de
+        // transports komen daarvandaan, Pullwatch schrijft geen eigen protocollaag.
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", exact: "0.12.1"),
+        // Het `Logger`-type dat het `Transport`-protocol van de SDK vraagt; dezelfde versie als de SDK
+        // zelf gebruikt (Package.resolved legt hem vast).
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
     ],
     targets: [
         // Alles zonder venster en zonder provider-API: modellen, protocollen, polling, historie, versies.
@@ -20,6 +29,11 @@ let package = Package(
         .target(name: "PullwatchGitLab", dependencies: ["PullwatchCore"]),
         // Kiest per account de provider; het enige dat alle providers kent.
         .target(name: "PullwatchProviders", dependencies: ["PullwatchCore", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab"]),
+        // De MCP-server voor agents: het toolregister en de begrenzing bovenop de SDK.
+        .target(
+            name: "PullwatchMCP",
+            dependencies: ["PullwatchCore", .product(name: "MCP", package: "swift-sdk"), .product(name: "Logging", package: "swift-log")]
+        ),
 
         // Mocks en fixtures die de testtargets delen; geen product, dus nooit in de app.
         .target(name: "PullwatchTestSupport", dependencies: ["PullwatchCore"], path: "Tests/PullwatchTestSupport"),
@@ -32,6 +46,7 @@ let package = Package(
             name: "PullwatchProvidersTests",
             dependencies: ["PullwatchProviders", "PullwatchGitHub", "PullwatchAzureDevOps", "PullwatchGitLab", "PullwatchTestSupport"]
         ),
+        .testTarget(name: "PullwatchMCPTests", dependencies: ["PullwatchMCP", .product(name: "MCP", package: "swift-sdk")]),
     ]
 )
 

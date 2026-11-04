@@ -54,6 +54,9 @@ A file is found by its name, a type by its module and area.
   `PullwatchGitLab`) that depends only on `PullwatchCore`;
   `PullwatchProviders` (`ProviderFactory`) is the only module that knows them
   all. A new provider is a new module plus one case in `ProviderFactory`.
+  `PullwatchMCP` (the MCP server for agents) depends on `PullwatchCore` and
+  the MCP Swift SDK; a tool is an `MCPTool` in its registry, never a
+  protocol layer of our own.
   Module names start with `Pullwatch` so none shares its name with a type.
 - The app only wires (`Pullwatch/Pullwatch/App/`: the `@Observable` models,
   AppKit glue) and draws (`Views/`, shared pieces in `Views/Components/`).
