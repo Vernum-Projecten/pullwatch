@@ -128,7 +128,18 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (an `MCPSchema` for input and output, a handler returning an
   `MCPToolResult`), `PullwatchMCPServer.start` serves them as an SDK `Server`
   named Pullwatch on any SDK `Transport`, wrapped in `MCPBoundedTransport`
-  (`MCPLimits`: message size and nesting). The app does not link it yet.
+  (`MCPLimits`: message size and nesting); invalid arguments come back as
+  a tool error (`isError`), an unknown tool as `-32602`. `Tools/` holds the
+  read-only tools (`get_status`, `list_pull_requests`, `get_pull_request`,
+  `list_tags`, `list_repositories`, `get_repository_report`,
+  `list_vulnerabilities`, `explain_update`, `get_agent_brief`), one type per
+  file, built by `PullwatchMCPTools.all(dataSource:)` over an
+  `MCPDataSource` (async accessors for what the app's models hold: accounts,
+  history, repo summaries, the shown version report, update contexts, poll
+  states, sources that are off). They show only followed repositories,
+  accounts as name and host, no credentials, "Not checked: source X is off"
+  instead of clean, and page lists with `limit` and `cursor`. The app does
+  not link it yet.
   `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
   the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an

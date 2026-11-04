@@ -196,7 +196,7 @@ public enum SourcesOverview {
 
     /// De teksten van PullwatchCore in de taal van `locale`, als de bundle die heeft; anders in de
     /// taal van de app.
-    static func bundle(for locale: Locale) -> Bundle {
+    package static func bundle(for locale: Locale) -> Bundle {
         let own = Bundle.core(for: locale.language.languageCode?.identifier)
         return own.bundleURL.pathExtension == "lproj" ? own : .localizedCore
     }
