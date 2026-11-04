@@ -43,7 +43,8 @@ struct AccountEditor: View {
     /// GitLab en GitHub Enterprise: het adres van de server zoals getypt; `draft.instanceURL` volgt
     /// zodra het geldig is.
     @State private var instanceText: String
-    /// GitHub: op GitHub Enterprise (Server of GHE.com) in plaats van github.com.
+    /// Op een eigen server in plaats van github.com of gitlab.com: GitHub Enterprise (Server of
+    /// GHE.com), of een eigen GitLab-server. Alleen dan staat er een veld voor het adres.
     private let isEnterprise: Bool
     /// GitLab: de groepen en gebruikers zoals getypt, met komma's; `draft.owners` volgt.
     @State private var ownersText: String
@@ -59,8 +60,8 @@ struct AccountEditor: View {
     /// Zet de Toevoegen-knop buiten de editor (in een voetbalk); nil: de editor toont hem zelf.
     private let saveAction: AccountSaveAction?
 
-    /// `enterprise`: een nieuw GitHub-account op GitHub Enterprise (de keuze in het welkomstvenster
-    /// of het toevoeg-menu).
+    /// `enterprise`: een nieuw account op een eigen server, GitHub Enterprise of een eigen
+    /// GitLab-server (de keuze in het welkomstvenster of het toevoeg-menu).
     init(
         accounts: AccountsModel, original: Account, enterprise: Bool = false, saveAction: AccountSaveAction? = nil,
         onSaved: @escaping () -> Void = {}
@@ -69,7 +70,11 @@ struct AccountEditor: View {
         self.saveAction = saveAction
         _draft = State(initialValue: original)
         _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? "")
-        isEnterprise = original.kind == .gitHub && (enterprise || original.isGitHubEnterprise)
+        isEnterprise = switch original.kind {
+        case .gitHub: enterprise || original.isGitHubEnterprise
+        case .gitLab: enterprise || original.instanceURL != nil
+        case .azureDevOps: false
+        }
         _ownersText = State(initialValue: original.owners.joined(separator: ", "))
         originalAuthMethod = original.authMethod
         isNew = !accounts.config.accounts.contains { $0.id == original.id }
@@ -91,7 +96,7 @@ struct AccountEditor: View {
 
     /// Of er een veld voor het adres van de server staat.
     private var showsServerField: Bool {
-        draft.kind == .gitLab || (draft.kind == .gitHub && isEnterprise)
+        isEnterprise
     }
 
     /// De host waarvoor `gh` het token geeft.
@@ -113,9 +118,9 @@ struct AccountEditor: View {
             && InstanceURL.parse(instanceText, for: draft.kind) == nil
     }
 
-    /// GitHub Enterprise zonder (geldige) server: github.com telt hier niet.
+    /// Een eigen server zonder (geldig) adres: github.com en gitlab.com tellen hier niet.
     private var lacksEnterpriseServer: Bool {
-        draft.kind == .gitHub && isEnterprise && !draft.isGitHubEnterprise
+        isEnterprise && draft.instanceURL == nil
     }
 
     /// Waar je een token maakt, met de naam en de scopes al ingevuld: bij GitLab, en op een GitHub
@@ -162,10 +167,10 @@ struct AccountEditor: View {
                 // organisatie (`Account.displayName`); met de GitHub App komt de eigenaar uit het
                 // inloggen, dan valt er niets te typen.
                 if showsServerField {
-                    // GitLab: leeg is gitlab.com. Een eigen server alleen via https (het token gaat erheen).
+                    // Een eigen server alleen via https (het token gaat erheen).
                     TextField(
                         String(localized: "Server"), text: $instanceText,
-                        prompt: Text(verbatim: draft.kind == .gitLab ? "https://gitlab.com" : "https://github.example.com")
+                        prompt: Text(verbatim: draft.kind == .gitLab ? "https://gitlab.example.com" : "https://github.example.com")
                     )
                     .autocorrectionDisabled()
                     .accessibilityIdentifier("account.instanceURL")
@@ -428,7 +433,9 @@ struct AccountEditor: View {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
         if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Volg minstens één plek" }
         if instanceTextIsInvalid { return "Vul een https-adres in voor de server" }
-        if lacksEnterpriseServer { return "Vul het adres van je GitHub Enterprise-server in" }
+        if lacksEnterpriseServer {
+            return draft.kind == .gitLab ? "Vul het adres van je GitLab-server in" : "Vul het adres van je GitHub Enterprise-server in"
+        }
         if !hasRequiredFields {
             switch draft.kind {
             case .azureDevOps: return "Vul de organisatie in"

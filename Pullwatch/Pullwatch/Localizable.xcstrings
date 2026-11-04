@@ -2735,6 +2735,28 @@
         }
       }
     },
+    "Account toevoegen op je eigen GitLab-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto auf deinem eigenen GitLab-Server hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add an account on your own GitLab server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte sur votre propre serveur GitLab"
+          }
+        }
+      }
+    },
     "Account verwijderen": {
       "localizations": {
         "de": {
@@ -4258,6 +4280,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Azure CLI (az login)"
+          }
+        }
+      }
+    },
+    "Azure DevOps-account toevoegen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure-DevOps-Konto hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add an Azure DevOps account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte Azure DevOps"
           }
         }
       }
@@ -5973,24 +6017,68 @@
         }
       }
     },
-    "Een groep of gebruiker op gitlab.com of je eigen GitLab-server": {
+    "Een groep of gebruiker": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine Gruppe oder ein Benutzer auf gitlab.com oder deinem eigenen GitLab-Server"
+            "value": "Eine Gruppe oder ein Benutzer"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A group or user on gitlab.com or your own GitLab server"
+            "value": "A group or user"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un groupe ou un utilisateur sur gitlab.com ou sur votre propre serveur GitLab"
+            "value": "Un groupe ou un utilisateur"
+          }
+        }
+      }
+    },
+    "Een groep of gebruiker op gitlab.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Gruppe oder ein Benutzer auf gitlab.com"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A group or user on gitlab.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un groupe ou un utilisateur sur gitlab.com"
+          }
+        }
+      }
+    },
+    "Een groep of gebruiker op je eigen GitLab-server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Gruppe oder ein Benutzer auf deinem eigenen GitLab-Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A group or user on your own GitLab server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un groupe ou un utilisateur sur votre propre serveur GitLab"
           }
         }
       }
@@ -6057,6 +6145,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Une notification et une entrée dans l’historique quand une PR suivie est fusionnée (Azure DevOps dit « completed »)"
+          }
+        }
+      }
+    },
+    "Een organisatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Organisation"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An organization"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une organisation"
           }
         }
       }
@@ -6245,6 +6355,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Masquer mes propres merge requests"
+          }
+        }
+      }
+    },
+    "Eigen server": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigener Server"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Own Server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre serveur"
           }
         }
       }
@@ -7611,6 +7743,28 @@
         }
       }
     },
+    "GitHub Enterprise-account toevoegen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-Enterprise-Konto hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a GitHub Enterprise account"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte GitHub Enterprise"
+          }
+        }
+      }
+    },
     "GitHub-account": {
       "localizations": {
         "de": {
@@ -7639,6 +7793,28 @@
         }
       }
     },
+    "GitHub-account toevoegen op github.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub-Konto auf github.com hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a GitHub account on github.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte GitHub sur github.com"
+          }
+        }
+      }
+    },
     "GitLab CLI (glab auth login)": {
       "localizations": {
         "de": {
@@ -7657,6 +7833,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitLab CLI (glab auth login)"
+          }
+        }
+      }
+    },
+    "GitLab-account toevoegen op gitlab.com": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitLab-Konto auf gitlab.com hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a GitLab account on gitlab.com"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte GitLab sur gitlab.com"
           }
         }
       }
@@ -17238,6 +17436,28 @@
         }
       }
     },
+    "Vul een token met de scope read_api en je groepen in, en klik op Toevoegen. Met de GitLab CLI (glab auth login) heb je geen token nodig.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib ein Token mit dem Scope read_api und deine Gruppen ein und klicke auf Hinzufügen. Mit der GitLab CLI (glab auth login) brauchst du kein Token."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a token with the read_api scope and your groups, then click Add. With the GitLab CLI (glab auth login) you need no token."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez un jeton avec la portée read_api et vos groupes, puis cliquez sur Ajouter. Avec la GitLab CLI (glab auth login), aucun jeton n’est nécessaire."
+          }
+        }
+      }
+    },
     "Vul het adres van je GitHub Enterprise-server in": {
       "localizations": {
         "de": {
@@ -17256,6 +17476,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez l’adresse de votre serveur GitHub Enterprise"
+          }
+        }
+      }
+    },
+    "Vul het adres van je GitLab-server in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib die Adresse deines GitLab-Servers ein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the address of your GitLab server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez l’adresse de votre serveur GitLab"
           }
         }
       }

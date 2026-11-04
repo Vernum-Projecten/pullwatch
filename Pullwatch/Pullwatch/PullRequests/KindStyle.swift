@@ -18,21 +18,37 @@ nonisolated enum Glyph: Hashable, Sendable {
 }
 
 nonisolated extension ProviderKind {
-    /// Het beeld van de dienst op de keuzekaarten en in het toevoeg-menu. Alleen GitHub staat een
-    /// logo in een app toe ("Show integration", brand.github.com/foundations/logo): de
-    /// Invertocat, onveranderd, zwart op licht en wit op donker (de assetcatalogus kiest). GitLab
-    /// weigert zijn logo's in gebruikersinterfaces (Trademark Guidelines van GitLab Inc.) en
-    /// Microsoft staat de Azure-iconen alleen toe in diagrammen en documentatie: daar een SF Symbol.
+    /// Het beeld van de dienst op de keuzekaarten, de accountkaarten en in het toevoeg-menu
+    /// (zie NOTICE, Trademarks). GitHub: de Invertocat, onveranderd, zwart op licht en wit op
+    /// donker (de assetcatalogus kiest), zoals GitHub toestaat ("Show integration",
+    /// brand.github.com/foundations/logo). GitLab: het logomark uit de perskit van GitLab
+    /// (gitlab-logo-500-rgb.svg), onveranderd en in volle kleur op licht en donker; een bewuste
+    /// keuze van de eigenaar (fork-issue #174), terug te draaien met dit ene geval en de asset.
+    /// Azure DevOps: Microsoft staat de Azure-iconen alleen toe in diagrammen en documentatie,
+    /// dus een gevuld SF Symbol, even zwaar als de twee logo's.
     var glyph: Glyph {
         switch self {
         case .gitHub: .asset("GitHubMark")
-        case .azureDevOps: .system("cloud")
-        case .gitLab: .system("arrow.triangle.merge")
+        case .azureDevOps: .system("cloud.circle.fill")
+        case .gitLab: .asset("GitLabMark")
         }
     }
 
     /// Het logo moet zijn eigen kleuren houden: nooit tinten of als template tekenen.
-    var glyphKeepsItsColours: Bool { self == .gitHub }
+    var glyphKeepsItsColours: Bool {
+        if case .asset = glyph { true } else { false }
+    }
+
+    /// Hoeveel groter het beeld getekend wordt dan zijn vak, zodat elk teken even groot oogt. Het
+    /// bestand van GitLab houdt de vrije ruimte die GitLab eromheen voorschrijft in zijn canvas
+    /// (het teken vult 41 procent van de breedte); die ruimte is doorzichtig en valt buiten het
+    /// vak, het bestand zelf blijft onveranderd. De Invertocat en een SF Symbol vullen hun vak al.
+    var glyphScale: CGFloat {
+        switch self {
+        case .gitLab: 2.3
+        case .gitHub, .azureDevOps: 1
+        }
+    }
 }
 
 // Vaste waarden (icoon, kleur, tekst), geen UI-state: overal bruikbaar, ook in tests.

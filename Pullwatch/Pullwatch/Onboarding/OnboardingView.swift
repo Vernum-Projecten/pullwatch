@@ -100,7 +100,7 @@ struct OnboardingView: View {
         try? await Task.sleep(for: pause)
         step = .account
         try? await Task.sleep(for: pause)
-        for (kind, enterprise) in [(ProviderKind.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false)] {
+        for (kind, enterprise) in [(ProviderKind.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true)] {
             draftIsEnterprise = enterprise
             draft = Account(kind: kind, organization: "", authMethod: enterprise ? .pat : accounts.defaultAuthMethod(for: kind))
             try? await Task.sleep(for: pause)

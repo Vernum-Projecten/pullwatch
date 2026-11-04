@@ -146,11 +146,18 @@ Pullwatch is licensed under the [Apache License 2.0](LICENSE).
 
 - The pull request, checks and menu bar icons and the glyph of the app icon
   are [GitHub Octicons](https://github.com/primer/octicons), MIT License.
-- GitHub and the Invertocat are trademarks of GitHub, Inc. GITLAB is a
-  trademark of GitLab Inc. Pullwatch shows the name GitLab™ without its logo.
-  Azure DevOps is a trademark of the Microsoft group of companies.
-- Pullwatch is not affiliated with, endorsed or sponsored by GitHub, GitLab
-  or Microsoft.
+- GitHub and the Invertocat are trademarks of GitHub, Inc. Pullwatch shows
+  the unmodified Invertocat from GitHub's
+  [logo download](https://brand.github.com/GitHub_Logos.zip) where an
+  account connects to GitHub.
+- GITLAB is a trademark of GitLab Inc. in the United States and other
+  countries and regions. Pullwatch shows GitLab's logomark, unmodified, from
+  GitLab's [press kit](https://about.gitlab.com/press/press-kit/)
+  (`gitlab-logo-500-rgb.svg`) where an account connects to GitLab.
+- Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
+  shows only the name, with an SF Symbol (a cloud).
+- Pullwatch is not affiliated with, endorsed, sponsored or approved by
+  GitHub, GitLab Inc. or Microsoft.
 
 [NOTICE](NOTICE) holds the full notices, including the MCP Swift SDK and its
 dependencies.
