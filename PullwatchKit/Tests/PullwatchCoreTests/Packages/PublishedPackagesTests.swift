@@ -77,6 +77,39 @@ import PullwatchTestSupport
         #expect(found.versions.map(\.version) == ["1.0.0"], "een kapotte versie valt weg")
     }
 
+    @Test func `A package stored before container versions reads as a real version`() throws {
+        let json = #"""
+        {"accountId":"00000000-0000-0000-0000-000000000001","name":"ferrobridge","type":"container","owner":"acme",
+         "latestVersion":"sha256-7e0fd343419965e2b3c3151dbd7a601ac1e97f42caadbf2ef9d50f86883d1957",
+         "versions":[{"version":"sha256-7e0fd343419965e2b3c3151dbd7a601ac1e97f42caadbf2ef9d50f86883d1957"}]}
+        """#
+        let found = try JSONDecoder().decode(PublishedPackage.self, from: Data(json.utf8))
+        #expect(found.latestKind == .version)
+        #expect(found.latestTag == .absent)
+        #expect(found.versions.map(\.isLatestTag) == [false])
+    }
+
+    @Test func `An unknown kind of latest version from a newer Pullwatch reads as a version`() throws {
+        let json = #"""
+        {"accountId":"00000000-0000-0000-0000-000000000001","name":"web","type":"container","owner":"acme",
+         "latestVersion":"1.0.0","latestKind":"digest","latestTag":{"pointsSomewhere":{}}}
+        """#
+        let found = try JSONDecoder().decode(PublishedPackage.self, from: Data(json.utf8))
+        #expect(found.latestKind == .version)
+        #expect(found.latestTag == .absent)
+    }
+
+    @Test(arguments: [
+        PublishedPackage.LatestTag.absent, .onLatestVersion, .otherVersion("0.9.0"), .unversionedBuild,
+    ])
+    func `A container package survives a round trip`(latestTag: PublishedPackage.LatestTag) throws {
+        let found = PublishedPackage(
+            accountId: accountId, name: "web", type: .container, owner: "acme", repository: "acme/web", latestVersion: "main",
+            versions: [PublishedVersion(version: "1.0.0", isLatestTag: true)], latestKind: .floatingTag, latestTag: latestTag
+        )
+        #expect(try roundTrip(found) == found)
+    }
+
     @Test func `An unknown result reads as not supported`() throws {
         let json = #"{"status":"somethingNew","detail":"x"}"#
         #expect(try JSONDecoder().decode(PublishedPackages.self, from: Data(json.utf8)) == .notSupported)

@@ -18,7 +18,8 @@ struct PublishedPackageInspector: View {
             PublishedPackageHeaderSection(package: summary.package, accountName: accountName)
             PublishedPackageVersionsSection(versions: summary.package.versions, showTags: showTags)
             PublishedPackageUsersSection(
-                users: summary.users, isMatchable: summary.isMatchable, latest: summary.package.latestVersion, openRepo: openRepo
+                users: summary.users, isMatchable: summary.isMatchable, latest: summary.package.releasedVersion ?? summary.package.latestVersion,
+                openRepo: openRepo
             )
             if let url = summary.package.webURL {
                 Section {
@@ -53,13 +54,24 @@ private struct PublishedPackageHeaderSection: View {
             LabeledContent("Gepubliceerd door") {
                 Text(verbatim: package.repository ?? package.owner).textSelection(.enabled)
             }
+            LabeledContent("Nieuwste versie") {
+                PublishedPackageVersionCell(
+                    version: package.releasedVersion ?? package.latestVersion, publishedAt: package.releasedAt, kind: package.latestKind,
+                    latestTag: package.latestTag, newerPrerelease: package.newestPrerelease
+                )
+            }
             if let visibility = package.visibility {
                 LabeledContent("Zichtbaarheid") {
-                    switch visibility {
-                    case .public: Text("Openbaar")
-                    case .private: Text("Privé")
-                    case .internal: Text("Intern")
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        if let symbol = visibility.symbol {
+                            Image(systemName: symbol)
+                                .imageScale(.small)
+                                .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
+                        }
+                        visibility.text
                     }
+                    .help(visibility.help)
                 }
             }
             if let accountName {
@@ -108,12 +120,39 @@ private struct PublishedPackageVersionsSection: View {
                         }
                     }
                 } label: {
-                    Text(verbatim: version.version).monospacedDigit().textSelection(.enabled)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(verbatim: version.version).monospacedDigit().textSelection(.enabled)
+                        if version.isPrerelease {
+                            PrereleaseBadge()
+                        }
+                        if version.isLatestTag {
+                            LatestTagBadge()
+                        }
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(PublishedVersionLabel.accessibility(version))
                     if let date = version.publishedAt {
                         Text(date, format: .relative(presentation: .named))
                     }
                 }
             }
+        }
+    }
+}
+
+/// Wat VoiceOver bij een recente versie leest: de versie, of het een pre-release is en of hij
+/// de tag `latest` draagt, als één zin per geval.
+private enum PublishedVersionLabel {
+    static func accessibility(_ version: PublishedVersion) -> Text {
+        switch (version.isPrerelease, version.isLatestTag) {
+        case (true, true):
+            Text("versie \(version.version), pre-release, met de tag latest", comment: "VoiceOver: pre-release waar ook de tag latest op staat")
+        case (true, false):
+            Text("versie \(version.version), pre-release", comment: "VoiceOver: een pre-release")
+        case (false, true):
+            Text("versie \(version.version), met de tag latest", comment: "VoiceOver: versie waar ook de tag latest op staat")
+        case (false, false):
+            Text("versie \(version.version)", comment: "VoiceOver: de nieuwste versie van een package")
         }
     }
 }

@@ -54,15 +54,19 @@ extension VersionReport {
 
     /// Packages waarvan de nieuwste versie sinds `previous` veranderde. Een package dat er de vorige
     /// keer nog niet was telt niet (een eerste check of een account erbij geeft geen stapel
-    /// meldingen), net als een account waarvan het register de vorige keer niets zei.
+    /// meldingen), net als een account waarvan het register de vorige keer niets zei. Alleen een
+    /// echte versie telt (`releasedVersion`): een zwevende tag niet, en bij een image ook geen
+    /// digest of handtekening die een oudere Pullwatch als versie bewaarde.
     public func newPublishedVersions(since previous: VersionReport?) -> [PublishedPackage] {
         guard let previous else { return [] }
         var before: [String: String] = [:]
         for package in previous.allPublishedPackages {
-            if let latest = package.latestVersion { before["\(package.accountId.uuidString)/\(package.id)"] = latest }
+            guard let latest = package.releasedVersion else { continue }
+            if package.type == .container, ContainerTag(latest).kind != .version { continue }
+            before["\(package.accountId.uuidString)/\(package.id)"] = latest
         }
         return allPublishedPackages.filter { package in
-            guard let latest = package.latestVersion, let old = before["\(package.accountId.uuidString)/\(package.id)"] else { return false }
+            guard let latest = package.releasedVersion, let old = before["\(package.accountId.uuidString)/\(package.id)"] else { return false }
             return old != latest
         }
     }

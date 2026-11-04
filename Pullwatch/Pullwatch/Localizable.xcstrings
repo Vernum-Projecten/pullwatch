@@ -810,6 +810,29 @@
         }
       }
     },
+    "%@, intern": {
+      "comment": "VoiceOver: naam van een intern package",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, intern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, internal"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, interne"
+          }
+        }
+      }
+    },
     "%@, loopt achter": {
       "localizations": {
         "de": {
@@ -856,6 +879,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@, niet gecontroleerd"
+          }
+        }
+      }
+    },
+    "%@, privé": {
+      "comment": "VoiceOver: naam van een privé package",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, privat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, private"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, privé"
           }
         }
       }
@@ -8286,6 +8332,28 @@
         }
       }
     },
+    "Geen versie van deze image heeft een tag": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Version dieses Images hat einen Tag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No version of this image has a tag"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune version de cette image n'a de tag"
+          }
+        }
+      }
+    },
     "Geen versies bekend": {
       "localizations": {
         "de": {
@@ -8304,6 +8372,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aucune version connue"
+          }
+        }
+      }
+    },
+    "Geen versietag; dit is de nieuwste tag": {
+      "comment": "Image zonder versietag: de nieuwste tag (main, latest) staat er",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Versions-Tag; der neueste Tag wird angezeigt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No version tag; showing the newest tag"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun tag de version ; le tag le plus récent est affiché"
           }
         }
       }
@@ -10221,6 +10312,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Interne"
+          }
+        }
+      }
+    },
+    "Intern: zichtbaar voor leden van de organisatie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intern: sichtbar für Mitglieder der Organisation"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Internal: visible to members of the organization"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interne : visible par les membres de l'organisation"
           }
         }
       }
@@ -13354,6 +13467,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nouvelles versions de vos propres paquets"
+          }
+        }
+      }
+    },
+    "Nieuwere pre-release: %@": {
+      "comment": "Tooltip: een pre-release die nieuwer is dan de getoonde versie",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuere Vorabversion: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer pre-release: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préversion plus récente : %@"
           }
         }
       }
@@ -21688,6 +21824,29 @@
         }
       }
     },
+    "Zonder tag": {
+      "comment": "Image waarvan geen versie een tag heeft",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Tag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untagged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans tag"
+          }
+        }
+      }
+    },
     "actieve auteurs deze periode": {
       "localizations": {
         "de": {
@@ -22235,6 +22394,52 @@
         }
       }
     },
+    "latest wijst naar %@": {
+      "comment": "latest is de naam van een tag; niet vertalen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest zeigt auf %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest points to %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest pointe vers %@"
+          }
+        }
+      }
+    },
+    "latest wijst naar een nieuwere build zonder versietag": {
+      "comment": "latest is de naam van een tag; niet vertalen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest zeigt auf einen neueren Build ohne Versions-Tag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest points to a newer build without a version tag"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "latest pointe vers un build plus récent sans tag de version"
+          }
+        }
+      }
+    },
     "mediane doorlooptijd": {
       "localizations": {
         "de": {
@@ -22500,6 +22705,29 @@
         }
       }
     },
+    "pre-release": {
+      "comment": "Label achter een versie die een pre-release is",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorabversion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "préversion"
+          }
+        }
+      }
+    },
     "pull request %@": {
       "comment": "VoiceOver; het nummer van een pull request",
       "localizations": {
@@ -22519,6 +22747,98 @@
           "stringUnit": {
             "state": "translated",
             "value": "pull request %@"
+          }
+        }
+      }
+    },
+    "versie %@": {
+      "comment": "VoiceOver: de nieuwste versie van een package",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@"
+          }
+        }
+      }
+    },
+    "versie %@, met de tag latest": {
+      "comment": "VoiceOver: versie waar ook de tag latest op staat",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@, mit dem Tag latest"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, tagged latest"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, avec le tag latest"
+          }
+        }
+      }
+    },
+    "versie %@, pre-release": {
+      "comment": "VoiceOver: een pre-release",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@, Vorabversion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, préversion"
+          }
+        }
+      }
+    },
+    "versie %@, pre-release, met de tag latest": {
+      "comment": "VoiceOver: pre-release waar ook de tag latest op staat",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@, Vorabversion, mit dem Tag latest"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, pre-release, tagged latest"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, préversion, avec le tag latest"
           }
         }
       }

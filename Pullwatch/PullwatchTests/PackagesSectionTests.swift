@@ -98,7 +98,39 @@ import Testing
         }
     }
 
+    @Test(arguments: [PublishedPackage.Visibility.private, .internal])
+    func `A private or internal package has a symbol that exists`(visibility: PublishedPackage.Visibility) throws {
+        let symbol = try #require(visibility.symbol)
+        #expect(NSImage(systemSymbolName: symbol, accessibilityDescription: nil) != nil)
+    }
+
+    @Test func `A public package shows no visibility symbol`() {
+        #expect(PublishedPackage.Visibility.public.symbol == nil)
+    }
+
     // MARK: - Cellen zonder model
+
+    /// De drie standen van `latest` naast de versie, een image zonder versietag en een zonder tag.
+    nonisolated static let latestCases: [(PublishedPackage.LatestKind, PublishedPackage.LatestTag, String?)] = [
+        (.version, .onLatestVersion, "0.1.1"), (.version, .unversionedBuild, "0.1.1"), (.version, .absent, "0.1.1"),
+        (.version, .otherVersion("0.9.0"), "1.0.0-rc1"), (.floatingTag, .absent, "main"), (.untagged, .absent, nil),
+    ]
+
+    @Test(arguments: latestCases)
+    func `The latest version cell draws every kind`(kind: PublishedPackage.LatestKind, latestTag: PublishedPackage.LatestTag, version: String?) {
+        #expect(draws(PublishedPackageVersionCell(version: version, publishedAt: .now, showsDateInHelp: true, kind: kind, latestTag: latestTag)))
+    }
+
+    @Test func `The latest version cell draws a newer pre-release next to the stable release`() {
+        #expect(draws(PublishedPackageVersionCell(
+            version: "20.0.0", publishedAt: .now, kind: .version, latestTag: .unversionedBuild, newerPrerelease: "21.0.0-rc9"
+        )))
+    }
+
+    @Test(arguments: [PublishedPackage.Visibility.private, .internal, .public])
+    func `The name cell draws with its visibility`(visibility: PublishedPackage.Visibility) {
+        #expect(draws(PublishedPackageNameCell(name: "ferroehr", type: .container, visibility: visibility)))
+    }
 
     @Test func `The cells of the Packages table draw without a model in the environment`() {
         #expect(draws(PublishedPackageNameCell(name: "ui", type: .npm)))
@@ -116,6 +148,22 @@ import Testing
         let summary = PublishedPackageSummary(package: package, users: [user])
 
         let inspector = PublishedPackageInspector(summary: summary, accountName: "@octo", openRepo: { _ in }, showTags: {})
+
+        #expect(ImageRenderer(content: inspector.frame(width: 300, height: 600)).nsImage != nil)
+    }
+
+    @Test func `The inspector of an image marks the version that carries latest`() {
+        let image = PublishedPackage(
+            accountId: accountId, name: "ferrobridge", type: .container, owner: "acme", repository: "acme/ferrobridge",
+            latestVersion: "0.0.17", visibility: .private,
+            versions: [
+                PublishedVersion(version: "0.1.0-rc1"), PublishedVersion(version: "0.0.17", isLatestTag: true), PublishedVersion(version: "0.0.15"),
+            ],
+            latestTag: .onLatestVersion
+        )
+        let inspector = PublishedPackageInspector(
+            summary: PublishedPackageSummary(package: image, users: []), accountName: nil, openRepo: { _ in }, showTags: nil
+        )
 
         #expect(ImageRenderer(content: inspector.frame(width: 300, height: 600)).nsImage != nil)
     }

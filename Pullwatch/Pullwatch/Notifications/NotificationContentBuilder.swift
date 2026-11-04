@@ -274,7 +274,7 @@ struct NotificationContentBuilder {
     /// Een nieuwe nieuwste versie van een package dat een gevolgde repo publiceert (het onderdeel
     /// Packages); een klik opent dat onderdeel, gezocht op het package.
     func publishedVersion(_ package: PublishedPackage) -> NotificationContent {
-        let version = package.latestVersion ?? ""
+        let version = package.releasedVersion ?? package.latestVersion ?? ""
         return NotificationContent(
             identifier: "published-\(package.accountId.uuidString)/\(package.id)@\(version)",
             kind: .publishedPackage,

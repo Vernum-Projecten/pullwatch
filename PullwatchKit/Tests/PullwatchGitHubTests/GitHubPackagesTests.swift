@@ -162,6 +162,152 @@ import PullwatchTestSupport
         #expect(found.latestVersion == "1.20.0")
     }
 
+    // MARK: - Versies van een image
+
+    /// Een pagina van een image zoals ferroehr op ghcr.io: per push naar main een image met
+    /// `sha-<commit>`, een cosign-handtekening `sha256-<digest>` en digests zonder tag.
+    func commitPage(_ page: Int, count: Int = 100, main: Bool = false) -> [String] {
+        (0..<count).map { index in
+            let digest = "sha256:\(page)x\(index)"
+            let date = "2026-11-0\(5 - page)T\(String(format: "%02d", 23 - index / 5)):00:00Z"
+            switch index % 3 {
+            case 0: return version(digest, type: "container", tags: ["sha256-\(String(repeating: "7e0f", count: 16))"], at: date)
+            case 1: return version(digest, type: "container", tags: ["sha-\(String(format: "%07x", page * 1000 + index))"] + (main && index == 1 ? ["main"] : []), at: date)
+            default: return version(digest, type: "container", tags: [], at: date)
+            }
+        }
+    }
+
+    /// `per_page=100`, de volgende pagina via de `Link`-header.
+    func containerPages(_ http: MockHTTPClient, name packageName: String = "web", pages: [[String]]) {
+        let name = packageName.replacingOccurrences(of: "/", with: "%2F")
+        let base = "https://api.github.com/orgs/acme/packages/container/\(name)/versions"
+        for (index, page) in pages.enumerated().reversed() {
+            let number = index + 1
+            let link = number < pages.count ? ["Link": #"<\#(base)?per_page=100&page=\#(number + 1)>; rel="next""#] : [:]
+            let route = number == 1 ? "container/\(name)/versions?per_page=100" : "container/\(name)/versions?per_page=100&page=\(number)"
+            http.on(route, headers: link, body: "[\(page.joined(separator: ","))]")
+        }
+        http.on("orgs/acme/packages?package_type=container&", body: "[\(package(packageName, type: "container", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+    }
+
+    @Test func `Finds a release older than the newest hundred commit and signature images`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        let release = version("sha256:release", type: "container", tags: ["5.6.0-rc10", "sha-7b4246a"], at: "2026-11-02T13:22:10Z")
+        containerPages(http, pages: [commitPage(1, main: true), commitPage(2), [release] + commitPage(3, count: 40)])
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == "5.6.0-rc10")
+        #expect(found.latestKind == .version)
+        #expect(found.publishedAt == DateParsing.parse("2026-11-02T13:22:10Z"))
+        #expect(found.versions.map(\.version) == ["5.6.0-rc10"], "nooit een digest, handtekening of commit")
+        #expect(urls(http).filter { $0.contains("container/web/versions") }.count == 3)
+        #expect(urls(http).contains("https://api.github.com/orgs/acme/packages/container/web/versions?per_page=100"))
+    }
+
+    @Test func `Stops paging once ten versions carry a version tag`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        // Zoals ferrobridge: per release drie handtekeningen en een digest zonder tag.
+        let page = (0..<100).map { index in
+            index % 5 == 0
+                ? version("sha256:r\(index)", type: "container", tags: index == 0 ? ["0.0.\(40 - index / 5)", "latest", "0.0"] : ["0.0.\(40 - index / 5)"])
+                : version("sha256:s\(index)", type: "container", tags: index % 5 == 4 ? [] : ["sha256-\(String(repeating: "4a69", count: 16))"])
+        }
+        containerPages(http, pages: [page, commitPage(2)])
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == "0.0.40")
+        #expect(found.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(found.versions.first?.isLatestTag == true)
+        #expect(found.latestTag == .onLatestVersion)
+        #expect(urls(http).filter { $0.contains("container/web/versions") }.count == 1, "genoeg op de eerste pagina")
+    }
+
+    @Test func `Reads at most five pages`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        containerPages(http, pages: (1...7).map { commitPage($0, main: $0 == 1) })
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(urls(http).filter { $0.contains("container/web/versions") }.count == GitHubProvider.containerVersionPages)
+        #expect(found.latestVersion == "main", "geen versietag: de nieuwste zwevende tag")
+        #expect(found.latestKind == .floatingTag)
+        #expect(found.versions.isEmpty)
+    }
+
+    @Test func `Commit tags with latest show latest as the newest tag`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        // Zoals ferropulse: elke push een volle commit als tag, latest op de nieuwste.
+        containerPages(http, pages: [[
+            version("sha256:a", type: "container", tags: ["f83df34cc968f5e0f916834508336c8eeb4c9e41", "latest"], at: "2026-10-24T13:27:33Z"),
+            version("sha256:b", type: "container", tags: [], at: "2026-10-24T13:27:30Z"),
+            version("sha256:c", type: "container", tags: ["2c62de91744b01c2c4e1b400b076260a0dca7777"], at: "2026-10-24T13:25:36Z"),
+        ]])
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == "latest")
+        #expect(found.latestKind == .floatingTag)
+        #expect(found.releasedVersion == nil)
+        #expect(found.publishedAt == DateParsing.parse("2026-10-24T13:27:33Z"))
+    }
+
+    @Test func `An image without any tag is untagged`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        containerPages(http, pages: [[
+            #"{"id":1,"name":"sha256:f889","created_at":"2026-11-04T11:43:41Z","html_url":"https://github.com/x","metadata":{"package_type":"container","container":{}}}"#,
+            version("sha256:b", type: "container", tags: [], at: "2026-11-03T11:00:00Z"),
+        ]])
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == nil)
+        #expect(found.latestKind == .untagged)
+        #expect(found.versions.isEmpty)
+    }
+
+    @Test func `A Helm chart shows its chart version, not artifacthub.io`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        containerPages(http, name: "charts/web", pages: [[
+            version("sha256:meta", type: "container", tags: ["artifacthub.io"], at: "2026-11-02T13:35:40Z"),
+            version("sha256:sig", type: "container", tags: ["sha256-\(String(repeating: "9622", count: 16))"], at: "2026-11-02T13:35:29Z"),
+            version("sha256:rc9", type: "container", tags: ["21.0.0-rc9"], at: "2026-11-02T13:35:14Z"),
+            version("sha256:20", type: "container", tags: ["20.0.0"], at: "2026-10-27T22:12:23Z"),
+        ]])
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
+        let found = try #require(result.packages.first)
+
+        #expect(found.name == "charts/web")
+        #expect(found.latestVersion == "20.0.0", "de stabiele release voor de hogere pre-release")
+        #expect(found.newestPrerelease == "21.0.0-rc9")
+        #expect(found.versions.map(\.version) == ["21.0.0-rc9", "20.0.0"])
+    }
+
+    @Test func `A failed later page keeps what the first pages said`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        let first = [version("sha256:a", type: "container", tags: ["1.2.0"])]
+        http.on("container/web/versions?per_page=100&page=2", status: 502, body: "{}")
+        http.on("container/web/versions?per_page=100", headers: ["Link": #"<https://api.github.com/orgs/acme/packages/container/web/versions?per_page=100&page=2>; rel="next""#],
+                body: "[\(first.joined(separator: ","))]")
+        http.on("orgs/acme/packages?package_type=container&", body: "[\(package("web", type: "container", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == "1.2.0")
+    }
+
     @Test func `A package name with a slash is one path component`() async throws {
         let http = MockHTTPClient()
         organization(http)

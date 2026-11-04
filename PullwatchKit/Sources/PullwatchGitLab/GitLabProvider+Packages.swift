@@ -18,9 +18,11 @@ private let logger = Log(category: "Packages")
 /// (`Account.extraRepos`, ook zonder token als ze zo gelezen worden) krijgen per project één lijst
 /// (`/projects/:id/packages`, `/projects/:id/registry/repositories`).
 ///
-/// Van een image de tien nieuwste tags in één vraag (keyset, `order_by=published_at`), en alleen
-/// van de nieuwste de details voor zijn datum. Een server zonder de metadata-database van de
-/// registry kent die sortering niet; dan één pagina tags en de details van hooguit tien.
+/// Van een image de honderd nieuwste tags in één vraag (keyset, `order_by=published_at`), gelezen
+/// zoals bij GitHub (`ContainerTag`, `ContainerVersions`): de hoogste versietag is de nieuwste
+/// versie, nooit een commit of handtekening. Alleen van die versie en van `latest` de details
+/// (datum, digest). Een server zonder de metadata-database van de registry kent die sortering
+/// niet; dan één pagina tags en de details van de hoogste tien versietags.
 ///
 /// Het token leest dit met de scope `read_api`. Een 401, of een 403 met `insufficient_scope`, is
 /// daarom `.needsPermission`, nooit een mislukte check. Een gewone 403 op één project (register
@@ -98,11 +100,11 @@ extension GitLabProvider {
 
             var packages = Self.packages(from: rows, accountId: accountId, instanceURL: instanceURL)
             for image in images {
-                let versions = try await recentTags(of: image.image, in: image.repo, anonymous: image.anonymous)
+                let container = try await recentTags(of: image.image, in: image.repo, anonymous: image.anonymous)
                 packages.append(PublishedPackage(
                     accountId: accountId, name: image.image.path, type: .container, owner: Self.namespace(of: image.repo),
-                    repository: image.repo, webURL: webURL(image.repo, "container_registry", String(image.image.id)),
-                    versions: versions
+                    repository: image.repo, container: container,
+                    webURL: webURL(image.repo, "container_registry", String(image.image.id))
                 ))
             }
             logger.info("\(logPrefix): \(packages.count) packages van \(followedRepos.count) gevolgde projecten")
@@ -159,67 +161,113 @@ extension GitLabProvider {
 
     // MARK: - Tags van een image
 
-    /// De nieuwste tags van een image, nieuwste eerst, hooguit `recentVersionLimit`; "latest" alleen
-    /// als er niets anders is. Een fout hier (behalve een recht dat ontbreekt) laat de image zonder
-    /// versies staan.
-    private func recentTags(of image: RegistryRepositoryDTO, in repo: String, anonymous: Bool) async throws -> [PublishedVersion] {
+    /// Hoeveel tags per image: genoeg om tussen commit-tags en handtekeningen de versietags te vinden.
+    static let tagPageSize = 100
+
+    /// De versies van een image uit zijn nieuwste tags (`ContainerVersions`): een pagina van honderd
+    /// tags, nieuwste eerst (keyset, `order_by=published_at`), en de details (datum, digest) van de
+    /// gekozen nieuwste versie en van `latest`. Een fout hier (behalve een recht dat ontbreekt) laat
+    /// de image zonder versies staan.
+    private func recentTags(of image: RegistryRepositoryDTO, in repo: String, anonymous: Bool) async throws -> ContainerVersions {
         let tagsURL = endpoint("projects", repo, "registry", "repositories", String(image.id), "tags")
-        let limit = PublishedPackage.recentVersionLimit
+        let link = webURL(repo, "container_registry", String(image.id))
         do {
             let (data, response) = try await send(tagsURL, query: [
                 URLQueryItem(name: "pagination", value: "keyset"),
                 URLQueryItem(name: "order_by", value: "published_at"),
                 URLQueryItem(name: "sort", value: "desc"),
-                URLQueryItem(name: "per_page", value: String(limit + 1)),
+                URLQueryItem(name: "per_page", value: String(Self.tagPageSize)),
             ], anonymous: anonymous, checked: false)
             let newest = (200..<300).contains(response.statusCode)
                 ? try JSONDecoding.decode([ContainerTagDTO].self, from: data, snakeCase: true) : []
             logRequest(tagsURL, response: response, data: data, count: newest.count)
             if try Self.packagesAccess(response, data: data, anonymous: anonymous, inProject: true) {
                 try HTTPStatus.check(response, now: now())
-                let names = Self.withoutLatest(newest.map(\.name)).prefix(limit)
-                guard let first = names.first else { return [] }
-                // Alleen van de nieuwste de datum: één verzoek per image.
-                let created = try await tagDetail(first, tagsURL: tagsURL, anonymous: anonymous)?.created
-                let link = webURL(repo, "container_registry", String(image.id))
-                return names.enumerated().map { index, name in
-                    PublishedVersion(version: name, publishedAt: index == 0 ? created : nil, webURL: link)
-                }
+                return try await versions(of: newest, tagsURL: tagsURL, link: link, anonymous: anonymous)
             }
-            return try await recentTagsByDetail(tagsURL: tagsURL, image: image, repo: repo, anonymous: anonymous)
+            return try await recentTagsByDetail(tagsURL: tagsURL, link: link, anonymous: anonymous)
         } catch PackagesDenied.needsPermission {
             throw PackagesDenied.needsPermission
         } catch {
-            return []
+            return ContainerVersions(images: [])
         }
     }
 
     /// Zonder sortering op datum (een server zonder de metadata-database): één pagina tags, de
-    /// hoogste tien op naam (numeriek), en hun details om op datum te sorteren.
-    private func recentTagsByDetail(
-        tagsURL: URL, image: RegistryRepositoryDTO, repo: String, anonymous: Bool
-    ) async throws -> [PublishedVersion] {
+    /// hoogste tien versietags op versie, en hun details om op datum te sorteren. Zonder versietag
+    /// de details van de zwevende tags.
+    private func recentTagsByDetail(tagsURL: URL, link: URL?, anonymous: Bool) async throws -> ContainerVersions {
         let (data, response) = try await send(tagsURL, query: [URLQueryItem(name: "per_page", value: String(pageSize))], anonymous: anonymous, checked: false)
         let tags = (200..<300).contains(response.statusCode)
             ? try JSONDecoding.decode([ContainerTagDTO].self, from: data, snakeCase: true) : []
         logRequest(tagsURL, response: response, data: data, count: tags.count)
-        guard try Self.packagesAccess(response, data: data, anonymous: anonymous, inProject: true) else { return [] }
+        guard try Self.packagesAccess(response, data: data, anonymous: anonymous, inProject: true) else { return ContainerVersions(images: []) }
         try HTTPStatus.check(response, now: now())
-        let candidates = Self.withoutLatest(tags.map(\.name))
-            .sorted { $0.compare($1, options: .numeric) == .orderedDescending }
+        let classified = tags.map { ContainerTag($0.name) }
+        let versionTags = classified.filter { $0.kind == .version }
+            .sorted { $0.isBetterVersion(than: $1) }
             .prefix(PublishedPackage.recentVersionLimit)
-        var detailed: [(name: String, created: Date?)] = []
-        for name in candidates {
-            detailed.append((name, try await tagDetail(name, tagsURL: tagsURL, anonymous: anonymous)?.created))
+        let candidates = versionTags.isEmpty
+            ? Array(classified.filter { $0.kind == .floating }.prefix(PublishedPackage.recentVersionLimit))
+            : Array(versionTags) + classified.filter { $0.name == ContainerTag.latest }
+        var detailed: [(name: String, detail: ContainerTagDTO?)] = []
+        for tag in candidates {
+            detailed.append((tag.name, try await tagDetail(tag.name, tagsURL: tagsURL, anonymous: anonymous)))
         }
-        let link = webURL(repo, "container_registry", String(image.id))
-        return detailed
-            .sorted { ($0.created ?? .distantPast) > ($1.created ?? .distantPast) }
-            .map { PublishedVersion(version: $0.name, publishedAt: $0.created, webURL: link) }
+        detailed.sort { ($0.detail?.created ?? .distantPast) > ($1.detail?.created ?? .distantPast) }
+        return ContainerVersions(images: Self.images(detailed.map { ($0.name, $0.detail?.digest, $0.detail?.created) }, link: link))
     }
 
-    /// De details van één tag (`created_at`); nil als die niet te lezen zijn.
+    /// De versies uit een lijst tags, nieuwste eerst. De lijst noemt (afhankelijk van de server)
+    /// geen digest of datum; de details van de gekozen nieuwste versie en van `latest` geven die,
+    /// zodat te zien is of `latest` op dezelfde image staat.
+    private func versions(of newest: [ContainerTagDTO], tagsURL: URL, link: URL?, anonymous: Bool) async throws -> ContainerVersions {
+        var tags = newest.map { (name: $0.name, digest: $0.digest, created: $0.created ?? $0.published) }
+        let first = ContainerVersions(images: Self.images(tags, link: link))
+        // Alleen de details van wat ertoe doet: één verzoek voor de nieuwste versie (of de
+        // zwevende tag), één voor `latest` als die er is.
+        var wanted = [first.latestVersion].compactMap { $0 }
+        if first.latestKind == .version, tags.contains(where: { $0.name == ContainerTag.latest }) { wanted.append(ContainerTag.latest) }
+        for name in wanted {
+            guard let index = tags.firstIndex(where: { $0.name == name }), tags[index].digest == nil || tags[index].created == nil,
+                  let detail = try await tagDetail(name, tagsURL: tagsURL, anonymous: anonymous) else { continue }
+            tags[index].digest = tags[index].digest ?? detail.digest
+            tags[index].created = tags[index].created ?? detail.created
+        }
+        return ContainerVersions(images: Self.images(tags, link: link))
+    }
+
+    /// Tags met dezelfde digest zijn één image; een tag zonder bekende digest is een image op zich.
+    /// De volgorde blijft die van de lijst (nieuwste eerst).
+    static func images(_ tags: [(name: String, digest: String?, created: Date?)], link: URL?) -> [ContainerVersions.Image] {
+        var order: [String] = []
+        var grouped: [String: (tags: [String], created: Date?)] = [:]
+        for (index, tag) in tags.enumerated() {
+            let key = tag.digest ?? "#\(index)"
+            if grouped[key] == nil { order.append(key) }
+            var entry = grouped[key] ?? ([], nil)
+            entry.tags.append(tag.name)
+            entry.created = entry.created ?? tag.created
+            grouped[key] = entry
+        }
+        return order.compactMap { key in
+            grouped[key].map { ContainerVersions.Image(tags: $0.tags, publishedAt: $0.created, webURL: link) }
+        }
+    }
+
+    /// De details van één tag (`created_at`, `digest`); nil als die niet te lezen zijn, ook bij een
+    /// fout (dan ontbreekt alleen de datum). Een recht dat ontbreekt gaat door.
     private func tagDetail(_ name: String, tagsURL: URL, anonymous: Bool) async throws -> ContainerTagDTO? {
+        do {
+            return try await readTagDetail(name, tagsURL: tagsURL, anonymous: anonymous)
+        } catch PackagesDenied.needsPermission {
+            throw PackagesDenied.needsPermission
+        } catch {
+            return nil
+        }
+    }
+
+    private func readTagDetail(_ name: String, tagsURL: URL, anonymous: Bool) async throws -> ContainerTagDTO? {
         let url = URL(string: tagsURL.absoluteString + "/" + Self.encode(name))!
         let (data, response) = try await send(url, anonymous: anonymous, checked: false)
         let tag = (200..<300).contains(response.statusCode) ? try? JSONDecoding.decode(ContainerTagDTO.self, from: data, snakeCase: true) : nil
@@ -227,12 +275,6 @@ extension GitLabProvider {
         guard try Self.packagesAccess(response, data: data, anonymous: anonymous, inProject: true) else { return nil }
         try HTTPStatus.check(response, now: now())
         return tag
-    }
-
-    /// "latest" zegt niets over de versie; alleen als er geen andere tag is, blijft hij staan.
-    static func withoutLatest(_ names: [String]) -> [String] {
-        let others = names.filter { $0 != "latest" }
-        return others.isEmpty ? names : others
     }
 
     // MARK: - Lijsten
@@ -386,10 +428,14 @@ struct RegistryRepositoryDTO: Decodable {
     let path: String
 }
 
-/// Een tag van een image; `created_at` alleen in de details van één tag.
+/// Een tag van een image; `created_at` en `digest` in de details van één tag, en op een server
+/// met de metadata-database soms ook in de lijst (met `published_at`).
 struct ContainerTagDTO: Decodable {
     let name: String
     let createdAt: String?
+    let publishedAt: String?
+    let digest: String?
 
     var created: Date? { createdAt.flatMap(DateParsing.parse) }
+    var published: Date? { publishedAt.flatMap(DateParsing.parse) }
 }

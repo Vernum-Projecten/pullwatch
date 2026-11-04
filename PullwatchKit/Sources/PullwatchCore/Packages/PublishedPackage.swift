@@ -9,6 +9,29 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         case `public`, `private`, `internal`
     }
 
+    /// Wat `latestVersion` is. Een container-image zonder versietag toont een zwevende tag, in
+    /// het grijs; zonder enige tag niets.
+    public enum LatestKind: String, Codable, Hashable, Sendable {
+        /// Een versie zoals het register hem noemt, of bij een image de hoogste versietag.
+        case version
+        /// Geen versietag: de nieuwste zwevende tag (`main`, `latest`).
+        case floatingTag
+        /// Geen enkele image heeft een tag die iets zegt.
+        case untagged
+    }
+
+    /// Waar de tag `latest` van een image naar wijst, ten opzichte van `latestVersion`.
+    public enum LatestTag: Codable, Hashable, Sendable {
+        /// Geen `latest` (of geen image).
+        case absent
+        /// Op de image van de nieuwste versie.
+        case onLatestVersion
+        /// Op een image met een andere versietag.
+        case otherVersion(String)
+        /// Op een image zonder versietag, een build van een branch.
+        case unversionedBuild
+    }
+
     /// Hoeveel versies Pullwatch per package bewaart: genoeg voor "wie zit op welke versie",
     /// geen volledige geschiedenis (die staat bij het register zelf).
     public static let recentVersionLimit = 10
@@ -33,11 +56,15 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
     public let webURL: URL?
     /// De recente versies, nieuwste eerst, hooguit `recentVersionLimit`.
     public let versions: [PublishedVersion]
+    /// Wat `latestVersion` is; `.version` bij elk ander soort package en in oudere gegevens.
+    public let latestKind: LatestKind
+    /// Waar `latest` naar wijst; alleen bij een container-image iets anders dan `.absent`.
+    public let latestTag: LatestTag
 
     public init(
         accountId: UUID, name: String, type: PublishedPackageType, owner: String, repository: String?,
         latestVersion: String? = nil, publishedAt: Date? = nil, visibility: Visibility? = nil, webURL: URL? = nil,
-        versions: [PublishedVersion] = []
+        versions: [PublishedVersion] = [], latestKind: LatestKind = .version, latestTag: LatestTag = .absent
     ) {
         self.accountId = accountId
         self.name = name
@@ -49,10 +76,53 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         self.publishedAt = publishedAt ?? versions.first?.publishedAt
         self.visibility = visibility
         self.webURL = webURL
+        self.latestKind = latestKind
+        self.latestTag = latestTag
+    }
+
+    /// Een container-image uit zijn tags: de nieuwste versie, de datum en de recente versies uit
+    /// `ContainerVersions`.
+    public init(
+        accountId: UUID, name: String, type: PublishedPackageType, owner: String, repository: String?,
+        container: ContainerVersions, fallbackDate: Date? = nil, visibility: Visibility? = nil, webURL: URL? = nil
+    ) {
+        self.init(
+            accountId: accountId, name: name, type: type, owner: owner, repository: repository,
+            latestVersion: container.latestVersion, publishedAt: container.publishedAt ?? fallbackDate, visibility: visibility,
+            webURL: webURL, versions: container.versions, latestKind: container.latestKind, latestTag: container.latestTag
+        )
+    }
+
+    /// De nieuwste versie zoals Renovate en Dependabot die standaard kiezen: de hoogste stabiele
+    /// release (uit `latestVersion` en de recente versies), en alleen zonder stabiele versie de
+    /// nieuwste versie zelf (dan een pre-release). nil bij een zwevende tag of zonder tag. Dit
+    /// vergelijken de check op eigen packages, de melding van een nieuwe versie en de MCP-tools.
+    public var releasedVersion: String? {
+        guard latestKind == .version else { return nil }
+        let candidates = ([latestVersion].compactMap { $0 } + versions.map(\.version))
+            .compactMap { text in Version(text).map { (text: text, version: $0) } }
+            .filter { !$0.version.isPrerelease }
+        return candidates.max { $0.version < $1.version }?.text ?? latestVersion
+    }
+
+    /// Wanneer `releasedVersion` verscheen: de datum van die versie, anders `publishedAt`.
+    public var releasedAt: Date? {
+        guard let released = releasedVersion, released != latestVersion else { return publishedAt }
+        return versions.first { $0.version == released }?.publishedAt ?? publishedAt
+    }
+
+    /// Een pre-release die nieuwer is dan de stabiele `releasedVersion` ("21.0.0-rc9" naast
+    /// "20.0.0"); nil als die er niet is, of als er alleen pre-releases zijn.
+    public var newestPrerelease: String? {
+        guard let released = releasedVersion.flatMap({ Version($0) }), !released.isPrerelease else { return nil }
+        return ([latestVersion].compactMap { $0 } + versions.map(\.version))
+            .compactMap { text in Version(text).map { (text: text, version: $0) } }
+            .filter { $0.version.isPrerelease && $0.version > released }
+            .max { $0.version < $1.version }?.text
     }
 
     private enum CodingKeys: String, CodingKey {
-        case accountId, name, type, owner, repository, latestVersion, publishedAt, visibility, webURL, versions
+        case accountId, name, type, owner, repository, latestVersion, publishedAt, visibility, webURL, versions, latestKind, latestTag
     }
 
     /// Naam, soort, eigenaar en account zijn nodig; de rest mag ontbreken of onbekend zijn (een
@@ -69,5 +139,8 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         visibility = try? c.decodeIfPresent(Visibility.self, forKey: .visibility)
         webURL = try? c.decodeIfPresent(URL.self, forKey: .webURL)
         versions = ((try? c.decodeIfPresent([Lossy<PublishedVersion>].self, forKey: .versions)) ?? []).compactMap(\.value)
+        // Ontbreekt in gegevens van voor #209, of een waarde van een nieuwere Pullwatch: een versie.
+        latestKind = (try? c.decodeIfPresent(LatestKind.self, forKey: .latestKind)) ?? .version
+        latestTag = (try? c.decodeIfPresent(LatestTag.self, forKey: .latestTag)) ?? .absent
     }
 }
