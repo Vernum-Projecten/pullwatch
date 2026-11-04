@@ -20,6 +20,11 @@ public enum ProviderFactory {
         locator: CLILocator = CLILocator(),
         gitHubApp: GitHubAppConfig = .main
     ) -> any PRProvider {
+        // Een eigen server zonder bruikbaar adres (Forgejo zonder server, een http-adres in de
+        // config): geen provider die het token ergens heen stuurt.
+        if let problem = account.serverProblem {
+            return UnusableServerProvider(error: .unusableServer(service: account.productName, problem: problem))
+        }
         let tokens: any TokenSource
         switch account.authMethod {
         case .pat:
@@ -96,13 +101,15 @@ public enum ProviderFactory {
                 http: http
             )
         case .gitea:
-            // Forgejo heeft geen standaardserver; zonder adres (een onvolledige config) codeberg.org,
-            // nooit een andere host met het token.
+            // Zonder adres (Forgejo zonder server) heeft `serverProblem` hierboven al gestopt.
+            guard let instanceURL = account.effectiveInstanceURL else {
+                return UnusableServerProvider(error: .unusableServer(service: account.productName, problem: .missing))
+            }
             return GiteaProvider(
                 accountId: account.id,
                 owners: account.owners,
                 extraRepos: account.extraRepos,
-                instanceURL: account.effectiveInstanceURL ?? URL(string: "https://codeberg.org")!,
+                instanceURL: instanceURL,
                 serviceName: account.productName,
                 tokenSource: tokens,
                 http: http

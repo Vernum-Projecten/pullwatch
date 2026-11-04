@@ -23,6 +23,12 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// Eigen server (GitLab self-managed, GitHub Enterprise Server of `<naam>.ghe.com`): alleen https, zonder "/" aan het eind
     /// (`InstanceURL.parse`). nil = de standaard van de dienst (`ProviderKind.defaultInstanceURL`).
     public var instanceURL: URL?
+    /// Een eigen server zonder bruikbaar adres: wat er in config.json stond en geen https-adres is
+    /// (`InstanceURL.parse` wees het af), of leeg als de server nog ontbreekt. Dan is `instanceURL`
+    /// nil en is het account niet af (`serverProblem`): er gaat geen verzoek uit, ook niet naar de
+    /// standaard van de dienst. Wordt weer zo bewaard, zodat het account niet stil naar github.com
+    /// of gitlab.com gaat.
+    public var unusableInstanceURL: String?
     /// Bitbucket: het e-mailadres van het Atlassian-account bij het API-token (Basic auth
     /// `e-mail:token`). Geen geheim, dus in de config; het token zelf staat in de Keychain.
     public var email: String?
@@ -137,8 +143,39 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         return String(localized: "\(list) op \(serviceName)", bundle: .localizedCore, comment: "Organisatie(s), groep(en) of gebruiker(s), dienst (GitHub, Azure DevOps, GitLab of de host van een eigen server)")
     }
 
-    /// Een account dat minstens één eigenaar volgt: alleen zo'n account wordt bewaard en gepold.
-    public var isComplete: Bool { owners.contains { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+    /// Volgt dit account minstens één eigenaar?
+    public var hasOwner: Bool { owners.contains { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+
+    /// Een account dat minstens één eigenaar volgt en weet naar welke server het moet: alleen zo'n
+    /// account wordt gepold. Een nieuw account wordt pas dan bewaard.
+    public var isComplete: Bool { hasOwner && serverProblem == nil }
+
+    /// Wat er aan de server van een account op een eigen server schort.
+    public enum ServerProblem: Hashable, Sendable {
+        /// Er is geen adres: Forgejo zonder server, of een eigen server die nog leeg is.
+        case missing
+        /// Het adres is geen bruikbaar https-adres (de tekst zoals hij in de config stond).
+        case invalid(String)
+    }
+
+    /// Waarom het account niet naar zijn server kan; nil als het adres klopt of de dienst geen
+    /// eigen server kent. Zolang dit niet nil is, is het account niet af en gaat er geen token weg.
+    public var serverProblem: ServerProblem? {
+        guard kind.supportsInstanceURL else { return nil }
+        if let unusableInstanceURL {
+            let text = unusableInstanceURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? .missing : .invalid(text)
+        }
+        if let instanceURL, instanceURL.scheme?.lowercased() != "https" || (instanceURL.host() ?? "").isEmpty {
+            return .invalid(instanceURL.absoluteString)
+        }
+        return effectiveInstanceURL == nil ? .missing : nil
+    }
+
+    /// `serverProblem` als zin voor de kaart van het account en het menu.
+    public var serverProblemMessage: String? {
+        serverProblem.map { ProviderError.unusableServer(service: productName, problem: $0).userMessage }
+    }
 
     /// Profielfoto van wie er inlogde, anders van de eerste eigenaar (openbaar, zonder token);
     /// Azure DevOps geeft foto's alleen met inloggen, dus daar nil.
@@ -226,8 +263,19 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         hideOwn = try c.decode(Bool.self, forKey: .hideOwn)
         cliUser = try c.decodeIfPresent(String.self, forKey: .cliUser)
         isPaused = try c.decodeIfPresent(Bool.self, forKey: .isPaused) ?? false
-        // Van vóór eigen servers: geen veld, dus de standaard van de dienst.
-        instanceURL = try c.decodeIfPresent(URL.self, forKey: .instanceURL)
+        // Van vóór eigen servers: geen veld, dus de standaard van de dienst. Het token gaat naar dit
+        // adres, dus ook wat met de hand in config.json staat gaat door `InstanceURL.parse` (alleen
+        // https); is het daar niet goed genoeg voor, dan is het account niet af (`serverProblem`).
+        if let text = try c.decodeIfPresent(String.self, forKey: .instanceURL) {
+            if let url = InstanceURL.parse(text, for: kind) {
+                instanceURL = url
+            } else {
+                instanceURL = nil
+                unusableInstanceURL = text
+            }
+        } else {
+            instanceURL = nil
+        }
         // Van vóór de losse repo's: geen.
         extraRepos = try c.decodeIfPresent([String].self, forKey: .extraRepos) ?? []
         email = try c.decodeIfPresent(String.self, forKey: .email)
@@ -254,7 +302,12 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         try c.encode(hideOwn, forKey: .hideOwn)
         try c.encodeIfPresent(cliUser, forKey: .cliUser)
         if isPaused { try c.encode(isPaused, forKey: .isPaused) }
-        try c.encodeIfPresent(instanceURL, forKey: .instanceURL)
+        if let instanceURL {
+            try c.encode(instanceURL, forKey: .instanceURL)
+        } else if let unusableInstanceURL {
+            // Zoals het er stond: zo blijft het account onaf tot iemand het adres verbetert.
+            try c.encode(unusableInstanceURL, forKey: .instanceURL)
+        }
         if !extraRepos.isEmpty { try c.encode(extraRepos, forKey: .extraRepos) }
         try c.encodeIfPresent(email, forKey: .email)
         if kind == .gitea { try c.encode(giteaFlavour, forKey: .giteaFlavour) }

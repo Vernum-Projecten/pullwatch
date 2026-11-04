@@ -8,7 +8,7 @@ private let logger = Log(category: "Packages")
 
 /// De eigen packages in GitHub Packages: per gevolgde eigenaar en per soort één lijst
 /// (`/orgs/{org}/packages` of `/users/{user}/packages`, 100 per pagina, `Link`-header voor de
-/// volgende), gekoppeld aan de gevolgde repo's via `repository.full_name`. De recente versies
+/// volgende, alleen op de API van het account: `PageLink.follow`), gekoppeld aan de gevolgde repo's via `repository.full_name`. De recente versies
 /// alleen voor packages van een gevolgde repo. Alleen in de dagelijkse versiecheck.
 ///
 /// GitHub leest het register alleen met de scope `read:packages` (een `gh`-token of een persoonlijk
@@ -183,7 +183,7 @@ extension GitHubProvider {
                 guard try Self.checkPackagesAccess(response) else { break }
                 try HTTPStatus.check(response, now: now())
                 images += items.map(\.image)
-                next = Self.nextLink(response).map { ($0, []) }
+                next = PageLink.follow(Self.nextLink(response), after: current.url, api: apiBase).map { ($0, []) }
             } catch let refused as PackagesAccess {
                 throw refused
             } catch {
@@ -212,7 +212,7 @@ extension GitHubProvider {
             guard try Self.checkPackagesAccess(response) else { break }
             try HTTPStatus.check(response, now: now())
             items += page
-            next = Self.nextLink(response).map { ($0, []) }
+            next = PageLink.follow(Self.nextLink(response), after: current.url, api: apiBase).map { ($0, []) }
             pages += 1
         }
         return items

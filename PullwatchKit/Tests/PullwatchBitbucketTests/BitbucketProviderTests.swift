@@ -134,6 +134,21 @@ import PullwatchTestSupport
         #expect(http.requests.count == 1)
     }
 
+    @Test(arguments: [
+        "http://api.bitbucket.org/2.0/repositories/atlassian?page=2",
+        "https://api.bitbucket.org:8443/2.0/repositories/atlassian?page=2",
+        "https://bitbucket.org/2.0/repositories/atlassian?page=2",
+    ])
+    func `A next link with another scheme, port or host is not followed`(next: String) async throws {
+        let http = MockHTTPClient()
+        http.on("page=2", body: BitbucketFixtures.repositories([("atlassian/other", "2026-11-04T09:29:09+00:00")]))
+        http.on("\(api)repositories/atlassian?", body: BitbucketFixtures.repositories(
+            [("atlassian/aui", "2026-11-04T09:29:09+00:00")], next: next
+        ))
+        #expect(try await makeProvider(http).listRepos() == ["atlassian/aui"])
+        #expect(http.requests.count == 1)
+    }
+
     // MARK: Pull requests
 
     @Test func `Maps an open pull request`() async throws {
