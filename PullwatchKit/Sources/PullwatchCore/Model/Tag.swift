@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een tag zoals een provider hem geeft, met de release erbij als die er is.
 public struct Tag: Codable, Hashable, Sendable {

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Start Pullwatch op de achtergrond, voor de stand **Altijd**. Achter een protocol, zodat de
 /// tests van `MCPBridge` niets starten. De helper geeft `NSWorkspace` mee.

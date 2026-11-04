@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 public protocol PRProvider: Sendable {
     /// Identiteit van de ingelogde gebruiker, vergeleken met `PullRequest.authorId`.

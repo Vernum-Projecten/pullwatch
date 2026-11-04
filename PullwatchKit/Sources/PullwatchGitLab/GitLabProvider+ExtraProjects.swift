@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 private let logger = Log(category: "gitlab")
 

@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+package import Foundation
+package import PullwatchCore
 import Synchronization
 
 package final class MockProcessRunner: ProcessRunner {

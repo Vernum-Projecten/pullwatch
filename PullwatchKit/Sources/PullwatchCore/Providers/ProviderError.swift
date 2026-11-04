@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 public enum ProviderError: Error, Equatable, Sendable {
     case unauthorized

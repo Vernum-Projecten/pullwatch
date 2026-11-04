@@ -1,5 +1,5 @@
 import CryptoKit
-import Foundation
+public import Foundation
 
 /// Profielfoto's voor meldingen (`UNNotificationAttachment`): één keer opgehaald met de
 /// `HTTPClient` van de app, klein (`size`), en een week bewaard in `directory`. macOS verplaatst

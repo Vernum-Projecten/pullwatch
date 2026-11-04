@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+package import PullwatchCore
 
 package extension CLILocator {
     /// Vindt elke CLI in /opt/homebrew/bin, zoals op een Mac met Homebrew.

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Alles waar Pullwatch mee praat, als platte tekst voor **Kopieer overzicht** (te plakken in een
 /// mail of Teams-bericht, leesbaar als Markdown), en de verbindingen buiten de catalogus van

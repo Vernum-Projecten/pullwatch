@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 /// De checks van een merge request in GitLab: de jobs van zijn `head_pipeline`, de pipeline op
 /// de laatste commit van de bronbranch. Twee verzoeken per merge request (de merge request zelf,

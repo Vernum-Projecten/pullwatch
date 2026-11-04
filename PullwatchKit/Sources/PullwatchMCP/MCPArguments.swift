@@ -1,5 +1,5 @@
 import Foundation
-import MCP
+public import MCP
 
 /// De argumenten van één `tools/call`, al gecontroleerd tegen het invoerschema van de tool. Een
 /// handler leest ze per veld of in één keer als `Decodable`-type.

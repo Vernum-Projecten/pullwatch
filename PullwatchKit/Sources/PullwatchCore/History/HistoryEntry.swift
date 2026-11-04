@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén item in de geschiedenis: een pull request of een tag.
 public enum HistoryEntry: Codable, Hashable, Sendable {

@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Hoe het laatst ging met een account: nog niet gepold, gelukt of mislukt sinds wanneer.
 public enum AccountState: Equatable, Sendable {

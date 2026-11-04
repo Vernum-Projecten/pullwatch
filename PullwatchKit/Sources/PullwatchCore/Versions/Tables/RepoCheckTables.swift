@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 // De rijen, filters en tellingen van de controle op de repo-pagina: één rij per advies, één rij per
 // package per workspace, en de samenvatting bovenaan. De views tonen alleen wat hier staat.

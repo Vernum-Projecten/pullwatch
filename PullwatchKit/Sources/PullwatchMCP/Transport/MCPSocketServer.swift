@@ -1,6 +1,6 @@
 import Darwin
-import Foundation
-import MCP
+public import Foundation
+public import MCP
 import PullwatchCore
 import Synchronization
 

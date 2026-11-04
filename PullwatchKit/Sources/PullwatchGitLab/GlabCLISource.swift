@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// Het token van de GitLab CLI (`glab auth login`) voor één host, zoals `GhCLISource` voor `gh`.
 /// `glab config get token --host <host>` geeft het opgeslagen token, of niets als `glab` daar

@@ -1,6 +1,6 @@
-import Foundation
-import Logging
-import MCP
+public import Foundation
+public import Logging
+public import MCP
 
 /// Een `Transport` om een ander heen dat elk binnenkomend bericht eerst langs `MCPLimits` haalt.
 /// Een te groot of te diep genest bericht komt nooit bij de server: de agent krijgt meteen een

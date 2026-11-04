@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Hoe een repo ervoor staat: rood (CVE's, EOL of open critical- en high-meldingen van code
 /// scanning of Advanced Security), oranje (runtime achter of packages met een nieuwe

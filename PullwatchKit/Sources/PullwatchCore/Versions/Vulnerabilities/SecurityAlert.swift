@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén open melding van de beveiligingsscans van de dienst zelf: code scanning van GitHub, of
 /// Advanced Security van Azure DevOps (code en dependencies). Geheimen worden alleen geteld.

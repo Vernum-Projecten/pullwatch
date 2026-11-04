@@ -1,4 +1,4 @@
-import Foundation
+package import Foundation
 
 extension Bundle {
     /// De teksten van PullwatchCore in de taal die de app gekozen heeft. Zonder dit kiest

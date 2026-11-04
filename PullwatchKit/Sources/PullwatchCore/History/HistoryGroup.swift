@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Project (Azure DevOps) of eigenaar (GitHub) binnen één account: het deel van de repo-naam vóór de "/".
 public struct HistoryGroup: Hashable, Sendable, Identifiable {

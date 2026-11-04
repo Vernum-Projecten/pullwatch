@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een open PR die vanzelf gaat mergen zodra hij aan de beurt is: in de merge queue van GitHub,
 /// in een merge train van GitLab of met "merge als de pipeline slaagt", of met auto-complete

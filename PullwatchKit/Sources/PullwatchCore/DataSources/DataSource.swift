@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Een externe bron waar Pullwatch gegevens vandaan haalt en die je kunt uitzetten.
 /// De ruwe waarde staat in `AppConfig.disabledSources`, dus hernoem een case niet.

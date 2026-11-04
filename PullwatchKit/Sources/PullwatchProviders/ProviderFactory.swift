@@ -1,7 +1,7 @@
 import Foundation
 import PullwatchAzureDevOps
-import PullwatchCore
-import PullwatchGitHub
+public import PullwatchCore
+public import PullwatchGitHub
 import PullwatchGitLab
 
 /// Maakt bij een account de provider van zijn dienst, met de juiste tokenbron; de enige plek die

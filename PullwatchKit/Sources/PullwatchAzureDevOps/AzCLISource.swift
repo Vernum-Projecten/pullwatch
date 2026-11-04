@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// Het token van de Azure CLI (`az account get-access-token`) voor Azure DevOps.
 public actor AzCLISource: TokenSource {

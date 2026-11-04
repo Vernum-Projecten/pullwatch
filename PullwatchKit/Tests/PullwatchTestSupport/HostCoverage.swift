@@ -1,5 +1,5 @@
 import Foundation
-import Testing
+package import Testing
 
 /// Controleert dat de test elke host in `expected` echt aanriep (anders toetst hij niets), en dat
 /// elke aangeroepen host in het overzicht van Bronnen staat (`listed`).

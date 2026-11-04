@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Details van één OSV-record, voor zover Pullwatch ze toont.
 public struct OSVRecord: Equatable, Sendable {

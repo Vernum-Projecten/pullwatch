@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 public struct JSONFileStore<Value: Codable & Sendable>: Sendable {
     public let url: URL

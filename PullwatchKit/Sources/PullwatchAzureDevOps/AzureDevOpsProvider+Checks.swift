@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 /// De checks van een PR in Azure DevOps: de statussen die pipelines en andere diensten op de PR
 /// zetten (`pullRequests/{id}/statuses`, per context alleen de nieuwste) en de build-policy's

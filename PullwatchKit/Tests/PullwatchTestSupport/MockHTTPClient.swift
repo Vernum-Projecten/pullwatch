@@ -1,4 +1,4 @@
-import Foundation
+package import Foundation
 import PullwatchCore
 import Synchronization
 

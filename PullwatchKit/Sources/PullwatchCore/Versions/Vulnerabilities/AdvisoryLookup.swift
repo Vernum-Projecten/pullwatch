@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension VersionReport {
     /// Het advies van GitHub bij een eigen vondst: op GHSA-id, anders op CVE.

@@ -1,5 +1,5 @@
 import Foundation
-import MCP
+public import MCP
 
 /// Wat een tool teruggeeft: gestructureerde inhoud (een JSON-object volgens het uitvoerschema)
 /// en een korte samenvatting voor het model.

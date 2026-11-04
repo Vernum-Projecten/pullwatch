@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+public import Foundation
+public import PullwatchCore
 
 /// GitHub (github.com, GitHub Enterprise Server of GHE.com) via REST en GraphQL: de pull requests
 /// van de gevolgde eigenaren en losse repo's, tags met releases, bestanden, checks en beveiliging.

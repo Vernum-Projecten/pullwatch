@@ -1,5 +1,5 @@
-import Foundation
-import PullwatchCore
+package import Foundation
+package import PullwatchCore
 
 package let fixedAccountId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
 

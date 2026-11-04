@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Eén update uit een Sparkle-appcast, zoals `generate_appcast` hem schrijft in de release-lane.
 public struct AppcastItem: Equatable, Sendable {

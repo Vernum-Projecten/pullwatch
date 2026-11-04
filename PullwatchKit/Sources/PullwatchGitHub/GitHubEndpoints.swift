@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Waar een GitHub-account zijn webpagina's, REST-API en GraphQL-API heeft, afgeleid van het
 /// adres van de server (`Account.instanceURL`):

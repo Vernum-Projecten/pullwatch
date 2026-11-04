@@ -1,4 +1,4 @@
-import Foundation
+package import Foundation
 
 /// Knipt een bytestroom in regels, zoals de stdio-transport van MCP: elk JSON-RPC-bericht is één
 /// regel, afgesloten met `\n`. Buffert nooit meer dan `maxLineBytes`: een langere regel wordt

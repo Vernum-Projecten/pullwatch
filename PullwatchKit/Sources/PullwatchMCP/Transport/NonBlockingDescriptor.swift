@@ -1,5 +1,5 @@
 import Darwin
-import Foundation
+package import Foundation
 import Synchronization
 
 /// Een bestandsdescriptor (socket, pipe, stdin of stdout) die nooit een thread blokkeert. Lezen

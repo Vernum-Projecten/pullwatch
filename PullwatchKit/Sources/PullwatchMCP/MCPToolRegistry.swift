@@ -1,5 +1,5 @@
 import Foundation
-import MCP
+public import MCP
 import PullwatchCore
 
 /// De tools van de server, op naam. Beantwoordt `tools/list` en `tools/call`: controleert de

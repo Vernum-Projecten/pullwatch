@@ -1,5 +1,5 @@
 import Foundation
-import PullwatchCore
+public import PullwatchCore
 
 /// Advanced Security van Azure DevOps: de actieve meldingen van een repo (code, dependencies en
 /// geheimen, die alleen geteld worden) via `advsec.dev.azure.com`. Zonder Advanced Security of

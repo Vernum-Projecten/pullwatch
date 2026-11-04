@@ -1,4 +1,4 @@
-import MCP
+public import MCP
 
 /// Eén tool van de MCP-server: naam, beschrijving voor het model, invoer- en uitvoerschema en de
 /// handler die het antwoord maakt. De handler krijgt alleen argumenten die al bij het
