@@ -38,7 +38,7 @@ Ein paar Regeln halten das Ergebnis ehrlich:
 
 - **Runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift und Docker-Images) werden innerhalb ihres Releasezyklus verglichen, Patches eingeschlossen. Ein Repository auf Go 1.27.3 sieht, dass Go 1.27.4 verfügbar ist, und eines auf Go 1.26.9 sieht 1.26.10, sobald es erscheint. Ein neuerer Zyklus (Node 22 auf 25) erscheint stattdessen beim Repository als veraltet. Eine Version ohne Patch (`go 1.27`, `node:22`) ist bei Patches nie veraltet.
 - **Pakete** sind die direkten Abhängigkeiten, aus dem Root und jedem Workspace. Pakete nur für die Entwicklung sind als solche markiert. Ein Paket ohne exakte Version (ein Bereich ohne Lockfile) wird nicht gezählt. Frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) erscheinen einmal, als Paket.
-- Die neueste Version kommt aus der Registry des Pakets: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io und rubygems.org. Vorab-Releases zählen nicht. Private Module und Swift-Pakete landen unter **Nicht prüfbar**.
+- Die neueste Version kommt aus der Registry des Pakets: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io und rubygems.org. Ein Paket, das eines der Repositories, denen du folgst, selbst veröffentlicht, kommt stattdessen aus deiner eigenen Registry (siehe [Hauseigene Pakete](#hauseigene-pakete)). Vorab-Releases zählen nicht. Andere private Module und Swift-Pakete landen unter **Nicht prüfbar**.
 
 Woran Pullwatch erkennt, dass ein Paket direkt ist:
 
@@ -57,10 +57,39 @@ Die Gruppen sagen dir, was ein Update braucht: **Jetzt aktualisierbar** passt in
 
 Ein Paket, das kein Repository selbst verlangt und das nur über ein anderes Paket hereinkommt, steht unter **Nur transitiv, mit einer Schwachstelle**, wenn es eine bekannte Schwachstelle hat, mit der Kette, die es hereinholt. Pullwatch sucht die neueste Version nur für Pakete, die ein Repository selbst verlangt. Für Rust kommen die verlangten Bereiche aus jeder `Cargo.toml` eines Workspace, auch aus `[workspace.dependencies]`, das Mitglieder mit `workspace = true` übernehmen.
 
+## Hauseigene Pakete
+
+Eine Abhängigkeit, die eines der Repositories, denen du folgst, in der Registry seines eigenen Dienstes veröffentlicht (GitHub Packages, eine Registry von GitLab oder ein Feed von Azure Artifacts), ist ein hauseigenes Paket. npmjs.com oder nuget.org kennen ein privates `@acme/ui` nicht, deshalb nimmt Pullwatch seine neueste Version aus deiner Registry, die [Pakete](/de/using/packages/) auflistet. Die Zeile sagt **Hauseigen**, mit einem Link zum Repository, das es veröffentlicht, und ihr Tooltip sagt „Veröffentlicht von octocat/linguist: Die neueste Version kommt aus deiner eigenen Registry.“ Bereiche, die Update-Gruppen und was ein Update aufhält funktionieren wie bei jedem anderen Paket.
+
+Deine privaten Namen bleiben privat. Pullwatch liest zuerst deine Registries, bevor es irgendetwas nachschlägt, und lässt jeden hauseigenen Namen aus jeder öffentlichen Abfrage heraus: registry.npmjs.org und die anderen öffentlichen Registries sehen ihn nie, OSV.dev ebenso wenig. Schlägt das Lesen deiner Registry fehl, behält Pullwatch, was die vorige Prüfung gefunden hat, damit ein schlechter Tag nie einen privaten Namen nach draußen schickt.
+
+Kann Pullwatch die neueste Version nicht lesen, sagt die Zeile das, statt sie als aktuell zu zeigen:
+
+- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt hauseigen und wird nicht öffentlich nachgeschlagen.
+- „Nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos“: Das Konto darf seine Registry nicht lesen. Der Tooltip sagt, was du freigeben musst; siehe [Welche Berechtigung nötig ist](/de/using/packages/#welche-berechtigung-nötig-ist).
+
+Schaltest du eine öffentliche Registry aus, etwa npm, betrifft das kein hauseigenes Paket.
+
+Was abgeglichen wird, nach dem Ökosystem der Abhängigkeit und ihrem Namen:
+
+| Ökosystem | Abgeglichen über |
+|---|---|
+| npm | den Namen mit seinem Scope, exakt (`@acme/ui`). GitHub listet ein npm-Paket ohne seinen Scope, also ist `ui` unter `acme` gleich `@acme/ui`; ein bloßes `ui` passt nie zu einem Paket auf GitHub, sodass ein öffentliches Paket nie übernommen wird |
+| NuGet | die ID, in beliebiger Schreibweise |
+| RubyGems, Packagist | den Namen, in beliebiger Schreibweise |
+| PyPI | den Namen, wobei `-`, `_`, `.` und Groß- und Kleinschreibung als gleich gelten |
+| crates.io | den Namen, wobei `-` und `_` als gleich gelten |
+| Go | den Modulpfad, exakt |
+
+Noch nicht abgeglichen:
+
+- Container-Images und Helm-Charts. Pullwatch liest eine `FROM`-Zeile in einem Dockerfile nur als Runtime (Node, PHP, .NET), nie als Abhängigkeit, also gehört dein eigenes Image auf ghcr.io oder in einer Registry von GitLab nicht zur Prüfung der Abhängigkeiten. In Pakete zeigt ihr **Verwendet von** „-“.
+- Maven. Pullwatch kann `groupId:artifactId` schon abgleichen, liest aber Maven-Projekte (`pom.xml`) noch nicht nach Abhängigkeiten, es gibt also nichts abzugleichen.
+
 ## Pro Repository
 
-Der Tab **Pakete** auf der Seite eines Repositorys zeigt dasselbe pro Workspace: die installierte Version, die neueste Version, die jetzt nutzbar ist, die allerneueste Version und ob das Paket direkt ist, über ein anderes Paket kommt (mit der kürzesten Kette) oder nur für die Entwicklung ist.
+Der Tab **Abhängigkeiten** auf der Seite eines Repositorys zeigt dasselbe pro Workspace: die installierte Version, die neueste Version, die jetzt nutzbar ist, die allerneueste Version und ob das Paket direkt ist, über ein anderes Paket kommt (mit der kürzesten Kette) oder nur für die Entwicklung ist. Hauseigene Pakete zeigen auch hier **Hauseigen**.
 
-<Screenshot name="repo-packages" alt="Der Tab Pakete von hello-world: lodash in zwei Versionen, express blockiert, vite und jest nur für die Entwicklung, body-parser und qs über express." />
+<Screenshot name="repo-packages" alt="Der Tab Abhängigkeiten von hello-world: lodash in zwei Versionen, express blockiert, das hauseigene Paket @octocat/greeting von 1.2.0 auf 1.4.0, vite und jest nur für die Entwicklung, body-parser und qs über express." />
 
 Nach der täglichen Prüfung listet eine Mitteilung die neuen Versionen von allem, wobei ein Repository veraltet ist. Wird ein Paket zum ersten Mal gesehen, bleibt das still. Schalte es unter Einstellungen, Mitteilungen, **Neue Versionen** aus.

@@ -38,7 +38,7 @@ Quelques règles gardent le résultat fiable :
 
 - **Les runtimes** (Go, Node, PHP, Python, .NET, Rust, Swift et les images Docker) sont comparés au sein de leur cycle de publication, correctifs compris. Un dépôt sur Go 1.27.3 voit que Go 1.27.4 est disponible, et un dépôt sur Go 1.26.9 voit 1.26.10 dès sa sortie. Un cycle plus récent (de Node 22 à 25) apparaît plutôt sur le dépôt comme en retard. Une version sans correctif (`go 1.27`, `node:22`) n’est jamais en retard sur les correctifs.
 - **Les paquets** sont les dépendances directes, de la racine et de chaque espace de travail. Les paquets réservés au développement sont signalés comme tels. Un paquet sans version exacte (une plage sans fichier de verrouillage) n’est pas compté. Les frameworks (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony) apparaissent une seule fois, comme paquet.
-- La dernière version vient du registre du paquet : proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io et rubygems.org. Les préversions ne comptent pas. Les modules privés et les paquets Swift se retrouvent sous **Impossible à vérifier**.
+- La dernière version vient du registre du paquet : proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io et rubygems.org. Un paquet qu’un de vos dépôts suivis publie lui-même vient plutôt de votre propre registre (voir [Paquets internes](#paquets-internes)). Les préversions ne comptent pas. Les autres modules privés et les paquets Swift se retrouvent sous **Impossible à vérifier**.
 
 Comment Pullwatch sait qu’un paquet est direct :
 
@@ -57,10 +57,39 @@ Les groupes vous disent ce qu’une mise à jour demande : **Mise à jour possib
 
 Un paquet qu’aucun dépôt ne demande lui-même, et qui n’arrive que par un autre paquet, apparaît sous **Seulement transitif, avec une vulnérabilité** quand il a une vulnérabilité connue, avec la chaîne qui l’amène. Pullwatch ne cherche la dernière version que pour les paquets qu’un dépôt demande lui-même. Pour Rust, les plages demandées viennent de chaque `Cargo.toml` d’un workspace, y compris des `[workspace.dependencies]` que les membres reprennent avec `workspace = true`.
 
+## Paquets internes
+
+Une dépendance qu’un de vos dépôts suivis publie dans le registre de son propre service (GitHub Packages, un registre GitLab ou un flux Azure Artifacts) est un paquet interne. npmjs.com ou nuget.org ne connaissent pas un `@acme/ui` privé, donc Pullwatch prend sa dernière version dans votre registre, que [Paquets](/fr/using/packages/) liste. La ligne indique **Interne**, avec un lien vers le dépôt qui le publie, et son infobulle dit « Publié par octocat/linguist : la dernière version provient de votre propre registre. ». Les plages, les groupes de mise à jour et ce qui bloque une mise à jour fonctionnent comme pour tout autre paquet.
+
+Vos noms privés restent privés. Pullwatch lit d’abord vos registres, avant toute recherche, et laisse chaque nom interne en dehors de toutes les recherches publiques : registry.npmjs.org et les autres registres publics ne le voient jamais, OSV.dev non plus. Quand la lecture de votre registre échoue, Pullwatch garde ce que la vérification précédente a trouvé, pour qu’un mauvais jour n’envoie jamais un nom privé à l’extérieur.
+
+Quand Pullwatch ne peut pas lire la dernière version, la ligne le dit au lieu de l’afficher comme à jour :
+
+- « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste et n’est pas recherché publiquement.
+- « Non vérifié : aucun accès au registre de paquets de ce compte » : le compte ne peut pas lire son registre. L’infobulle dit ce qu’il faut accorder ; voir [Les autorisations à accorder](/fr/using/packages/#les-autorisations-à-accorder).
+
+Désactiver un registre public, comme npm, n’a aucun effet sur un paquet interne.
+
+Ce qui est associé, selon l’écosystème de la dépendance et son nom :
+
+| Écosystème | Associé sur |
+|---|---|
+| npm | le nom avec son scope, exactement (`@acme/ui`). GitHub liste un paquet npm sans son scope, donc `ui` sous `acme` est `@acme/ui` ; un `ui` seul n’est jamais associé à un paquet GitHub, donc un paquet public n’est jamais repris |
+| NuGet | l’identifiant, sans tenir compte de la casse |
+| RubyGems, Packagist | le nom, sans tenir compte de la casse |
+| PyPI | le nom, `-`, `_`, `.` et la casse étant considérés comme égaux |
+| crates.io | le nom, `-` et `_` étant considérés comme égaux |
+| Go | le chemin du module, exactement |
+
+Pas encore associés :
+
+- Les images de conteneur et les charts Helm. Pullwatch lit une ligne `FROM` d’un Dockerfile seulement comme un runtime (Node, PHP, .NET), jamais comme une dépendance, donc votre propre image sur ghcr.io ou dans un registre GitLab ne fait pas partie de la vérification des dépendances. Dans Paquets, leur colonne **Utilisé par** affiche « - ».
+- Maven. Pullwatch sait déjà associer `groupId:artifactId`, mais il ne lit pas encore les dépendances des projets Maven (`pom.xml`), il n’y a donc rien à associer.
+
 ## Par dépôt
 
-L’onglet **Paquets** d’une page de dépôt affiche la même chose par espace de travail : la version installée, la version la plus récente utilisable maintenant, la dernière version, et si le paquet est direct, s’il arrive par un autre paquet (avec la chaîne la plus courte) ou s’il est réservé au développement.
+L’onglet **Dépendances** d’une page de dépôt affiche la même chose par espace de travail : la version installée, la version la plus récente utilisable maintenant, la dernière version, et si le paquet est direct, s’il arrive par un autre paquet (avec la chaîne la plus courte) ou s’il est réservé au développement. Les paquets internes indiquent aussi **Interne** ici.
 
-<Screenshot name="repo-packages" alt="L’onglet Paquets de hello-world : lodash en deux versions, express bloqué, vite et jest en dev uniquement, body-parser et qs via express." />
+<Screenshot name="repo-packages" alt="L’onglet Dépendances de hello-world : lodash en deux versions, express bloqué, le paquet interne @octocat/greeting de 1.2.0 à 1.4.0, vite et jest en dev uniquement, body-parser et qs via express." />
 
 Après la vérification quotidienne, une notification liste les nouvelles versions de tout ce sur quoi un dépôt est en retard. La première fois qu’un paquet est vu, rien n’est notifié. Désactivez-la dans Réglages, Notifications, **Nouvelles versions**.

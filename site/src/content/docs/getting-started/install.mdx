@@ -5,10 +5,12 @@ sidebar:
   label: Install and first launch
 ---
 
+import Screenshot from '../../../components/Screenshot.astro';
+
 ## What you need
 
 - A Mac with macOS 26.6 or later. Pullwatch is a universal app, so it runs natively on Apple silicon and on Intel.
-- An account on at least one of github.com, a GitHub Enterprise server (Server or GHE.com), Azure DevOps or GitLab (gitlab.com or your own server).
+- An account on at least one of github.com, a GitHub Enterprise server (Server or GHE.com), Azure DevOps, GitLab (gitlab.com or your own server), Bitbucket Cloud, Codeberg, or your own Forgejo or Gitea server (or gitea.com).
 
 ## Install
 
@@ -23,16 +25,18 @@ Every release is signed with a Developer ID and notarized by Apple, so macOS ope
 On the first launch Pullwatch opens a welcome window that walks you through the setup:
 
 1. **Where Pullwatch lives.** It runs in the menu bar; the welcome window points out the icon.
-2. **Your first account.** Pick GitHub, GitHub Enterprise, Azure DevOps or GitLab. See [Add your accounts](/getting-started/accounts/) for each one.
+2. **Your first account.** Pick one of five cards: GitHub (github.com or GitHub Enterprise), Azure DevOps, GitLab (gitlab.com or your own server), Bitbucket, and one card for Codeberg, Forgejo and Gitea. See [Add your accounts](/getting-started/accounts/) for each one.
 3. **Notifications.** macOS asks once whether Pullwatch may send notifications. Allow it to hear about new pull requests and tags as soon as they appear.
 4. **Launch at login**, so Pullwatch is there after a restart.
+
+<Screenshot name="welcome" maxWidth={700} alt="The welcome window asking which service to add first, with five cards: GitHub, Azure DevOps, GitLab, Bitbucket, and Codeberg, Forgejo and Gitea." />
 
 After that Pullwatch polls your accounts in the background. The first time it also fetches your existing pull requests, so the history is not empty. Those do not notify you and arrive marked as read.
 
 ## Where to find it
 
 - **The menu bar icon** opens the [menu panel](/using/menu/) with the newest pull requests and tags.
-- **Open…** in the menu panel opens the main window with PRs, Tags and Releases, Statistics, Repositories and Dependencies. It remembers the section you had open last.
+- **Open…** in the menu panel opens the main window with PRs, Tags and Releases, Statistics, Repositories, Dependencies and Packages. It remembers the section you had open last.
 - **Settings** is the gear button in the menu panel, or ⌘, while Pullwatch is in front.
 
 While one of its windows is open, Pullwatch shows in the Dock. Close the last window and it runs from the menu bar only. Opening Pullwatch again while it runs brings up the main window (or the welcome window while no account is set up).

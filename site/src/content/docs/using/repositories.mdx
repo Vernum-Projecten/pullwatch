@@ -22,9 +22,9 @@ Click a repository to open its page. It has four tabs.
 
 <Screenshot name="repo-detail" alt="The Overview tab of a repository: status, account, latest tag, when it was checked, and its open, queued, merged and closed pull requests." />
 
-- **Overview**: the status, the account, the latest tag, when it was last checked, and the open and recent pull requests with their checks. Links lead to all pull requests and tags of the repository.
+- **Overview**: the status, the account, the latest tag, when it was last checked, and the open and recent pull requests with their checks. Each pull request leads with its state icon (open, draft, queued, merged or closed) in its color, then its number and title. Links lead to all pull requests and tags of the repository. When the repository publishes packages, the line **Publishes** names them with their latest versions and opens [Packages](/using/packages/) with only that repository's packages.
 - **Check**: runtimes and frameworks with their versions, and the known vulnerabilities. See [Security](/using/security/).
-- **Packages**: every package with the installed version, the newest version you can use now and the latest one. See [Dependencies](/using/dependencies/).
+- **Dependencies**: every package the repository uses, with the installed version, the newest version you can use now and the latest one. See [Dependencies](/using/dependencies/). What the repository publishes is in [Packages](/using/packages/).
 - **Security**: what the service itself knows: code scanning, secret scanning and the repository's own advisories.
 
 The toolbar has **Check** (check this repository again), a button to copy its versions and vulnerabilities as text, and a menu to follow it (PRs, Tags, Merged, each with its own bell) without going to Settings. Its statistics are one jump away.

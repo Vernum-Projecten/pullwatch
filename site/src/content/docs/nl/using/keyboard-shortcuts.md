@@ -20,7 +20,7 @@ De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, G
 |---|---|
 | ⌘N | Nieuw account…: Instellingen, Accounts, met de keuze van de dienst |
 | ⇧⌘N | Volg een repository… |
-| ⌘O | De selectie (of de open repository) in de browser openen |
+| ⌘O | De selectie (of de open repository) in de browser openen; bij een package de pagina in het register |
 | ⌘W | Het venster sluiten |
 
 ## Wijzig
@@ -48,6 +48,7 @@ De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, G
 | ⌘3 | Statistieken |
 | ⌘4 | Repo's |
 | ⌘5 | Afhankelijkheden |
+| ⌘6 | Packages |
 | ⌘↓ | Repositorypagina: de pagina van de gekozen repository |
 
 ## Onderdeel

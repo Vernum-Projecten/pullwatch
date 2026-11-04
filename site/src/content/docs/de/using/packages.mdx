@@ -1,0 +1,66 @@
+---
+title: Pakete
+description: Die Pakete und Container-Images, die deine Repositories in der Registry ihres eigenen Dienstes veröffentlichen, welche Repositories sie nutzen und was du freigibst, wenn Pullwatch sie nicht lesen darf.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Pakete** in der Seitenleiste (⌘6) listet, was die Repositories, denen du folgst, in der Registry ihres eigenen Dienstes veröffentlichen: Pakete für npm, NuGet, Maven, RubyGems, PyPI und Composer, Container-Images, Helm-Charts und mehr, aus GitHub Packages, den Paket- und Container-Registries von GitLab und den Feeds von Azure Artifacts. Pullwatch liest sie einmal am Tag mit der Versionsprüfung und erneut mit **Alle prüfen** (⌘R in diesem Bereich). **Abhängigkeiten** zeigt, was ein Repository nutzt; **Pakete** zeigt, was es veröffentlicht.
+
+<Screenshot name="packages" alt="Der Bereich Pakete: greeting aus octocat/linguist mit 1.4.0, verwendet von 1 Repository, das Container-Image hello-world mit 1.3.0-beta.1, Octocat.SpoonKnife aus octocat/spoon-knife und shared-config ohne Repository, darüber eine Zeile, dass ein Konto keinen Zugriff auf seine Paket-Registry hat." />
+
+## Eine Zeile pro Paket
+
+Jedes Paket hat eine Zeile, gruppiert nach Owner (der Benutzer, die Organisation oder Gruppe, bei Azure Artifacts das Projekt des Feeds). Versionen bekommen keine eigene Zeile. Die Spalten, jede sortierbar:
+
+- **Paket**: der Name, mit einem Symbol für seinen Typ.
+- **Repository**: das Repository, das es veröffentlicht, vollständig (`octocat/linguist`). Ein Paket, das an kein Repository gebunden ist, etwa eines in einem Feed von Azure Artifacts, zeigt seinen Owner in Grau.
+- **Neueste Version** und **Veröffentlicht**: die neueste Version und wann sie veröffentlicht wurde.
+- **Verwendet von**: wie viele der Repositories, denen du folgst, davon abhängen, aus der Prüfung der Abhängigkeiten. Ein Container-Image oder Helm-Chart zeigt „-“: Die Prüfung erkennt diese noch nicht als Abhängigkeiten, die Zahl ist also unbekannt und nie null.
+
+Das Suchfeld findet ein Paket über seinen Namen, über das Repository, das es veröffentlicht, oder über ein Repository, das es nutzt. Das Menü **Art** in der Symbolleiste zeigt nur einen Typ, etwa npm oder **Container-Image**.
+
+## Der Inspektor
+
+Wähle ein Paket aus, um im Inspektor zu sehen, wer es veröffentlicht, seine Sichtbarkeit, das Konto und:
+
+- **Neueste Versionen**, neueste zuerst, jede mit ihrem Datum, dem Tag, aus dem sie kam (der Tags und Releases für dieses Repository öffnet), dem Run oder der Pipeline, die sie veröffentlicht hat, und ihrer Seite in der Registry.
+- **Verwendet von**: jedes Repository, das das Paket nutzt, mit seinen Versionen: grün, wenn es auf der neuesten Version ist, orange, wenn es veraltet ist, und **Nur über andere Pakete**, wenn es nur über ein anderes Paket hereinkommt. Klicke auf ein Repository, um seine Seite zu öffnen.
+- **In der Registry öffnen** öffnet die Seite des Pakets in der Registry. ⌘O macht dasselbe für das ausgewählte Paket.
+
+Download-Zahlen und vollständige Verläufe zeigt Pullwatch nicht: Die Seite der Registry selbst hat sie.
+
+<Screenshot name="packages-inspector" maxWidth={300} alt="Der Inspektor des npm-Pakets greeting: veröffentlicht von octocat/linguist, privat, die Versionen 1.4.0, 1.3.0 und 1.2.0, verwendet von octocat/hello-world auf 1.2.0, und In der Registry öffnen." />
+
+Auf der Seite eines Repositorys hat der Tab Übersicht eine Zeile **Veröffentlicht** mit den Namen und neuesten Versionen dessen, was dieses Repository veröffentlicht. Sie öffnet Pakete mit nur den Paketen dieses Repositorys, bis du **Alle anzeigen** wählst.
+
+## Wenn der Bereich leer ist
+
+- **Noch nicht geprüft**: Seit es den Bereich gibt, lief noch keine Versionsprüfung. Wähle **Alle prüfen**.
+- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. **Quellen öffnen** bringt dich dorthin.
+- **Kein Zugriff auf die Registry**: Keines deiner Konten darf seine Paket-Registry lesen. Jedes Konto steht mit dem, was es braucht, in der Liste, und **Über die Berechtigungen** führt zu [Token-Berechtigungen](/de/getting-started/permissions/).
+- **Keine Pakete**: Die Repositories, denen du folgst, veröffentlichen nichts in der Registry ihres Dienstes.
+
+Können manche Konten ihre Registry lesen und eines nicht, sagt das eine orange Zeile über der Tabelle („Kein Zugriff auf die Paket-Registry von github auf GitHub“), mit dem Grund im Tooltip und **Über die Berechtigungen** daneben.
+
+## Welche Berechtigung nötig ist
+
+Pullwatch liest nur. Ein Konto ohne Zugriff sagt das; der Rest von Pullwatch funktioniert weiter.
+
+| Dienst | Was es braucht |
+|---|---|
+| GitHub, angemeldet mit GitHub | die GitHub CLI: GitHub gibt Pakete an keine GitHub App heraus, deshalb liest Pullwatch sie mit `gh`. Schalte **Pakete mit der GitHub CLI lesen** im Konto-Editor ein (von selbst an, wenn `gh` angemeldet ist) und gib `gh` den Scope mit `gh auth refresh -h github.com -s read:packages` |
+| GitHub, mit `gh` oder einem Classic token | den Scope `read:packages` (`gh auth refresh -s read:packages`) |
+| GitLab | `read_api`, das Pullwatch ohnehin braucht |
+| Azure DevOps, mit einem Token | Packaging (Read) |
+| Azure DevOps, mit `az` | die Rolle Feed Reader auf dem Feed, oder ein Token mit Packaging (Read) |
+
+Bei Bitbucket, Codeberg, Forgejo und Gitea werden keine Pakete gelesen. Jeden Scope findest du unter [Token-Berechtigungen](/de/getting-started/permissions/).
+
+## Eine Mitteilung bei einer neuen Version
+
+Einstellungen, Mitteilungen, **Neue Versionen deiner eigenen Pakete** sagt dir, wenn ein Paket, das ein Repository veröffentlicht, dem du folgst, eine neue neueste Version hat: „Neue Version von greeting“, mit dem Repository und „Version 1.4.0 veröffentlicht“. Standardmäßig ist es aus. Die Mitteilung kommt nach der täglichen Prüfung, eine pro Paket, dessen neueste Version sich seit der vorigen Prüfung geändert hat, leise und nur in der Mitteilungszentrale. Eine erste Prüfung und ein neues Paket bleiben still. Ein Klick darauf öffnet Pakete, gesucht nach diesem Paket.
+
+## Hauseigene Abhängigkeiten
+
+Hängt ein Repository, dem du folgst, von einem Paket ab, das ein anderes Repository veröffentlicht, dem du folgst, nimmt die Prüfung der Abhängigkeiten seine neueste Version aus deiner eigenen Registry statt aus der öffentlichen, und beim Paket steht **Hauseigen**. Siehe [Hauseigene Pakete](/de/using/dependencies/#hauseigene-pakete).

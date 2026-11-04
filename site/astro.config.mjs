@@ -72,6 +72,7 @@ export default defineConfig({
 						{ slug: 'using/pull-requests-and-tags' },
 						{ slug: 'using/repositories' },
 						{ slug: 'using/dependencies' },
+						{ slug: 'using/packages' },
 						{ slug: 'using/security' },
 						{ slug: 'using/notifications' },
 						{ slug: 'using/statistics' },

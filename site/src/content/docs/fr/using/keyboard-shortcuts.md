@@ -20,7 +20,7 @@ La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Pré
 |---|---|
 | ⌘N | Nouveau compte… : Réglages, Comptes, avec le choix du service |
 | ⇧⌘N | Suivre un dépôt… |
-| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur |
+| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur ; pour un paquet, sa page dans le registre |
 | ⌘W | Fermer la fenêtre |
 
 ## Édition
@@ -48,6 +48,7 @@ La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Pré
 | ⌘3 | Statistiques |
 | ⌘4 | Dépôts |
 | ⌘5 | Dépendances |
+| ⌘6 | Paquets |
 | ⌘↓ | Page du dépôt : la page du dépôt sélectionné |
 
 ## Élément

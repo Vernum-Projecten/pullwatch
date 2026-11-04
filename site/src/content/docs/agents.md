@@ -3,7 +3,7 @@ title: Agents (MCP)
 description: Let a coding agent such as Claude Code, Codex, Cursor or VS Code ask Pullwatch about your pull requests, repositories and vulnerabilities over MCP.
 ---
 
-Pullwatch has a local [Model Context Protocol](https://modelcontextprotocol.io) server, so a coding agent on your Mac can ask it what it knows: "which of my pull requests have failing checks?", "what is critical in `acme/web`?", "why can't I update `express`?". The agent uses what Pullwatch already fetched with your accounts, so it needs no token of its own.
+Pullwatch has a local [Model Context Protocol](https://modelcontextprotocol.io) server, so a coding agent on your Mac can ask it what it knows: "which of my pull requests have failing checks?", "what is critical in `acme/web`?", "why can't I update `express`?", "who is still on an old `@acme/ui`?". The agent uses what Pullwatch already fetched with your accounts, so it needs no token of its own.
 
 Agents only read. They see only the repositories you follow, they never get a token, and they cannot change anything on GitHub, Azure DevOps or GitLab. Nothing is shared until you turn it on.
 
@@ -114,24 +114,24 @@ Accounts (id, service, name and host), how their last poll went, what is syncing
 
 ### list_pull_requests
 
-Pull requests from the history, newest first, with their checks. Arguments: `repo`, `account_id`, `state` (`open` by default, with drafts and queued ones; or `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (only yours), `unread` (`true` or `false`), `checks` (`failed`, `pending` or `passed`), `limit`, `cursor`.
+Pull requests from the history, newest first, with their checks. Each has a `reference` the way its service writes it: `acme/web#1` on GitHub, Bitbucket, Codeberg, Forgejo and Gitea, `group/project!42` on GitLab and `project/repo!42` on Azure DevOps. Arguments: `repo`, `account_id`, `state` (`open` by default, with drafts and queued ones; or `draft`, `queued`, `merged`, `closed`, `all`), `author`, `mine` (only yours), `unread` (`true` or `false`), `checks` (`failed`, `pending` or `passed`), `limit`, `cursor`.
 
 ```jsonc
 // list_pull_requests {"checks":"failed"}
 // "1 pull request (open), 1 with failing checks."
-{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"title":"Add login","author":"octo",
+{"total":1,"not_checked":[],"pull_requests":[{"repository":"acme/web","number":1,"reference":"acme/web#1","title":"Add login","author":"octo",
   "state":"open","is_mine":true,"is_read":false,"checks":{"status":"failed","failed":1,"passed":3,"pending":0,"total":4},
   "url":"https://github.com/acme/web/pull/1"}]}
 ```
 
 ### get_pull_request
 
-One pull request: state, draft, author and co-authors, check counts, merge queue position, read state, dates and link. Arguments: `repo` and `number` (both required), `account_id`.
+One pull request: its `reference`, state, draft, author and co-authors, check counts, merge queue position, read state, dates and link. Arguments: `repo` and `number` (both required), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
 // "acme/web #3 (queued): Ready to merge"
-{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"title":"Ready to merge","author":"ada","co_authors":[],
+{"not_checked":[],"pull_request":{"repository":"acme/web","number":3,"reference":"acme/web#3","title":"Ready to merge","author":"ada","co_authors":[],
   "is_queued":true,"merge_queue":{"kind":"merge_queue","position":1},"checks":{"status":"passed","passed":4,"total":4},
   "url":"https://github.com/acme/web/pull/3"}}
 ```
@@ -164,7 +164,7 @@ The repositories you follow, worst first, with their health (`problem`, `behind`
 
 ### get_repository_report
 
-The runtimes, frameworks and packages of one repository: installed and latest version, what is behind or end of life, and what holds each update back. Arguments: `repo` (required), `account_id`, `only_outdated`, `limit`, `cursor` (they page the packages).
+The runtimes, frameworks and packages of one repository: installed and latest version, what is behind or end of life, and what holds each update back. A package that one of your followed repositories publishes has `in_house` (see below). Arguments: `repo` (required), `account_id`, `only_outdated`, `limit`, `cursor` (they page the packages).
 
 ```jsonc
 // get_repository_report {"repo":"acme/web","only_outdated":true,"limit":1}
@@ -190,9 +190,24 @@ Known vulnerabilities in packages and the security alerts of code scanning and A
    "fixes":["Update express so it pulls in body-parser 1.20.3 or newer."]}]}
 ```
 
+### list_packages
+
+The packages and container images your followed repositories publish to the registry of their own service (GitHub Packages, a GitLab registry, an Azure Artifacts feed), one per package, as in [Packages](/using/packages/): type, account, owner, the publishing repository (absent for Azure Artifacts), the latest version and its date, visibility, the registry page, the recent versions with their tag and run, and `used_by`: the followed repositories that depend on it, with their versions and whether they ask for it themselves. `usage_known` is `false` for types the dependency check does not match yet (container images, Helm), so an empty `used_by` there means unknown, not unused. `needs_permission` lists the accounts that may not read their registry, with the reason, and `not_checked` names the source when **Package registries of your accounts** is off. Arguments: `repo` (only what that followed repository publishes), `type` (`npm`, `container`, `nuget`, `maven`, `rubygems`, `pypi`, `helm`, `generic` and more), `account_id`, `limit`, `cursor`.
+
+```jsonc
+// list_packages {"repo":"acme/web"}
+// "1 published package."
+{"total":1,"not_checked":[],"needs_permission":[],"packages":[{"name":"ui","type":"npm","owner":"acme","repository":"acme/web",
+  "latest_version":"2.3.0","visibility":"private","url":"https://github.com/orgs/acme/packages/npm/package/ui",
+  "recent_versions":[{"version":"2.3.0","tag":"v2.3.0"},{"version":"2.2.0"}],
+  "used_by":[{"repository":"acme/admin","versions":["2.2.0"],"is_direct":true}],"usage_known":true}]}
+```
+
 ### explain_update
 
 Why one package cannot simply be updated, per install: the requested range, the step (patch, minor or major), what blocks it and the vulnerabilities an update fixes. Arguments: `repo` and `package` (both required), `ecosystem` (only when the name is ambiguous), `account_id`. It also explains a package that only comes in through another package (any package from a lockfile): `via` names the chain, and the explanation says what fixing a vulnerability takes, only the lockfile or a newer parent first.
+
+For an in-house package, both this tool and `get_repository_report` add `in_house`: `source` (the publishing repository, or the Azure DevOps project), `repository`, `owner`, `url` (the repository's page), `registry_url` (the package in your own registry), `status` and `reason`. With `status` `checked`, the latest version comes from your own registry. With `source_off` or `needs_permission`, it was not read: `update` is `not_checked`, `not_checked` names the source or the missing permission, and `reason` says what to grant. In-house names are never sent to a public registry or OSV.dev.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

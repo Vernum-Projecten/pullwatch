@@ -26,6 +26,7 @@ L’onglet Sources liste chaque service externe en termes simples. Chaque ligne 
 **Versions**
 
 - Les registres de paquets : proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io et rubygems.org. Les noms des paquets sont envoyés, aussi pour les dépôts privés.
+- **Registres de paquets de vos comptes** : les paquets et images de conteneur que vos dépôts suivis publient dans GitHub Packages, les registres GitLab et Azure Artifacts, lus une fois par jour avec le jeton de chaque compte et envoyés nulle part ailleurs. Les noms des paquets internes ne sont jamais envoyés aux registres publics ni à OSV.dev. Désactivé : aucun de vos registres n’est lu, la section Paquets est vide, et les dépendances internes indiquent « Non vérifié : la source Registres de paquets de vos comptes est désactivée ».
 - **endoflife.date** : les cycles de publication et les dates de fin de vie des runtimes et des frameworks.
 - **swift.org** : les versions de Swift.
 
