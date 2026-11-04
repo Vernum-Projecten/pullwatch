@@ -305,9 +305,13 @@ nonisolated enum FakeWorld {
         let items = (isExtra ? extraPullRequests : pullRequests).filter { !onlyOpen || $0.state == "open" }.map { pr -> String in
             let closed = pr.state == "open" ? "null" : #""\#(iso(pr.daysAgo - 0.5))""#
             let merged = pr.state == "merged" ? #""\#(iso(pr.daysAgo - 0.5))""# : "null"
+            // Zoals GitHub: een bot (GitHub App) heeft zijn foto onder `/in/<app-id>`, iemand anders onder
+            // `/u/<id>`; hier de openbare `/<login>.png`, die voor een gebruiker hetzelfde toont.
+            let avatar = pr.author == "dependabot[bot]"
+                ? "https://avatars.githubusercontent.com/in/29110?v=4" : "https://github.com/\(pr.author).png?size=40"
             return #"{"number":\#(pr.number),"title":"\#(pr.title)","created_at":"\#(iso(pr.daysAgo))","updated_at":"\#(iso(pr.daysAgo))","draft":\#(pr.isDraft),"#
                 + #""state":"\#(pr.state == "open" ? "open" : "closed")","closed_at":\#(closed),"pull_request":{"merged_at":\#(merged)},"#
-                + #""user":{"login":"\#(pr.author)"},"html_url":"https://github.com/\#(owner)/\#(pr.repo)/pull/\#(pr.number)","#
+                + #""user":{"login":"\#(pr.author)","avatar_url":"\#(avatar)"},"html_url":"https://github.com/\#(owner)/\#(pr.repo)/pull/\#(pr.number)","#
                 + #""repository_url":"https://api.github.com/repos/\#(owner)/\#(pr.repo)"}"#
         }
         return #"{"total_count":\#(items.count),"items":["# + items.joined(separator: ",") + "]}"

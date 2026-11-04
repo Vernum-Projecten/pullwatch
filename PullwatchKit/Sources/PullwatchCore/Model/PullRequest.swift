@@ -18,6 +18,10 @@ public struct PullRequest: Codable, Hashable, Sendable {
     public var title: String
     public let authorId: String
     public let authorName: String
+    /// De foto van de auteur zoals de provider hem geeft (GitHub `avatar_url`, ook van een bot als
+    /// `github-actions[bot]`; GitLab `avatar_url`). Nil bij Azure DevOps, waar de foto een token
+    /// nodig heeft, en in geschiedenis van vóór dit veld tot de PR opnieuw opgehaald is.
+    public var authorAvatarURL: URL?
     public let isDraft: Bool
     public let createdAt: Date
     public let webURL: URL
@@ -45,6 +49,7 @@ public struct PullRequest: Codable, Hashable, Sendable {
         title: String,
         authorId: String,
         authorName: String,
+        authorAvatarURL: URL? = nil,
         isDraft: Bool,
         createdAt: Date,
         webURL: URL,
@@ -61,6 +66,7 @@ public struct PullRequest: Codable, Hashable, Sendable {
         self.title = title
         self.authorId = authorId
         self.authorName = authorName
+        self.authorAvatarURL = authorAvatarURL
         self.isDraft = isDraft
         self.createdAt = createdAt
         self.webURL = webURL
@@ -74,7 +80,7 @@ public struct PullRequest: Codable, Hashable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case accountId, repo, number, title, authorId, authorName, isDraft, createdAt, webURL, state, closedAt, coAuthors, revision, checks
-        case mergeQueue
+        case mergeQueue, authorAvatarURL
     }
 
     /// Oude JSON heeft geen `state`/`closedAt`: dan is de PR open. Zonder `coAuthors` (van vóór de
@@ -87,6 +93,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
         title = try c.decode(String.self, forKey: .title)
         authorId = try c.decode(String.self, forKey: .authorId)
         authorName = try c.decode(String.self, forKey: .authorName)
+        // Ontbreekt in JSON van vóór de foto's van de API.
+        authorAvatarURL = try c.decodeIfPresent(URL.self, forKey: .authorAvatarURL)
         isDraft = try c.decode(Bool.self, forKey: .isDraft)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
         webURL = try c.decode(URL.self, forKey: .webURL)

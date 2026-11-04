@@ -81,6 +81,20 @@ import Testing
         #expect(try builder(kind: .gitLab).content(for: .pullRequest(pr())).avatarURL == nil)
     }
 
+    @Test func `The avatar of a pull request is the one the API gave, also for a bot`() throws {
+        let avatar = URL(string: "https://avatars.githubusercontent.com/in/15368?v=4")
+        var bot = pr(author: "github-actions[bot]")
+        bot.authorAvatarURL = avatar
+        #expect(try builder().content(for: .pullRequest(bot)).avatarURL == avatar)
+        #expect(try builder().content(for: .merged(bot)).avatarURL == avatar)
+        // Zonder foto van de API geen gok: `github.com/github-actions[bot].png` bestaat niet.
+        #expect(try builder().content(for: .pullRequest(pr(author: "github-actions[bot]"))).avatarURL == nil)
+        // Een foto van GitLab zelf telt ook.
+        var gitLab = pr()
+        gitLab.authorAvatarURL = URL(string: "https://gitlab.com/uploads/-/system/user/avatar/5/avatar.png")
+        #expect(try builder(kind: .gitLab).content(for: .pullRequest(gitLab)).avatarURL == gitLab.authorAvatarURL)
+    }
+
     @Test func mergedIsQuietAndHasItsOwnIdentifier() throws {
         let merged = try builder().content(for: .merged(pr()))
         #expect(merged.title == "Pull Request Merged")

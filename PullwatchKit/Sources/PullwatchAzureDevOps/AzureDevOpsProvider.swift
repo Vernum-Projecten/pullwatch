@@ -200,6 +200,8 @@ public actor AzureDevOpsProvider: PRProvider {
             title: dto.title,
             authorId: dto.createdBy.id,
             authorName: dto.createdBy.displayName,
+            // Geen `authorAvatarURL`: `createdBy.imageUrl` laadt alleen met het token, en AsyncImage
+            // stuurt dat niet mee. Het persoonssymbool is beter dan een geweigerd verzoek.
             isDraft: dto.isDraft ?? false,
             createdAt: createdAt,
             webURL: webURL,
