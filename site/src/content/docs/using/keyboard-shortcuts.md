@@ -81,7 +81,7 @@ The selected repository, or the open repository page.
 | ⌘M | Minimize |
 | ⌘0 | Pullwatch: open the main window or bring it to the front |
 
-Help leads to this documentation, this page, the release notes of your version, a new issue on GitHub, and the acknowledgements.
+Help leads to this documentation, this page, the release notes of your version, Privacy and Sources (Settings, Sources: every connection Pullwatch makes), a new issue on GitHub, and the acknowledgements.
 
 ## Dock
 

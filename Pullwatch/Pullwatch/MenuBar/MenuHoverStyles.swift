@@ -75,7 +75,8 @@ struct MenuRowButtonStyle: ButtonStyle {
 }
 
 /// Een symboolknop in de kop van het menupaneel: bij aanwijzen een kleine ronde markering en
-/// het symbool in de gewone tekstkleur. Deelt `MenuHover` met de rijen.
+/// het symbool in de gewone tekstkleur. Deelt `MenuHover` met de rijen. Een bredere knop (de
+/// agentknop met zijn aantal) krijgt dezelfde markering als capsule; een symbool alleen blijft rond.
 struct MenuIconButtonStyle: ButtonStyle {
     let id: AnyHashable
 
@@ -98,12 +99,12 @@ struct MenuIconButtonStyle: ButtonStyle {
                 .labelStyle(.iconOnly)
                 .imageScale(.large)
                 .foregroundStyle(isHovered || configuration.isPressed ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
-                .frame(width: size, height: size)
+                .frame(minWidth: size, minHeight: size)
                 .background {
-                    Circle().fill(.primary).opacity(highlight)
+                    Capsule().fill(.primary).opacity(highlight)
                         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: highlight)
                 }
-                .contentShape(.circle)
+                .contentShape(.capsule)
                 .opacity(isEnabled ? 1 : 0.4)
                 .onHover { inside in
                     guard let hover else { return }
