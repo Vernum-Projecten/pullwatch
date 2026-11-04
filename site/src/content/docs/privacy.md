@@ -49,3 +49,7 @@ Everything is on by default. Your choice is stored in `config.json`, as `disable
 ## Public repositories without a token
 
 A public repository on github.com or gitlab.com that your token may not read is read without signing in. Pullwatch never sends one account's token to another server: a GitHub Enterprise token stays on its own server.
+
+## Open-source software
+
+The open-source software inside Pullwatch, with its version and license, is listed under [Acknowledgements](/acknowledgements/).

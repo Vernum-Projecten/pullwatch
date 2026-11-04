@@ -36,6 +36,12 @@ jobs:
           persist-credentials: false
       - name: shellcheck (style floor)
         run: shellcheck --severity=style scripts/*/*.sh .claude/hooks/*.sh .githooks/*
+      # Every package in Package.resolved is acknowledged in the app (with its
+      # licence and the resolved version) or listed as not linked (#166).
+      - name: acknowledgements complete
+        run: |
+          bash scripts/checks/acknowledgements.sh --self-test
+          bash scripts/checks/acknowledgements.sh
       - name: actionlint
         env:
           ACTIONLINT_VERSION: 1.7.12
@@ -153,6 +159,22 @@ jobs:
           echo "$signature"
           grep -q "^Identifier=nl.torrisi.pullwatch.mcp$" <<<"$signature"
           grep -q "flags=.*runtime" <<<"$signature"
+      # The licences of everything in the app (#166) ship in both files.
+      - name: the acknowledgements are in the disk image and the zip
+        run: |
+          folder=Pullwatch.app/Contents/Resources/Acknowledgements
+          files=(LICENSE NOTICE acknowledgements.json)
+          while IFS= read -r file; do files+=("$file"); done < <(
+            jq -r '.components[] | .file, (.notice // empty)' Pullwatch/Pullwatch/Acknowledgements/Resources/Acknowledgements/acknowledgements.json)
+          listing="$(unzip -l dist/Pullwatch-*.zip)"
+          mount="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" dist/Pullwatch-*.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          for file in "${files[@]}"; do
+            grep -qF "$folder/$file" <<<"$listing" || { echo "$folder/$file is not in the zip" >&2; exit 1; }
+            test -s "$mount/$folder/$file" || { echo "$folder/$file is not in the disk image" >&2; exit 1; }
+          done
+          echo "${#files[@]} acknowledgement files in the zip and the disk image"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unsigned-dist

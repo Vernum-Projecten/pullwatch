@@ -1,0 +1,266 @@
+Pullwatch
+Copyright 2026 Alessandro Torrisi
+
+This product includes software developed by Alessandro Torrisi and
+contributors, licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes icons from GitHub Octicons
+(https://github.com/primer/octicons, version 19.41.0): git-pull-request,
+git-pull-request-draft, git-merge-queue, git-merge and git-pull-request-closed,
+used for the pull request symbols in Pullwatch/Pullwatch/Assets.xcassets
+(pr.*.symbolset),
+the menu bar icon (MenuBarIcon.imageset) and the glyph of the app icon
+(AppIcon.icon/Assets/pull-request.svg); and check, x and dot-fill, used for
+the symbols of a pull request's checks (checks.*.symbolset). They are
+licensed under the MIT License:
+
+  MIT License
+
+  Copyright (c) 2026 GitHub Inc.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+This product includes Sparkle (https://sparkle-project.org,
+https://github.com/sparkle-project/Sparkle, version 2.10.1), the framework
+that installs updates (Contents/Frameworks/Sparkle.framework). Its license
+covers Sparkle, under the MIT License, and the code it embeds: bsdiff and
+bspatch (BSD), sais-lite (MIT), the portable Ed25519 implementation (zlib)
+and SUSignatureVerifier.m (BSD):
+
+  Copyright (c) 2006-2013 Andy Matuschak.
+  Copyright (c) 2009-2013 Elgato Systems GmbH.
+  Copyright (c) 2011-2014 Kornel Lesiński.
+  Copyright (c) 2015-2017 Mayur Pawashe.
+  Copyright (c) 2014 C.W. Betts.
+  Copyright (c) 2014 Petroules Corporation.
+  Copyright (c) 2014 Big Nerd Ranch.
+  All rights reserved.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of
+  this software and associated documentation files (the "Software"), to deal in
+  the Software without restriction, including without limitation the rights to
+  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+  the Software, and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  =================
+  EXTERNAL LICENSES
+  =================
+
+  bspatch.c and bsdiff.c, from bsdiff 4.3 <http://www.daemonology.net/bsdiff/>:
+
+  Copyright 2003-2005 Colin Percival
+  All rights reserved
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted providing that the following conditions 
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+  --
+
+  sais.c and sais.h, from sais-lite (2010/08/07) <https://sites.google.com/site/yuta256/sais>:
+
+  The sais-lite copyright is as follows:
+
+  Copyright (c) 2008-2010 Yuta Mori All Rights Reserved.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation
+  files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use,
+  copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following
+  conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+
+  --
+
+  Portable C implementation of Ed25519, from https://github.com/orlp/ed25519
+
+  Copyright (c) 2015 Orson Peters <orsonpeters@gmail.com>
+
+  This software is provided 'as-is', without any express or implied warranty. In no event will the
+  authors be held liable for any damages arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose, including commercial
+  applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not claim that you wrote the
+     original software. If you use this software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must not be misrepresented as
+     being the original software.
+
+  3. This notice may not be removed or altered from any source distribution.
+
+  --
+
+  SUSignatureVerifier.m:
+
+  Copyright (c) 2011 Mark Hamlin.
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted providing that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+This product includes the MCP Swift SDK
+(https://github.com/modelcontextprotocol/swift-sdk, version 0.12.1), used by
+the MCP server in PullwatchKit/Sources/PullwatchMCP. The MCP project is moving
+from the MIT License to the Apache License, Version 2.0: new contributions are
+licensed under the Apache License, Version 2.0 (see LICENSE), and earlier
+contributions whose authors have not yet agreed to relicense remain under the
+MIT License:
+
+  MIT License
+
+  Copyright (c) 2024-2025 Model Context Protocol a Series of LF Projects, LLC.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+The MCP Swift SDK brings in, and this product therefore includes:
+
+- SwiftLog (https://github.com/apple/swift-log, version 1.16.2), Copyright
+  2018, 2019 The SwiftLog Project, licensed under the Apache License,
+  Version 2.0 (see LICENSE). It contains a derivation of the lock
+  implementation and various scripts from SwiftNIO
+  (https://github.com/apple/swift-nio), also licensed under the Apache
+  License, Version 2.0.
+- Swift System (https://github.com/apple/swift-system, version 1.8.1),
+  Copyright Apple Inc. and the Swift System project authors, licensed under
+  the Apache License, Version 2.0 (see LICENSE) with the Runtime Library
+  Exception.
+- EventSource (https://github.com/mattt/eventsource, version 1.6.0),
+  licensed under the MIT License:
+
+  Copyright 2025 Mattt (https://mat.tt)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+Trademarks
+
+GitHub and the Invertocat are trademarks of GitHub, Inc. Pullwatch shows the
+unmodified Invertocat (GitHub_Invertocat_Black.svg and
+GitHub_Invertocat_White.svg from https://brand.github.com/GitHub_Logos.zip,
+in Pullwatch/Pullwatch/Assets.xcassets/GitHubMark.imageset) only to say that
+an account connects to GitHub, as GitHub's logo guidelines allow
+(https://brand.github.com/foundations/logo, "Show integration"). Pullwatch is
+not affiliated with, endorsed or sponsored by GitHub, Inc.
+
+GITLAB is a trademark of GitLab Inc. in the United States and other countries
+and regions. Pullwatch uses only the GitLab name, to say that it works with
+GitLab; it shows no GitLab logo, as GitLab's Trademark Guidelines ask
+(https://handbook.gitlab.com/handbook/marketing/brand-and-product-marketing/brand/brand-activation/trademark-guidelines/).
+Pullwatch is not affiliated with, endorsed, sponsored, or approved by GitLab Inc.
+
+Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
+uses only the name; Microsoft permits its Azure icons only in architecture
+diagrams, training materials and documentation
+(https://learn.microsoft.com/azure/architecture/icons/), so the app shows an
+SF Symbol instead.

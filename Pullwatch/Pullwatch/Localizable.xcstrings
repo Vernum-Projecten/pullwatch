@@ -3150,13 +3150,13 @@
     },
     "Agent": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Agent"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Agent"
@@ -5285,6 +5285,28 @@
         }
       }
     },
+    "De erkenningen ontbreken in deze build": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Danksagungen fehlen in diesem Build"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The acknowledgements are missing from this build"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les remerciements manquent dans cette version"
+          }
+        }
+      }
+    },
     "De menubalk, met het Pullwatch-icoon rechtsboven naast de klok": {
       "localizations": {
         "de": {
@@ -6271,6 +6293,28 @@
         }
       }
     },
+    "Erkenningen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danksagungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acknowledgements"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remerciements"
+          }
+        }
+      }
+    },
     "Ernst": {
       "localizations": {
         "de": {
@@ -6486,16 +6530,16 @@
     },
     "Gebruikt het pad van deze Pullwatch. Verplaats je de app, stel de agent dan opnieuw in.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uses the path of this Pullwatch. If you move the app, set up the agent again."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Verwendet den Pfad dieses Pullwatch. Wenn du die App verschiebst, richte den Agenten erneut ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses the path of this Pullwatch. If you move the app, set up the agent again."
           }
         },
         "fr": {
@@ -8340,16 +8384,16 @@
     },
     "Instelling voor %@": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Setup for %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Einrichtung für %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup for %@"
           }
         },
         "fr": {
@@ -8699,6 +8743,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisissez une alerte pour voir ses détails."
+          }
+        }
+      }
+    },
+    "Kies een onderdeel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Komponente auswählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a Component"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un composant"
           }
         }
       }
@@ -9521,6 +9587,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licence"
+          }
+        }
+      }
+    },
+    "Licentie: %@": {
+      "comment": "SPDX-licentie van een onderdeel in Erkenningen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lizenz: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licence : %@"
           }
         }
       }
@@ -11330,16 +11419,16 @@
     },
     "Nog geen agent toegestaan": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Agents Allowed Yet"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Noch keine Agenten erlaubt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Agents Allowed Yet"
           }
         },
         "fr": {
@@ -12130,6 +12219,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open repo %@"
+          }
+        }
+      }
+    },
+    "Open-sourcesoftware": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source-Software"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source Software"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logiciels open source"
           }
         }
       }
@@ -16464,6 +16575,7 @@
       }
     },
     "Versie %@": {
+      "comment": "Versie van een onderdeel in Erkenningen",
       "localizations": {
         "de": {
           "stringUnit": {

@@ -25,6 +25,7 @@ extension View {
 struct PullwatchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel.shared
+    @State private var acknowledgements = AcknowledgementsModel()
 
     var body: some Scene {
         MenuBarExtra {
@@ -45,6 +46,9 @@ struct PullwatchApp: App {
             ShortcutCommands(model: model)
             CommandGroup(replacing: .appInfo) {
                 Button("Over Pullwatch") { model.router.show(.about) }
+            }
+            CommandGroup(after: .help) {
+                Button("Erkenningen") { model.router.show(.acknowledgements) }
             }
         }
         .windowResizability(.contentMinSize)
@@ -69,10 +73,21 @@ struct PullwatchApp: App {
 
         Window("Over Pullwatch", id: WindowID.about.rawValue) {
             AboutView()
+                .environment(model.router)
                 .countsAsOpenWindow(WindowID.about.rawValue)
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
+        .defaultPosition(.center)
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
+
+        Window("Erkenningen", id: WindowID.acknowledgements.rawValue) {
+            AcknowledgementsView()
+                .environment(acknowledgements)
+                .countsAsOpenWindow(WindowID.acknowledgements.rawValue)
+        }
+        .defaultSize(width: 920, height: 620)
         .defaultPosition(.center)
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)

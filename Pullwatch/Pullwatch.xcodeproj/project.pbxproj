@@ -78,6 +78,9 @@
 			exceptions = (
 				000000000000000000000012 /* Exceptions for "Pullwatch" folder in "Pullwatch" target */,
 			);
+			explicitFolders = (
+				Acknowledgements/Resources/Acknowledgements,
+			);
 			path = Pullwatch;
 			sourceTree = "<group>";
 		};

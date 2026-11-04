@@ -1,0 +1,9 @@
+# Packages in Package.resolved that are not linked into Pullwatch.app or
+# pullwatch-mcp, so the acknowledgements leave them out. One per line:
+# <identity>: <reason>. scripts/checks/acknowledgements.sh and
+# AcknowledgementsTests both read this list; a pin that is in neither the
+# manifest (Pullwatch/Pullwatch/Acknowledgements/Resources/Acknowledgements/
+# acknowledgements.json) nor here fails both.
+swift-nio: only the MCP Swift SDK's conformance tools (mcp-everything-server and -client) use it; no product of ours links them.
+swift-atomics: comes in only through swift-nio.
+swift-collections: comes in only through swift-nio.

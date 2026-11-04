@@ -84,6 +84,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Polling/`: `PollingModel` (one poll, statuses, refetch).
   `Updates/`: `UpdatesModel`, `Updater` (Sparkle 2: updates in the app when
   the build has `SPARKLE_PUBLIC_ED_KEY`) and `AboutView` (the About window).
+  `Acknowledgements/`: `AcknowledgementsModel` and the Acknowledgements
+  window (opened from About and Help), reading
+  `Resources/Acknowledgements/` (an explicit folder in the project, so it
+  lands whole in `Contents/Resources/Acknowledgements/`): `LICENSE`, `NOTICE`
+  (copies of the root files), `acknowledgements.json` and one licence file
+  per component, copied verbatim from the package checkouts. A dependency
+  change updates them; `AcknowledgementsTests` and
+  `scripts/checks/acknowledgements.sh` (with
+  `acknowledgements-not-linked.txt`) fail otherwise.
   `Agents/`: `AgentServer` (the MCP socket for coding agents: listens while
   `AppConfig.agentAccess` is not `never`, never as a test host; `sessions`
   lists the connected agents with the client name, title and version from
@@ -274,7 +283,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   fragments), `protect-tags.sh` (the `v*` tag ruleset), `verify-update.swift`
   (checks the signed appcast and zip against the app's public key).
 - `scripts/checks/changelog-guard.sh`: the changelog fragment guard CI runs
-  on every pull request (`--self-test` proves it). `changelog.d/`: the
+  on every pull request (`--self-test` proves it).
+  `scripts/checks/acknowledgements.sh`: every pin in `Package.resolved` is
+  in the acknowledgements manifest with its version or in
+  `acknowledgements-not-linked.txt` with a reason, and `NOTICE` names each
+  (`--self-test`; CI's guards job). `changelog.d/`: the
   fragments of the next release and their format (`README.md`).
 - `scripts/gh/`: tracker helpers (copied from FerroLICENCE): `fields.sh`
   (issue type, Priority, Effort), `rel.sh` (sub-issues and blocked-by),
