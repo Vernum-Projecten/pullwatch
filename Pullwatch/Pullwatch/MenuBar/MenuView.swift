@@ -104,7 +104,8 @@ enum MenuPanel {
 }
 
 /// Kop van het paneel: naam en versie, en rechtsboven drie symboolknoppen (over, verversen,
-/// instellingen) met een ronde markering bij aanwijzen. Geen glas: het paneel zelf is al van
+/// instellingen) met een ronde markering bij aanwijzen, en daarvoor de agentknop zolang er een
+/// agent verbonden is. Geen glas: het paneel zelf is al van
 /// Liquid Glass, en Apple raadt glas op glas en glas in de inhoudslaag af.
 private struct MenuHeader: View {
     /// Er loopt een poll: een kleine spinner naast Verversen, en Verversen staat uit.
@@ -130,6 +131,7 @@ private struct MenuHeader: View {
                 .accessibilityLabel(Text("Bezig met verversen"))
                 .help("Bezig met verversen")
             HStack(spacing: 4) {
+                MenuAgentsButton()
                 Button("Over Pullwatch", systemImage: "info.circle", action: openAbout)
                     .buttonStyle(MenuIconButtonStyle(id: "about"))
                     .help("Over Pullwatch")

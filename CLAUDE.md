@@ -50,7 +50,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   follow macOS or a fixed language through `AppleLanguages`, applied by
   relaunching).
   `Navigation/`: `AppRouter` (windows, sidebar, paths, filters; `show(_:)`
-  opens a window or section), `AppCommands` (the menu bar in Apple's order,
+  opens a window or section; `settingsTab`, a `SettingsTab` the Settings
+  window binds its tabs to, and `showSettings(_:)` to open Settings on a
+  tab), `AppCommands` (the menu bar in Apple's order,
   one `Commands` type per menu: `AppMenuCommands`, `FileCommands`,
   `EditCommands`, `ViewCommands`, `GoCommands`, `ItemCommands`,
   `RepositoryCommands`, `WindowCommands`, `HelpCommands` with the URLs in
@@ -61,7 +63,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   menu (Reload, Check All Repositories) is `AppDelegate.applicationDockMenu`.
   `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
   model asks for through `AppRouter.windowRequest`) and `MenuView` (the
-  menu-bar popover).
+  menu-bar popover; while an agent is connected its header has
+  `MenuAgentsButton`, with `MenuAgentsSummary` and the list
+  `MenuAgentsPopover`).
   `Accounts/`: `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
   `GitHubSignIn` (the GitHub sign-in flow), `AccountEditor` and its rows.
   `Onboarding/`: `OnboardingView` with `OnboardingSteps`.
@@ -133,7 +137,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   (bundle id `nl.torrisi.pullwatch.mcp`, hardened runtime, stripped in
   Release), embedded by the app's "Embed Helpers" phase in
   `Pullwatch.app/Contents/Helpers/`. An agent starts it with stdio
-  (`claude mcp add --transport stdio pullwatch --
+  (`claude mcp add --scope user --transport stdio pullwatch --
   /Applications/Pullwatch.app/Contents/Helpers/pullwatch-mcp`); `main.swift`
   only wires `MCPBridge` and `WorkspaceLauncher` (`NSWorkspace`, not
   activated). It honours `-PullwatchDataDirectory` and passes it on to an

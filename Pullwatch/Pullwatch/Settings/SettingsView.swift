@@ -5,41 +5,32 @@ import SwiftUI
 /// bewaard, zoals in Mac-instellingen gebruikelijk; alleen een nieuw account heeft Toevoegen.
 struct SettingsView: View {
 
-    enum Pane: String { case accounts, notifications, general, sources, agents }
-
-    @State private var pane: Pane = {
-        #if DEBUG
-        // Voor schermafbeeldingen: met welk tabblad het venster opent.
-        UserDefaults.standard.string(forKey: "PullwatchSettingsPane").flatMap(Pane.init) ?? .accounts
-        #else
-        .accounts
-        #endif
-    }()
+    @Environment(AppRouter.self) private var router
 
     var body: some View {
-        TabView(selection: $pane) {
-            Tab("Accounts", systemImage: "person.2", value: Pane.accounts) {
+        TabView(selection: Bindable(router).settingsTab) {
+            Tab("Accounts", systemImage: "person.2", value: SettingsTab.accounts) {
                 AccountsSettingsView()
             }
-            Tab("Meldingen", systemImage: "bell.badge", value: Pane.notifications) {
+            Tab("Meldingen", systemImage: "bell.badge", value: SettingsTab.notifications) {
                 NotificationsSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shootScrolling("settings-notifications", windowId: "com_apple_SwiftUI_Settings_window", pages: 3) }
                     #endif
             }
-            Tab("Algemeen", systemImage: "gearshape", value: Pane.general) {
+            Tab("Algemeen", systemImage: "gearshape", value: SettingsTab.general) {
                 GeneralSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shoot("settings-general", windowId: "com_apple_SwiftUI_Settings_window") }
                     #endif
             }
-            Tab("Bronnen", systemImage: "network", value: Pane.sources) {
-                SourcesSettingsView { pane = .general }
+            Tab("Bronnen", systemImage: "network", value: SettingsTab.sources) {
+                SourcesSettingsView { router.settingsTab = .general }
                     #if DEBUG
                     .onAppear { SnapshotCamera.shootScrolling("settings-sources", windowId: "com_apple_SwiftUI_Settings_window", pages: 5) }
                     #endif
             }
-            Tab("Agents", systemImage: AgentsSettingsView.symbol, value: Pane.agents) {
+            Tab("Agents", systemImage: AgentsSettingsView.symbol, value: SettingsTab.agents) {
                 AgentsSettingsView()
                     #if DEBUG
                     .onAppear { SnapshotCamera.shootScrolling("settings-agents", windowId: "com_apple_SwiftUI_Settings_window", pages: 3) }

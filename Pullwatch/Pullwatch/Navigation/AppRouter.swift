@@ -57,6 +57,9 @@ final class AppRouter {
     /// Of de accounts in Instellingen de keuze voor een nieuw account moeten tonen (Nieuw account…
     /// in het menu Archief); die zet dit weer op false.
     var addsAccount = false
+    /// Het tabblad van Instellingen; het venster bindt zijn tabbladen hieraan. Het blijft staan
+    /// waar de persoon het liet, tot iets om een tabblad vraagt (`showSettings(_:)`).
+    var settingsTab: SettingsTab = AppRouter.initialSettingsTab
     /// Tijdens een sprong naar een ander onderdeel blijven pad en filters van die sprong staan.
     @ObservationIgnored private var isNavigating = false
 
@@ -66,6 +69,22 @@ final class AppRouter {
     /// Opent een venster (en haalt de app naar voren).
     func show(_ window: WindowID) {
         windowRequest = WindowRequest(window: window)
+    }
+
+    /// Opent Instellingen op een tabblad. `show(.settings)` opent het op het laatst gekozen tabblad.
+    func showSettings(_ tab: SettingsTab) {
+        settingsTab = tab
+        show(.settings)
+    }
+
+    /// Het tabblad waarmee Instellingen de eerste keer opent.
+    private static var initialSettingsTab: SettingsTab {
+        #if DEBUG
+        // Voor schermafbeeldingen: `-PullwatchSettingsPane agents`.
+        UserDefaults.standard.string(forKey: "PullwatchSettingsPane").flatMap(SettingsTab.init) ?? .accounts
+        #else
+        .accounts
+        #endif
     }
 
     /// Opent een onderdeel vanaf een andere plek (menu, melding, sprong): bovenaan, zonder filters.
@@ -110,7 +129,7 @@ final class AppRouter {
     /// ⌘N: Instellingen met de keuze voor een nieuw account.
     func addAccount() {
         addsAccount = true
-        show(.settings)
+        showSettings(.accounts)
     }
 
     /// ⌘[ in het menu Ga: één pagina terug op de stack van het zichtbare onderdeel.

@@ -3,7 +3,7 @@ import Foundation
 import PullwatchMCP
 
 // pullwatch-mcp: de helper die een coding agent met stdio start
-// (`claude mcp add --transport stdio pullwatch -- /Applications/Pullwatch.app/Contents/Helpers/pullwatch-mcp`).
+// (`claude mcp add --scope user --transport stdio pullwatch -- /Applications/Pullwatch.app/Contents/Helpers/pullwatch-mcp`).
 // Alle logica staat in `MCPBridge` (PullwatchMCP, getest); hier alleen het aansluiten.
 
 // Een agent die stdout sluit, geeft een schrijffout in plaats van een stop zonder opruimen.

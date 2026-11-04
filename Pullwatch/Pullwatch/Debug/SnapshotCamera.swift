@@ -47,6 +47,22 @@ enum SnapshotCamera {
         }
     }
 
+    /// Bewaart de geopende popover (een eigen venster van AppKit, zonder id) als `<naam>.png`.
+    static func shootPopover(_ name: String) {
+        guard let directory else { return }
+        Task {
+            try? await Task.sleep(for: .milliseconds(800))
+            guard
+                let window = NSApp.windows.first(where: { $0.isVisible && String(describing: type(of: $0)).contains("Popover") }),
+                let view = window.contentView?.superview ?? window.contentView,
+                let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+            else { return }
+            view.cacheDisplay(in: view.bounds, to: rep)
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try? rep.representation(using: .png, properties: [:])?.write(to: directory.appending(path: "\(name).png"))
+        }
+    }
+
     /// Een foto van het venster, en daarna `pages` keer een vensterhoogte verder naar beneden
     /// (`<naam>-2.png` en verder), voor een lang formulier.
     static func shootScrolling(_ name: String, windowId: String, pages: Int) {

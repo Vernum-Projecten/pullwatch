@@ -65,9 +65,17 @@ import Testing
     @Test func `The Help menu leads to the documentation and the acknowledgements`() throws {
         let help = try #require(menus.last)
         let titles = help.items.map(\.title)
-        for key: String.LocalizationValue in ["Pullwatch-help", "Toetscombinaties", "Nieuw in Pullwatch", "Meld een probleem…", "Erkenningen"] {
+        for key: String.LocalizationValue in ["Pullwatch-help", "Toetscombinaties", "Nieuw in Pullwatch", "Privacy en bronnen", "Meld een probleem…", "Erkenningen"] {
             #expect(titles.contains(String(localized: key)), "\(key) ontbreekt in Help: \(titles)")
         }
+    }
+
+    @Test func `Privacy and Sources sits between What's New and Report an Issue`() throws {
+        let titles = try #require(menus.last).items.map(\.title)
+        let new = try #require(titles.firstIndex(of: String(localized: "Nieuw in Pullwatch")))
+        let privacy = try #require(titles.firstIndex(of: String(localized: "Privacy en bronnen")))
+        let issue = try #require(titles.firstIndex(of: String(localized: "Meld een probleem…")))
+        #expect(new < privacy && privacy < issue, "\(titles)")
     }
 
     @Test func `No shortcut is used twice`() {

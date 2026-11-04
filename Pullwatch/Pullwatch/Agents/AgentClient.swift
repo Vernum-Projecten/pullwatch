@@ -29,11 +29,13 @@ nonisolated enum AgentClient: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// De opdracht of JSON met `helper` als pad van `pullwatch-mcp`.
+    /// De opdracht of JSON met `helper` als pad van `pullwatch-mcp`. Claude Code met `--scope user`,
+    /// zodat Pullwatch in elk project werkt (zonder geldt het alleen in de map waar de opdracht
+    /// draaide); `codex mcp add` schrijft al naar de algemene `~/.codex/config.toml`.
     func setup(helper: String) -> String {
         switch self {
         case .claudeCode:
-            "claude mcp add --transport stdio pullwatch -- \(Self.shellQuoted(helper))"
+            "claude mcp add --scope user --transport stdio pullwatch -- \(Self.shellQuoted(helper))"
         case .codex:
             "codex mcp add pullwatch -- \(Self.shellQuoted(helper))"
         case .cursor:

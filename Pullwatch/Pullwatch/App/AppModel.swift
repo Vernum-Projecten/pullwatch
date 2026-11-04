@@ -345,7 +345,7 @@ final class AppModel {
         case nil:
             if payload.installsUpdate { updates.installUpdate() }
             if payload.section == "settings" {
-                router.show(.settings)
+                router.showSettings(SettingsTab.forNotification(payload))
             } else if let section = payload.section.flatMap(MainSection.init(rawValue:)) {
                 if section == .dependencies, let package = payload.package { router.showPackage(package) } else { router.navigate(to: section) }
                 router.show(.main)

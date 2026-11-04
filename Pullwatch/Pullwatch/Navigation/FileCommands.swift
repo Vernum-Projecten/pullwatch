@@ -14,7 +14,8 @@ struct FileCommands: Commands {
                 .keyboardShortcut("n", modifiers: [.command, .shift])
                 .disabled(model.accounts.accountsForExtraRepos.isEmpty)
             Divider()
-            Button("Open in browser") {
+            // Een eigen sleutel: in een menu schrijft het Engels elk woord met een hoofdletter.
+            Button(String(localized: "menu.file.openInBrowser", defaultValue: "Open in browser", comment: "Menu Archief: de selectie in de browser openen")) {
                 if let browserTarget { model.historyModel.open(browserTarget) }
             }
             .keyboardShortcut("o")

@@ -152,7 +152,7 @@ import Testing
 
     @Test func `The commands match each client's documentation`() throws {
         let helper = "/Applications/Pullwatch.app/Contents/Helpers/pullwatch-mcp"
-        #expect(AgentClient.claudeCode.setup(helper: helper) == "claude mcp add --transport stdio pullwatch -- \(helper)")
+        #expect(AgentClient.claudeCode.setup(helper: helper) == "claude mcp add --scope user --transport stdio pullwatch -- \(helper)")
         #expect(AgentClient.codex.setup(helper: helper) == "codex mcp add pullwatch -- \(helper)")
         let cursor = try #require(JSONSerialization.jsonObject(with: Data(AgentClient.cursor.setup(helper: helper).utf8)) as? [String: Any])
         let cursorServer = (cursor["mcpServers"] as? [String: Any])?["pullwatch"] as? [String: Any]
