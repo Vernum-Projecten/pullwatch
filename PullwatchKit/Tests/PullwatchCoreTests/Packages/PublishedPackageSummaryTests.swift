@@ -31,7 +31,7 @@ import Testing
 
     static func report(_ packages: [PublishedPackage], repos: [RepoVersions] = []) -> VersionReport {
         let ui = packages.first { $0.name == "ui" }
-        let inHouse = ui.map { VersionChecker.metadata(of: $0, repositoryURL: nil) }
+        let inHouse = ui.flatMap { VersionChecker.metadata(of: $0, repositoryURL: nil) }
         return VersionReport(
             checkedAt: checkedAt, repos: repos,
             packageMetadata: inHouse.map { ["npm:@acme/ui": $0] } ?? [:],

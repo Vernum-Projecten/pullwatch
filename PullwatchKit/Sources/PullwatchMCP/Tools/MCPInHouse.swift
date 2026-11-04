@@ -12,7 +12,7 @@ struct MCPInHouse: Encodable, Hashable {
     let url: URL?
     /// De pagina van het package in het eigen register.
     let registryUrl: URL?
-    /// checked, source_off of needs_permission.
+    /// checked, source_off, needs_permission of read_failed.
     let status: String
     let reason: String?
 
@@ -32,6 +32,9 @@ struct MCPInHouse: Encodable, Hashable {
         case .needsPermission(let text):
             status = "needs_permission"
             reason = text.isEmpty ? nil : text
+        case .readFailed:
+            status = "read_failed"
+            reason = nil
         }
     }
 
@@ -44,8 +47,9 @@ struct MCPInHouse: Encodable, Hashable {
             "registry_url": .string("The package's page in your own registry."),
             "status": .string(
                 "checked: the latest version comes from your own registry, never from the public one. "
-                    + "source_off or needs_permission: not checked, never read as up to date.",
-                oneOf: ["checked", "source_off", "needs_permission"]
+                    + "source_off, needs_permission or read_failed (your registry gave no latest version): "
+                    + "not checked, never read as up to date.",
+                oneOf: ["checked", "source_off", "needs_permission", "read_failed"]
             ),
             "reason": .string("What permission is missing, when status is needs_permission."),
         ],
@@ -58,6 +62,7 @@ struct MCPInHouse: Encodable, Hashable {
         switch status {
         case "source_off": MCPSourceOff(.packageRegistries, repository: repository)
         case "needs_permission": MCPSourceOff(permission: reason, repository: repository)
+        case "read_failed": MCPSourceOff(readFailedFor: repository)
         default: nil
         }
     }

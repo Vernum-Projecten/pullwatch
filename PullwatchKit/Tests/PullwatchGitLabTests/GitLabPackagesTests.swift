@@ -250,6 +250,30 @@ import PullwatchTestSupport
         #expect(web.publishedAt == DateParsing.parse("2026-10-01T10:00:00.000+00:00"), "de datum van die versie")
     }
 
+    /// Hoe het lezen van de tags van een image mislukt (#215).
+    enum TagsFailure: String, CaseIterable, Sendable {
+        case serverError, timeout, undecodable
+    }
+
+    @Test(arguments: TagsFailure.allCases)
+    func `Tags that cannot be read mark the image as failed, not as untagged`(_ failure: TagsFailure) async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/packages", body: "[]")
+        switch failure {
+        case .serverError: http.on("repositories/5/tags?", status: 502, body: #"{"message":"502 Bad Gateway"}"#)
+        case .timeout: http.fail("repositories/5/tags?", with: ProviderError.timeout(command: "gitlab.com"))
+        case .undecodable: http.on("repositories/5/tags?", body: #"{"unexpected":"object"}"#)
+        }
+        http.on("groups/acme/registry/repositories", body: "[\(image(id: 5, path: "acme/web"))]")
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
+
+        let web = try #require(result.packages.first)
+        #expect(web.versionsReadFailed)
+        #expect(web.latestVersion == nil)
+    }
+
     @Test func `Keeps latest when it is the only tag`() {
         let only = ContainerVersions(images: GitLabProvider.images([("latest", nil, nil)], link: nil))
         #expect(only.latestVersion == "latest")

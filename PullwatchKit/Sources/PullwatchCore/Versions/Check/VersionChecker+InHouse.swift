@@ -19,6 +19,8 @@ extension VersionChecker {
     ///   metadata van de vorige check blijft.
     /// - Het account is weg of gepauzeerd, of noemt het package niet meer: niet meer eigen, de
     ///   check doet wat hij voor elk publiek package doet.
+    /// - Het register noemt het package zonder nieuwste versie (geen repository, versies niet te
+    ///   lezen): nooit `.checked`, zie `withoutVersion` (#215).
     func inHouseCheck(dependencies: [Dependency], published: [AccountPackages], accounts: [Account]) -> InHouseCheck {
         let byId = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         func isActive(_ id: UUID) -> Bool { byId[id].map { !$0.isPaused } ?? false }
@@ -49,11 +51,14 @@ extension VersionChecker {
                 let account = byId[package.accountId]
                 let page = (package.repository.flatMap { account?.repoWebURL($0) } ?? account.flatMap { Self.projectURL(package, account: $0) })
                     .map(Self.withoutCredentials)
-                let own = Self.metadata(of: package, repositoryURL: page)
-                if isProven(key, owner: package.owner, accountId: package.accountId) {
+                guard isProven(key, owner: package.owner, accountId: package.accountId) else {
+                    result.namesakes[key] = Self.inHousePackage(package, repositoryURL: page)
+                    continue
+                }
+                if let own = Self.metadata(of: package, repositoryURL: page) {
                     result.metadata[key] = own.withInHouse(own.inHouse?.with(isPublicName: isPublicName(key)))
-                } else if let namesake = own.inHouse {
-                    result.namesakes[key] = namesake
+                } else if let kept = Self.withoutVersion(package, repositoryURL: page, previous: cached[key], isPublicName: isPublicName(key)) {
+                    result.metadata[key] = kept
                 }
                 continue
             }
@@ -75,19 +80,49 @@ extension VersionChecker {
     /// De metadata van een eigen package: de versies uit het eigen register (wat ze vragen staat
     /// daar niet, dus `dependencies` blijft onbekend) en de hoogste stabiele versie. Een zwevende
     /// tag of een image zonder tag is nooit de nieuwste versie (`releasedVersion`).
-    static func metadata(of package: PublishedPackage, repositoryURL: URL?) -> PackageMetadata {
+    ///
+    /// nil zonder bekende nieuwste versie: een package zonder versies (geen gekoppelde repository,
+    /// dus niet gevraagd), een zwevende tag, of versies die niet te lezen waren
+    /// (`versionsReadFailed`). `.checked` betekent dat de nieuwste versie uit het eigen register
+    /// komt, en dat kan dan niet (#215).
+    static func metadata(of package: PublishedPackage, repositoryURL: URL?) -> PackageMetadata? {
+        guard !package.versionsReadFailed else { return nil }
         var versions: [String: VersionMetadata] = [:]
         for version in package.versions { versions[version.version] = VersionMetadata() }
         // Op `Version`, zodat "v2.3.0" en "2.3.0" gelijk lezen en "1.10" na "1.9" komt.
         let stable = package.versions.compactMap { item in Version(item.version).map { (text: item.version, version: $0) } }
             .filter { !$0.version.isPrerelease }
         let latest = stable.max { $0.version < $1.version }?.text ?? package.releasedVersion
-        if let latest, versions[latest] == nil { versions[latest] = VersionMetadata() }
-        let inHouse = InHousePackage(
+        guard let latest else { return nil }
+        if versions[latest] == nil { versions[latest] = VersionMetadata() }
+        return PackageMetadata(latest: latest, versions: versions, inHouse: inHousePackage(package, repositoryURL: repositoryURL))
+    }
+
+    /// De herkomst van een eigen package, `.checked`; alleen met een nieuwste versie in de metadata,
+    /// of als hint bij een publiek package met dezelfde naam (`InHouseCheck.namesakes`).
+    static func inHousePackage(_ package: PublishedPackage, repositoryURL: URL?) -> InHousePackage {
+        InHousePackage(
             accountId: package.accountId, name: package.name, type: package.type, owner: package.owner, repository: package.repository,
             repositoryURL: repositoryURL, registryURL: package.webURL
         )
-        return PackageMetadata(latest: latest, versions: versions, inHouse: inHouse)
+    }
+
+    /// Een eigen package met bewijs, waarvan het eigen register nu geen nieuwste versie gaf (#215):
+    /// - had de vorige check er een van hetzelfde account, dan blijft die (zoals bij een mislukt
+    ///   register);
+    /// - kent het publieke register de naam (`isPublicName`), dan is de sleutel deze check publiek:
+    ///   publieke nieuwste versie en OSV, en vragen lekt niets (nil);
+    /// - anders staat de naam alleen in het eigen register en gaat hij nergens heen: niet
+    ///   gecontroleerd, `.readFailed`, zonder nieuwste versie en zonder OSV.
+    static func withoutVersion(
+        _ package: PublishedPackage, repositoryURL: URL?, previous: PackageMetadata?, isPublicName: Bool
+    ) -> PackageMetadata? {
+        if let previous, previous.latest != nil, let old = previous.inHouse, old.isChecked, old.accountId == package.accountId {
+            return previous
+        }
+        if isPublicName { return nil }
+        let inHouse = inHousePackage(package, repositoryURL: repositoryURL).with(status: .readFailed)
+        return PackageMetadata(latest: nil, versions: [:], inHouse: inHouse)
     }
 
     /// Azure Artifacts koppelt een package aan geen repository: de link gaat naar het project van

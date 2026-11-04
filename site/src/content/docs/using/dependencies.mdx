@@ -79,6 +79,7 @@ When Pullwatch cannot read the latest version, the row says so instead of showin
 
 - "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before, with the same evidence, stays in-house and is not looked up publicly.
 - "Not checked: no access to this account's package registry": the account may not read its registry. The tooltip says what to grant; see [What to grant](/using/packages/#what-to-grant).
+- "Not checked: this account's package registry gave no latest version": the registry lists the package, but reading its versions failed, or it has none (for example a package without a linked repository). The latest version of the previous check stays when there was one. A name the public registry also knows is looked up there and checked by OSV.dev for this check; a name only your own registry knows is never sent anywhere.
 
 Switching off a public registry, such as npm, does not affect an in-house package.
 
