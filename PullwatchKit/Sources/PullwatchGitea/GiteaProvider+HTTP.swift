@@ -32,8 +32,8 @@ extension GiteaProvider {
         return URL(string: instanceURL.absoluteString + "/" + parts.map(Self.encode).joined(separator: "/"))
     }
 
-    /// Bladert met `page` en `limit`: volgt de `Link` met `rel="next"` (alleen op dezelfde server:
-    /// het token gaat nooit naar een andere host), en zonder `Link` de volgende pagina zolang een
+    /// Bladert met `page` en `limit`: volgt de `Link` met `rel="next"` (alleen op dezelfde server,
+    /// `PageLink.follow`: het token gaat nooit naar een andere host), en zonder `Link` de volgende pagina zolang een
     /// pagina vol is en `X-Total-Count` meer belooft. Hooguit `maxPages` pagina's, of tot `stop`
     /// genoeg vindt.
     func pages<T: Decodable>(
@@ -53,7 +53,7 @@ extension GiteaProvider {
             if stop(result) || items.isEmpty { break }
             page += 1
             if let link = response.value(forHTTPHeaderField: "Link") {
-                next = Self.nextLink(in: link).flatMap { isOwnServer($0) && $0 != current ? $0 : nil }
+                next = PageLink.follow(PageLink.next(inHeader: link), after: current, api: instanceURL)
             } else if items.count >= pageSize,
                       let total = response.value(forHTTPHeaderField: "X-Total-Count").flatMap(Int.init), total > result.count {
                 next = Self.withQuery(url, query + pageQuery(page))
@@ -66,22 +66,6 @@ extension GiteaProvider {
 
     private func pageQuery(_ page: Int) -> [URLQueryItem] {
         [URLQueryItem(name: "limit", value: String(pageSize)), URLQueryItem(name: "page", value: String(page))]
-    }
-
-    /// Wijst `url` naar de server van dit account (schema, host en poort)?
-    func isOwnServer(_ url: URL) -> Bool {
-        url.scheme == instanceURL.scheme && url.host() == instanceURL.host() && url.port == instanceURL.port
-    }
-
-    /// De URL met `rel="next"` uit een `Link`-header (RFC 8288).
-    static func nextLink(in header: String) -> URL? {
-        for part in header.split(separator: ",") {
-            let pieces = part.split(separator: ";").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard let target = pieces.first, target.hasPrefix("<"), target.hasSuffix(">"),
-                  pieces.dropFirst().contains(where: { $0.replacingOccurrences(of: " ", with: "") == #"rel="next""# }) else { continue }
-            return URL(string: String(target.dropFirst().dropLast()))
-        }
-        return nil
     }
 
     /// Zet de query achter `url`; "+" wordt %2B (tijden met een tijdzone, tagnamen als `1.0+build`).

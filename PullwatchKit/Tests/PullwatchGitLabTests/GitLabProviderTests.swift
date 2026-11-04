@@ -135,6 +135,21 @@ import PullwatchTestSupport
         #expect(!urls(http).contains { $0.contains("evil.example.com") })
     }
 
+    @Test(arguments: [
+        "http://gitlab.com/api/v4/groups/acme/projects?id_after=2",
+        "https://gitlab.com:8443/api/v4/groups/acme/projects?id_after=2",
+        "https://gitlab.example.com/api/v4/groups/acme/projects?id_after=2",
+    ])
+    func `A keyset link with another scheme, port or host is not followed`(next: String) async throws {
+        let http = MockHTTPClient()
+        groupAcme(http)
+        http.on("id_after=2", body: "[\(GitLabFixtures.project("acme/two", id: 2))]")
+        http.on("groups/acme/projects?", headers: ["Link": "<\(next)>; rel=\"next\""],
+                body: "[\(GitLabFixtures.project("acme/one", id: 1))]")
+        #expect(try await makeProvider(http).listRepos() == ["acme/one"])
+        #expect(!urls(http).contains { $0.contains("id_after=2") })
+    }
+
     @Test func parsesNextLink() {
         let header = #"<https://gitlab.com/api/v4/projects?page=1>; rel="prev", <https://gitlab.com/api/v4/projects?id_after=9>; rel="next""#
         #expect(GitLabProvider.nextLink(in: header)?.absoluteString == "https://gitlab.com/api/v4/projects?id_after=9")

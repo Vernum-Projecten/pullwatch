@@ -160,9 +160,10 @@ final class AccountsModel {
     }
 
     /// Lege accounts (zonder organisatie) die een oudere versie bij "+" meteen bewaarde. Een
-    /// gepauzeerd account (ingelogd, niets gevolgd) blijft staan; alleen echt lege.
+    /// gepauzeerd account (ingelogd, niets gevolgd) blijft staan; alleen echt lege. Een account
+    /// waarvan alleen de server ontbreekt of niet klopt, blijft ook: de kaart zegt wat er mist.
     var incompleteAccounts: [Account] {
-        config.accounts.filter { !$0.isComplete && $0.login == nil && $0.repoWatch.isEmpty }
+        config.accounts.filter { !$0.hasOwner && $0.login == nil && $0.repoWatch.isEmpty }
     }
 
     /// Tokens van accounts die er niet meer zijn (afgebroken toevoegen, crash, oudere versie).
@@ -287,11 +288,15 @@ final class AccountsModel {
     /// Een nieuw, leeg account voor een keuze op de kaarten of in het toevoeg-menu. Op een eigen
     /// GitHub- of GitLab-server eerst een token (de Pullwatch-app bestaat daar niet).
     func draft(for choice: AccountChoice) -> Account {
-        Account(
+        var account = Account(
             kind: choice.kind, organization: "",
             authMethod: choice.enterprise ? .pat : defaultAuthMethod(for: choice.kind),
             giteaFlavour: choice.flavour ?? .gitea
         )
+        // GitHub Enterprise of een eigen GitLab-server: tot er een adres is, ontbreekt de server
+        // (nooit stil github.com of gitlab.com).
+        if choice.enterprise { account.unusableInstanceURL = "" }
+        return account
     }
 
     func hasGitHubAppTokens(_ id: UUID) -> Bool {

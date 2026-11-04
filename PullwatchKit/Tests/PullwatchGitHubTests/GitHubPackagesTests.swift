@@ -562,4 +562,84 @@ import PullwatchTestSupport
         #expect(urls(http).contains("https://github.example.com/api/v3/orgs/acme/packages?package_type=npm&per_page=100"))
         #expect(!urls(http).contains { $0.contains("api.github.com") })
     }
+
+    // MARK: - Volgende pagina's alleen op de API (#217)
+
+    static let foreignLinks = [
+        "https://evil.example.com/orgs/acme/packages?package_type=npm&page=2",
+        "http://api.github.com/orgs/acme/packages?package_type=npm&page=2",
+        "https://api.github.com:8443/orgs/acme/packages?package_type=npm&page=2",
+    ]
+
+    @Test(arguments: foreignLinks)
+    func `A next link off the API stops listing packages and gets no token`(link: String) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("page=2", body: "[\(package("two", type: "npm", repo: nil))]")
+        http.on("orgs/acme/packages?package_type=npm&", headers: ["Link": #"<\#(link)>; rel="next""#],
+                body: "[\(package("one", type: "npm", repo: nil))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: [])
+
+        #expect(result.packages.map(\.name) == ["one"])
+        #expect(!urls(http).contains { $0.contains("page=2") })
+    }
+
+    @Test(arguments: foreignLinks)
+    func `A next link off the API stops the versions of an image`(link: String) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("page=2", body: "[\(version("sha256:b", type: "container", tags: ["1.0.0"]))]")
+        http.on("container/web/versions?per_page=100", headers: ["Link": #"<\#(link)>; rel="next""#],
+                body: "[\(version("sha256:a", type: "container", tags: ["1.2.0"]))]")
+        http.on("orgs/acme/packages?package_type=container&", body: "[\(package("web", type: "container", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.latestVersion == "1.2.0")
+        #expect(!urls(http).contains { $0.contains("page=2") })
+    }
+
+    @Test func `GitHub Enterprise Server follows next links on its own API host only`() async throws {
+        let http = MockHTTPClient()
+        http.on("users/acme", body: #"{"login":"acme","type":"Organization"}"#)
+        let next = "https://github.example.com/api/v3/organizations/7/packages?package_type=npm&per_page=100&page=2"
+        http.on("page=2", headers: ["Link": #"<https://api.github.com/organizations/7/packages?package_type=npm&page=3>; rel="next""#],
+                body: "[\(package("two", type: "npm", repo: nil))]")
+        http.on("orgs/acme/packages?package_type=npm&", headers: ["Link": #"<\#(next)>; rel="next""#],
+                body: "[\(package("one", type: "npm", repo: nil))]")
+        http.on("packages?package_type=", body: "[]")
+        let provider = GitHubProvider(
+            accountId: fixedAccountId, owner: "acme", instanceURL: URL(string: "https://github.example.com"),
+            tokenSource: StaticTokenSource(token: "ghes-token"), http: http
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: [])
+
+        #expect(result.packages.map(\.name) == ["one", "two"])
+        #expect(urls(http).contains(next))
+        #expect(!urls(http).contains { $0.contains("api.github.com") })
+    }
+
+    @Test func `GHE.com follows next links on its API host and not on the web host`() async throws {
+        let http = MockHTTPClient()
+        http.on("users/acme", body: #"{"login":"acme","type":"Organization"}"#)
+        let next = "https://api.acme.ghe.com/organizations/7/packages?package_type=npm&per_page=100&page=2"
+        http.on("page=2", headers: ["Link": #"<https://acme.ghe.com/organizations/7/packages?package_type=npm&page=3>; rel="next""#],
+                body: "[\(package("two", type: "npm", repo: nil))]")
+        http.on("orgs/acme/packages?package_type=npm&", headers: ["Link": #"<\#(next)>; rel="next""#],
+                body: "[\(package("one", type: "npm", repo: nil))]")
+        http.on("packages?package_type=", body: "[]")
+        let provider = GitHubProvider(
+            accountId: fixedAccountId, owner: "acme", instanceURL: URL(string: "https://acme.ghe.com"),
+            tokenSource: StaticTokenSource(token: "ghe-token"), http: http
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: [])
+
+        #expect(result.packages.map(\.name) == ["one", "two"])
+        #expect(urls(http).allSatisfy { URL(string: $0)?.host() == "api.acme.ghe.com" })
+    }
 }

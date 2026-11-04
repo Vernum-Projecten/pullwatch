@@ -168,7 +168,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Pullwatch` so a module never shares its name with a type in it.
   `PullwatchCore/`, by area, with no provider API code: `Model/` (models,
   `AppConfig`), `Providers/` (the `PRProvider` and `TokenSource` protocols,
-  `ProviderError`, `StaticTokenSource`), `Polling/` (`PollEngine`, backoff,
+  `ProviderError`, `StaticTokenSource`, and `PageLink`, the one rule every
+  provider pages by: a `next` link is followed only on https with the host
+  and port of the account's API, otherwise paging stops), `Polling/` (`PollEngine`, backoff,
   notification planning, filters, seen state), `History/` (history,
   statistics, repo overview), `Versions/` (the version and vulnerability
   checks, in six parts: `Detection/` (stack and dependency detection,

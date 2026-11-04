@@ -25,7 +25,8 @@ extension BitbucketProvider {
     }
 
     /// Bladert langs de `next`-links tot er geen meer is, `maxPages` op is of `stop` genoeg
-    /// vindt. Een `next` naar een andere host volgt dit niet: het token gaat alleen naar de API.
+    /// vindt. Een `next` naar een andere host volgt dit niet (`PageLink.follow`): het token gaat
+    /// alleen naar de API.
     func pages<T: Decodable>(
         _ url: URL,
         query: [URLQueryItem],
@@ -43,14 +44,9 @@ extension BitbucketProvider {
             result += page.values
             fetched += 1
             if stop(result) { break }
-            next = page.next.flatMap(URL.init(string:)).flatMap { Self.isAPI($0) && $0 != current ? $0 : nil }
+            next = PageLink.follow(page.next.flatMap(URL.init(string:)), after: current, api: Self.api)
         }
         return result
-    }
-
-    /// Ligt `url` op de API zelf (https, api.bitbucket.org, geen andere poort)?
-    static func isAPI(_ url: URL) -> Bool {
-        url.scheme == api.scheme && url.host() == api.host() && url.port == api.port
     }
 
     /// Zet de query achter `url`; "+" wordt %2B (tijden met een tijdzone, tagnamen als `1.0+build`).

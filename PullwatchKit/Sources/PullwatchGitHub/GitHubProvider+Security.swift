@@ -109,7 +109,7 @@ extension GitHubProvider {
             try Self.checkAccess(response, data: data)
             try HTTPStatus.check(response, now: now())
             items += try JSONDecoding.decode([T].self, from: data, snakeCase: true)
-            next = Self.nextLink(response).map { ($0, []) }
+            next = PageLink.follow(Self.nextLink(response), after: current.url, api: apiBase).map { ($0, []) }
             pages += 1
         }
         return items
@@ -135,16 +135,11 @@ extension GitHubProvider {
         }
     }
 
-    /// `<https://api.github.com/…&after=…>; rel="next", <…>; rel="last"`.
+    /// `<https://api.github.com/…&after=…>; rel="next", <…>; rel="last"`, via `PageLink`. Wie
+    /// hem volgt, gaat door `PageLink.follow` met de API van het account (ook die van GitHub
+    /// Enterprise): een link naar een andere host krijgt nooit het token.
     static func nextLink(_ response: HTTPURLResponse) -> URL? {
-        guard let header = response.value(forHTTPHeaderField: "Link") else { return nil }
-        for part in header.split(separator: ",") {
-            let pieces = part.split(separator: ";").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard pieces.dropFirst().contains(where: { $0 == "rel=\"next\"" }),
-                  let first = pieces.first, first.hasPrefix("<"), first.hasSuffix(">") else { continue }
-            return URL(string: String(first.dropFirst().dropLast()))
-        }
-        return nil
+        PageLink.next(in: response)
     }
 }
 

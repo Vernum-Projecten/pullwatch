@@ -26,7 +26,8 @@ extension GitLabProvider {
 
     /// Bladert met `page` tot de server geen `x-next-page` meer noemt (of `stop` genoeg vindt).
     /// Antwoordt de server met keyset-paginering (alleen een `Link` met `rel="next"`), dan volgt
-    /// dit die link, maar alleen op dezelfde server: het token gaat nooit naar een andere host.
+    /// dit die link, maar alleen op dezelfde server (`PageLink.follow`): het token gaat nooit naar
+    /// een andere host.
     /// Met `anonymous` zonder token: alleen voor openbare losse projecten.
     func pages<T: Decodable>(
         _ url: URL,
@@ -59,21 +60,12 @@ extension GitLabProvider {
                 URLQueryItem(name: "page", value: page),
             ])
         }
-        guard let link = response.value(forHTTPHeaderField: "Link"), let url = Self.nextLink(in: link),
-              url.scheme == instanceURL.scheme, url.host() == instanceURL.host(), url.port == instanceURL.port,
-              url != current else { return nil }
-        return url
+        return PageLink.follow(PageLink.next(in: response), after: current, api: instanceURL)
     }
 
-    /// De URL met `rel="next"` uit een `Link`-header (RFC 8288).
+    /// De URL met `rel="next"` uit een `Link`-header (RFC 8288), via `PageLink`.
     static func nextLink(in header: String) -> URL? {
-        for part in header.split(separator: ",") {
-            let pieces = part.split(separator: ";").map { $0.trimmingCharacters(in: .whitespaces) }
-            guard let target = pieces.first, target.hasPrefix("<"), target.hasSuffix(">"),
-                  pieces.dropFirst().contains(where: { $0.replacingOccurrences(of: " ", with: "") == #"rel="next""# }) else { continue }
-            return URL(string: String(target.dropFirst().dropLast()))
-        }
-        return nil
+        PageLink.next(inHeader: header)
     }
 
     /// Zet de query achter `url`; "+" wordt %2B, anders leest GitLab het als spatie (tagnamen als

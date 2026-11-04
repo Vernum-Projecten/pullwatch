@@ -145,6 +145,22 @@ func urls(_ http: MockHTTPClient) -> [String] {
         #expect(!urls(elsewhere).contains { $0.contains("evil.example.com") })
     }
 
+    @Test(arguments: [
+        "http://codeberg.org/api/v1/orgs/acme/repos?limit=50&page=2",
+        "https://codeberg.org:8443/api/v1/orgs/acme/repos?limit=50&page=2",
+        "https://gitea.com/api/v1/orgs/acme/repos?limit=50&page=2",
+    ])
+    func `A Link with another scheme, port or host is not followed`(next: String) async throws {
+        let http = MockHTTPClient()
+        http.on("page=2", body: "[\(GiteaFixtures.repository("acme/two"))]")
+        http.on("https://codeberg.org/api/v1/orgs/acme/repos?limit=50&page=1", headers: [
+            "Link": "<\(next)>; rel=\"next\"", "X-Total-Count": "2",
+        ], body: "[\(GiteaFixtures.repository("acme/one"))]")
+        http.on("https://codeberg.org/api/v1/orgs/acme", body: GiteaFixtures.organization("acme"))
+        #expect(try await makeProvider(http).listRepos() == ["acme/one"])
+        #expect(!urls(http).contains { $0.contains("page=2") })
+    }
+
     @Test func `Without a Link header a full page goes on while X-Total-Count promises more`() async throws {
         let http = MockHTTPClient()
         let full = (1...50).map { GiteaFixtures.repository("acme/r\($0)") }.joined(separator: ",")
