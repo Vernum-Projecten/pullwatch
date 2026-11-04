@@ -184,6 +184,17 @@ Delete the `PAGES_DOMAIN` variable, remove the custom domain under
 **Settings**, **Pages**, and run the workflow again. The site is then at
 `https://alessandro823.github.io/pullwatch/` again.
 
+## Preview on a fork
+
+A fork can publish the site at its own project page, to look at a change before it goes upstream:
+
+1. In the fork, **Settings, Pages, Source: GitHub Actions**.
+2. Set the fork's repository variable `PAGES_DEPLOY` to `true`:
+   `gh variable set PAGES_DEPLOY --body true --repo <owner>/pullwatch`
+3. Run the **Website** workflow on `main` (Actions, Website, Run workflow), or push a change under `site/`.
+
+The site then lives at `https://<owner>.github.io/pullwatch/`: the build takes its address from the repository it runs in, so every link and image points at the fork's page. Leave `PAGES_DOMAIN` empty in a fork. Without `PAGES_DEPLOY`, a fork only builds and checks the site, as before. `alessandro823/pullwatch` deploys without the variable.
+
 ## When something is off
 
 - **The page loads without styles, or links lead to a 404**: the site was
