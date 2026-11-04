@@ -42,9 +42,9 @@ Your profile picture, **Settings**, **Pages** (under Code, planning, and
 automation), **Verified domains**, **Add a domain**: `pullwatch.net`. GitHub
 shows a TXT record. At the registrar, in the zone of `pullwatch.net`, add:
 
-| Type | Name (host) | Value |
-|---|---|---|
-| TXT | `_github-pages-challenge-alessandro823` | the code GitHub shows |
+| Name | Type | Content | TTL |
+|---|---|---|---|
+| `_github-pages-challenge-alessandro823` | TXT | the code from GitHub, Settings, Pages, Verified domains | the registrar's default |
 
 The full name is `_github-pages-challenge-alessandro823.pullwatch.net`. The
 part after `challenge-` is the account that verifies the domain, here
@@ -63,19 +63,27 @@ GitHub checks it again from time to time.
 
 ## 3. Point the domain at GitHub Pages
 
-At the registrar, in the zone of `pullwatch.net`:
+At the registrar, add these records to the zone of `pullwatch.net`, one
+row per record. With them, the zone holds this full set (the TXT record is
+the one from step 2):
 
-| Type | Name (host) | Value |
-|---|---|---|
-| A | `@` (`pullwatch.net`) | `185.199.108.153` |
-| A | `@` | `185.199.109.153` |
-| A | `@` | `185.199.110.153` |
-| A | `@` | `185.199.111.153` |
-| AAAA | `@` | `2606:50c0:8000::153` |
-| AAAA | `@` | `2606:50c0:8001::153` |
-| AAAA | `@` | `2606:50c0:8002::153` |
-| AAAA | `@` | `2606:50c0:8003::153` |
-| CNAME | `www` (`www.pullwatch.net`) | `alessandro823.github.io.` |
+| Name | Type | Content | TTL |
+|---|---|---|---|
+| `@` | A | `185.199.108.153` | the registrar's default |
+| `@` | A | `185.199.109.153` | the registrar's default |
+| `@` | A | `185.199.110.153` | the registrar's default |
+| `@` | A | `185.199.111.153` | the registrar's default |
+| `@` | AAAA | `2606:50c0:8000::153` | the registrar's default |
+| `@` | AAAA | `2606:50c0:8001::153` | the registrar's default |
+| `@` | AAAA | `2606:50c0:8002::153` | the registrar's default |
+| `@` | AAAA | `2606:50c0:8003::153` | the registrar's default |
+| `www` | CNAME | `alessandro823.github.io.` | the registrar's default |
+| `_github-pages-challenge-alessandro823` | TXT | the code from GitHub, Settings, Pages, Verified domains | the registrar's default |
+
+`@` is the domain itself, `pullwatch.net`; `www` is `www.pullwatch.net`.
+The registrar's default TTL is fine (10 minutes works well: a mistake is
+corrected quickly). Leave the existing NS records (`ns.zxcs.nl`,
+`ns.zxcs.be`, `ns.zxcs.eu`) as they are.
 
 Remove any other A, AAAA or CNAME record for `@` and `www` (a parking page
 of the registrar, for example). The apex cannot be a CNAME, which is why it
@@ -85,9 +93,29 @@ GitHub's certificate authority issue: `@ CAA 0 issue "letsencrypt.org"`.
 Check:
 
 ```sh
-dig +short A pullwatch.net          # the four 185.199.x.153 addresses
-dig +short AAAA pullwatch.net       # the four 2606:50c0:800x::153 addresses
-dig +short CNAME www.pullwatch.net  # alessandro823.github.io.
+dig +short A pullwatch.net
+dig +short AAAA pullwatch.net
+dig +short CNAME www.pullwatch.net
+```
+
+print, in any order:
+
+```text
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153
+```
+
+```text
+2606:50c0:8000::153
+2606:50c0:8001::153
+2606:50c0:8002::153
+2606:50c0:8003::153
+```
+
+```text
+alessandro823.github.io.
 ```
 
 ## 4. Switch the site to the domain
