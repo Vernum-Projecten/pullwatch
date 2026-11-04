@@ -4833,6 +4833,28 @@
         }
       }
     },
+    "Check repository": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier le dépôt"
+          }
+        }
+      }
+    },
     "Checks": {
       "localizations": {
         "de": {
@@ -5135,6 +5157,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Controle"
+          }
+        }
+      }
+    },
+    "Controleer op updates…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher les mises à jour…"
           }
         }
       }
@@ -9199,6 +9243,28 @@
         }
       }
     },
+    "Kopieer afhankelijkheden voor agent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abhängigkeiten für Agent kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Dependencies for Agent"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier les dépendances pour un agent"
+          }
+        }
+      }
+    },
     "Kopieer alles": {
       "localizations": {
         "de": {
@@ -9261,28 +9327,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copier les dépendances et vulnérabilités de ce dépôt dans le presse-papiers"
-          }
-        }
-      }
-    },
-    "Kopieer de afhankelijkheden van de repo": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abhängigkeiten des Repositorys kopieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy the Repository’s Dependencies"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier les dépendances du dépôt"
           }
         }
       }
@@ -9393,6 +9437,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copier l’identifiant"
+          }
+        }
+      }
+    },
+    "Kopieer link": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Link"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien"
           }
         }
       }
@@ -9611,6 +9677,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kwetsbaarheden:"
+          }
+        }
+      }
+    },
+    "Laad opnieuw": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recharger"
           }
         }
       }
@@ -10214,6 +10302,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Plus"
+          }
+        }
+      }
+    },
+    "Meld een probleem…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem melden …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report an Issue…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaler un problème…"
           }
         }
       }
@@ -10863,6 +10973,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nouveau"
+          }
+        }
+      }
+    },
+    "Nieuw account…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Konto …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Account…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau compte…"
+          }
+        }
+      }
+    },
+    "Nieuw in Pullwatch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu in Pullwatch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What’s New in Pullwatch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveautés de Pullwatch"
           }
         }
       }
@@ -11912,6 +12066,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onbekend"
+          }
+        }
+      }
+    },
+    "Onderdeel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objekt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Élément"
           }
         }
       }
@@ -14437,6 +14613,28 @@
         }
       }
     },
+    "Pullwatch-help": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch-Hilfe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch Help"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aide Pullwatch"
+          }
+        }
+      }
+    },
     "Rapport": {
       "localizations": {
         "de": {
@@ -14866,6 +15064,28 @@
         }
       }
     },
+    "Repositorypagina": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository-Seite"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository Page"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page du dépôt"
+          }
+        }
+      }
+    },
     "Root": {
       "comment": "De hoofdmap van een repo, als workspace",
       "localizations": {
@@ -15279,12 +15499,12 @@
         }
       }
     },
-    "Statistieken van de repo": {
+    "Statistieken van repository": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Statistik des Repositorys"
+            "value": "Repository-Statistiken"
           }
         },
         "en": {
@@ -15853,6 +16073,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Autorisation requise"
+          }
+        }
+      }
+    },
+    "Toetscombinaties": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastaturkurzbefehle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard Shortcuts"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raccourcis clavier"
           }
         }
       }
@@ -16938,34 +17180,6 @@
         }
       }
     },
-    "Verversen": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktualisieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Refresh"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actualiser"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verversen"
-          }
-        }
-      }
-    },
     "Verwant": {
       "localizations": {
         "de": {
@@ -17856,6 +18070,28 @@
         }
       }
     },
+    "Welk account voeg je toe?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welches Konto möchtest du hinzufügen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which account do you want to add?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quel compte voulez-vous ajouter ?"
+          }
+        }
+      }
+    },
     "Welke PR's tellen mee": {
       "localizations": {
         "de": {
@@ -18404,30 +18640,24 @@
         }
       }
     },
-    "Zoeken": {
+    "Zoek…": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suchen"
+            "value": "Suchen …"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search"
+            "value": "Find…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rechercher"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zoeken"
+            "value": "Rechercher…"
           }
         }
       }

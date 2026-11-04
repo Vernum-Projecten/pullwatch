@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension View {
-    /// Geeft ⌘F (Zoeken in het menu Ga) het zoekveld van deze `.searchable`.
+    /// Geeft ⌘F (Zoek… in het menu Wijzig) het zoekveld van deze `.searchable`.
     func searchShortcut() -> some View {
         modifier(SearchShortcut())
     }

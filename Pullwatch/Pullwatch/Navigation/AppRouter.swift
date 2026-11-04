@@ -52,8 +52,11 @@ final class AppRouter {
     }
     /// Een rij die de repo-pagina bij openen kiest, met het inspectievenster open.
     var repoSelectionRequest: RepoSelectionRequest?
-    /// Of "Volg een repository…" open moet in het hoofdvenster (menu Ga, knoppenbalk van Repo's).
+    /// Of "Volg een repository…" open moet in het hoofdvenster (menu Archief, knoppenbalk van Repo's).
     var isWatchingRepository = false
+    /// Of de accounts in Instellingen de keuze voor een nieuw account moeten tonen (Nieuw account…
+    /// in het menu Archief); die zet dit weer op false.
+    var addsAccount = false
     /// Tijdens een sprong naar een ander onderdeel blijven pad en filters van die sprong staan.
     @ObservationIgnored private var isNavigating = false
 
@@ -102,6 +105,12 @@ final class AppRouter {
     /// Statistieken van één repo, bovenop de repo-pagina.
     func showStats(repoId: String) {
         path.append(.stats(repoId: repoId))
+    }
+
+    /// ⌘N: Instellingen met de keuze voor een nieuw account.
+    func addAccount() {
+        addsAccount = true
+        show(.settings)
     }
 
     /// ⌘[ in het menu Ga: één pagina terug op de stack van het zichtbare onderdeel.

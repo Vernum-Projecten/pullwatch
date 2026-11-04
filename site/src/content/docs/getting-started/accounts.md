@@ -54,7 +54,7 @@ Under **Other repositories** at the bottom of the list, add a single repository 
 - Azure DevOps: `project/repo` inside the account's organization, or a dev.azure.com link.
 - GitLab: `group/subgroup/project`, or a link from gitlab.com or the account's own server.
 
-Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com or gitlab.com that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, in the Go menu and in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
+Pullwatch checks it with one request and tells you in plain words when it cannot find or read it. A public repository on github.com or gitlab.com that your token may not read is read without signing in. **Watch a Repository…** (⇧⌘N, in the File menu and in the toolbar of Repositories) opens the same field with a choice of account. Remove one with a right click or the Delete key.
 
 Such a repository shows up everywhere like the others you follow, grouped under its own owner.
 

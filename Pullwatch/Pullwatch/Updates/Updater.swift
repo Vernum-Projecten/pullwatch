@@ -24,6 +24,7 @@ final class Updater: NSObject, SPUUpdaterDelegate {
     var includeTestVersions = false
 
     private var controller: SPUStandardUpdaterController?
+    private var canCheckObservation: NSKeyValueObservation?
 
     init(info: [String: Any] = Bundle.main.infoDictionary ?? [:]) {
         let owner = (info["PWReleasesOwner"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
@@ -43,6 +44,21 @@ final class Updater: NSObject, SPUUpdaterDelegate {
         let controller = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: self, userDriverDelegate: nil)
         controller.startUpdater()
         self.controller = controller
+    }
+
+    /// Of Sparkle nu een check kan beginnen (`SPUUpdater.canCheckForUpdates`): nee zolang er een
+    /// loopt. Zoals Sparkle's SwiftUI-voorbeeld volgt "Zoek naar updates…" deze waarde, hier via
+    /// KVO als stroom met de huidige waarde voorop. Zonder Sparkle een stroom die meteen eindigt.
+    func canCheckForUpdatesChanges() -> AsyncStream<Bool> {
+        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self, bufferingPolicy: .bufferingNewest(1))
+        guard let updater = controller?.updater else {
+            continuation.finish()
+            return stream
+        }
+        canCheckObservation = updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { _, change in
+            if let value = change.newValue { continuation.yield(value) }
+        }
+        return stream
     }
 
     /// Updates op de achtergrond downloaden en bij het afsluiten installeren. Sparkle bewaart

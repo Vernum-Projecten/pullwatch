@@ -113,6 +113,14 @@ final class HistoryModel {
         }
     }
 
+    /// ⇧⌘L: de webadressen van wat het zichtbare onderdeel geselecteerd heeft, één per regel.
+    func links(of target: BrowserTarget) -> [URL] {
+        switch target {
+        case .history(let ids): history.items.filter { ids.contains($0.id) }.map(\.entry.webURL)
+        case .page(let url): [url]
+        }
+    }
+
     func open(_ item: HistoryItem) {
         NSWorkspace.shared.open(item.entry.webURL)
         markRead(item.id)

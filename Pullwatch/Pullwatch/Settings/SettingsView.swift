@@ -55,12 +55,15 @@ struct SettingsView: View {
 private struct AccountsSettingsView: View {
     @Environment(AppModel.self) private var app
     @Environment(AccountsModel.self) private var accounts
+    @Environment(AppRouter.self) private var router
     @State private var selection: UUID?
     /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
     @State private var draft: Account?
     /// Het nieuwe account staat op een eigen server: GitHub Enterprise of een eigen GitLab-server.
     @State private var draftIsEnterprise = false
     @State private var confirmsRemoval = false
+    /// De keuze GitHub, GitHub Enterprise, Azure DevOps of GitLab, na Nieuw account… (⌘N).
+    @State private var choosesKind = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -97,6 +100,20 @@ private struct AccountsSettingsView: View {
             AddAccountSheet(draft: account, enterprise: draftIsEnterprise) { saved in
                 draft = nil
                 if saved { selection = account.id }
+            }
+        }
+        .onChange(of: router.addsAccount, initial: true) { _, adds in
+            guard adds else { return }
+            router.addsAccount = false
+            choosesKind = true
+        }
+        .confirmationDialog("Welk account voeg je toe?", isPresented: $choosesKind) {
+            ForEach(Array(AccountListButtons.choices.enumerated()), id: \.offset) { _, choice in
+                Button {
+                    add(choice.kind, enterprise: choice.enterprise)
+                } label: {
+                    Text(verbatim: AccountListButtons.title(of: choice))
+                }
             }
         }
         .confirmationDialog(
@@ -211,12 +228,12 @@ private struct AccountListButtons: View {
 
     /// GitHub en GitLab twee keer: github.com en GitHub Enterprise, gitlab.com en een eigen
     /// GitLab-server; dezelfde keuzes als op de kaarten van het welkomstvenster.
-    private static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
+    static let choices: [(kind: ProviderKind, enterprise: Bool)] = [
         (.gitHub, false), (.gitHub, true), (.azureDevOps, false), (.gitLab, false), (.gitLab, true),
     ]
 
     /// De productnaam van de keuze, in elke taal hetzelfde.
-    private static func title(of choice: (kind: ProviderKind, enterprise: Bool)) -> String {
+    static func title(of choice: (kind: ProviderKind, enterprise: Bool)) -> String {
         switch (choice.kind, choice.enterprise) {
         case (.gitHub, true): "GitHub Enterprise"
         case (.gitLab, true): "GitLab Self-Managed"

@@ -50,9 +50,15 @@ of each part is in `docs/superpowers/specs/` and its plan in
   follow macOS or a fixed language through `AppleLanguages`, applied by
   relaunching).
   `Navigation/`: `AppRouter` (windows, sidebar, paths, filters; `show(_:)`
-  opens a window or section), `Shortcuts` (commands; ⌘O reads the
-  `browserTarget` focused value), `SearchShortcut` and `MainView` (sidebar:
-  PRs, Tags, Repos, Versions, Statistics).
+  opens a window or section), `AppCommands` (the menu bar in Apple's order,
+  one `Commands` type per menu: `AppMenuCommands`, `FileCommands`,
+  `EditCommands`, `ViewCommands`, `GoCommands`, `ItemCommands`,
+  `RepositoryCommands`, `WindowCommands`, `HelpCommands` with the URLs in
+  `HelpLinks`; `MenuBarTests` checks the order and the key items),
+  `Shortcuts` (the focused values the menus read: `browserTarget`,
+  `repoTarget`, `readTarget`, `searchFocus`), `SearchShortcut` and
+  `MainView` (sidebar: PRs, Tags, Repos, Versions, Statistics). The Dock
+  menu (Reload, Check All Repositories) is `AppDelegate.applicationDockMenu`.
   `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
   model asks for through `AppRouter.windowRequest`) and `MenuView` (the
   menu-bar popover).
