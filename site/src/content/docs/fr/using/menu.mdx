@@ -1,0 +1,26 @@
+---
+title: Le panneau du menu
+description: "Ce qu’affiche l’icône de Pullwatch dans la barre des menus, et ce que vous pouvez en faire."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+Cliquez sur l’icône de Pullwatch dans la barre des menus pour ouvrir le panneau du menu.
+
+<Screenshot name="menu" maxWidth={400} alt="Le panneau du menu de Pullwatch avec cinq pull requests et leurs checks, et cinq tags et versions publiées." />
+
+## Ce qu’il affiche
+
+- **Pull requests** : les plus récentes des dépôts que vous suivez. Chaque ligne affiche l’icône d’état (ouverte, brouillon, fusionnée ou fermée), le titre, les checks (comme `4/8`, avec une croix rouge quand l’un d’eux a échoué), et en dessous le dépôt, l’auteur et le moment où Pullwatch l’a vue.
+- **Tags et versions publiées** : les tags les plus récents, avec le titre de la version publiée devant le nom du tag quand il y en a une.
+- Chaque compte, en bas, avec l’état de sa dernière interrogation, pour voir tout de suite quand un jeton a expiré ou qu’un serveur est injoignable.
+- Une bannière quand une nouvelle version de Pullwatch est disponible, et **Annuler** après avoir mis un dépôt en sourdine depuis une notification.
+
+Un petit point devant une ligne signifie qu’elle n’est pas lue. Réglages, Notifications peut aussi afficher un point sur l’icône de la barre des menus elle-même tant qu’il reste quelque chose de non lu.
+
+## Ce que vous pouvez faire
+
+- **Cliquez sur une ligne** pour ouvrir la pull request, le tag ou la version publiée dans votre navigateur. Elle est alors marquée comme lue.
+- **Cliquez avec le bouton droit sur une ligne** pour la marquer comme lue ou non lue, ou pour ouvrir la page du dépôt dans Pullwatch.
+- Les boutons du haut : **À propos de Pullwatch**, **Actualiser maintenant** (⌘R) et **Réglages** (⌘,).
+- En bas : **Tout lu** (⌘K), **Ouvrir…** (⌘O) pour la fenêtre principale, et **Quitter Pullwatch** (⌘Q).

@@ -1,0 +1,20 @@
+---
+title: Statistiques
+description: "L’activité des pull requests d’après votre historique, par semaine, par mois ou par an."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Statistiques** dans la barre latérale affiche l’activité des pull requests d’après l’historique que Pullwatch conserve.
+
+<Screenshot name="stats" alt="La section Statistiques : 8 PR ouvertes sur cette période, 2 brouillons ouverts, 1 fermée sans fusion, un délai médian de 12 heures et 6 auteurs actifs, un graphique en barres par mois et les classements des auteurs et des dépôts." />
+
+- Les pull requests ouvertes et fusionnées par semaine, par mois ou par an (les 12 dernières semaines, les 12 derniers mois ou les 5 dernières années).
+- Les pull requests ouvertes et fusionnées sur la période en cours, les brouillons ouverts, le délai médian entre l’ouverture et la fusion, et le nombre d’auteurs actifs.
+- Les classements des auteurs et des dépôts les plus actifs.
+
+Filtrez sur un projet ou un auteur ; cliquez sur un nom dans le classement pour le sélectionner, puis passez de là aux pull requests de cet auteur ou à la page du dépôt. Les bots (`[bot]` dans le nom) sont masqués par défaut. **Compter les coauteurs** dans le menu des auteurs compte aussi une pull request pour chacun de ses coauteurs.
+
+Une page de dépôt affiche le même graphique par mois pour ce seul dépôt.
+
+Les statistiques comptent des pull requests, pas des commits, et remontent aussi loin que l’historique (Réglages, Général, **Conserver l'historique**).

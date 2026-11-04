@@ -1,0 +1,49 @@
+---
+title: Sécurité
+description: "Les vulnérabilités connues d’OSV.dev et de la GitHub Advisory Database, et les alertes de GitHub et d’Azure DevOps."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+La même vérification quotidienne qui trouve les versions obsolètes recherche aussi les vulnérabilités connues. Elles apparaissent dans l’onglet **Contrôle** d’une page de dépôt, comptent dans sa couleur dans Dépôts, et une nouvelle vulnérabilité envoie une notification.
+
+<Screenshot name="repo-check" alt="L’onglet Contrôle de hello-world : Node 16 en fin de vie, et des avis pour lodash, qs et semver avec la version installée, le correctif, l’origine de chaque paquet et si la version publiée v1.2.0 est aussi concernée." />
+
+## Paquets avec des vulnérabilités connues
+
+Pullwatch envoie les noms et les versions exactes de vos paquets à [OSV.dev](https://osv.dev), pour ces fichiers :
+
+- `go.mod`
+- `package-lock.json`, `yarn.lock` (classic et Berry), `pnpm-lock.yaml` (v6 à v9)
+- `PackageReference` et `PackageVersion` dans les projets .NET, `packages.lock.json` de NuGet
+- `requirements*.txt` (`==` uniquement), `poetry.lock`, `uv.lock`
+- `composer.lock`
+- `Cargo.lock` (crates.io uniquement)
+- `Package.resolved`
+- `Gemfile.lock` (gems de rubygems.org ; les gems `GIT` et `PATH` sont ignorées)
+
+Maven et Gradle ne sont pas lus : leurs versions n’existent qu’après la résolution d’une build. Chaque analyse lit au maximum 50 fichiers par dépôt, les fichiers de verrouillage en premier.
+
+Chaque constat indique où il se trouve : l’espace de travail, si le paquet est direct ou s’il arrive par un autre (avec la chaîne la plus courte, comme « via express, body-parser »), et s’il sert à l’exécution, uniquement au développement ou s’il est facultatif. Dépliez une ligne pour voir chaque installation.
+
+Si un dépôt a des tags, le tag de version le plus récent est aussi vérifié (une préversion comme `-rc1` seulement s’il n’y a rien d’autre), et chaque vulnérabilité indique si cette version publiée est aussi concernée. Ce qui est déjà corrigé sur la branche par défaut n’est pas signalé.
+
+## Détails des avis
+
+Chaque vulnérabilité affiche aussi son entrée dans la GitHub Advisory Database : l’identifiant GHSA à côté du CVE, la gravité selon GitHub avec le score et le vecteur CVSS, les noms CWE et un lien vers `github.com/advisories`, sur la page du dépôt, dans le texte copié et dans les notifications. Pullwatch récupère chaque avis une fois depuis l’API publique des avis de GitHub (avec le jeton d’un compte GitHub quand il y en a un) et le conserve avec la vérification. Sélectionnez une ligne pour le voir dans l’inspecteur, avec le correctif en termes simples (« Mettez à jour lodash vers 4.17.21 ; c’est dans la plage, seul le fichier lock change ») et ce qui bloque le correctif.
+
+## Alertes de GitHub et d’Azure DevOps
+
+L’onglet **Sécurité** affiche ce que le service lui-même sait, lu avec la vérification quotidienne et **Vérifier**, jamais à chaque interrogation.
+
+<Screenshot name="repo-security" alt="L’onglet Sécurité de hello-world : trois alertes d’analyse du code, critique, élevée et remarque, avec le fichier et la ligne de chacune." />
+
+- **GitHub** : les avis que le dépôt publie sur lui-même, les alertes d’analyse du code ouvertes (CodeQL et d’autres outils, avec fichier et ligne), et le nombre d’alertes d’analyse des secrets ouvertes. Pullwatch ne lit jamais le secret lui-même.
+- **Azure DevOps** : les alertes Advanced Security ouvertes pour le code et les dépendances, et le nombre de secrets.
+- **GitLab** n’a pas d’équivalent ouvert à toutes les offres, donc un dépôt GitLab n’affiche que la vérification des versions et celle d’OSV.dev.
+
+Les alertes critiques et graves ouvertes comptent dans les constats du dépôt et dans sa couleur. La notification d’une nouvelle alerte est désactivée par défaut ; activez-la dans Réglages, Notifications. Quand un type est désactivé pour un dépôt, ou que le jeton ne peut pas le lire, l’onglet indique **Désactivé** ou **Autorisation requise** avec un lien, et rien n’échoue.
+
+## Désactiver des sources
+
+Chaque source ci-dessus peut être désactivée dans Réglages, Sources. Pullwatch ne présente alors jamais cette partie comme saine : il indique « Non vérifié » avec le nom de la source désactivée. Voir [Confidentialité et sources](/fr/privacy/).

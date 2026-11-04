@@ -1,0 +1,34 @@
+---
+title: Dépôts
+description: "La liste des dépôts suivis, les pires en tête, et la page de chaque dépôt."
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Dépôts** dans la barre latérale liste chaque dépôt que vous suivez, les pires en tête :
+
+- en rouge pour des vulnérabilités connues ou un runtime en fin de vie ;
+- en orange pour un runtime en retard, ou des paquets avec une nouvelle version ;
+- en vert quand tout est à jour ;
+- en gris tant qu’il n’a pas encore été vérifié.
+
+<Screenshot name="repos" alt="La liste Dépôts : hello-world avec 4 CVE, 2 alertes ouvertes, Node 16 EOL et 5 nouvelles versions ; linguist avec Go en retard ; spoon-knife avec 1 nouvelle version ; specifications-AM à jour." />
+
+La colonne des constats résume pourquoi, et la liste affiche les pull requests ouvertes et le dernier tag de chacun. **+** dans la barre d’outils suit un dépôt isolé hors de vos comptes (voir [Dépôts hors de votre compte](/fr/getting-started/accounts/#dépôts-hors-de-votre-compte)).
+
+## La page du dépôt
+
+Cliquez sur un dépôt pour ouvrir sa page. Elle a quatre onglets.
+
+<Screenshot name="repo-detail" alt="L’onglet Aperçu d’un dépôt : le statut, le compte, le dernier tag, la date de vérification, et ses pull requests ouvertes, en file d’attente, fusionnées et fermées." />
+
+- **Aperçu** : le statut, le compte, le dernier tag, la date de la dernière vérification, et les pull requests ouvertes et récentes avec leurs checks. Des liens mènent à toutes les pull requests et à tous les tags du dépôt.
+- **Contrôle** : les runtimes et les frameworks avec leurs versions, et les vulnérabilités connues. Voir [Sécurité](/fr/using/security/).
+- **Paquets** : chaque paquet avec la version installée, la version la plus récente que vous pouvez utiliser maintenant et la dernière version. Voir [Dépendances](/fr/using/dependencies/).
+- **Sécurité** : ce que le service lui-même sait : l’analyse du code, l’analyse des secrets et les avis propres du dépôt.
+
+La barre d’outils contient **Vérifier** (vérifie à nouveau ce dépôt), un bouton pour copier ses versions et ses vulnérabilités en texte, et un menu pour le suivre (PR, Tags, Fusionnée, chacun avec sa propre cloche) sans passer par les Réglages. Ses statistiques sont à un clic.
+
+## Copier pour un agent IA
+
+Chaque section de l’onglet Aperçu, ainsi que le menu Plus de la barre d’outils, propose **Copier pour un agent IA** : la section est copiée dans le presse-papiers sous forme de consigne en Markdown, prête à être collée dans un agent de code comme tâche.
