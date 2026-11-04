@@ -1,6 +1,6 @@
 # Geschiedenis-sync, inhalen en PR-status: Implementation Plan
 
-> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
+> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`) en zijn de grote bestanden per onderdeel gesplitst, en sinds #149 heeft de app een map per onderdeel (`Pullwatch/Pullwatch/<Onderdeel>/`, model en views samen); `CLAUDE.md` geeft de huidige indeling. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

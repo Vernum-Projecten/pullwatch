@@ -49,7 +49,9 @@ A file is found by its name, a type by its module and area.
 
 - `PullwatchKit` holds everything without a window. `PullwatchCore`
   (`Sources/PullwatchCore/<Area>/`: `Model`, `Providers`, `Polling`,
-  `History`, `Versions`, `Updates`, `Support`) has no provider API code; each
+  `History`, `Versions` with its parts `Detection`, `Registries`, `Updates`,
+  `Vulnerabilities`, `Check` and `Tables`, `DataSources`, `AgentBrief`,
+  `Updates`, `Support`) has no provider API code; each
   provider is a module (`PullwatchGitHub`, `PullwatchAzureDevOps`,
   `PullwatchGitLab`) that depends only on `PullwatchCore`;
   `PullwatchProviders` (`ProviderFactory`) is the only module that knows them
@@ -58,9 +60,17 @@ A file is found by its name, a type by its module and area.
   the MCP Swift SDK; a tool is an `MCPTool` in its registry, never a
   protocol layer of our own.
   Module names start with `Pullwatch` so none shares its name with a type.
-- The app only wires (`Pullwatch/Pullwatch/App/`: the `@Observable` models,
-  AppKit glue) and draws (`Views/`, shared pieces in `Views/Components/`).
-  Views read the models and send intents; they never call the network.
+- The app has one folder per feature (`Pullwatch/Pullwatch/<Feature>/`:
+  `Accounts`, `PullRequests`, `Repositories`, `Dependencies`, `Settings`,
+  `Agents`, ...), holding its `@Observable` model and its views, each type in
+  its own file, as Apple's sample apps (Food Truck, Backyard Birds) do, so
+  everything about one feature is in one place. State and drawing stay
+  apart in the types: a view reads its model from the environment, sends
+  intents, and never calls the network. `App/` holds the wiring (scenes, `AppDelegate`, the
+  composition root `AppModel`, `AppServices`); `General/` holds what at least
+  two features use, anything else lives in its feature; `Debug/` holds the
+  debug-only tooling (the fake GitHub, the snapshot camera and tours). A test
+  target mirrors the folders of what it tests.
 - One main type per file, named after it. An extension that adds a whole
   area to a large type goes in `Type+Area.swift`
   (`GitHubProvider+ExtraRepos.swift`). The synchronized Xcode folders pick
