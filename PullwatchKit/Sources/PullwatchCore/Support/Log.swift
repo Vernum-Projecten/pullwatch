@@ -36,8 +36,8 @@ public enum LogLevel: Int, CaseIterable, Comparable, Identifiable, Sendable {
 /// Loggen per onderdeel naar het systeemlog, met het ingestelde minimumniveau. Nooit tokens,
 /// wachtwoorden of codes loggen; repo-, account- en loginnamen mogen (het is een ontwikkelaarstool).
 public struct Log: Sendable {
-    public static let subsystem = "nl.torrisi.pullwatch"
-    public static let levelKey = "logLevel"
+    static let subsystem = "nl.torrisi.pullwatch"
+    static let levelKey = "logLevel"
 
     /// Het minimumniveau uit de instellingen.
     public static var minimum: LogLevel {

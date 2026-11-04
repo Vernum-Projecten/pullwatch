@@ -6,7 +6,7 @@ import Foundation
 /// het bestand van een bijlage naar zijn eigen opslag, dus elke melding krijgt een verse kopie
 /// (`attachmentFile`). Wat geen PNG, JPEG of GIF is, of groter dan `maxBytes`, komt er niet in.
 public actor AvatarCache {
-    public static let maxBytes = 512 * 1024
+    static let maxBytes = 512 * 1024
     public static let maxAge: TimeInterval = 7 * 24 * 3600
 
     private let http: any HTTPClient
@@ -23,7 +23,7 @@ public actor AvatarCache {
 
     /// Het bewaarde bestand van deze foto; ophalen als het er nog niet (of te lang) is. Nil als
     /// het niet lukt: de melding krijgt dan het teken van de soort.
-    public func cachedFile(for url: URL) async -> URL? {
+    func cachedFile(for url: URL) async -> URL? {
         let file = directory.appending(path: Self.fileName(for: url))
         if let modified = (try? FileManager.default.attributesOfItem(atPath: file.path(percentEncoded: false)))?[.modificationDate] as? Date,
            now().timeIntervalSince(modified) < Self.maxAge {

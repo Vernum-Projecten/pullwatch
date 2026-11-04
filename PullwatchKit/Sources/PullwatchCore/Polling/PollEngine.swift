@@ -3,84 +3,32 @@ import os
 
 private let logger = Log(category: "engine")
 
-public enum AccountState: Equatable, Sendable {
-    case idle
-    case ok(lastPoll: Date)
-    case failed(ProviderError, since: Date)
-}
-
-public struct PollResult: Equatable, Sendable {
-    public var newPullRequests: [PullRequest] = []
-    /// Nieuwe tags, en bekende tags die net een release kregen, gesorteerd op repo en dan naam.
-    public var newTags: [Tag] = []
-    /// Bekende tags zoals ze nu zijn (auteur, release), om de geschiedenis bij te werken. Alleen van
-    /// repo's waarvan de tags deze poll echt opgehaald zijn. Niet bedoeld voor meldingen.
-    public var updatedTags: [Tag] = []
-    public var statuses: [UUID: AccountState] = [:]
-    /// Accounts die in deze cyclus net naar `.unauthorized` gingen (één melding per overgang).
-    public var authFailures: [UUID] = []
-    /// PR's (alle states) uit de geschiedenis-sync, gefilterd met `PRFilter`. Leeg als er
-    /// geen sync aan de beurt was of die mislukte. Niet bedoeld voor meldingen.
-    public var syncedPullRequests: [PullRequest] = []
-    /// PR's die sinds de vorige geschiedenis-sync gemerged zijn in repo's met "Completed" aan,
-    /// gesorteerd op `closedAt`.
-    public var completedPullRequests: [PullRequest] = []
-    /// Bestaande tags uit de eerste tag-poll van een repo, met datum en binnen de bewaartermijn,
-    /// voor de geschiedenis (gelezen). Niet bedoeld voor meldingen.
-    public var syncedTags: [Tag] = []
-    /// Per account de repo's waarvan deze poll de tags ophaalde (alleen als tags aan de beurt waren).
-    public var tagRepos: [UUID: [String]] = [:]
-    /// De checks die deze poll ophaalde, per dedupKey, om de geschiedenis bij te werken. Niet
-    /// bedoeld voor meldingen.
-    public var checks: [String: PRChecks] = [:]
-    /// Eigen open PR's waarvan de checks net mislukten (voor de melding "Checks mislukt"); alleen
-    /// met `checksForOwnPullRequests`. Een PR waarvan Pullwatch de checks nog nooit zag meldt niet.
-    public var failedChecks: [PullRequest] = []
-    /// Van elke open PR die deze poll ophaalde of hij in de rij staat om vanzelf te mergen
-    /// (`PullRequest.mergeQueue`), per dedupKey; `nil` als waarde: niet (meer) in de rij. Om de
-    /// geschiedenis bij te werken, niet voor meldingen: in de rij komen meldt niets.
-    public var mergeQueues: [String: MergeQueueEntry?] = [:]
-}
-
-/// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account
-/// er een eerste geschiedenis-sync (volledige backfill) doet; nil als er geen bij zit.
-public struct PollProgress: Equatable, Sendable {
-    public var done: Int
-    public var total: Int
-    /// `Account.displayName` van het account met de eerste sync in deze poll.
-    public var firstSyncAccount: String?
-
-    public init(done: Int, total: Int, firstSyncAccount: String? = nil) {
-        self.done = done
-        self.total = total
-        self.firstSyncAccount = firstSyncAccount
-    }
-}
-
+/// Haalt per account de pull requests, tags, checks en geschiedenis op, onthoudt wat al gezien is
+/// en houdt per account de planning en de backoff bij.
 public actor PollEngine {
     public typealias ProviderFactory = @Sendable (Account) -> any PRProvider
 
     /// Tags worden los van het PR-interval opgehaald, hooguit eens per kwartier.
-    public static let tagInterval: TimeInterval = 900
+    static let tagInterval: TimeInterval = 900
     /// Maximaal aantal PR's per account per geschiedenis-sync.
-    public static let syncLimit = 1000
+    static let syncLimit = 1000
     /// Een vervolg-sync kijkt zoveel terug vóór de vorige sync, zodat randgevallen niet wegvallen.
-    public static let syncOverlap: TimeInterval = 3600
+    static let syncOverlap: TimeInterval = 3600
     /// Maximaal aantal bestaande tags per repo dat de eerste tag-poll in de geschiedenis zet.
-    public static let tagBackfillLimit = 100
+    static let tagBackfillLimit = 100
     /// Maximaal aantal PR's per account per poll waarvan de co-auteurs opgehaald worden; nieuwe
     /// open PR's eerst. Wat overblijft komt bij een volgende poll aan de beurt (open PR's) of
     /// zodra de PR verandert.
-    public static let coAuthorLimit = 50
+    static let coAuthorLimit = 50
     /// Maximaal aantal PR's per account per poll waarvan de checks opgehaald worden.
-    public static let checkLimit = 50
+    static let checkLimit = 50
     /// Zo lang na de merge haalt Pullwatch de checks van een gemergde PR nog op.
-    public static let recentlyMerged: TimeInterval = 3 * 86_400
+    static let recentlyMerged: TimeInterval = 3 * 86_400
     /// Mislukte checks van een open PR die niet veranderde: zo vaak opnieuw, voor een check die
     /// opnieuw gestart werd (dat verandert de PR zelf niet).
-    public static let failedCheckRefresh: TimeInterval = 900
+    static let failedCheckRefresh: TimeInterval = 900
     /// Na "geen toestemming" zo lang wachten voor de volgende vraag.
-    public static let checkPermissionRetry: TimeInterval = 3600
+    static let checkPermissionRetry: TimeInterval = 3600
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -91,7 +39,7 @@ public actor PollEngine {
         var rateLimitedUntil: Date?
     }
 
-    private struct Fetched {
+    struct Fetched {
         let userId: String
         let pullRequests: [PullRequest]
         /// `nil` als tags deze cyclus niet aan de beurt waren of het ophalen mislukte.
@@ -121,7 +69,7 @@ public actor PollEngine {
 
     /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
     /// melding), met de bekende checks en het moment van de poll.
-    private struct CheckRequest: Sendable {
+    struct CheckRequest: Sendable {
         /// De bron CI-checks staat aan (`DataSourceID.ciChecks`); uit vraagt de poll geen checks.
         let isEnabled: Bool
         let includeOwn: Bool
@@ -131,14 +79,14 @@ public actor PollEngine {
 
     /// Waar een poll de tags van ophaalt: het account (eigen instellingen, standaard) en de repo's
     /// (lowercased) waarvan de eerste tag-poll al gedaan is, met hun vingerafdruk als die er is.
-    private struct TagRepos: Sendable {
+    struct TagRepos: Sendable {
         let account: Account
         let seeded: Set<String>
         let fingerprints: [String: String]
     }
 
     /// Een geschiedenis-sync die deze cyclus moet draaien; `since == nil` haalt alles op.
-    private struct SyncRequest: Sendable {
+    struct SyncRequest: Sendable {
         let since: Date?
         /// Eerste sync over de hele bewaartermijn (geen geldige `SyncMark`).
         let isFirst: Bool
@@ -348,245 +296,6 @@ public actor PollEngine {
         return result
     }
 
-    private static func fetch(
-        _ provider: any PRProvider,
-        knownUserId: String?,
-        coAuthorRevisions: [String: String?],
-        checkRequest: CheckRequest,
-        tagRepos: TagRepos,
-        fetchTags: Bool,
-        sync: SyncRequest?
-    ) async -> Result<Fetched, ProviderError> {
-        do {
-            let userId: String
-            if let knownUserId {
-                userId = knownUserId
-            } else {
-                userId = try await provider.currentUserId()
-            }
-            let pullRequests = try await provider.openPullRequests()
-            var tags = TagOutcome(repos: tagRepos.account.tagRepos)
-            if fetchTags {
-                tags = try await Self.fetchTags(provider, tagRepos)
-            }
-            var synced: [PullRequest]?
-            var syncError: ProviderError?
-            if let sync {
-                (synced, syncError) = await Self.fetchSync(provider, since: sync.since)
-            }
-            let details = await Self.fetchDetails(
-                provider,
-                open: pullRequests,
-                synced: synced ?? [],
-                settings: tagRepos.account.filterSettings,
-                userId: userId,
-                coAuthorRevisions: coAuthorRevisions,
-                checks: checkRequest
-            )
-            return .success(Fetched(
-                userId: userId,
-                pullRequests: pullRequests,
-                tags: tags.fetch?.tags,
-                tagRepos: tags.repos,
-                backfillTags: tags.backfill,
-                unavailableTagRepos: Set((tags.fetch?.unavailableRepos ?? []).map { $0.lowercased() }),
-                unchangedTagRepos: Set((tags.fetch?.unchangedRepos ?? []).map { $0.lowercased() }),
-                tagFingerprints: Dictionary(
-                    (tags.fetch?.fingerprints ?? [:]).map { ($0.key.lowercased(), $0.value) },
-                    uniquingKeysWith: { first, _ in first }
-                ),
-                tagError: tags.error,
-                synced: synced,
-                syncError: syncError,
-                coAuthors: details.coAuthors,
-                checks: details.checks
-            ))
-        } catch let error as ProviderError {
-            return .failure(error)
-        } catch {
-            return .failure(.network(error.localizedDescription))
-        }
-    }
-
-    /// Uitkomst van het ophalen van tags in één poll.
-    private struct TagOutcome {
-        var fetch: TagFetch?
-        var repos: [String]
-        var backfill: [Tag] = []
-        var error: ProviderError?
-    }
-
-    /// Haalt de tags op van de eigen tag-repo's, en bij tags als standaard van alle repo's in de
-    /// lijst van de dienst. Een geseede repo met een vingerafdruk wordt alleen helemaal opgehaald
-    /// als die veranderde (`tags(in:unchanged:)`). Repo's die nog niet geseed zijn krijgen hun
-    /// gedateerde tags erbij: uit de opgehaalde tags als die al een datum hebben, anders via
-    /// `datedTags`; lukt dat niet, dan seedt die repo stil zoals vroeger.
-    /// Alleen `.rateLimited` laat het account falen; andere tag-fouten (ook `.unauthorized`,
-    /// bv. een 403 op één repo) worden teruggegeven zodat de PR's van deze poll gewoon verwerkt worden.
-    private static func fetchTags(
-        _ provider: any PRProvider,
-        _ tagRepos: TagRepos
-    ) async throws -> TagOutcome {
-        let account = tagRepos.account
-        var outcome = TagOutcome(repos: account.tagRepos)
-        do {
-            if account.followsTagsByDefault {
-                outcome.repos = account.tagRepos(available: try await provider.listRepos())
-            }
-            var unchanged: [String: String] = [:]
-            for repo in outcome.repos {
-                let key = repo.lowercased()
-                if tagRepos.seeded.contains(key), let fingerprint = tagRepos.fingerprints[key] {
-                    unchanged[repo] = fingerprint
-                }
-            }
-            let fetch = try await provider.tags(in: outcome.repos, unchanged: unchanged)
-            outcome.fetch = fetch
-            let unavailable = Set(fetch.unavailableRepos.map { $0.lowercased() })
-            let fetchedByRepo = Dictionary(grouping: fetch.tags) { $0.repo.lowercased() }
-            for repo in outcome.repos {
-                let key = repo.lowercased()
-                guard !tagRepos.seeded.contains(key), !unavailable.contains(key) else { continue }
-                let dated = (fetchedByRepo[key] ?? []).filter { $0.createdAt != nil }
-                if !dated.isEmpty {
-                    outcome.backfill += dated.sorted { $0.createdAt! > $1.createdAt! }.prefix(tagBackfillLimit)
-                    continue
-                }
-                do {
-                    outcome.backfill += try await provider.datedTags(in: repo, limit: tagBackfillLimit)
-                } catch {
-                    logger.notice("tagdatums ophalen mislukt voor \(repo): \(error.localizedDescription)")
-                }
-            }
-            return outcome
-        } catch let error as ProviderError {
-            switch error {
-            case .rateLimited: throw error
-            default:
-                outcome.error = error
-                return outcome
-            }
-        } catch {
-            outcome.error = .network(error.localizedDescription)
-            return outcome
-        }
-    }
-
-    /// Haalt in één keer (`PRProvider.details`, bij GitHub in dezelfde GraphQL-verzoeken) de
-    /// co-auteurs en de checks op. Co-auteurs: van de zichtbare PR's die nieuw zijn of veranderden
-    /// sinds de vorige keer (`PullRequest.revision`), hooguit `coAuthorLimit`. Checks: zie
-    /// `checksVisible` en `wantsChecks`, hooguit `checkLimit`. Open PR's eerst, dan de gesyncte,
-    /// elk nieuwste eerst. Een PR die niet veranderde kost geen verzoek. Fouten laten het account
-    /// niet falen; die PR's komen bij een volgende poll opnieuw aan de beurt.
-    private static func fetchDetails(
-        _ provider: any PRProvider,
-        open: [PullRequest],
-        synced: [PullRequest],
-        settings: FilterSettings,
-        userId: String,
-        coAuthorRevisions known: [String: String?],
-        checks request: CheckRequest
-    ) async -> (coAuthors: [String: (revision: String?, people: [Person])], checks: [String: (revision: String?, checks: PRChecks)]) {
-        let candidates = open.sorted { $0.createdAt > $1.createdAt } + synced.sorted { $0.createdAt > $1.createdAt }
-        var seen: Set<String> = []
-        let forCoAuthors = Array(candidates
-            .filter { pr in
-                guard seen.insert(pr.dedupKey).inserted,
-                      PRFilter.passes(pr, settings: settings, currentUserId: userId) else { return false }
-                guard let revision = known[pr.dedupKey] else { return true }
-                return revision != pr.revision
-            }
-            .prefix(coAuthorLimit))
-        seen = []
-        let forChecks = !request.isEnabled ? [] : Array(candidates
-            .filter { pr in
-                guard seen.insert(pr.dedupKey).inserted,
-                      checksVisible(pr, settings: settings, userId: userId, includeOwn: request.includeOwn, at: request.at)
-                else { return false }
-                return wantsChecks(pr, mark: request.known[pr.dedupKey], at: request.at)
-            }
-            .prefix(checkLimit))
-        guard !forCoAuthors.isEmpty || !forChecks.isEmpty else { return ([:], [:]) }
-        var wanted: [PullRequest] = []
-        var keys: Set<String> = []
-        for pr in forCoAuthors + forChecks where keys.insert(pr.dedupKey).inserted { wanted.append(pr) }
-        do {
-            let found = try await provider.details(
-                of: wanted,
-                coAuthorsOf: Set(forCoAuthors.map(\.dedupKey)),
-                checksOf: Set(forChecks.map(\.dedupKey))
-            )
-            var coAuthors: [String: (revision: String?, people: [Person])] = [:]
-            for pr in forCoAuthors {
-                coAuthors[pr.dedupKey] = (pr.revision, found.coAuthors[pr.dedupKey] ?? [])
-            }
-            var checks: [String: (revision: String?, checks: PRChecks)] = [:]
-            for pr in forChecks {
-                if let value = found.checks[pr.dedupKey] { checks[pr.dedupKey] = (pr.revision, value) }
-            }
-            return (coAuthors, checks)
-        } catch {
-            logger.notice("co-auteurs en checks ophalen mislukt: \(error.localizedDescription)")
-            return ([:], [:])
-        }
-    }
-
-    /// Of de checks van deze PR in Pullwatch te zien zijn of gemeld worden: een open PR die de
-    /// lijst toont, of een eigen open PR in een gevolgde repo als de melding aan staat; een
-    /// gemergde PR alleen kort na de merge (`recentlyMerged`).
-    private static func checksVisible(
-        _ pr: PullRequest, settings: FilterSettings, userId: String, includeOwn: Bool, at t: Date
-    ) -> Bool {
-        switch pr.state {
-        case .open:
-            if PRFilter.passes(pr, settings: settings, currentUserId: userId) { return true }
-            return includeOwn && isOwn(pr, userId: userId) && settings.watch(for: pr.repo).prs
-        case .merged:
-            guard let closedAt = pr.closedAt, t.timeIntervalSince(closedAt) <= recentlyMerged else { return false }
-            return PRFilter.passes(pr, settings: settings, currentUserId: userId)
-        case .closed:
-            return false
-        }
-    }
-
-    private static func isOwn(_ pr: PullRequest, userId: String) -> Bool {
-        pr.authorId.caseInsensitiveCompare(userId) == .orderedSame
-    }
-
-    /// Moeten de checks van deze PR (opnieuw) opgehaald worden? Nog nooit opgehaald, de PR
-    /// veranderde (een push), of de checks lopen nog. Mislukte checks van een open PR af en toe
-    /// opnieuw (`failedCheckRefresh`), omdat iemand ze opnieuw kan starten zonder dat de PR
-    /// verandert; groene checks van een PR die niet veranderde nooit. Na "geen toestemming"
-    /// eens per `checkPermissionRetry`.
-    static func wantsChecks(_ pr: PullRequest, mark: CheckMark?, at t: Date) -> Bool {
-        guard let mark else { return true }
-        if mark.revision != pr.revision { return true }
-        switch mark.checks {
-        case .needsPermission:
-            return t.timeIntervalSince(mark.fetchedAt) >= checkPermissionRetry
-        case .counts(let counts):
-            switch counts.state {
-            case .pending: return true
-            case .failed: return pr.state == .open && t.timeIntervalSince(mark.fetchedAt) >= failedCheckRefresh
-            case .passed, nil: return false
-            }
-        }
-    }
-
-    /// Fouten (ook `.rateLimited` en `.unauthorized`) worden teruggegeven, nooit gegooid:
-    /// de geschiedenis-sync mag het account niet laten falen.
-    private static func fetchSync(
-        _ provider: any PRProvider,
-        since: Date?
-    ) async -> (pullRequests: [PullRequest]?, error: ProviderError?) {
-        do {
-            return (try await provider.pullRequests(updatedSince: since, limit: syncLimit), nil)
-        } catch let error as ProviderError {
-            return (nil, error)
-        } catch {
-            return (nil, .network(error.localizedDescription))
-        }
-    }
 
     /// Vervolg-sync vanaf de vorige sync (min overlap), mits de sync-relevante filtersettings en
     /// de bewaartermijn ongewijzigd zijn; anders een eerste sync over de hele bewaartermijn.

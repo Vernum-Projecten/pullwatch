@@ -17,7 +17,7 @@ public struct GitHubAdvisory: Codable, Hashable, Sendable, Identifiable {
     /// De pagina op github.com/advisories (globaal) of in de repository (eigen advies).
     public let url: URL
     public let publishedAt: Date?
-    public let withdrawnAt: Date?
+    let withdrawnAt: Date?
     /// Alleen bij een eigen advies van de repository: de geraakte packages.
     public let packages: [AffectedPackage]
     /// Wanneer Pullwatch dit advies ophaalde; na `refreshInterval` haalt de check het opnieuw.
@@ -86,9 +86,9 @@ public struct GitHubAdvisory: Codable, Hashable, Sendable, Identifiable {
     }
 
     /// Een advies verandert soms nog (CVSS, CWE, ingetrokken); na een maand haalt de check het opnieuw.
-    public static let refreshInterval: TimeInterval = 30 * 24 * 3600
+    static let refreshInterval: TimeInterval = 30 * 24 * 3600
     /// Een id of CVE zonder advies bij GitHub wordt na een week opnieuw geprobeerd.
-    public static let missRetryInterval: TimeInterval = 7 * 24 * 3600
+    static let missRetryInterval: TimeInterval = 7 * 24 * 3600
 
     /// De pagina in de GitHub Advisory Database, ook voor een id zonder opgehaald advies.
     public static func pageURL(ghsaId: String) -> URL {
@@ -111,22 +111,22 @@ public struct GitHubAdvisory: Codable, Hashable, Sendable, Identifiable {
 /// Het advies zoals de REST API het geeft; dezelfde vorm voor `/advisories` en
 /// `/repos/{owner}/{repo}/security-advisories`, op `first_patched_version` en `patched_versions` na.
 package struct AdvisoryDTO: Decodable, Sendable {
-    package struct Score: Decodable, Sendable {
+    struct Score: Decodable, Sendable {
         let vectorString: String?
         let score: Double?
     }
 
-    package struct Severities: Decodable, Sendable {
+    struct Severities: Decodable, Sendable {
         let cvssV3: Score?
         let cvssV4: Score?
     }
 
-    package struct CWE: Decodable, Sendable {
+    struct CWE: Decodable, Sendable {
         let cweId: String
         let name: String?
     }
 
-    package struct Vulnerability: Decodable, Sendable {
+    struct Vulnerability: Decodable, Sendable {
         struct Package: Decodable, Sendable {
             let ecosystem: String?
             let name: String?
@@ -186,13 +186,13 @@ public enum AdvisoryDatabase {
     public struct Lookup: Sendable, Equatable {
         public var advisories: [GitHubAdvisory] = []
         /// GHSA-ids en CVE's waar GitHub geen advies voor heeft.
-        public var misses: [String] = []
+        var misses: [String] = []
         /// Opzoekingen die mislukten (netwerk, rate limit); de volgende check probeert ze opnieuw.
         public var failed = 0
     }
 
     /// Haalt elk GHSA-id en elke CVE (zonder bekend GHSA-id) één keer op, hooguit `concurrency` tegelijk.
-    public static func lookUp(
+    static func lookUp(
         ghsaIds: Set<String>, cves: Set<String>, http: any HTTPClient, token: String?, now: Date
     ) async -> Lookup {
         let work = ghsaIds.sorted().map { (key: $0, isCVE: false) } + cves.sorted().map { (key: $0, isCVE: true) }

@@ -9,7 +9,7 @@ public struct RecentItem: Codable, Equatable, Sendable, Identifiable {
 }
 
 public struct RecentList: Codable, Equatable, Sendable {
-    public static let capacity = 50
+    static let capacity = 50
 
     public private(set) var items: [RecentItem] = []
 

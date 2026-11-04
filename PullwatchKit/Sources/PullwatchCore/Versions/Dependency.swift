@@ -68,7 +68,7 @@ public struct Dependency: Hashable, Sendable {
     }
 
     /// Rechtstreeks gevraagd (true), alleen via een ander package (false) of onbekend (nil).
-    public var isDirect: Bool? {
+    var isDirect: Bool? {
         switch scope {
         case .direct: true
         case .transitive: false
@@ -214,7 +214,7 @@ public struct PackageUse: Codable, Hashable, Sendable {
     public var key: String { "\(ecosystem):\(name)" }
 
     /// Installs die het project zelf vraagt; zonder zulke installs alle.
-    public var directInstalls: [PackageInstall] {
+    var directInstalls: [PackageInstall] {
         let direct = installs.filter { $0.scope == .direct }
         return direct.isEmpty ? installs : direct
     }

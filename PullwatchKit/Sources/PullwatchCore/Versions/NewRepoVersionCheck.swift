@@ -12,7 +12,7 @@ public enum NewRepoVersionCheck {
 
     /// Of `result` een repo bevat die gevolgd wordt (PR's, tags of afgeronde PR's), nog niet in
     /// `report` staat en nog niet los gecheckt is (`attempted`, sleutels van `Account.repoKey`).
-    public static func hasUnseenRepo(
+    static func hasUnseenRepo(
         in result: PollResult, accounts: [Account], report: VersionReport, attempted: Set<String>
     ) -> Bool {
         let known = Set(report.repos.map { Account.repoKey(accountId: $0.accountId, repo: $0.repo) })

@@ -8,9 +8,9 @@ import Synchronization
 /// opruimt. Met `-PullwatchEphemeralSecrets` of het nagespeelde GitHub (`-PullwatchFakeGitHub`)
 /// alleen in het geheugen: UI-tests en schermafbeeldingen laten zo niets achter.
 public enum SecretStores {
-    public static let ephemeralKey = "PullwatchEphemeralSecrets"
+    static let ephemeralKey = "PullwatchEphemeralSecrets"
     static let fakeGitHubKey = "PullwatchFakeGitHub"
-    public static let defaultService = "nl.torrisi.pullwatch"
+    static let defaultService = "nl.torrisi.pullwatch"
 
     /// De opslag van deze run, één keer bepaald uit de launch-argumenten.
     public static let shared: any SecretStore = make(defaults: .standard)
@@ -54,7 +54,7 @@ public enum SecretStores {
 }
 
 /// Tokens alleen in het geheugen van deze run.
-public final class EphemeralSecretStore: SecretStore {
+final class EphemeralSecretStore: SecretStore {
     private let secrets = Mutex<[String: String]>([:])
 
     public init() {}

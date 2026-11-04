@@ -1,7 +1,7 @@
 import Foundation
 
 /// Een taal-, runtime- of frameworkversie gevonden in één bestand van een repo.
-public struct DetectedVersion: Codable, Hashable, Sendable {
+struct DetectedVersion: Codable, Hashable, Sendable {
     /// Productnaam bij endoflife.date (bv. "go", "nodejs", "dotnet").
     public let product: String
     /// Weergavenaam; Docker-images krijgen "Docker " ervoor zodat ze los van de taal staan.
@@ -10,7 +10,7 @@ public struct DetectedVersion: Codable, Hashable, Sendable {
     public let source: String
     /// Ondergrens uit een versie-eis (`engines.node`, composer `php`, `rust-version`, `requires-python`),
     /// niet wat er echt draait; valt weg als dezelfde taal ergens vastgezet is.
-    public let isMinimum: Bool
+    let isMinimum: Bool
 
     public init(product: String, label: String, version: String, source: String, isMinimum: Bool = false) {
         self.product = product
@@ -22,9 +22,9 @@ public struct DetectedVersion: Codable, Hashable, Sendable {
 }
 
 /// Herkent versies in bekende projectbestanden. Alleen tekstverwerking, geen netwerk.
-public enum StackDetector {
+enum StackDetector {
     /// Maximaal aantal bestanden dat per repo gelezen wordt.
-    public static let maxFiles = 50
+    static let maxFiles = 50
 
     private static let ignoredFolders: Set<String> = ["node_modules", "vendor", ".git", "bin", "obj", "dist", "build", ".build"]
 
@@ -46,7 +46,7 @@ public enum StackDetector {
 
     /// Frameworks waarvan de geïnstalleerde versie in een lockfile staat; die gaat voor het
     /// minimum uit de versiespecificatie ("^7.2" kan 7.4 zijn).
-    public static let lockedPackages: [String: Set<String>] = [
+    static let lockedPackages: [String: Set<String>] = [
         "angular": ["@angular/core"], "react": ["react"], "vue": ["vue"], "nextjs": ["next"], "nuxt": ["nuxt"],
         "laravel": ["laravel/framework"],
         "symfony": ["symfony/framework-bundle", "symfony/http-kernel", "symfony/console"],
@@ -60,11 +60,11 @@ public enum StackDetector {
     ]
 
     /// Pad ligt in een map die nooit gelezen wordt (node_modules, vendor, bin, …).
-    public static func isIgnored(_ path: String) -> Bool {
+    static func isIgnored(_ path: String) -> Bool {
         path.split(separator: "/").dropLast().contains { ignoredFolders.contains(String($0)) }
     }
 
-    public static func isRelevant(_ path: String) -> Bool {
+    static func isRelevant(_ path: String) -> Bool {
         guard let name = path.split(separator: "/").last.map(String.init) else { return false }
         if isIgnored(path) { return false }
         // Alleen de Cargo.toml in de root: daar staat bij een workspace de rust-version.
@@ -76,7 +76,7 @@ public enum StackDetector {
             || name.hasSuffix(".csproj") || name.hasSuffix(".fsproj") || name.hasPrefix("Dockerfile")
     }
 
-    public static func detect(path: String, content: String) -> [DetectedVersion] {
+    static func detect(path: String, content: String) -> [DetectedVersion] {
         let name = path.split(separator: "/").last.map(String.init) ?? path
         func found(_ product: String, _ label: String, _ spec: String, isMinimum: Bool = false) -> DetectedVersion? {
             version(from: spec).map { DetectedVersion(product: product, label: label, version: $0, source: path, isMinimum: isMinimum) }
@@ -193,7 +193,7 @@ public enum StackDetector {
 
     /// Mappen (vanaf de repo-root) van lokale modules uit `replace x => ./pad` in een go.mod.
     /// Zo'n module is een gevendorde dependency; zijn `go`-regel is een minimum, niet de buildversie.
-    public static func localGoReplacements(path: String, content: String) -> [String] {
+    static func localGoReplacements(path: String, content: String) -> [String] {
         let base = path.split(separator: "/").dropLast().map(String.init)
         return content.split(whereSeparator: \.isNewline).compactMap { line in
             guard let arrow = line.range(of: "=>") else { return nil }

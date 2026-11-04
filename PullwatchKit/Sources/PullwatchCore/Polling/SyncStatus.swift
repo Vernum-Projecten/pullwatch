@@ -35,7 +35,7 @@ public enum SyncStatus: Equatable, Sendable {
     /// De laatste poll mislukte voor minstens één account, met de melding erbij.
     case failed(String)
 
-    public var isSyncing: Bool {
+    var isSyncing: Bool {
         if case .syncing = self { true } else { false }
     }
 

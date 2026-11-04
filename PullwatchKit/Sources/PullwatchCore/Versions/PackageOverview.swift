@@ -4,7 +4,7 @@ import Foundation
 public struct PackageLatest: Codable, Hashable, Sendable {
     public let version: String?
     /// Eerste check waarin deze versie de nieuwste was.
-    public let seenAt: Date
+    let seenAt: Date
 
     public init(version: String?, seenAt: Date) {
         self.version = version
@@ -110,7 +110,7 @@ public enum PackageVersions {
     }
 
     /// Updates waarvan de nieuwste versie nog niet gezien is; `seen` is id → laatst geziene `latest`.
-    public static func unseen(_ summaries: [PackageSummary], seen: [String: String]) -> [PackageSummary] {
+    static func unseen(_ summaries: [PackageSummary], seen: [String: String]) -> [PackageSummary] {
         summaries.filter { $0.state == .updateAvailable && seen[$0.id] != $0.latest }
     }
 

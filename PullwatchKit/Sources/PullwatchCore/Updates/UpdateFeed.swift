@@ -9,7 +9,7 @@ import Foundation
 /// token). De eigenaar komt uit de build-instelling `PW_RELEASES_OWNER` (Info.plist
 /// `PWReleasesOwner`), zodat de fork en upstream alleen in hun configuratie verschillen.
 public enum UpdateFeed {
-    public static let repositoryName = "pullwatch"
+    static let repositoryName = "pullwatch"
 
     /// De appcast van de nieuwste gewone release.
     public static func latestURL(owner: String) -> URL {

@@ -19,7 +19,7 @@ public enum ProviderError: Error, Equatable, Sendable {
     }
 
     /// De tekst in de taal van `bundle`, zodat tests elke taal kunnen controleren.
-    package func userMessage(bundle: Bundle) -> String {
+    func userMessage(bundle: Bundle) -> String {
         switch self {
         case .unauthorized:
             return String(localized: "Token ongeldig of verlopen", bundle: bundle)

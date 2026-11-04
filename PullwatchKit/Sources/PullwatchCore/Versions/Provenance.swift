@@ -71,9 +71,9 @@ public struct Advisory: Hashable, Sendable, Identifiable {
     /// De install die het advies vertegenwoordigt: een directe als die er is.
     public var first: Vulnerability { installs[0] }
     /// Het project vraagt het geraakte package ergens zelf.
-    public var isDirect: Bool { installs.contains { $0.scope == .direct } }
+    var isDirect: Bool { installs.contains { $0.scope == .direct } }
     /// Elke geraakte install is alleen voor ontwikkelen en testen.
-    public var isDevOnly: Bool { installs.allSatisfy { $0.kind == .dev } }
+    var isDevOnly: Bool { installs.allSatisfy { $0.kind == .dev } }
     public var severityRank: Int { installs.map(\.severityRank).max() ?? 0 }
     var scopeRank: Int { installs.map(\.scopeRank).min() ?? 1 }
 
@@ -176,7 +176,7 @@ extension RepoVersions {
 
 extension PackageUser {
     /// De repo heeft het package alleen via andere packages: niet zelf bij te werken.
-    public var isTransitiveOnly: Bool {
+    var isTransitiveOnly: Bool {
         !installs.isEmpty && installs.allSatisfy { $0.scope == .transitive }
     }
 }

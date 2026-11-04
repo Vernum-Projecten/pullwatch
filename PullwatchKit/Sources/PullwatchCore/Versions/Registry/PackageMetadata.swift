@@ -9,13 +9,13 @@ public struct VersionMetadata: Codable, Hashable, Sendable {
     /// npm `peerDependencies`: wat naast dit package in de workspace moet staan.
     public var peerDependencies: [String: String]
     /// Peers die `peerDependenciesMeta` optioneel noemt.
-    public var optionalPeers: [String]
+    var optionalPeers: [String]
     /// Eisen aan de runtime, per product zoals endoflife.date het noemt (`nodejs`, `php`, `python`,
     /// `rust`, `dotnet`, `ruby`, `rubygems`, `go`), in de syntaxis van het ecosysteem. Voor Rust, Go
     /// en .NET een minimum (`>= 1.70`).
     public var runtimes: [String: String]
     /// Ingetrokken (yanked, unlisted, deprecated): telt niet als bruikbare versie.
-    public var isWithdrawn: Bool
+    var isWithdrawn: Bool
 
     public init(
         dependencies: [String: String]? = nil, peerDependencies: [String: String] = [:], optionalPeers: [String] = [],
