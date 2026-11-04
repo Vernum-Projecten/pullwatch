@@ -48,4 +48,12 @@ public struct PublishedPackageType: RawRepresentable, Codable, Hashable, Sendabl
         default: nil
         }
     }
+
+    /// De soort bij een ecosysteem van de versiecheck, het omgekeerde van `dependencyEcosystem`;
+    /// nil voor een ecosysteem zonder soort in een register (Swift-packages per URL).
+    init?(dependencyEcosystem ecosystem: String) {
+        let all: [Self] = [.npm, .maven, .rubyGems, .nuGet, .pyPI, .composer, .golang, .cargo]
+        guard let found = all.first(where: { $0.dependencyEcosystem == ecosystem }) else { return nil }
+        self = found
+    }
 }

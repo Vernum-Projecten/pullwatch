@@ -34,7 +34,7 @@ enum SourceOff {
 
     /// De zin voor een eigen package waarvan de nieuwste versie niet uit het eigen register kwam;
     /// nil als die wel gelezen is. Nooit "actueel": de bron staat uit, het account mag niet lezen,
-    /// of het lezen mislukte.
+    /// het lezen mislukte, of het register noemde een package uit het lockbestand niet.
     static func inHouseNotChecked(_ inHouse: InHousePackage) -> String? {
         switch inHouse.status {
         case .checked: nil
@@ -45,6 +45,9 @@ enum SourceOff {
         case .readFailed:
             String(localized: "Niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie",
                    comment: "Een eigen package; het lezen van de versies uit het eigen register mislukte")
+        case .unconfirmed:
+            String(localized: "Niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet",
+                   comment: "Een eigen package volgens het lockbestand; het register van het account kon niet gelezen worden of noemde het package niet")
         }
     }
 

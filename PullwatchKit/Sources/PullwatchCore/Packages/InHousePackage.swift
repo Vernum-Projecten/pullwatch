@@ -20,6 +20,11 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         /// mislukte, of het package heeft er geen. De naam staat alleen in het eigen register, dus
         /// de check vraagt geen publiek register en OSV niets (#215): niet gecontroleerd.
         case readFailed
+        /// De lockfile haalt het package uit het eigen register van het account, maar dat register
+        /// noemde het niet: het lezen mislukte, de dienst heeft geen register dat Pullwatch leest, of
+        /// de repository die het publiceert wordt niet gevolgd. Het bewijs alleen houdt de naam al
+        /// binnen (#216): geen publiek register, geen OSV, niet gecontroleerd.
+        case unconfirmed
     }
 
     /// Het account waarvan het register het package noemt.
@@ -88,7 +93,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
     }
 
     private enum StatusKey: String, Codable {
-        case checked, sourceOff, needsPermission, readFailed
+        case checked, sourceOff, needsPermission, readFailed, unconfirmed
     }
 
     /// Account, naam, soort en eigenaar zijn nodig; de rest mag ontbreken. Een stand die Pullwatch
@@ -107,6 +112,7 @@ public struct InHousePackage: Codable, Hashable, Sendable {
         case .checked?: status = .checked
         case .needsPermission?: status = .needsPermission(reason: (try? c.decodeIfPresent(String.self, forKey: .reason)) ?? "")
         case .readFailed?: status = .readFailed
+        case .unconfirmed?: status = .unconfirmed
         case .sourceOff?, nil: status = .sourceOff
         }
         isPublicName = (try? c.decodeIfPresent(Bool.self, forKey: .isPublicName)) ?? false
@@ -131,6 +137,8 @@ public struct InHousePackage: Codable, Hashable, Sendable {
             try c.encode(reason, forKey: .reason)
         case .readFailed:
             try c.encode(StatusKey.readFailed, forKey: .status)
+        case .unconfirmed:
+            try c.encode(StatusKey.unconfirmed, forKey: .status)
         }
         if isPublicName { try c.encode(true, forKey: .isPublicName) }
     }

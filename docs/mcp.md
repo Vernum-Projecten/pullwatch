@@ -153,12 +153,19 @@ need care:
   of a repository that is no longer followed never appear.
 - **`in_house`** (`MCPInHouse`, in `get_repository_report` per package and
   in `explain_update`, #171): `source`, `repository`, `owner`, `url`,
-  `registry_url`, `status` (`checked`, `source_off`, `needs_permission`) and
-  `reason`. When the registry was not read, `update` is `not_checked` and
-  `not_checked` names the source or the missing permission, never up to
-  date. The tools only read `PackageMetadata.inHouse`; that in-house names
-  never reach a public registry or OSV.dev is `VersionChecker`'s job
-  (`VersionCheckerInHouseTests`).
+  `registry_url`, `status` (`checked`, `source_off`, `needs_permission`,
+  `read_failed`, `unconfirmed`) and `reason`. When the registry was not
+  read, `update` is `not_checked` and `not_checked` names the source or the
+  missing permission, never up to date. The tools only read
+  `PackageMetadata.inHouse`; which names stay out of public registries and
+  OSV.dev is `VersionChecker`'s job (`VersionCheckerInHouseTests`,
+  `VersionCheckerInHouseLockfileTests`). A name stays private only when
+  Pullwatch can tell the package is yours: the account's registry lists it
+  with evidence, or the lockfile gets it from the own registry of the
+  repository's account (or an npm name with the owner's scope from a
+  registry that is not the public one), whatever reading the registry did
+  (#216). Without a registry in the lockfile the name can reach both; the
+  website's Dependencies page lists the cases.
 
 ## Adding a tool
 

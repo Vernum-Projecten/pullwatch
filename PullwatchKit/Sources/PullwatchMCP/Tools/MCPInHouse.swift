@@ -12,7 +12,7 @@ struct MCPInHouse: Encodable, Hashable {
     let url: URL?
     /// De pagina van het package in het eigen register.
     let registryUrl: URL?
-    /// checked, source_off, needs_permission of read_failed.
+    /// checked, source_off, needs_permission, read_failed of unconfirmed.
     let status: String
     let reason: String?
 
@@ -35,6 +35,9 @@ struct MCPInHouse: Encodable, Hashable {
         case .readFailed:
             status = "read_failed"
             reason = nil
+        case .unconfirmed:
+            status = "unconfirmed"
+            reason = nil
         }
     }
 
@@ -47,9 +50,10 @@ struct MCPInHouse: Encodable, Hashable {
             "registry_url": .string("The package's page in your own registry."),
             "status": .string(
                 "checked: the latest version comes from your own registry, never from the public one. "
-                    + "source_off, needs_permission or read_failed (your registry gave no latest version): "
-                    + "not checked, never read as up to date.",
-                oneOf: ["checked", "source_off", "needs_permission", "read_failed"]
+                    + "source_off, needs_permission, read_failed (your registry gave no latest version) or "
+                    + "unconfirmed (the lockfile installs it from your own registry, but that registry did not list it): "
+                    + "not checked, never read as up to date, and the name is never sent to a public registry or OSV.",
+                oneOf: ["checked", "source_off", "needs_permission", "read_failed", "unconfirmed"]
             ),
             "reason": .string("What permission is missing, when status is needs_permission."),
         ],
@@ -63,6 +67,7 @@ struct MCPInHouse: Encodable, Hashable {
         case "source_off": MCPSourceOff(.packageRegistries, repository: repository)
         case "needs_permission": MCPSourceOff(permission: reason, repository: repository)
         case "read_failed": MCPSourceOff(readFailedFor: repository)
+        case "unconfirmed": MCPSourceOff(unconfirmedFor: repository)
         default: nil
         }
     }
