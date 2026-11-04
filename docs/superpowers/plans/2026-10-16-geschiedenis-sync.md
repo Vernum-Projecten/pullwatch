@@ -1,4 +1,6 @@
-# Geschiedenis-sync, inhalen en PR-status — Implementation Plan
+# Geschiedenis-sync, inhalen en PR-status: Implementation Plan
+
+> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -38,7 +40,7 @@
 
 **Files:** Modify `Sources/PullwatchCore/Models.swift`; Test `Tests/PullwatchCoreTests/ModelsTests.swift`, `Support/Fixtures.swift`
 
-**Interfaces — Produces:**
+**Interfaces (Produces):**
 - `public enum PRState: String, Codable, Sendable, CaseIterable { case open, merged, closed }`
 - `PullRequest.state: PRState` (var), `PullRequest.closedAt: Date?` (var); init-parameters `state: PRState = .open, closedAt: Date? = nil` achteraan; `init(from:)` met `decodeIfPresent` (→ `.open` / `nil`).
 - `PullRequest.fixture(..., state: PRState = .open, closedAt: Date? = nil)`.
@@ -69,17 +71,17 @@
 
 ---
 
-### Task 3: Providers — pullRequests(updatedSince:limit:)
+### Task 3: Providers: pullRequests(updatedSince:limit:)
 
 **Files:** Modify `Sources/PullwatchCore/PRProvider.swift`, `GitHubProvider.swift`, `AzureDevOpsProvider.swift`, `Tests/.../Support/MockProvider.swift`; Test `GitHubProviderTests.swift`, `AzureDevOpsProviderTests.swift`
 
-**Interfaces — Produces:**
-- `PRProvider.pullRequests(updatedSince since: Date?, limit: Int) async throws -> [PullRequest]` — alle statussen, nieuwste eerst (GitHub: `updated` desc; ADO: `creationDate` desc na samenvoegen), afgekapt op `limit`.
+**Interfaces (Produces):**
+- `PRProvider.pullRequests(updatedSince since: Date?, limit: Int) async throws -> [PullRequest]`: alle statussen, nieuwste eerst (GitHub: `updated` desc; ADO: `creationDate` desc na samenvoegen), afgekapt op `limit`.
 - `MockProvider.set(syncedPullRequests:)`, `set(syncError:)`, `syncCount`, `lastSyncSince: Date??` (laatste doorgegeven `since`). `GatedProvider` → `[]`.
 
 GitHub: `search/issues` met `q = "is:pr {org|user}:{owner}" + (since.map { " updated:>=\(ISO8601, UTC, seconden)" } ?? "")`, `sort=updated`, `order=desc`, `per_page=100`, max 10 pagina's of tot `limit`. DTO uitbreiden: `state: String`, `closedAt: String?`, `pullRequest: { mergedAt: String? }?`. Mapping: `state == "open"` → `.open`; `mergedAt != nil` → `.merged`; anders `.closed`.
 
-ADO: per project `_apis/git/pullrequests` met `searchCriteria.status=all`, `$top=100`, `$skip`. Met `since`: twee reeksen — `searchCriteria.queryTimeRangeType=created` en `=closed`, beide met `searchCriteria.minTime={ISO8601}` — samengevoegd op `pullRequestId`. Zonder `since`: één reeks, stoppen zodra `limit` bereikt. DTO: `status`, `closedDate?`. Mapping: `active` → open, `completed` → merged, `abandoned` → closed. 404 op project → overslaan.
+ADO: per project `_apis/git/pullrequests` met `searchCriteria.status=all`, `$top=100`, `$skip`. Met `since`: twee reeksen (`searchCriteria.queryTimeRangeType=created` en `=closed`, beide met `searchCriteria.minTime={ISO8601}`) samengevoegd op `pullRequestId`. Zonder `since`: één reeks, stoppen zodra `limit` bereikt. DTO: `status`, `closedDate?`. Mapping: `active` → open, `completed` → merged, `abandoned` → closed. 404 op project → overslaan.
 
 - [ ] **Step 1: Tests**
   - GitHub `syncMapsStates`: 3 items (open; closed+merged_at; closed zonder merged_at) → `[.open, .merged, .closed]`, `closedAt` gezet bij de laatste twee.
@@ -108,7 +110,7 @@ ADO: per project `_apis/git/pullrequests` met `searchCriteria.status=all`, `$top
 Gedrag:
 - `Schedule.nextSyncDue = .distantPast`; sync is aan de beurt als `nextSyncDue <= t` (bij een job die toch al draait). `forceRefresh` zet ook `nextSyncDue = t` (behalve tijdens PR-rate-limit, zoals nu).
 - `since`: als `syncMarks[id]` bestaat **en** `settings == account.filterSettings` **en** `retention` gelijk → `mark.at − syncOverlap`; anders eerste sync: `retention.maxAge.map { t − $0 }` (nil bij `.forever`).
-- Sync-call in `fetch` ná PR's en tags. Fouten worden gevangen en als `syncError` teruggegeven — nooit `.failure`.
+- Sync-call in `fetch` ná PR's en tags. Fouten worden gevangen en als `syncError` teruggegeven, nooit `.failure`.
 - Succes: `syncMarks[id] = SyncMark(at: t, settings:, retention:)`, `nextSyncDue = t + tagInterval`, resultaat door `PRFilter.passes(_, settings:, currentUserId:)` naar `syncedPullRequests`. Niets in `seen`.
 - `syncError == .rateLimited(until)` → `nextSyncDue = min(until, t + maxRateLimitWait)`; andere fout → `nextSyncDue = t + tagInterval`; beide loggen; `syncMarks` ongewijzigd; account `.ok`.
 
@@ -132,7 +134,7 @@ Gedrag:
 
 **Files:** Modify `App/AppModel.swift`, `App/HistoryView.swift`, `App/KindStyle.swift`, `README.md`
 
-**Interfaces — Consumes:** `PollResult.syncedPullRequests`, `History.merge(synced:)`, `HistoryEntry.prState`, `PRState`.
+**Interfaces (Consumes):** `PollResult.syncedPullRequests`, `History.merge(synced:)`, `HistoryEntry.prState`, `PRState`.
 
 - `tick`: na `add` van gemelde items → `merge(synced:)`; `prune`/opslaan als `add` of `merge` iets veranderde. Notificatie-logica ongewijzigd.
 - `KindStyle.swift`: extension `PRState` met `color` (`.green` / `.purple` / `.gray`) en `label` ("Open"/"Gemerged"/"Gesloten"), plus `StatePill` view.

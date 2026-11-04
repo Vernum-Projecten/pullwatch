@@ -1,4 +1,6 @@
-# Hoofdvenster met zijbalk en package-versies — ontwerp
+# Hoofdvenster met zijbalk en package-versies: ontwerp
+
+> Noot (4 november 2026): Dit ontwerp noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-11-01
 
@@ -30,26 +32,26 @@ losse vensters.
 - Geen automatische PR's of bumps; Pullwatch blijft alleen-lezen.
 - Repo-controle (het huidige Versies-scherm) verandert inhoudelijk niet: daar blijven patches
   niet meetellen en blijven EOL en CVE's de focus.
-- Instellingen blijft een apart venster (Alessandro heeft dat niet gevraagd; macOS-gewoonte — mijn keuze).
+- Instellingen blijft een apart venster (Alessandro heeft dat niet gevraagd; macOS-gewoonte, mijn keuze).
 
 ## Anti-doelen
 
 - Meldingenspam: één melding per check per package-update is al te veel bij tientallen npm-packages.
 - Een lijst vol "onbekend" doordat private modules of private registries niet op te zoeken zijn.
 
-## Deel 1 — Hoofdvenster
+## Deel 1: Hoofdvenster
 
 - De `Window`s `history` en `versions` in `PullwatchApp.swift` worden één `Window` (id bv. `main`,
   titel "Pullwatch") met een `NavigationSplitView`. Settings blijft een eigen `Window`.
 - Zijbalk, in deze volgorde:
-  - **PR's** — de huidige `HistoryView` met vast filter op pull requests (incl. completed/merged).
-  - **Tags** — `HistoryView` met vast filter op tags. Het segmented filter "Alles / PR's / Tags" verdwijnt.
-  - **Repo-controle** — de huidige `VersionsView`, ongewijzigd van inhoud; hernoemd.
-  - **Versies** — nieuw (deel 2).
+  - **PR's**: de huidige `HistoryView` met vast filter op pull requests (incl. completed/merged).
+  - **Tags**: `HistoryView` met vast filter op tags. Het segmented filter "Alles / PR's / Tags" verdwijnt.
+  - **Repo-controle**: de huidige `VersionsView`, ongewijzigd van inhoud; hernoemd.
+  - **Versies**: nieuw (deel 2).
 - Tellers in de zijbalk (badge): PR's = ongelezen PR's, Tags = ongelezen tags, Versies = aantal
   packages met een nieuwe versie die je nog niet gezien hebt. Repo-controle zonder teller (mijn keuze;
   de builder mag daar het aantal repo's met CVE's tonen als dat vanzelf meekomt).
-- Menu: "Geschiedenis…" en "Versies…" worden vervangen door één knop "Openen…" plus — als het past —
+- Menu: "Geschiedenis…" en "Versies…" worden vervangen door één knop "Openen…" plus, als het past , 
   directe sprongen. Minimaal: de knop opent het hoofdvenster op het laatst gekozen onderdeel. Bestaande
   sprongen (dubbelklik/rechtsklik "Versies" vanuit de geschiedenis, `model.versionsSearch`) gaan naar
   het onderdeel Repo-controle met het zoekfilter, zoals nu.
@@ -57,22 +59,22 @@ losse vensters.
 - Het Dock-gedrag ("zichtbaar zolang een venster open is") blijft.
 - Localisatie: nieuwe strings in NL/EN/DE/FR, net als de rest.
 
-## Deel 2 — Onderdeel Versies
+## Deel 2: Onderdeel Versies
 
 ### Wat er op het scherm staat
 
 Zie mockup `.superpowers/brainstorm/…/content/versions-tab.html`. Lijst per package:
 
 - Groep **Nieuwe versie beschikbaar**: packages waar minstens één repo een oudere versie heeft dan de
-  nieuwste. Regel: `Go` · soort-label (`runtime`, `go`, `npm`, `composer`, `nuget`, `pypi`, `cargo`) ·
-  "**1.27.4 beschikbaar**" · "5 repo's achter" · sinds wanneer bekend.
+  nieuwste. Regel: `Go`, soort-label (`runtime`, `go`, `npm`, `composer`, `nuget`, `pypi`, `cargo`),
+  "**1.27.4 beschikbaar**", "5 repo's achter", sinds wanneer bekend.
 - Uitklappen: per achterlopende repo de repo-naam, de gebruikte versie en het bestand/de bestanden
   (`go.mod`, `Dockerfile`), plus "✓ N repo's al op 1.27.4".
 - Groep **Actueel**: packages waar alle repo's bij zijn, ingeklapt.
 - Groep **Niet te checken** (ingeklapt, onderaan): packages waarvan de nieuwste versie niet op te
   halen was (private module, onbekend register). Niet in de teller, geen melding.
 - Zoekveld (package of repo) en knop "Nu checken".
-- Een package staat in "Nieuwe versie beschikbaar" zolang er een repo achterloopt — het is een
+- Een package staat in "Nieuwe versie beschikbaar" zolang er een repo achterloopt, het is een
   toestand, geen bericht. Een stip/"nieuw" markeert packages waarvan de nieuwste versie veranderd is
   sinds je dit onderdeel voor het laatst opende (mijn keuze).
 - Klik op een repo-naam: spring naar Repo-controle gefilterd op die repo (zelfde mechanisme als nu).
@@ -86,8 +88,8 @@ Zie mockup `.superpowers/brainstorm/…/content/versions-tab.html`. Lijst per pa
   hier géén update: dat toont Repo-controle al als "Achter", en anders staat een LTS-repo eeuwig in de
   lijst. Bron: endoflife.date (`latest` van díe cyclus) en swift.org, zoals nu.
 - **Frameworks** (React, Angular, Vue, Next.js, Nuxt, Laravel, Symfony; de sleutels van
-  `StackDetector.lockedPackages`) verschijnen **één keer**, als library-regel (`react` · npm) met de
-  nieuwste versie uit het register — niet ook nog als runtime-regel (mijn keuze).
+  `StackDetector.lockedPackages`) verschijnen **één keer**, als library-regel (`react`, npm) met de
+  nieuwste versie uit het register, niet ook nog als runtime-regel (mijn keuze).
 - **Directe libraries** per ecosysteem. Dit vraagt aanpassing van `DependencyDetector`, die nu ook
   indirecte packages oplevert:
   - Go: `go.mod` `require`-regels **zonder** `// indirect`.
@@ -128,7 +130,7 @@ timeouts en `HTTPStatus.check` als OSV/endoflife.date:
 | crates.io | `https://crates.io/api/v1/crates/<name>` → `max_stable_version` (vereist `User-Agent`) |
 
 Exacte endpoints mag de builder verfijnen. 404/403 → "Niet te checken", geen fout voor de hele check.
-Package-namen gaan naar deze registers, ook van private repo's — net als nu bij OSV.dev. README
+Package-namen gaan naar deze registers, ook van private repo's, net als nu bij OSV.dev. README
 vermeldt dat.
 
 ### Wanneer
@@ -136,7 +138,7 @@ vermeldt dat.
 - Draait mee met de bestaande versiecheck (dagelijks, `autoVersionCheck`, en "Opnieuw checken" /
   "Nu checken"). Geen eigen schema.
 - ↻ op één repo in Repo-controle werkt het onderdeel Versies ook bij voor die repo.
-- Opslag: uitbreiden van `versions.json` (of een eigen bestand ernaast — keuze builder), met per
+- Opslag: uitbreiden van `versions.json` (of een eigen bestand ernaast, keuze builder), met per
   package de nieuwste versie en wanneer die voor het eerst gezien is. Oude `versions.json` moet
   blijven laden (decodeIfPresent, zoals nu).
 

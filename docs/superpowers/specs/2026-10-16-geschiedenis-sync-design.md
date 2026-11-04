@@ -1,4 +1,6 @@
-# Pullwatch — geschiedenis ophalen, inhalen en PR-status
+# Pullwatch: geschiedenis ophalen, inhalen en PR-status
+
+> Noot (4 november 2026): De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-10-16
 Status: brainstorm afgerond, wacht op review
@@ -75,7 +77,7 @@ func pullRequests(updatedSince since: Date?, limit: Int) async throws -> [PullRe
 - Sync markeert **niets** in `seen`: meldingen blijven volledig bij de bestaande open-PR-poll. (Een nieuwe open PR die de sync eerder ziet dan de poll, wordt dus nog steeds door de poll gemeld.)
 - `PollResult.syncedPullRequests: [PullRequest]`.
 
-De bewaartermijn moet daarvoor in de engine bekend zijn: `poll(accounts:interval:retention:)` of vergelijkbaar — aan builder.
+De bewaartermijn moet daarvoor in de engine bekend zijn: `poll(accounts:interval:retention:)` of vergelijkbaar, aan builder.
 
 ## History
 

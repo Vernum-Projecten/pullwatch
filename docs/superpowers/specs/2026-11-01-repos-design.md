@@ -1,4 +1,6 @@
-# Onderdeel Repo's — ontwerp
+# Onderdeel Repo's: ontwerp
+
+> Noot (4 november 2026): De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-11-01
 

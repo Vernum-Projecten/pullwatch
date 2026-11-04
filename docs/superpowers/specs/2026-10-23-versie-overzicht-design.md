@@ -1,4 +1,6 @@
-# Pullwatch — versie-overzicht (welke repo's lopen achter)
+# Pullwatch: versie-overzicht (welke repo's lopen achter)
+
+> Noot (4 november 2026): De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-10-23
 Status: gebruiker gaf akkoord om zonder verdere vragen te bouwen
@@ -36,10 +38,10 @@ Per pollbaar account `listRepos()`, gefilterd op `account.watch(for:)` met minst
 
 Twee nieuwe methodes op `PRProvider`:
 
-- `filePaths(in:)` — alle bestandspaden op de default branch, in één aanvraag.
+- `filePaths(in:)`: alle bestandspaden op de default branch, in één aanvraag.
   GitHub `GET /repos/{repo}/git/trees/HEAD?recursive=1`; Azure DevOps `GET {project}/_apis/git/repositories/{repo}/items?scopePath=/&recursionLevel=Full`.
   Lege repo (GitHub 409, Azure 404) → lege lijst.
-- `fileContent(in:path:)` — inhoud als tekst. GitHub `contents/{path}` met raw-Accept; Azure `items?path=…&includeContent=true`.
+- `fileContent(in:path:)`: inhoud als tekst. GitHub `contents/{path}` met raw-Accept; Azure `items?path=…&includeContent=true`.
 
 ### Herkenning
 

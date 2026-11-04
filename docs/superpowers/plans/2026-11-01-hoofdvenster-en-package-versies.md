@@ -1,5 +1,7 @@
 # Hoofdvenster en package-versies Implementation Plan
 
+> Noot (4 november 2026): Dit plan noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. XcodeGen (`project.yml`) is vervangen door het vastgelegde `Pullwatch/Pullwatch.xcodeproj`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Eén hoofdvenster met zijbalk (PR's, Tags, Repo-controle, Versies) en een nieuw onderdeel Versies dat per package/runtime-cyclus toont welke repo's achterlopen, met een gebundelde melding bij nieuwe versies.

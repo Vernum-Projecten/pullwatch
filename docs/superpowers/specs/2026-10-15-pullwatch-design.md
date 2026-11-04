@@ -1,4 +1,6 @@
-# Pullwatch — design
+# Pullwatch: design
+
+> Noot (4 november 2026): Dit ontwerp noemt bestanden zoals ze toen heetten. Sinds de opruiming van #112 staan de bronnen per module en gebied (`PullwatchKit/Sources/<Module>/<Gebied>/`, `Pullwatch/Pullwatch/App/` en `Views/`) en zijn de grote bestanden per onderdeel gesplitst; `CLAUDE.md` geeft de huidige indeling. XcodeGen (`project.yml`) is vervangen door het vastgelegde `Pullwatch/Pullwatch.xcodeproj`. De leestekens volgen de huisstijl (geen em dashes en geen middelpunt als scheidingsteken); de inhoud is niet veranderd.
 
 Datum: 2026-10-15
 Status: goedgekeurd in brainstorm, wacht op review van spec
@@ -194,7 +196,7 @@ Per account, onafhankelijk en parallel (`TaskGroup`):
 
 ## Meldingen
 
-- Per nieuwe PR: titel `"{repo}: nieuwe PR"`, body `"{title} — {authorName}"`, `userInfo["url"] = webURL`.
+- Per nieuwe PR: titel `"{repo}: nieuwe PR"`, body `"{title}, {authorName}"`, `userInfo["url"] = webURL`.
 - Burst: meer dan 3 nieuwe PR's in één cyclus over alle accounts → één melding `"{n} nieuwe PR's"`, body met eerste 3 titels. Klik opent geen specifieke PR (een `MenuBarExtra` kan niet programmatisch geopend worden); de PR's staan in het menu met ongelezen-stip.
 - Klik → `NSWorkspace.shared.open(url)` en PR als gelezen markeren in menu.
 - Toestemming vragen bij eerste start; bij weigering status tonen in menu.
@@ -205,7 +207,7 @@ Per account, onafhankelijk en parallel (`TaskGroup`):
 
 - Icoon: SF Symbol `arrow.triangle.pull`; met stip bij ongelezen nieuwe PR's; `exclamationmark.triangle` als een account in foutstatus staat.
 - Menu:
-  - laatste 10 nieuwe PR's: `repo · titel · auteur · relatieve tijd`; klik opent PR, markeert gelezen;
+  - laatste 10 nieuwe PR's: `repo, titel, auteur, relatieve tijd`; klik opent PR, markeert gelezen;
   - "Nu verversen", "Alles gelezen";
   - per account statusregel: ✓ laatste poll-tijd, of fout + reden;
   - "Instellingen…", "Stop Pullwatch".
