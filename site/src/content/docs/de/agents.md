@@ -192,7 +192,7 @@ Bekannte Schwachstellen in Paketen und die Warnungen von Code-Scanning und Advan
 
 ### explain_update
 
-Warum sich ein Paket nicht einfach aktualisieren lässt, pro Installation: der verlangte Bereich, der Schritt (Patch, Minor oder Major), was ihn aufhält und welche Schwachstellen ein Update behebt. Argumente: `repo` und `package` (beide erforderlich), `ecosystem` (nur wenn der Name mehrdeutig ist), `account_id`.
+Warum sich ein Paket nicht einfach aktualisieren lässt, pro Installation: der verlangte Bereich, der Schritt (Patch, Minor oder Major), was ihn aufhält und welche Schwachstellen ein Update behebt. Argumente: `repo` und `package` (beide erforderlich), `ecosystem` (nur wenn der Name mehrdeutig ist), `account_id`. Auch ein Paket, das nur über ein anderes Paket hereinkommt (jedes Paket aus einer Lockfile), wird erklärt: `via` nennt die Kette, und die Erklärung sagt, was das Beheben einer Schwachstelle verlangt, nur die Lockfile oder zuerst ein neueres Elternpaket.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

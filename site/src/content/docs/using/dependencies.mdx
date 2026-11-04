@@ -55,6 +55,8 @@ Development-only packages come from `devDependencies`, `require-dev`, dev groups
 
 The groups tell you what an update takes: **Can update now** fits the range in your manifest, so only the lockfile changes; **Needs a manifest change** is outside that range, such as a new major version; **Blocked** means another package holds it back, and the row says which one.
 
+A package that no repository asks for itself, and that only comes in through another package, appears under **Only transitive, with a vulnerability** when it has a known vulnerability, with the chain that pulls it in. Pullwatch looks up the latest version only for packages a repository asks for itself. For Rust, the requested ranges come from every `Cargo.toml` of a workspace, including the `[workspace.dependencies]` that members take over with `workspace = true`.
+
 ## Per repository
 
 The **Packages** tab of a repository page shows the same per workspace: the installed version, the newest version usable now, the latest version, and whether the package is direct, comes in through another package (with the shortest chain) or is for development only.

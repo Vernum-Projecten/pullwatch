@@ -192,7 +192,7 @@ Bekende kwetsbaarheden in packages en de meldingen van code scanning en Advanced
 
 ### explain_update
 
-Waarom één package niet zomaar bij te werken is, per installatie: het gevraagde bereik, de stap (patch, minor of major), wat hem tegenhoudt en welke kwetsbaarheden een update oplost. Argumenten: `repo` en `package` (allebei verplicht), `ecosystem` (alleen als de naam dubbelzinnig is), `account_id`.
+Waarom één package niet zomaar bij te werken is, per installatie: het gevraagde bereik, de stap (patch, minor of major), wat hem tegenhoudt en welke kwetsbaarheden een update oplost. Argumenten: `repo` en `package` (allebei verplicht), `ecosystem` (alleen als de naam dubbelzinnig is), `account_id`. Ook een package dat alleen via een ander package binnenkomt (elk package uit een lockfile) krijgt uitleg: `via` noemt de keten, en de uitleg zegt wat het oplossen van een kwetsbaarheid vraagt, alleen de lockfile of eerst een nieuwere ouder.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

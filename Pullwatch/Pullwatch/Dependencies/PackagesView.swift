@@ -280,6 +280,11 @@ private struct PackageStatusCell: View {
                 Text("\(row.summary.behind.count) repo's lopen achter").foregroundStyle(.orange)
             case .current:
                 Text("gebruikt in \(row.summary.current.count) repo's").foregroundStyle(.secondary)
+            case .unchecked where row.summary.isTransitiveOnly:
+                Text("Alleen via andere packages")
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .help(Text("Geen repo vraagt dit package zelf; het staat hier om een kwetsbaarheid. Pullwatch zoekt de nieuwste versie alleen op voor packages die een repo zelf vraagt."))
             case .unchecked:
                 if let source = row.skippedSource {
                     Text(verbatim: SourceOff.versionNotChecked(source)).foregroundStyle(.secondary).lineLimit(1)
@@ -288,7 +293,7 @@ private struct PackageStatusCell: View {
                     Text("Nieuwste versie niet op te halen").foregroundStyle(.secondary)
                 }
             }
-        case .user(let row) where row.standing == .transitiveOnly:
+        case .user(let row) where row.standing == .transitiveOnly && row.user.installs.count != 1:
             Text("Alleen transitief")
                 .foregroundStyle(.secondary)
                 .lineLimit(1)

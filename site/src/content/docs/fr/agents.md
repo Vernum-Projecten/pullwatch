@@ -192,7 +192,7 @@ Les vulnérabilités connues des paquets et les alertes du code scanning et d’
 
 ### explain_update
 
-Pourquoi un paquet ne se met pas à jour aussi simplement, par installation : la plage demandée, le pas (patch, minor ou major), ce qui bloque et les vulnérabilités qu’une mise à jour corrige. Arguments : `repo` et `package` (obligatoires), `ecosystem` (seulement si le nom est ambigu), `account_id`.
+Pourquoi un paquet ne se met pas à jour aussi simplement, par installation : la plage demandée, le pas (patch, minor ou major), ce qui bloque et les vulnérabilités qu’une mise à jour corrige. Arguments : `repo` et `package` (obligatoires), `ecosystem` (seulement si le nom est ambigu), `account_id`. Un paquet qui n’arrive que par un autre paquet (tout paquet d’un lockfile) est expliqué aussi : `via` donne la chaîne, et l’explication dit ce que demande la correction d’une vulnérabilité, seulement le lockfile ou d’abord un parent plus récent.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

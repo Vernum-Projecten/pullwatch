@@ -3979,6 +3979,28 @@
         }
       }
     },
+    "Alleen transitief, met een kwetsbaarheid": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur transitiv, mit einer Schwachstelle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only transitive, with a vulnerability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement transitif, avec une vulnérabilité"
+          }
+        }
+      }
+    },
     "Alleen van %@": {
       "comment": "Auteur",
       "localizations": {
@@ -4020,6 +4042,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Runtimes obsolètes uniquement"
+          }
+        }
+      }
+    },
+    "Alleen via andere packages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur über andere Pakete"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only through other packages"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement par d’autres paquets"
           }
         }
       }
@@ -5615,6 +5659,28 @@
         }
       }
     },
+    "De versie is geen versienummer dat Pullwatch kan vergelijken.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Version ist keine Versionsnummer, die Pullwatch vergleichen kann."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The version is not a version number Pullwatch can compare."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La version n’est pas un numéro de version que Pullwatch peut comparer."
+          }
+        }
+      }
+    },
     "Deels": {
       "localizations": {
         "de": {
@@ -7118,6 +7184,28 @@
         }
       }
     },
+    "Geen gevraagd bereik gevonden in het manifest of bij de ouder.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein verlangter Bereich im Manifest oder beim Elternpaket gefunden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No requested range found in the manifest or at the parent."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune plage demandée trouvée dans le manifeste ni chez le parent."
+          }
+        }
+      }
+    },
     "Geen open meldingen": {
       "localizations": {
         "de": {
@@ -7230,6 +7318,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aucune version publiée"
+          }
+        }
+      }
+    },
+    "Geen repo vraagt dit package zelf; het staat hier om een kwetsbaarheid. Pullwatch zoekt de nieuwste versie alleen op voor packages die een repo zelf vraagt.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Repository verlangt dieses Paket selbst; es steht hier wegen einer Schwachstelle. Pullwatch sucht die neueste Version nur für Pakete, die ein Repository selbst verlangt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No repository asks for this package itself; it is here because of a vulnerability. Pullwatch looks up the latest version only for packages a repository asks for itself."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun dépôt ne demande ce paquet lui-même ; il est ici à cause d’une vulnérabilité. Pullwatch ne cherche la dernière version que pour les paquets qu’un dépôt demande lui-même."
           }
         }
       }
@@ -8257,6 +8367,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Origine inconnue"
+          }
+        }
+      }
+    },
+    "Het gevraagde bereik %@ is niet te lezen.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der verlangte Bereich %@ ist nicht lesbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The requested range %@ cannot be read."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La plage demandée %@ est illisible."
+          }
+        }
+      }
+    },
+    "Het register gaf geen nieuwste versie.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Registry hat keine neueste Version geliefert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The registry gave no latest version."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le registre n’a donné aucune dernière version."
           }
         }
       }
@@ -14785,6 +14939,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch ne voit que les dépôts où l’app est installée : sur votre propre compte ou sur une organisation (où un propriétaire l’installe ou approuve votre demande)."
+          }
+        }
+      }
+    },
+    "Pullwatch zoekt de nieuwste versie alleen op voor packages die de repo zelf vraagt.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch sucht die neueste Version nur für Pakete, die das Repository selbst verlangt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch looks up the latest version only for packages the repository asks for itself."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ne cherche la dernière version que pour les paquets que le dépôt demande lui-même."
           }
         }
       }

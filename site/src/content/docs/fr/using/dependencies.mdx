@@ -55,6 +55,8 @@ Les paquets réservés au développement viennent de `devDependencies`, `require
 
 Les groupes vous disent ce qu’une mise à jour demande : **Mise à jour possible** reste dans la plage de votre manifeste, donc seul le fichier de verrouillage change ; **Manifeste à modifier** sort de cette plage, comme une nouvelle version majeure ; **Bloqué** signifie qu’un autre paquet la retient, et la ligne indique lequel.
 
+Un paquet qu’aucun dépôt ne demande lui-même, et qui n’arrive que par un autre paquet, apparaît sous **Seulement transitif, avec une vulnérabilité** quand il a une vulnérabilité connue, avec la chaîne qui l’amène. Pullwatch ne cherche la dernière version que pour les paquets qu’un dépôt demande lui-même. Pour Rust, les plages demandées viennent de chaque `Cargo.toml` d’un workspace, y compris des `[workspace.dependencies]` que les membres reprennent avec `workspace = true`.
+
 ## Par dépôt
 
 L’onglet **Paquets** d’une page de dépôt affiche la même chose par espace de travail : la version installée, la version la plus récente utilisable maintenant, la dernière version, et si le paquet est direct, s’il arrive par un autre paquet (avec la chaîne la plus courte) ou s’il est réservé au développement.

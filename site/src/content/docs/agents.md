@@ -192,7 +192,7 @@ Known vulnerabilities in packages and the security alerts of code scanning and A
 
 ### explain_update
 
-Why one package cannot simply be updated, per install: the requested range, the step (patch, minor or major), what blocks it and the vulnerabilities an update fixes. Arguments: `repo` and `package` (both required), `ecosystem` (only when the name is ambiguous), `account_id`.
+Why one package cannot simply be updated, per install: the requested range, the step (patch, minor or major), what blocks it and the vulnerabilities an update fixes. Arguments: `repo` and `package` (both required), `ecosystem` (only when the name is ambiguous), `account_id`. It also explains a package that only comes in through another package (any package from a lockfile): `via` names the chain, and the explanation says what fixing a vulnerability takes, only the lockfile or a newer parent first.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

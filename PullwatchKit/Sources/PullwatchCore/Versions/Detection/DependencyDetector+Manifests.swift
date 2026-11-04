@@ -74,8 +74,9 @@ extension DependencyDetector {
             for (key, kind, range) in pyprojectNames(content) { add(key, kind, range) }
             return Manifest(ecosystem: "PyPI", names: names, ranges: ranges)
         case "Cargo.toml":
-            for (key, kind, range) in cargoDependencies(content) { add(key, kind, range) }
-            return Manifest(ecosystem: "crates.io", names: names, ranges: ranges)
+            // Alleen dit bestand: een lid erft dan uit zijn eigen `[workspace.dependencies]` (zie `installs`).
+            let cargo = cargoManifest(content)
+            return cargoManifestNames(cargo, declarations: cargo.resolved(root: nil))
         case "Gemfile", "gems.rb":
             for (key, kind, range) in gemfileNames(content) { add(key, kind, range) }
             return Manifest(ecosystem: "RubyGems", names: names, ranges: ranges)
@@ -148,49 +149,6 @@ extension DependencyDetector {
         if specifier.hasPrefix("("), specifier.hasSuffix(")") { specifier = String(specifier.dropFirst().dropLast()) }
         if specifier.hasPrefix("@") || specifier.isEmpty { return (String(m.output.1), nil) }
         return (String(m.output.1), specifier)
-    }
-
-    /// Crate-namen uit `[dependencies]`, `[build-dependencies]` en `[workspace.dependencies]`
-    /// (runtime), `[dev-dependencies]` (dev) en `[target.'…'.dependencies]` (sleutels), plus tabellen
-    /// als `[dependencies.serde]` (naam in de kop), met hun versie-eis: `serde = "1.0"`,
-    /// `serde = { version = "1.0" }`, `version = "1"` in een eigen tabel, of `{ workspace = true }`
-    /// (de eis uit `[workspace.dependencies]`). Een pad of git zonder versie heeft geen eis.
-    private static func cargoDependencies(_ content: String) -> [(String, DependencyKind, String?)] {
-        let kinds: [(String, DependencyKind)] = [("dependencies", .runtime), ("dev-dependencies", .dev), ("build-dependencies", .runtime)]
-        var found: [(name: String, kind: DependencyKind, range: String?, inherits: Bool)] = []
-        var workspace: [String: String] = [:]
-        var current: DependencyKind?
-        var inWorkspace = false
-        /// Index in `found` van een tabel als `[dependencies.serde]`.
-        var table: Int?
-        func requirement(_ value: String) -> String? {
-            TomlPackage.string(value) ?? value.firstMatch(of: /\bversion\s*=\s*"([^"]+)"/).map { String($0.output.1) }
-        }
-        for raw in content.split(whereSeparator: \.isNewline) {
-            let line = raw.trimmingCharacters(in: .whitespaces)
-            if line.hasPrefix("[") {
-                let section = line.trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
-                current = kinds.first { section == $0.0 || section.hasSuffix(".\($0.0)") }?.1
-                inWorkspace = section == "workspace.dependencies"
-                table = nil
-                if current == nil, let kind = kinds.first(where: { section.hasPrefix("\($0.0).") }) {
-                    found.append((String(section.dropFirst(kind.0.count + 1)), kind.1, nil, false))
-                    table = found.count - 1
-                }
-                continue
-            }
-            if let index = table, let m = line.firstMatch(of: /^(version|workspace)\s*=\s*(.*)/) {
-                if m.output.1 == "version" { found[index].range = TomlPackage.string(String(m.output.2)) }
-                if m.output.1 == "workspace", m.output.2.hasPrefix("true") { found[index].inherits = true }
-                continue
-            }
-            if let current, let m = line.firstMatch(of: /^([A-Za-z0-9_-]+)\s*=\s*(.*)/) {
-                let value = String(m.output.2)
-                found.append((String(m.output.1), current, requirement(value), value.firstMatch(of: /\bworkspace\s*=\s*true/) != nil))
-                if inWorkspace { workspace[String(m.output.1)] = requirement(value) }
-            }
-        }
-        return found.map { item in (item.name, item.kind, item.inherits ? workspace[item.name] : item.range) }
     }
 
     /// `.package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0")` in Package.swift →

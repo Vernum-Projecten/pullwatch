@@ -39,7 +39,7 @@ enum DependencyDetector {
     static func isRelevant(_ path: String) -> Bool {
         guard let name = path.split(separator: "/").last.map(String.init) else { return false }
         return name == "go.mod" || name == "package-lock.json" || name == "Package.resolved" || name == "composer.lock" || name == "Cargo.lock" || name == "poetry.lock" || name == "uv.lock"
-            || isLockfile(name) || name == "Gemfile" || name == "gems.rb"
+            || name == "Cargo.toml" || isLockfile(name) || name == "Gemfile" || name == "gems.rb"
             || name == "Directory.Packages.props" || name == "Directory.Build.props"
             || name.hasSuffix(".csproj") || name.hasSuffix(".fsproj")
             || (name.hasPrefix("requirements") && name.hasSuffix(".txt"))
@@ -70,6 +70,7 @@ enum DependencyDetector {
         if name == "Gemfile.lock" || name == "gems.locked" { return gemfileLock(content, path: path) }
         if name == "Gemfile" || name == "gems.rb" { return LockfileRead(ecosystem: "RubyGems", source: path, dependencies: []) }
         if name == "Cargo.lock" { return LockfileRead(ecosystem: "crates.io", source: path, dependencies: cargoLock(content, path: path)) }
+        if name == "Cargo.toml" { return LockfileRead(ecosystem: "crates.io", source: path, dependencies: []) }
         if name.hasPrefix("requirements") { return LockfileRead(ecosystem: "PyPI", source: path, dependencies: requirements(content, path: path)) }
         return LockfileRead(ecosystem: "NuGet", source: path, dependencies: nugetPackages(content, path: path))
     }
@@ -209,7 +210,13 @@ enum DependencyDetector {
         for (path, content) in files where path.split(separator: "/").last == "package.json" {
             packageJSONs[folder(of: path)] = PackageJSON(content)
         }
+        /// Map → Cargo.toml: een lid erft eisen uit de workspace-root, dus pas na alle bestanden.
+        var cargo: [String: CargoManifest] = [:]
         for (path, content) in files {
+            if path.split(separator: "/").last == "Cargo.toml" {
+                cargo[folder(of: path)] = cargoManifest(content)
+                continue
+            }
             if let manifest = manifest(path: path, content: content) {
                 repoWide[manifest.ecosystem, default: []].formUnion(manifest.names.keys)
                 let key = "\(manifest.ecosystem)|\(folder(of: path))"
@@ -224,7 +231,20 @@ enum DependencyDetector {
                 reads.append(read(path: path, content: content))
             }
         }
-        return (resolve(reads, manifests: manifests, repoWide: repoWide), repoWide)
+        let cargoDeclarations = cargoDeclarations(cargo)
+        for (folder, declarations) in cargoDeclarations {
+            guard let manifest = cargo[folder] else { continue }
+            let names = cargoManifestNames(manifest, declarations: declarations)
+            repoWide["crates.io", default: []].formUnion(names.names.keys)
+            manifests["crates.io|\(folder)"] = names
+        }
+        let resolved = resolve(reads, manifests: manifests, repoWide: repoWide).map { dependency -> Dependency in
+            // Cargo: de eis uit elke Cargo.toml onder de lockfile, met geërfde eisen van de workspace.
+            guard dependency.ecosystem == "crates.io", dependency.scope == .direct, !cargo.isEmpty else { return dependency }
+            let found = cargoRequirement(of: dependency, lockfolder: folder(of: dependency.source), declarations: cargoDeclarations, manifests: cargo)
+            return dependency.with(kind: found.kind, requested: .some(found.requested ?? dependency.requested))
+        }
+        return (resolved, repoWide)
     }
 
     /// Scope, soort en via voor lockfiles die dat zelf niet zeggen, met het manifest uit dezelfde

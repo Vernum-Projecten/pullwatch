@@ -15,12 +15,21 @@ public struct VersionReport: Codable, Equatable, Sendable {
     /// Wat de registers per versie zeggen, per `PackageUse.key`: voor de blokkades en de nieuwste
     /// bruikbare versie (`UpdateContext`), en als cache voor de volgende check (`VersionChecker`).
     public let packageMetadata: [String: PackageMetadata]
+    /// Met welke versie van de check het rapport gemaakt is (`currentFormat`). Een ouder rapport
+    /// mist wat de check sindsdien leest (transitieve packages, gevraagde bereiken, de Cargo.toml's
+    /// van workspace-leden); de app checkt dan opnieuw (`isOutdatedFormat`).
+    public let format: Int
+
+    /// 1: zonder `format`. 2: transitieve installs met hun ouder, de eisen uit elke Cargo.toml en
+    /// de eis van de ouder uit het register.
+    public static let currentFormat = 2
 
     public init(
         checkedAt: Date, repos: [RepoVersions], latestPackages: [String: PackageLatest] = [:],
         advisories: [String: GitHubAdvisory] = [:], advisoryMisses: [String: Date] = [:],
-        packageMetadata: [String: PackageMetadata] = [:]
+        packageMetadata: [String: PackageMetadata] = [:], format: Int = VersionReport.currentFormat
     ) {
+        self.format = format
         self.checkedAt = checkedAt
         self.latestPackages = latestPackages
         self.advisories = advisories
@@ -34,7 +43,7 @@ public struct VersionReport: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata
+        case checkedAt, repos, latestPackages, advisories, advisoryMisses, packageMetadata, format
     }
 
     /// versions.json van vóór het package-overzicht heeft geen `latestPackages`, van vóór de
@@ -47,7 +56,11 @@ public struct VersionReport: Codable, Equatable, Sendable {
         advisories = try c.decodeIfPresent([String: GitHubAdvisory].self, forKey: .advisories) ?? [:]
         advisoryMisses = try c.decodeIfPresent([String: Date].self, forKey: .advisoryMisses) ?? [:]
         packageMetadata = try c.decodeIfPresent([String: PackageMetadata].self, forKey: .packageMetadata) ?? [:]
+        format = try c.decodeIfPresent(Int.self, forKey: .format) ?? 1
     }
+
+    /// Gemaakt door een oudere versie van de check: het zegt minder dan een nieuwe check zou zeggen.
+    public var isOutdatedFormat: Bool { format < Self.currentFormat }
 }
 
 extension VersionReport {
@@ -62,7 +75,7 @@ extension VersionReport {
         let replaced = repos.contains { $0.id == repo.id } ? repos.map { $0.id == repo.id ? repo : $0 } : repos + [repo]
         return VersionReport(
             checkedAt: checkedAt, repos: replaced, latestPackages: merged, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.merging(metadata) { _, new in new }
+            packageMetadata: packageMetadata.merging(metadata) { _, new in new }, format: format
         )
     }
 
@@ -186,7 +199,7 @@ extension VersionReport {
             latestPackages: latestPackages.filter { !isOff(key: $0.key) },
             advisories: disabled.contains(.gitHubAdvisoryDatabase) ? [:] : advisories,
             advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }
+            packageMetadata: packageMetadata.filter { !isOff(key: $0.key) }, format: format
         )
     }
 }

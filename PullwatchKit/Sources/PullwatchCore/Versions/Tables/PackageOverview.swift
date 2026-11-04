@@ -91,6 +91,9 @@ public struct PackageSummary: Hashable, Sendable, Identifiable {
         self.transitiveOnly = transitiveOnly
     }
 
+    /// Geen repo vraagt het zelf: het staat er alleen omdat het in een repo een kwetsbaarheid heeft.
+    public var isTransitiveOnly: Bool { behind.isEmpty && current.isEmpty && !transitiveOnly.isEmpty }
+
     public var state: State {
         guard latest != nil else { return .unchecked }
         return behind.isEmpty ? .current : .updateAvailable
@@ -178,10 +181,17 @@ extension VersionReport {
                                 updates: package.updates(latest: latest?.version, context: context)))
             }
         }
-        // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben; een
-        // package dat nergens direct gebruikt wordt krijgt geen eigen regel.
+        // Repo's die een package dat elders direct gebruikt wordt alleen transitief hebben. Een
+        // package dat nergens direct gebruikt wordt krijgt alleen een eigen regel als het een
+        // kwetsbaarheid heeft: dat moet te vinden zijn, de honderden andere niet.
         for repo in repos where repo.error == nil {
             let context = UpdateContext(repo: repo, index: index)
+            let vulnerable = Set(repo.vulnerabilities.map { "\($0.ecosystem):\($0.package)" })
+            for package in repo.otherPackages where groups[package.key] == nil && vulnerable.contains(package.key) {
+                order.append(package.key)
+                groups[package.key] = Group(label: package.name, kind: PackageVersions.kind(ofEcosystem: package.ecosystem),
+                                            latest: latestPackages[package.key]?.version)
+            }
             for package in repo.otherPackages where groups[package.key] != nil {
                 let user = PackageUser(repoId: repo.id, repo: repo.repo, version: package.version, sources: package.sources, installs: package.installs,
                                        updates: package.updates(latest: latestPackages[package.key]?.version, context: context))
@@ -226,7 +236,7 @@ extension VersionReport {
         }
         return VersionReport(
             checkedAt: checkedAt, repos: repos, latestPackages: latest, advisories: advisories, advisoryMisses: advisoryMisses,
-            packageMetadata: packageMetadata
+            packageMetadata: packageMetadata, format: format
         )
     }
 
