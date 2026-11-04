@@ -121,6 +121,12 @@ import Testing
         #expect(draws(PublishedPackageVersionCell(version: version, publishedAt: .now, showsDateInHelp: true, kind: kind, latestTag: latestTag)))
     }
 
+    @Test func `The latest version cell draws a newer pre-release next to the stable release`() {
+        #expect(draws(PublishedPackageVersionCell(
+            version: "20.0.0", publishedAt: .now, kind: .version, latestTag: .unversionedBuild, newerPrerelease: "21.0.0-rc9"
+        )))
+    }
+
     @Test(arguments: [PublishedPackage.Visibility.private, .internal, .public])
     func `The name cell draws with its visibility`(visibility: PublishedPackage.Visibility) {
         #expect(draws(PublishedPackageNameCell(name: "ferroehr", type: .container, visibility: visibility)))
@@ -150,7 +156,9 @@ import Testing
         let image = PublishedPackage(
             accountId: accountId, name: "ferrobridge", type: .container, owner: "acme", repository: "acme/ferrobridge",
             latestVersion: "0.0.17", visibility: .private,
-            versions: [PublishedVersion(version: "0.0.17", isLatestTag: true), PublishedVersion(version: "0.0.15")],
+            versions: [
+                PublishedVersion(version: "0.1.0-rc1"), PublishedVersion(version: "0.0.17", isLatestTag: true), PublishedVersion(version: "0.0.15"),
+            ],
             latestTag: .onLatestVersion
         )
         let inspector = PublishedPackageInspector(

@@ -288,7 +288,8 @@ import PullwatchTestSupport
         let found = try #require(result.packages.first)
 
         #expect(found.name == "charts/web")
-        #expect(found.latestVersion == "21.0.0-rc9")
+        #expect(found.latestVersion == "20.0.0", "de stabiele release voor de hogere pre-release")
+        #expect(found.newestPrerelease == "21.0.0-rc9")
         #expect(found.versions.map(\.version) == ["21.0.0-rc9", "20.0.0"])
     }
 

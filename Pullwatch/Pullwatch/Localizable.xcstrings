@@ -13471,6 +13471,29 @@
         }
       }
     },
+    "Nieuwere pre-release: %@": {
+      "comment": "Tooltip: een pre-release die nieuwer is dan de getoonde versie",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuere Vorabversion: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer pre-release: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préversion plus récente : %@"
+          }
+        }
+      }
+    },
     "Nieuwere versie": {
       "localizations": {
         "de": {
@@ -22682,6 +22705,29 @@
         }
       }
     },
+    "pre-release": {
+      "comment": "Label achter een versie die een pre-release is",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorabversion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "préversion"
+          }
+        }
+      }
+    },
     "pull request %@": {
       "comment": "VoiceOver; het nummer van een pull request",
       "localizations": {
@@ -22747,6 +22793,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "version %@, avec le tag latest"
+          }
+        }
+      }
+    },
+    "versie %@, pre-release": {
+      "comment": "VoiceOver: een pre-release",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@, Vorabversion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, pre-release"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, préversion"
+          }
+        }
+      }
+    },
+    "versie %@, pre-release, met de tag latest": {
+      "comment": "VoiceOver: pre-release waar ook de tag latest op staat",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@, Vorabversion, mit dem Tag latest"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, pre-release, tagged latest"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version %@, préversion, avec le tag latest"
           }
         }
       }

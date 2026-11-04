@@ -93,9 +93,33 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         )
     }
 
-    /// De nieuwste versie als echte versie: nil bij een zwevende tag of zonder tag. Dit vergelijkt
-    /// de check op eigen packages en de melding van een nieuwe versie.
-    public var releasedVersion: String? { latestKind == .version ? latestVersion : nil }
+    /// De nieuwste versie zoals Renovate en Dependabot die standaard kiezen: de hoogste stabiele
+    /// release (uit `latestVersion` en de recente versies), en alleen zonder stabiele versie de
+    /// nieuwste versie zelf (dan een pre-release). nil bij een zwevende tag of zonder tag. Dit
+    /// vergelijken de check op eigen packages, de melding van een nieuwe versie en de MCP-tools.
+    public var releasedVersion: String? {
+        guard latestKind == .version else { return nil }
+        let candidates = ([latestVersion].compactMap { $0 } + versions.map(\.version))
+            .compactMap { text in Version(text).map { (text: text, version: $0) } }
+            .filter { !$0.version.isPrerelease }
+        return candidates.max { $0.version < $1.version }?.text ?? latestVersion
+    }
+
+    /// Wanneer `releasedVersion` verscheen: de datum van die versie, anders `publishedAt`.
+    public var releasedAt: Date? {
+        guard let released = releasedVersion, released != latestVersion else { return publishedAt }
+        return versions.first { $0.version == released }?.publishedAt ?? publishedAt
+    }
+
+    /// Een pre-release die nieuwer is dan de stabiele `releasedVersion` ("21.0.0-rc9" naast
+    /// "20.0.0"); nil als die er niet is, of als er alleen pre-releases zijn.
+    public var newestPrerelease: String? {
+        guard let released = releasedVersion.flatMap({ Version($0) }), !released.isPrerelease else { return nil }
+        return ([latestVersion].compactMap { $0 } + versions.map(\.version))
+            .compactMap { text in Version(text).map { (text: text, version: $0) } }
+            .filter { $0.version.isPrerelease && $0.version > released }
+            .max { $0.version < $1.version }?.text
+    }
 
     private enum CodingKeys: String, CodingKey {
         case accountId, name, type, owner, repository, latestVersion, publishedAt, visibility, webURL, versions, latestKind, latestTag

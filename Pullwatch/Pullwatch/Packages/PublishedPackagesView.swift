@@ -208,14 +208,15 @@ private struct PublishedPackagesTable: View {
             .width(min: 120, ideal: 200)
             TableColumn("Nieuwste versie", value: \.latestSortKey) { summary in
                 PublishedPackageVersionCell(
-                    version: summary.package.latestVersion, publishedAt: summary.package.publishedAt, showsDateInHelp: !showsDate,
-                    kind: summary.package.latestKind, latestTag: summary.package.latestTag
+                    version: summary.package.releasedVersion ?? summary.package.latestVersion, publishedAt: summary.package.releasedAt,
+                    showsDateInHelp: !showsDate, kind: summary.package.latestKind, latestTag: summary.package.latestTag,
+                    newerPrerelease: summary.package.newestPrerelease
                 )
             }
             .width(min: 70, ideal: 100)
             if showsDate {
                 TableColumn("Gepubliceerd", value: \.publishedSortKey) { summary in
-                    PublishedPackageDateCell(publishedAt: summary.package.publishedAt)
+                    PublishedPackageDateCell(publishedAt: summary.package.releasedAt)
                 }
                 .width(min: 80, ideal: 110)
             }

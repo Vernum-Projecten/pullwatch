@@ -18,7 +18,8 @@ struct PublishedPackageInspector: View {
             PublishedPackageHeaderSection(package: summary.package, accountName: accountName)
             PublishedPackageVersionsSection(versions: summary.package.versions, showTags: showTags)
             PublishedPackageUsersSection(
-                users: summary.users, isMatchable: summary.isMatchable, latest: summary.package.latestVersion, openRepo: openRepo
+                users: summary.users, isMatchable: summary.isMatchable, latest: summary.package.releasedVersion ?? summary.package.latestVersion,
+                openRepo: openRepo
             )
             if let url = summary.package.webURL {
                 Section {
@@ -55,7 +56,8 @@ private struct PublishedPackageHeaderSection: View {
             }
             LabeledContent("Nieuwste versie") {
                 PublishedPackageVersionCell(
-                    version: package.latestVersion, publishedAt: package.publishedAt, kind: package.latestKind, latestTag: package.latestTag
+                    version: package.releasedVersion ?? package.latestVersion, publishedAt: package.releasedAt, kind: package.latestKind,
+                    latestTag: package.latestTag, newerPrerelease: package.newestPrerelease
                 )
             }
             if let visibility = package.visibility {
@@ -120,19 +122,37 @@ private struct PublishedPackageVersionsSection: View {
                 } label: {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text(verbatim: version.version).monospacedDigit().textSelection(.enabled)
+                        if version.isPrerelease {
+                            PrereleaseBadge()
+                        }
                         if version.isLatestTag {
                             LatestTagBadge()
                         }
                     }
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(version.isLatestTag
-                                        ? Text("versie \(version.version), met de tag latest", comment: "VoiceOver: versie waar ook de tag latest op staat")
-                                        : Text("versie \(version.version)", comment: "VoiceOver: de nieuwste versie van een package"))
+                    .accessibilityLabel(PublishedVersionLabel.accessibility(version))
                     if let date = version.publishedAt {
                         Text(date, format: .relative(presentation: .named))
                     }
                 }
             }
+        }
+    }
+}
+
+/// Wat VoiceOver bij een recente versie leest: de versie, of het een pre-release is en of hij
+/// de tag `latest` draagt, als één zin per geval.
+private enum PublishedVersionLabel {
+    static func accessibility(_ version: PublishedVersion) -> Text {
+        switch (version.isPrerelease, version.isLatestTag) {
+        case (true, true):
+            Text("versie \(version.version), pre-release, met de tag latest", comment: "VoiceOver: pre-release waar ook de tag latest op staat")
+        case (true, false):
+            Text("versie \(version.version), pre-release", comment: "VoiceOver: een pre-release")
+        case (false, true):
+            Text("versie \(version.version), met de tag latest", comment: "VoiceOver: versie waar ook de tag latest op staat")
+        case (false, false):
+            Text("versie \(version.version)", comment: "VoiceOver: de nieuwste versie van een package")
         }
     }
 }

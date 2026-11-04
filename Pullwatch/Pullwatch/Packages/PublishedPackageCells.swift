@@ -13,13 +13,13 @@ nonisolated extension PublishedPackageSummary {
     /// Zonder versie achteraan, een zwevende tag (`main`) net daarvoor.
     var latestSortKey: String {
         switch package.latestKind {
-        case .version: package.latestVersion ?? "\u{10FFFF}"
+        case .version: package.releasedVersion ?? package.latestVersion ?? "\u{10FFFF}"
         case .floatingTag: "\u{10FFFE}" + (package.latestVersion ?? "")
         case .untagged: "\u{10FFFF}"
         }
     }
     /// Zonder datum achteraan bij nieuwste eerst.
-    var publishedSortKey: Date { package.publishedAt ?? .distantPast }
+    var publishedSortKey: Date { package.releasedAt ?? .distantPast }
     /// Een soort die de check niet herkent telt als onbekend, onder nul.
     var usedBySortKey: Int { isMatchable ? users.count : -1 }
 }
@@ -84,6 +84,8 @@ struct PublishedPackageVersionCell: View {
     var showsDateInHelp = false
     var kind: PublishedPackage.LatestKind = .version
     var latestTag: PublishedPackage.LatestTag = .absent
+    /// Een pre-release die nieuwer is dan de getoonde stabiele versie.
+    var newerPrerelease: String?
 
     var body: some View {
         switch (kind, version) {
@@ -116,17 +118,28 @@ struct PublishedPackageVersionCell: View {
         }
     }
 
-    /// Waar `latest` naar wijst als dat niet de getoonde versie is, anders de datum.
+    /// Een nieuwere pre-release en waar `latest` naar wijst als dat niet de getoonde versie is,
+    /// elk een eigen zin op een eigen regel; anders de datum.
     private var help: Text {
+        let prerelease = newerPrerelease.map {
+            String(localized: "Nieuwere pre-release: \($0)", comment: "Tooltip: een pre-release die nieuwer is dan de getoonde versie")
+        }
+        let lines = [prerelease, latestNote].compactMap { $0 }
+        guard lines.isEmpty else { return Text(verbatim: lines.joined(separator: "\n")) }
+        return showsDateInHelp
+            ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
+            : Text(verbatim: "")
+    }
+
+    /// Waar `latest` naar wijst als dat niet de getoonde versie is.
+    private var latestNote: String? {
         switch latestTag {
         case .unversionedBuild:
-            Text("latest wijst naar een nieuwere build zonder versietag", comment: "latest is de naam van een tag; niet vertalen")
+            String(localized: "latest wijst naar een nieuwere build zonder versietag", comment: "latest is de naam van een tag; niet vertalen")
         case .otherVersion(let other):
-            Text("latest wijst naar \(other)", comment: "latest is de naam van een tag; niet vertalen")
+            String(localized: "latest wijst naar \(other)", comment: "latest is de naam van een tag; niet vertalen")
         case .absent, .onLatestVersion:
-            showsDateInHelp
-                ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
-                : Text(verbatim: "")
+            nil
         }
     }
 }

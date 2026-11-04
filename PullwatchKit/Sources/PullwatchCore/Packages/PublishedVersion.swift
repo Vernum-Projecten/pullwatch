@@ -15,6 +15,9 @@ public struct PublishedVersion: Codable, Hashable, Sendable {
     /// Of de image van deze versie ook de tag `latest` draagt (alleen bij een container-image).
     public let isLatestTag: Bool
 
+    /// Of dit een pre-release is ("21.0.0-rc9", "1.0.0-beta.2"); een tekst die geen versie is, niet.
+    public var isPrerelease: Bool { Version(version)?.isPrerelease ?? false }
+
     public init(
         version: String, publishedAt: Date? = nil, webURL: URL? = nil, tag: String? = nil, runURL: URL? = nil, isLatestTag: Bool = false
     ) {

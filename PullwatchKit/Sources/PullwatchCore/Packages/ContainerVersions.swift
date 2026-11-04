@@ -4,8 +4,8 @@ public import Foundation
 /// versie een digest met nul of meer tags; wat een mens de versie noemt, is de hoogste tag die als
 /// versie leest (`ContainerTag`), nooit een digest, handtekening of commit.
 ///
-/// - Nieuwste versie: de hoogste versietag over alle gelezen images, op versievolgorde (niet op
-///   datum), met de datum van zijn image.
+/// - Nieuwste versie: de hoogste stabiele versietag over alle gelezen images, op versievolgorde
+///   (niet op datum), met de datum van zijn image; zonder stabiele versie de hoogste pre-release.
 /// - Recente versies: de nieuwste images met een versietag, hooguit `recentVersionLimit`, elk met
 ///   zijn hoogste versietag, en `isLatestTag` op de image die ook `latest` draagt.
 /// - Geen versietag: de nieuwste zwevende tag (`main`), als `.floatingTag`; geen enkele tag:
@@ -48,7 +48,10 @@ public struct ContainerVersions: Hashable, Sendable {
             )
         }
         let latestImage = images.first(where: \.carriesLatest)
-        if let best = tagged.max(by: { $1.tag.isBetterVersion(than: $0.tag) }) {
+        // De hoogste stabiele release, zoals Renovate en Dependabot; alleen zonder stabiele
+        // versietag de hoogste pre-release.
+        let stable = tagged.filter { $0.tag.version?.isPrerelease == false }
+        if let best = (stable.isEmpty ? tagged : stable).max(by: { $1.tag.isBetterVersion(than: $0.tag) }) {
             latestVersion = best.tag.name
             publishedAt = best.image.publishedAt
             latestKind = .version

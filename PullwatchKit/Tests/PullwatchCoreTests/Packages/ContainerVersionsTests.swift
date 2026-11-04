@@ -32,7 +32,7 @@ import Testing
         #expect(found.latestTag == .onLatestVersion)
     }
 
-    @Test func `A Helm chart ignores artifacthub.io and orders pre-releases by version`() {
+    @Test func `A Helm chart ignores artifacthub.io and shows its stable release before a higher pre-release`() {
         let chart = [
             image(["artifacthub.io"], 30),
             image(["sha256-96229580887ea37960c3f59a698bc3710597a38b25f7878ce7c1bc5bf431d53a"], 30),
@@ -43,9 +43,32 @@ import Testing
         ]
         let found = ContainerVersions(images: chart)
 
-        #expect(found.latestVersion == "21.0.0-rc9", "op versievolgorde, een rc boven de vorige release")
+        #expect(found.latestVersion == "20.0.0", "de hoogste stabiele release, zoals Renovate en Dependabot")
+        #expect(found.publishedAt == Date.testDay(25))
         #expect(found.versions.map(\.version) == ["21.0.0-rc9", "21.0.0-rc7", "20.0.0", "14.0.1"])
+        #expect(found.versions.map(\.isPrerelease) == [true, true, false, false])
         #expect(found.latestTag == .absent)
+        #expect(package(found).newestPrerelease == "21.0.0-rc9")
+        #expect(package(found).releasedVersion == "20.0.0")
+    }
+
+    @Test func `Only pre-releases show the highest pre-release`() {
+        let found = ContainerVersions(images: [image(["sha-466930c", "main"], 30), image(["5.6.0-rc10"], 20), image(["5.6.0-rc9"], 19)])
+
+        #expect(found.latestVersion == "5.6.0-rc10")
+        #expect(package(found).releasedVersion == "5.6.0-rc10")
+        #expect(package(found).newestPrerelease == nil, "geen stabiele versie om nieuwer dan te zijn")
+    }
+
+    @Test func `A pre-release older than the stable release is not mentioned`() {
+        let found = ContainerVersions(images: [image(["0.2.1"], 30), image(["0.2.0-rc2"], 20), image(["0.2.0"], 21)])
+
+        #expect(found.latestVersion == "0.2.1")
+        #expect(package(found).newestPrerelease == nil)
+    }
+
+    func package(_ container: ContainerVersions) -> PublishedPackage {
+        PublishedPackage(accountId: UUID(), name: "charts/web", type: .container, owner: "acme", repository: "acme/web", container: container)
     }
 
     @Test func `Order is by version, not by date`() {
@@ -74,11 +97,18 @@ import Testing
     }
 
     @Test func `Latest on an image with another version`() {
-        let found = ContainerVersions(images: [image(["1.0.0-rc1"], 30), image(["0.9.0", "latest"], 20)])
+        let found = ContainerVersions(images: [image(["1.0.0"], 30), image(["0.9.0", "latest"], 20)])
 
-        #expect(found.latestVersion == "1.0.0-rc1")
+        #expect(found.latestVersion == "1.0.0")
         #expect(found.latestTag == .otherVersion("0.9.0"))
         #expect(found.versions.map(\.isLatestTag) == [false, true])
+    }
+
+    @Test func `Latest on the stable release next to a higher pre-release gets the label`() {
+        let found = ContainerVersions(images: [image(["1.0.0-rc1"], 30), image(["0.9.0", "latest"], 20)])
+
+        #expect(found.latestVersion == "0.9.0")
+        #expect(found.latestTag == .onLatestVersion)
     }
 
     @Test func `Only commit tags and main fall back to the newest floating tag`() {

@@ -63,3 +63,18 @@ struct LatestTagBadge: View {
             .accessibilityHidden(true)
     }
 }
+
+/// Het label "pre-release" achter een recente versie met een pre-release-achtervoegsel
+/// ("21.0.0-rc9"), in dezelfde stille stijl als `LatestTagBadge`.
+struct PrereleaseBadge: View {
+    var body: some View {
+        Text("pre-release", comment: "Label achter een versie die een pre-release is")
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(.quaternary, in: Capsule())
+            .accessibilityHidden(true)
+    }
+}

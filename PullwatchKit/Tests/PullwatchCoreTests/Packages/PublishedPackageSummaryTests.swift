@@ -101,6 +101,23 @@ import Testing
         #expect(after.newPublishedVersions(since: before).isEmpty)
     }
 
+    @Test func `A new pre-release is no new version, the stable release after it is`() {
+        func ui(_ versions: String...) -> PublishedPackage {
+            PublishedPackage(
+                accountId: Self.account, name: "ui", type: .npm, owner: "acme", repository: "acme/ui",
+                versions: versions.map { PublishedVersion(version: $0) }
+            )
+        }
+        let stable = Self.report([ui("2.3.0", "2.2.0")])
+        let candidate = Self.report([ui("2.4.0-rc1", "2.3.0", "2.2.0")])
+        let released = Self.report([ui("2.4.0", "2.4.0-rc1", "2.3.0")])
+
+        #expect(candidate.allPublishedPackages.first?.newestPrerelease == "2.4.0-rc1")
+
+        #expect(candidate.newPublishedVersions(since: stable).isEmpty)
+        #expect(released.newPublishedVersions(since: candidate).map(\.releasedVersion) == ["2.4.0"])
+    }
+
     @Test func `A floating tag is no new version, a new release tag is`() {
         let floating = Self.report([Self.container("main", kind: .floatingTag)])
         let first = Self.report([Self.container("0.0.15")])

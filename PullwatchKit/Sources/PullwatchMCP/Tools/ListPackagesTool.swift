@@ -34,6 +34,8 @@ enum ListPackagesTool {
         let latestVersion: String?
         /// Een image zonder versietag: de nieuwste tag (`main`); dan is er geen `latestVersion`.
         let newestTag: String?
+        /// Een pre-release die nieuwer is dan `latestVersion`.
+        let newestPrerelease: String?
         let publishedAt: Date?
         let visibility: String?
         let url: URL?
@@ -85,8 +87,9 @@ enum ListPackagesTool {
                             "account_id": .string(),
                             "owner": .string("The user, organization, group or Azure DevOps project it belongs to."),
                             "repository": .string("The followed repository that publishes it; absent when the service ties it to none."),
-                            "latest_version": .string("For a container image the highest version tag, never a digest, signature or commit tag; absent when no image has a version tag."),
+                            "latest_version": .string("The highest stable release (the highest pre-release only when there is no stable one); for a container image a version tag, never a digest, signature or commit tag, and absent when no image has a version tag."),
                             "newest_tag": .string("Only for a container image without any version tag: its newest tag (main, latest)."),
+                            "newest_prerelease": .string("A pre-release newer than latest_version, which is the highest stable release."),
                             "published_at": .dateTime("When the latest version was published."),
                             "visibility": .string(oneOf: ["public", "private", "internal"]),
                             "url": .string("The package page in the registry."),
@@ -171,7 +174,8 @@ enum ListPackagesTool {
         return PackageItem(
             name: package.name, type: package.type.rawValue, accountId: package.accountId, owner: package.owner,
             repository: package.repository, latestVersion: package.releasedVersion,
-            newestTag: package.latestKind == .floatingTag ? package.latestVersion : nil, publishedAt: package.publishedAt,
+            newestTag: package.latestKind == .floatingTag ? package.latestVersion : nil, newestPrerelease: package.newestPrerelease,
+            publishedAt: package.releasedAt,
             visibility: package.visibility?.rawValue, url: package.webURL?.withoutCredentials,
             recentVersions: package.versions.map {
                 Version(version: $0.version, publishedAt: $0.publishedAt, url: $0.webURL?.withoutCredentials, tag: $0.tag, runUrl: $0.runURL?.withoutCredentials,
