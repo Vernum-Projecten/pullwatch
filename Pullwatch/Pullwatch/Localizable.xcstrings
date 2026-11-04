@@ -3588,16 +3588,16 @@
     },
     "Algemeen package": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Generic package"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Generisches Paket"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generic package"
           }
         },
         "fr": {
@@ -3856,16 +3856,16 @@
     },
     "Alle soorten": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All types"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle Arten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All types"
           }
         },
         "fr": {
@@ -4283,16 +4283,16 @@
     "Alleen wat %@ publiceert": {
       "comment": "Volledige naam van een repository",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only what %@ publishes"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nur was %@ veröffentlicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only what %@ publishes"
           }
         },
         "fr": {
@@ -5156,13 +5156,13 @@
     },
     "Cargo": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Cargo"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Cargo"
@@ -5656,13 +5656,13 @@
     },
     "Composer": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Composer"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Composer"
@@ -5678,13 +5678,13 @@
     },
     "Conan": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Conan"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Conan"
@@ -5728,16 +5728,16 @@
     },
     "Container-image": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Container image"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Container-Image"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Container image"
           }
         },
         "fr": {
@@ -5845,6 +5845,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vérification…"
+          }
+        }
+      }
+    },
+    "De GitHub CLI is niet geïnstalleerd: installeer hem (brew install gh) en log in met gh auth login -h %@ -s read:packages.": {
+      "comment": "De host van GitHub; de opdrachten niet vertalen",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The GitHub CLI is not installed: install it (brew install gh) and log in with gh auth login -h %@ -s read:packages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die GitHub CLI ist nicht installiert: Installiere sie (brew install gh) und melde dich mit gh auth login -h %@ -s read:packages an."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La GitHub CLI n'est pas installée : installez-la (brew install gh) et connectez-vous avec gh auth login -h %@ -s read:packages."
           }
         }
       }
@@ -6050,16 +6073,16 @@
     },
     "De repo's die je volgt publiceren geen packages in het register van hun dienst.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The repositories you follow publish no packages to the registry of their service."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Repositorys, denen du folgst, veröffentlichen keine Pakete in der Registry ihres Dienstes."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The repositories you follow publish no packages to the registry of their service."
           }
         },
         "fr": {
@@ -6372,13 +6395,13 @@
     },
     "Docker": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Docker"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Docker"
@@ -6870,16 +6893,16 @@
     },
     "Een melding als een package dat een gevolgde repo publiceert een nieuwe versie heeft (het onderdeel Packages)": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A notification when a package that a followed repository publishes has a new version (the Packages section)"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eine Mitteilung, wenn ein Paket, das ein gefolgtes Repository veröffentlicht, eine neue Version hat (der Bereich Pakete)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification when a package that a followed repository publishes has a new version (the Packages section)"
           }
         },
         "fr": {
@@ -7579,16 +7602,16 @@
     },
     "Gebruik onbekend": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usage unknown"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Verwendung unbekannt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage unknown"
           }
         },
         "fr": {
@@ -7601,16 +7624,16 @@
     },
     "Gebruikt door": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Used by"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Verwendet von"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used by"
           }
         },
         "fr": {
@@ -7624,19 +7647,19 @@
     "Gebruikt door %lld repo's": {
       "comment": "Aantal gevolgde repo's dat een eigen package gebruikt",
       "localizations": {
-        "nl": {
+        "de": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Gebruikt door %lld repo"
+                  "value": "Von %lld Repository verwendet"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Gebruikt door %lld repo's"
+                  "value": "Von %lld Repositorys verwendet"
                 }
               }
             }
@@ -7660,24 +7683,6 @@
             }
           }
         },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Von %lld Repository verwendet"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Von %lld Repositorys verwendet"
-                }
-              }
-            }
-          }
-        },
         "fr": {
           "variations": {
             "plural": {
@@ -7691,6 +7696,24 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Utilisé par %lld dépôts"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Gebruikt door %lld repo"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Gebruikt door %lld repo's"
                 }
               }
             }
@@ -7938,16 +7961,16 @@
     },
     "Geen gevolgde repo gebruikt dit package.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No followed repository uses this package."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Kein gefolgtes Repository verwendet dieses Paket."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No followed repository uses this package."
           }
         },
         "fr": {
@@ -8198,16 +8221,16 @@
     },
     "Geen toegang tot het register": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No access to the registry"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Kein Zugriff auf die Registry"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to the registry"
           }
         },
         "fr": {
@@ -8220,16 +8243,16 @@
     },
     "Geen versies bekend": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No versions known"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Keine Versionen bekannt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No versions known"
           }
         },
         "fr": {
@@ -8532,16 +8555,16 @@
     "Gepubliceerd %@": {
       "comment": "Relatieve datum",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Published %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Veröffentlicht %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published %@"
           }
         },
         "fr": {
@@ -8554,16 +8577,16 @@
     },
     "Gepubliceerd door": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Published by"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Veröffentlicht von"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by"
           }
         },
         "fr": {
@@ -9043,6 +9066,50 @@
         }
       }
     },
+    "GitHub geeft packages niet aan de GitHub App; Pullwatch leest ze met gh.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with gh."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub gibt Pakete nicht an die GitHub App heraus; Pullwatch liest sie mit gh."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub ne donne pas les paquets à la GitHub App ; Pullwatch les lit avec gh."
+          }
+        }
+      }
+    },
+    "GitHub geeft packages niet aan de GitHub App; Pullwatch leest ze met het token van gh, met de scope read:packages.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub does not give packages to the GitHub App; Pullwatch reads them with the token of gh, with the read:packages scope."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub gibt Pakete nicht an die GitHub App heraus; Pullwatch liest sie mit dem Token von gh, mit dem Scope read:packages."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub ne donne pas les paquets à la GitHub App ; Pullwatch les lit avec le jeton de gh, avec le scope read:packages."
+          }
+        }
+      }
+    },
     "GitHub-account": {
       "localizations": {
         "de": {
@@ -9161,13 +9228,13 @@
     },
     "Go": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Go"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Go"
@@ -9321,13 +9388,13 @@
     },
     "Helm": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Helm"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Helm"
@@ -10093,16 +10160,16 @@
     },
     "Intern": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Internal"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Intern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Internal"
           }
         },
         "fr": {
@@ -10524,16 +10591,16 @@
     },
     "Kies een package om de versies te zien en wie het gebruikt.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a package to see its versions and who uses it."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wähle ein Paket, um seine Versionen zu sehen und wer es verwendet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a package to see its versions and who uses it."
           }
         },
         "fr": {
@@ -11382,6 +11449,58 @@
         }
       }
     },
+    "Leest met gh als %@, niet als %@: dat werkt als %@ de packages van de gevolgde eigenaren mag zien.": {
+      "comment": "Het gh-account, het account van de GitHub App, nog eens het gh-account",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leest met gh als %1$@, niet als %2$@: dat werkt als %3$@ de packages van de gevolgde eigenaren mag zien."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads with gh as %1$@, not as %2$@: this works when %3$@ can see the packages of the followed owners."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest mit gh als %1$@, nicht als %2$@: Das funktioniert, wenn %3$@ die Pakete der gefolgten Eigentümer sehen darf."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit avec gh en tant que %1$@, pas en tant que %2$@ : cela fonctionne si %3$@ peut voir les paquets des propriétaires suivis."
+          }
+        }
+      }
+    },
+    "Leest met gh als %@.": {
+      "comment": "Het gh-account dat de packages leest",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads with gh as %@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest mit gh als %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit avec gh en tant que %@."
+          }
+        }
+      }
+    },
     "Leest per gevolgde repo de taal- en frameworkversies en vergelijkt ze met endoflife.date; packages gaan langs OSV.dev voor bekende CVE's en langs hun register voor de nieuwste versie": {
       "localizations": {
         "de": {
@@ -11841,13 +11960,13 @@
     },
     "Maven": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Maven"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Maven"
@@ -12324,16 +12443,16 @@
     "Niet aan een repository gekoppeld; gepubliceerd onder %@": {
       "comment": "Eigenaar of Azure-project van een package",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not tied to a repository; published under %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Mit keinem Repository verknüpft; veröffentlicht unter %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not tied to a repository; published under %@"
           }
         },
         "fr": {
@@ -12413,16 +12532,16 @@
     "Niet gecontroleerd: %@ mag het register niet lezen": {
       "comment": "Accountnaam",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not checked: %@ may not read the registry"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nicht geprüft: %@ darf die Registry nicht lesen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: %@ may not read the registry"
           }
         },
         "fr": {
@@ -12464,16 +12583,16 @@
     },
     "Niet gecontroleerd: een account mag het register niet lezen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not checked: an account may not read the registry"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nicht geprüft: ein Account darf die Registry nicht lesen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: an account may not read the registry"
           }
         },
         "fr": {
@@ -13175,16 +13294,16 @@
     "Nieuwe versie van %@": {
       "comment": "Meldingstitel; naam van een package dat een gevolgde repo publiceert",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New version of %@"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neue Version von %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version of %@"
           }
         },
         "fr": {
@@ -13219,16 +13338,16 @@
     },
     "Nieuwe versies van je eigen packages": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New versions of your own packages"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neue Versionen deiner eigenen Pakete"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New versions of your own packages"
           }
         },
         "fr": {
@@ -13352,16 +13471,16 @@
     },
     "Nieuwste versie": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Latest version"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neueste Version"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest version"
           }
         },
         "fr": {
@@ -13606,16 +13725,16 @@
     },
     "Nog niet bekend: de check herkent dit soort package nog niet als dependency": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not known yet: the check does not recognise this type of package as a dependency yet"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Noch nicht bekannt: die Prüfung erkennt diese Art Paket noch nicht als Abhängigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not known yet: the check does not recognise this type of package as a dependency yet"
           }
         },
         "fr": {
@@ -13628,16 +13747,16 @@
     },
     "Nog niet bekend: de check herkent dit soort package nog niet als dependency.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not known yet: the check does not recognise this type of package as a dependency yet."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Noch nicht bekannt: die Prüfung erkennt diese Art Paket noch nicht als Abhängigkeit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not known yet: the check does not recognise this type of package as a dependency yet."
           }
         },
         "fr": {
@@ -13807,13 +13926,13 @@
     },
     "NuGet": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "NuGet"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "NuGet"
@@ -14096,16 +14215,16 @@
     },
     "Open Bronnen": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Sources"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quellen öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Sources"
           }
         },
         "fr": {
@@ -14328,16 +14447,16 @@
     },
     "Open de pagina van het package bij het register (⌘O)": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open the package page in the registry (⌘O)"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Öffne die Seite des Pakets in der Registry (⌘O)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the package page in the registry (⌘O)"
           }
         },
         "fr": {
@@ -14350,16 +14469,16 @@
     },
     "Open de run die deze versie publiceerde": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open the run that published this version"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Öffne den Lauf, der diese Version veröffentlicht hat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the run that published this version"
           }
         },
         "fr": {
@@ -14372,16 +14491,16 @@
     },
     "Open deze versie bij het register": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open this version in the registry"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Diese Version in der Registry öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open this version in the registry"
           }
         },
         "fr": {
@@ -14466,16 +14585,16 @@
     },
     "Open in het register": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open in Registry"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "In der Registry öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Registry"
           }
         },
         "fr": {
@@ -14622,16 +14741,16 @@
     },
     "Openbaar": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Public"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Öffentlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public"
           }
         },
         "fr": {
@@ -15145,16 +15264,16 @@
     },
     "Over de rechten": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "About permissions"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Über die Berechtigungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About permissions"
           }
         },
         "fr": {
@@ -15605,6 +15724,28 @@
         }
       }
     },
+    "Packages lezen met de GitHub CLI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read packages with the GitHub CLI"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pakete mit der GitHub CLI lesen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lire les paquets avec la GitHub CLI"
+          }
+        }
+      }
+    },
     "Packages met nieuwe versie": {
       "localizations": {
         "de": {
@@ -15635,16 +15776,16 @@
     },
     "Packages ophalen…": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fetching Packages…"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pakete werden geladen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetching Packages…"
           }
         },
         "fr": {
@@ -15867,16 +16008,16 @@
     },
     "Privé": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Private"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Privat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private"
           }
         },
         "fr": {
@@ -15983,16 +16124,16 @@
     },
     "Publiceert": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Publishes"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Veröffentlicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publishes"
           }
         },
         "fr": {
@@ -16633,16 +16774,16 @@
     },
     "Pullwatch leest wat je repo's publiceren in het register van hun dienst.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch reads what your repositories publish to the registry of their service."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pullwatch liest, was deine Repositorys in der Registry ihres Dienstes veröffentlichen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch reads what your repositories publish to the registry of their service."
           }
         },
         "fr": {
@@ -16853,13 +16994,13 @@
     },
     "PyPI": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "PyPI"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "PyPI"
@@ -16897,16 +17038,16 @@
     },
     "Recente versies": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recent versions"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neueste Versionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent versions"
           }
         },
         "fr": {
@@ -17371,13 +17512,13 @@
     },
     "RubyGems": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "RubyGems"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "RubyGems"
@@ -17393,16 +17534,16 @@
     },
     "Run": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Run"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Lauf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run"
           }
         },
         "fr": {
@@ -18271,13 +18412,13 @@
     },
     "Terraform": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Terraform"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Terraform"
@@ -18659,16 +18800,16 @@
     },
     "Toon alleen packages van één soort": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show only packages of one type"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Nur Pakete einer Art anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only packages of one type"
           }
         },
         "fr": {
@@ -18681,16 +18822,16 @@
     },
     "Toon alles": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show All"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show All"
           }
         },
         "fr": {
@@ -18731,16 +18872,16 @@
     },
     "Toon de tags van deze repo": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show the tags of this repository"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Tags dieses Repositorys anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the tags of this repository"
           }
         },
         "fr": {
@@ -18775,16 +18916,16 @@
     },
     "Toon deze packages in Packages": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show these packages in Packages"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Diese Pakete in Pakete anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show these packages in Packages"
           }
         },
         "fr": {
@@ -18842,16 +18983,16 @@
     },
     "Toon of verberg het inspectievenster": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show or hide the inspector"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Inspektor ein- oder ausblenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show or hide the inspector"
           }
         },
         "fr": {
@@ -19111,13 +19252,13 @@
     },
     "Universal Package": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Universal Package"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Universal Package"
@@ -19622,16 +19763,16 @@
     "Versie %@ gepubliceerd": {
       "comment": "Meldingstekst; het nieuwe versienummer van een eigen package",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version %@ published"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Version %@ veröffentlicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ published"
           }
         },
         "fr": {
@@ -21108,16 +21249,16 @@
     },
     "Zichtbaarheid": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visibility"
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Sichtbarkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visibility"
           }
         },
         "fr": {
@@ -21152,16 +21293,16 @@
     },
     "Zie wat je repo's publiceren (npm, container-images, NuGet en meer) en welke repo's het gebruiken.": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "See what your repositories publish (npm, container images, NuGet and more) and which repositories use it."
-          }
-        },
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Sieh, was deine Repositorys veröffentlichen (npm, Container-Images, NuGet und mehr) und welche Repositorys es verwenden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See what your repositories publish (npm, container images, NuGet and more) and which repositories use it."
           }
         },
         "fr": {
@@ -22065,6 +22206,35 @@
         }
       }
     },
+    "gh is niet ingelogd op %@: log in met gh auth login -h %@ -s read:packages.": {
+      "comment": "De host van GitHub, twee keer; de opdracht niet vertalen",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gh is niet ingelogd op %1$@: log in met gh auth login -h %2$@ -s read:packages."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gh is not logged in to %1$@: log in with gh auth login -h %2$@ -s read:packages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gh ist nicht bei %1$@ angemeldet: Melde dich mit gh auth login -h %2$@ -s read:packages an."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gh n'est pas connecté à %1$@ : connectez-vous avec gh auth login -h %2$@ -s read:packages."
+          }
+        }
+      }
+    },
     "mediane doorlooptijd": {
       "localizations": {
         "de": {
@@ -22202,13 +22372,13 @@
     },
     "npm": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
             "value": "npm"
           }
         },
-        "de": {
+        "en": {
           "stringUnit": {
             "state": "translated",
             "value": "npm"

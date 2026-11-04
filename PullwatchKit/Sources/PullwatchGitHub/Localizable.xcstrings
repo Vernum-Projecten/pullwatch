@@ -29,6 +29,29 @@
         }
       }
     },
+    "De gebruiker van de GitHub CLI mag de packages van deze eigenaren niet lezen: log in met gh auth login -h %@ als iemand die er wel bij kan.": {
+      "comment": "Reden waarom de packages van een GitHub App-account niet te lezen zijn; de host van GitHub; de opdracht niet vertalen",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The GitHub CLI user may not read the packages of these owners: log in with gh auth login -h %@ as someone who can."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Benutzer der GitHub CLI darf die Pakete dieser Eigentümer nicht lesen: Melde dich mit gh auth login -h %@ als jemand an, der darauf zugreifen kann."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'utilisateur de la GitHub CLI ne peut pas lire les paquets de ces propriétaires : connectez-vous avec gh auth login -h %@ en tant que quelqu'un qui y a accès."
+          }
+        }
+      }
+    },
     "GitHub Packages is alleen te lezen met de scope read:packages: gebruik de GitHub CLI (gh auth refresh -s read:packages) of een persoonlijk token (classic) met read:packages.": {
       "comment": "Reden waarom de packages van een GitHub-account met de GitHub CLI of een token niet te lezen zijn; read:packages en de gh-opdracht niet vertalen",
       "localizations": {
@@ -198,6 +221,52 @@
         }
       }
     },
+    "Installeer de GitHub CLI (brew install gh) en log in met gh auth login -h %@ -s read:packages: GitHub geeft packages niet aan de GitHub App, Pullwatch leest ze met gh.": {
+      "comment": "Reden waarom de packages van een GitHub App-account niet te lezen zijn; de host van GitHub; de opdrachten niet vertalen",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install the GitHub CLI (brew install gh) and log in with gh auth login -h %@ -s read:packages: GitHub does not give packages to the GitHub App, Pullwatch reads them with gh."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installiere die GitHub CLI (brew install gh) und melde dich mit gh auth login -h %@ -s read:packages an: GitHub gibt Pakete nicht an die GitHub App heraus, Pullwatch liest sie mit gh."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installez la GitHub CLI (brew install gh) et connectez-vous avec gh auth login -h %@ -s read:packages : GitHub ne donne pas les paquets à la GitHub App, Pullwatch les lit avec gh."
+          }
+        }
+      }
+    },
+    "Log in met de GitHub CLI: gh auth login -h %@ -s read:packages. GitHub geeft packages niet aan de GitHub App, Pullwatch leest ze met gh.": {
+      "comment": "Reden waarom de packages van een GitHub App-account niet te lezen zijn; de host van GitHub; de opdracht niet vertalen",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log in with the GitHub CLI: gh auth login -h %@ -s read:packages. GitHub does not give packages to the GitHub App, Pullwatch reads them with gh."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich mit der GitHub CLI an: gh auth login -h %@ -s read:packages. GitHub gibt Pakete nicht an die GitHub App heraus, Pullwatch liest sie mit gh."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous avec la GitHub CLI : gh auth login -h %@ -s read:packages. GitHub ne donne pas les paquets à la GitHub App, Pullwatch les lit avec gh."
+          }
+        }
+      }
+    },
     "Log opnieuw in bij GitHub.": {
       "localizations": {
         "de": {
@@ -226,31 +295,48 @@
         }
       }
     },
-    "Pullwatch heeft het recht Packages (lezen) op zijn GitHub App nodig: de eigenaar van de app zet het aan, daarna keur je het nieuwe recht goed (docs/github-app.md).": {
-      "comment": "Reden waarom de packages van een GitHub-account via de GitHub App niet te lezen zijn; Packages is de naam van het recht bij GitHub",
+    "Voer gh auth refresh -h %@ -s read:packages uit: de GitHub CLI mist de scope read:packages.": {
+      "comment": "Reden waarom de packages van een GitHub App-account niet te lezen zijn; de host van GitHub; de opdracht en read:packages niet vertalen",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pullwatch braucht die Berechtigung Packages (Lesen) für seine GitHub App: Der Eigentümer der App schaltet sie ein, danach akzeptierst du die neue Berechtigung (docs/github-app.md)."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pullwatch needs the Packages permission (read) on its GitHub App: the owner of the app turns it on, then you accept the new permission (docs/github-app.md)."
+            "value": "Run gh auth refresh -h %@ -s read:packages: the GitHub CLI lacks the read:packages scope."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe gh auth refresh -h %@ -s read:packages aus: Der GitHub CLI fehlt der Scope read:packages."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pullwatch a besoin de l'autorisation Packages (lecture) sur sa GitHub App : le propriétaire de l'app l'active, puis vous acceptez la nouvelle autorisation (docs/github-app.md)."
+            "value": "Exécutez gh auth refresh -h %@ -s read:packages : il manque le scope read:packages à la GitHub CLI."
           }
-        },
-        "nl": {
+        }
+      }
+    },
+    "Zet Packages lezen met de GitHub CLI aan voor dit account (Instellingen, Accounts): GitHub geeft packages niet aan de GitHub App.": {
+      "comment": "Reden waarom de packages van een GitHub App-account niet gelezen worden; Packages lezen met de GitHub CLI is de naam van de schakelaar in de account-editor",
+      "localizations": {
+        "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pullwatch heeft het recht Packages (lezen) op zijn GitHub App nodig: de eigenaar van de app zet het aan, daarna keur je het nieuwe recht goed (docs/github-app.md)."
+            "value": "Turn on Read packages with the GitHub CLI for this account (Settings, Accounts): GitHub does not give packages to the GitHub App."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte Pakete mit der GitHub CLI lesen für dieses Konto ein (Einstellungen, Konten): GitHub gibt Pakete nicht an die GitHub App heraus."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez Lire les paquets avec la GitHub CLI pour ce compte (Réglages, Comptes) : GitHub ne donne pas les paquets à la GitHub App."
           }
         }
       }

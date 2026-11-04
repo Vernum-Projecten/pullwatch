@@ -56,4 +56,34 @@ import PullwatchTestSupport
         #expect(GhCLIAccounts.parse(json) == ["me", "work"])
         #expect(GhCLIAccounts.parse("not json").isEmpty)
     }
+
+    // MARK: - Status voor de packages van een GitHub App-account
+
+    @Test func `The status names the active gh user of the host`() async {
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(
+            status: 0, stdout: #"{"hosts":{"github.com":[{"login":"work","active":false},{"login":"me","active":true}]}}"#, stderr: ""
+        )
+        #expect(await GhCLIAccounts.status(runner: runner, locator: homebrew) == .loggedIn("me"))
+        #expect(await GhCLIAccounts.status(runner: runner, locator: homebrew).user == "me")
+        #expect(runner.calls.first?.1 == ["auth", "status", "--json", "hosts"])
+    }
+
+    @Test func `Without gh the status is not installed and runs nothing`() async {
+        let runner = MockProcessRunner()
+        #expect(await GhCLIAccounts.status(runner: runner, locator: .nothing) == .notInstalled)
+        #expect(runner.calls.isEmpty)
+    }
+
+    @Test(arguments: [
+        #"{"hosts":{}}"#,
+        #"{"hosts":{"ghe.example.com":[{"login":"x","active":true}]}}"#,
+    ])
+    func `A gh without an account on the host is not logged in`(json: String) async {
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(status: 0, stdout: json, stderr: "")
+        let status = await GhCLIAccounts.status(runner: runner, locator: homebrew, host: "github.com")
+        #expect(status == .notLoggedIn)
+        #expect(status.user == nil)
+    }
 }

@@ -73,4 +73,25 @@ public enum GhCLIAccounts {
         let entries = status.hosts.first { $0.key.lowercased() == host.lowercased() }?.value ?? []
         return entries.filter { $0.active == true }.map(\.login) + entries.filter { $0.active != true }.map(\.login)
     }
+
+    /// `GhCLIStatus` voor een host, met dezelfde `gh auth status` als `list`.
+    public static func status(
+        runner: any ProcessRunner, locator: CLILocator = CLILocator(), host: String = "github.com"
+    ) async -> GhCLIStatus {
+        guard locator.locate("gh") != nil else { return .notInstalled }
+        return await list(runner: runner, locator: locator, host: host).first.map(GhCLIStatus.loggedIn) ?? .notLoggedIn
+    }
+}
+
+/// Hoe `gh` er op een host voor staat: niet geïnstalleerd, niet ingelogd, of ingelogd met het
+/// actieve account. Voor de account-editor: wie de packages van een GitHub App-account leest.
+public enum GhCLIStatus: Equatable, Sendable {
+    case notInstalled
+    case notLoggedIn
+    case loggedIn(String)
+
+    /// Het actieve `gh`-account op die host, of nil.
+    public var user: String? {
+        if case .loggedIn(let user) = self { user } else { nil }
+    }
 }

@@ -3,7 +3,7 @@ import Testing
 import PullwatchAzureDevOps
 import PullwatchBitbucket
 import PullwatchCore
-import PullwatchGitHub
+@testable import PullwatchGitHub
 import PullwatchGitea
 import PullwatchGitLab
 import PullwatchProviders
@@ -118,5 +118,70 @@ import PullwatchTestSupport
         let provider = ProviderFactory.make(account, secrets: secrets, http: http, gitHubApp: config)
         _ = try await provider.currentUserId()
         #expect(http.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer ghu_from_app")
+    }
+
+    // MARK: - Packages van een GitHub App-account via gh (#206)
+
+    /// Een GitHub App-account met een geldig app-token "ghu_from_app" in `secrets`.
+    func appAccount(secrets: InMemorySecretStore, packagesViaCLI: Bool?) throws -> Account {
+        var account = Account(kind: .gitHub, organization: "acme", authMethod: .gitHubApp)
+        account.packagesViaCLI = packagesViaCLI
+        try GitHubAppTokenStore(accountId: account.id, secrets: secrets)
+            .save(GitHubAppTokens(access: "ghu_from_app", accessExpires: .distantFuture, refresh: "r"))
+        return account
+    }
+
+    @Test(arguments: [nil, true])
+    func `A GitHub App account reads packages with the gh token of its host`(packagesViaCLI: Bool?) async throws {
+        let secrets = InMemorySecretStore()
+        let http = MockHTTPClient()
+        http.on("api.github.com/users/acme", body: #"{"login":"acme","type":"Organization"}"#)
+        http.on("packages?package_type=", headers: ["X-OAuth-Scopes": "repo, read:packages"], body: "[]")
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(status: 0, stdout: "gho_from_cli\n", stderr: "")
+        let account = try appAccount(secrets: secrets, packagesViaCLI: packagesViaCLI)
+        let provider = ProviderFactory.make(
+            account, secrets: secrets, http: http, runner: runner, locator: .homebrew,
+            gitHubApp: GitHubAppConfig(clientID: "Iv23test", slug: "pullwatch-dev")
+        )
+
+        #expect(try await provider.publishedPackages(followedRepos: ["acme/web"]) == .packages([]))
+
+        let registry = http.requests.filter { $0.url?.path().contains("/packages") == true }
+        #expect(!registry.isEmpty)
+        #expect(registry.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer gho_from_cli" })
+        #expect(runner.calls.map(\.1) == [["auth", "token"]])
+    }
+
+    @Test func `A GitHub App account with the setting off asks neither gh nor GitHub`() async throws {
+        let secrets = InMemorySecretStore()
+        let http = MockHTTPClient()
+        let runner = MockProcessRunner()
+        let provider = ProviderFactory.make(
+            try appAccount(secrets: secrets, packagesViaCLI: false), secrets: secrets, http: http, runner: runner, locator: .homebrew,
+            gitHubApp: GitHubAppConfig(clientID: "Iv23test", slug: "pullwatch-dev")
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliTurnedOff))
+        #expect(http.requests.isEmpty)
+        #expect(runner.calls.isEmpty)
+    }
+
+    @Test func `A token account keeps its own token for packages and never runs gh`() async throws {
+        let secrets = InMemorySecretStore()
+        let http = MockHTTPClient()
+        http.on("api.github.com/users/acme", body: #"{"login":"acme","type":"Organization"}"#)
+        http.on("packages?package_type=", body: "[]")
+        let runner = MockProcessRunner()
+        let provider = ProviderFactory.make(
+            Account.fixture(kind: .gitHub), pat: "typed", secrets: secrets, http: http, runner: runner, locator: .homebrew
+        )
+
+        _ = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(http.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer typed" })
+        #expect(runner.calls.isEmpty)
     }
 }

@@ -40,6 +40,11 @@ public actor GitHubProvider: PRProvider {
     /// Hoe het account inlogt: bepaalt welk recht er ontbreekt als GitHub iets weigert (een recht
     /// van de GitHub App, of een scope van het token).
     let authMethod: AuthMethod
+    /// Alleen bij de GitHub App: het token waarmee de packages gelezen worden, dat van de GitHub
+    /// CLI (`GhCLISource` voor de host van het account). GitHubs Packages-API weigert elk token van
+    /// een GitHub App, dus het eigen token gaat nooit naar het register; nil = uitgezet
+    /// (`Account.packagesViaCLI`), dan geen packages en geen verzoek.
+    let packagesTokenSource: (any TokenSource)?
 
     public init(
         accountId: UUID,
@@ -48,11 +53,13 @@ public actor GitHubProvider: PRProvider {
         instanceURL: URL? = nil,
         authMethod: AuthMethod = .pat,
         tokenSource: any TokenSource,
+        packagesTokenSource: (any TokenSource)? = nil,
         http: any HTTPClient,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.accountId = accountId
         self.authMethod = authMethod
+        self.packagesTokenSource = packagesTokenSource
         self.endpoints = GitHubEndpoints(instanceURL: instanceURL)
         self.owners = owners.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         self.extraRepos = Account.reposOutside(owners: self.owners, extraRepos)

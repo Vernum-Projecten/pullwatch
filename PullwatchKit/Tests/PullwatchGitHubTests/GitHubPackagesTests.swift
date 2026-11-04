@@ -197,13 +197,12 @@ import PullwatchTestSupport
 
         let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
 
-        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .pat)))
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.tokenMissesScope))
         #expect(urls(http).filter { $0.contains("/packages?") }.count == 1, "na de eerste weigering niets meer")
     }
 
-    /// Zo ging het met een echt account (#204-onderzoek, 4 november): de GitHub App staat niet op
-    /// het eigen account, dus `/users/{user}/packages` geeft 403, maar de organisaties wel. Die
-    /// weigering mag de packages van de organisatie niet tegenhouden.
+    /// Zo ging het met een echt account (#204-onderzoek, 4 november): het eigen account gaf 403,
+    /// de organisaties niet. Die weigering mag de packages van de organisatie niet tegenhouden.
     @Test func `A refused owner does not hide the packages of the other owners`() async throws {
         let http = MockHTTPClient()
         http.on("users/ruben/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
@@ -212,29 +211,12 @@ import PullwatchTestSupport
         http.on("orgs/acme/packages?package_type=npm&", body: "[\(package("web", type: "npm", repo: "acme/web"))]")
         http.on("orgs/acme/packages?package_type=", body: "[]")
         organization(http)
-        let provider = GitHubProvider(
-            accountId: fixedAccountId, owners: ["ruben", "acme"], authMethod: .gitHubApp, tokenSource: StaticTokenSource(token: "ghtok"), http: http
-        )
+        let provider = appProvider(http, owners: ["ruben", "acme"], packages: StaticTokenSource(token: "gho_cli"))
 
         let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
 
         #expect(result.packages.map(\.name) == ["web"])
         #expect(result.packages.first?.owner == "acme")
-    }
-
-    @Test func `Every owner refused needs permission`() async throws {
-        let http = MockHTTPClient()
-        http.on("users/ruben/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
-        http.on("users/ruben", body: #"{"login":"ruben","type":"User"}"#)
-        http.on("orgs/acme/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
-        organization(http)
-        let provider = GitHubProvider(
-            accountId: fixedAccountId, owners: ["ruben", "acme"], authMethod: .gitHubApp, tokenSource: StaticTokenSource(token: "ghtok"), http: http
-        )
-
-        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
-
-        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .gitHubApp)))
     }
 
     @Test func `Refused versions need permission too`() async throws {
@@ -246,12 +228,13 @@ import PullwatchTestSupport
 
         let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
 
-        #expect(result == .needsPermission(reason: GitHubProvider.packagesPermissionReason(for: .pat)))
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.tokenMissesScope))
     }
 
-    /// De scope en het pad naar de documentatie blijven in elke taal staan.
-    @Test(arguments: [(AuthMethod.gitHubApp, "docs/github-app.md"), (.cli, "read:packages"), (.pat, "read:packages")])
-    func `The reason names what the way of signing in misses`(authMethod: AuthMethod, missing: String) async throws {
+    /// Een token of de GitHub CLI als manier van inloggen leest met zijn eigen token: dan is de
+    /// scope read:packages wat er ontbreekt.
+    @Test(arguments: [AuthMethod.cli, .pat])
+    func `A token or the CLI as the way of signing in misses read packages`(authMethod: AuthMethod) async throws {
         let http = MockHTTPClient()
         organization(http)
         http.on("orgs/acme/packages?package_type=", status: 403, body: #"{"message":"Resource not accessible by integration"}"#)
@@ -261,10 +244,139 @@ import PullwatchTestSupport
 
         let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
 
-        let reason = GitHubProvider.packagesPermissionReason(for: authMethod)
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.tokenMissesScope))
+        #expect(GitHubPackagesReason.tokenMissesScope.contains("read:packages"))
+        #expect(http.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer ghtok" })
+    }
+
+    // MARK: - GitHub App via de GitHub CLI (#206)
+
+    /// Een GitHub App-account: het eigen token "ghu_app", en voor de packages `packages`.
+    func appProvider(
+        _ http: MockHTTPClient, owners: [String] = ["acme"], instanceURL: URL? = nil, packages: (any TokenSource)?
+    ) -> GitHubProvider {
+        GitHubProvider(
+            accountId: fixedAccountId, owners: owners, instanceURL: instanceURL, authMethod: .gitHubApp,
+            tokenSource: StaticTokenSource(token: "ghu_app"), packagesTokenSource: packages, http: http
+        )
+    }
+
+    /// `gh auth token` zoals een `gh` die is ingelogd het geeft.
+    func loggedInGh(_ token: String = "gho_cli") -> MockProcessRunner {
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(status: 0, stdout: "\(token)\n", stderr: "")
+        return runner
+    }
+
+    @Test func `A GitHub App account reads its packages with the gh token and never with the app token`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("packages/npm/web/versions", body: "[\(version("1.2.0", type: "npm"))]")
+        http.on("orgs/acme/packages?package_type=npm&", headers: ["X-OAuth-Scopes": "repo, read:org, read:packages"],
+                body: "[\(package("web", type: "npm", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+        let runner = loggedInGh()
+        let provider = appProvider(http, packages: GhCLISource(runner: runner, locator: .homebrew, host: "github.com"))
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result.packages.map(\.latestVersion) == ["1.2.0"])
+        let registry = http.requests.filter { $0.url?.path().contains("/packages") == true }
+        #expect(registry.count == GitHubProvider.packageTypes.count + 1, "elke soort en de versies van web")
+        #expect(registry.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer gho_cli" })
+        #expect(!registry.contains { $0.value(forHTTPHeaderField: "Authorization")?.contains("ghu_app") == true })
+        #expect(runner.calls.map(\.1) == [["auth", "token"]], "één keer gh, daarna uit de cache")
+    }
+
+    @Test func `Turned off reads no packages and asks nothing`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+
+        let result = try await appProvider(http, packages: nil).publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliTurnedOff))
+        #expect(http.requests.isEmpty)
+    }
+
+    @Test func `Without gh the reason says how to install it`() async throws {
+        let http = MockHTTPClient()
+        let runner = loggedInGh()
+        let provider = appProvider(http, packages: GhCLISource(runner: runner, locator: .nothing, host: "github.com"))
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliMissing(host: "github.com")))
+        #expect(http.requests.isEmpty)
+        #expect(runner.calls.isEmpty)
+    }
+
+    @Test func `A gh that is not logged in gives the login command`() async throws {
+        let http = MockHTTPClient()
+        let runner = MockProcessRunner()
+        runner.output = ProcessOutput(status: 1, stdout: "", stderr: "no oauth token found for github.com")
+        let provider = appProvider(http, packages: GhCLISource(runner: runner, locator: .homebrew, host: "github.com"))
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliLoggedOut(host: "github.com")))
+        #expect(http.requests.isEmpty)
+    }
+
+    /// GitHub weigert een `gh`-token zonder de scope met 403 en noemt de scopes in `X-OAuth-Scopes`.
+    @Test(arguments: [["X-OAuth-Scopes": "gist, read:org, repo, workflow"], [:]])
+    func `A gh token without read packages gives the refresh command`(headers: [String: String]) async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("orgs/acme/packages?package_type=", status: 403, headers: headers,
+                body: #"{"message":"You need at least read:packages scope to list packages."}"#)
+        let provider = appProvider(http, packages: GhCLISource(runner: loggedInGh(), locator: .homebrew, host: "github.com"))
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliMissesScope(host: "github.com")))
+    }
+
+    /// Een ander `gh`-account dan wie er met de app inlogde: werkt als het de eigenaren mag zien, en
+    /// anders zegt de reden dat, niet dat de scope ontbreekt.
+    @Test func `Another gh user that may not see the owners says so`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        http.on("orgs/acme/packages?package_type=", status: 403, headers: ["X-OAuth-Scopes": "repo, read:packages"],
+                body: #"{"message":"Forbidden"}"#)
+        let provider = appProvider(http, packages: GhCLISource(runner: loggedInGh("gho_other"), locator: .homebrew, host: "github.com"))
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        #expect(result == .needsPermission(reason: GitHubPackagesReason.cliNoAccess(host: "github.com")))
+    }
+
+    @Test func `GitHub Enterprise asks gh for its own host and names it in the reason`() async throws {
+        let http = MockHTTPClient()
+        http.on("users/acme", body: #"{"login":"acme","type":"Organization"}"#)
+        http.on("packages?package_type=", status: 403, headers: ["X-OAuth-Scopes": "repo"], body: "{}")
+        let runner = loggedInGh()
+        let provider = appProvider(
+            http, instanceURL: URL(string: "https://github.example.com"),
+            packages: GhCLISource(runner: runner, locator: .homebrew, host: "github.example.com")
+        )
+
+        let result = try await provider.publishedPackages(followedRepos: ["acme/web"])
+
+        let reason = GitHubPackagesReason.cliMissesScope(host: "github.example.com")
         #expect(result == .needsPermission(reason: reason))
-        #expect(reason.contains(missing))
-        #expect(reason.contains("read:packages") == (authMethod != .gitHubApp), "de GitHub App heeft een recht, geen scope")
+        #expect(runner.calls.first?.1 == ["auth", "token", "--hostname", "github.example.com"])
+        #expect(urls(http).contains("https://github.example.com/api/v3/orgs/acme/packages?package_type=npm&per_page=100"))
+    }
+
+    /// De opdrachten blijven in elke taal letterlijk staan, met de host.
+    @Test func `The reasons carry the exact commands`() {
+        #expect(GitHubPackagesReason.cliMissesScope(host: "github.com").contains("gh auth refresh -h github.com -s read:packages"))
+        #expect(GitHubPackagesReason.cliMissesScope(host: "acme.ghe.com").contains("gh auth refresh -h acme.ghe.com -s read:packages"))
+        #expect(GitHubPackagesReason.cliLoggedOut(host: "github.com").contains("gh auth login -h github.com -s read:packages"))
+        #expect(GitHubPackagesReason.cliMissing(host: "github.com").contains("brew install gh"))
+        #expect(GitHubPackagesReason.cliMissing(host: "github.com").contains("gh auth login -h github.com -s read:packages"))
+        #expect(GitHubPackagesReason.cliNoAccess(host: "github.com").contains("gh auth login -h github.com"))
+        #expect(!GitHubPackagesReason.cliTurnedOff.isEmpty)
     }
 
     @Test func `A rate limit is an error for the next check, not missing permission`() async {
