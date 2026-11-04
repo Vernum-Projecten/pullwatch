@@ -48,12 +48,12 @@ struct MenuView: View {
             if accounts.config.pollableAccounts.isEmpty {
                 SetupPrompt { router.show(.onboarding) }
             } else {
-                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
+                RecentSection(title: "Pull requests", empty: "Nog geen nieuwe PR's", items: historyModel.menuPullRequests, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                     app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                     router.show(.main)
                 }
                 if historyModel.hasTags {
-                    RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
+                    RecentSection(title: "Tags en releases", empty: nil, items: historyModel.menuTags, showsChecks: accounts.config.isEnabled(.ciChecks), open: historyModel.open, setRead: { historyModel.setRead([$0.id], $1) }) { item in
                         app.showRepo(accountId: item.entry.accountId, repo: item.entry.repo)
                         router.show(.main)
                     }
@@ -230,6 +230,8 @@ private struct RecentSection: View {
     /// Tekst als er nog niets is; nil: dan toont het onderdeel niets.
     let empty: LocalizedStringKey?
     let items: [HistoryItem]
+    /// De bron CI-checks staat aan.
+    let showsChecks: Bool
     let open: (HistoryItem) -> Void
     let setRead: (HistoryItem, Bool) -> Void
     let openRepo: (HistoryItem) -> Void
@@ -246,7 +248,7 @@ private struct RecentSection: View {
                 .padding(.horizontal, MenuMetrics.rowInset)
         } else {
             ForEach(items) { item in
-                RecentRow(item: item) { open(item) }
+                RecentRow(item: item, showsChecks: showsChecks) { open(item) }
                     .contextMenu {
                         Button(item.isRead ? "Markeer als ongelezen" : "Markeer als gelezen") { setRead(item, !item.isRead) }
                         Button("Open repo \(item.entry.repo)") { openRepo(item) }
@@ -260,6 +262,8 @@ private struct RecentSection: View {
 /// leest het als één zin, met "ongelezen" erbij.
 private struct RecentRow: View {
     let item: HistoryItem
+    /// De bron CI-checks staat aan. Een rij leest zelf geen model (zie `ChecksBadge`).
+    let showsChecks: Bool
     let action: () -> Void
 
     var body: some View {
@@ -287,7 +291,7 @@ private struct RecentRow: View {
                         // De titel, met de checks erachter zoals in de PR-lijst van GitHub.
                         HStack(spacing: 6) {
                             Text(item.entry.title).lineLimit(1)
-                            ChecksBadge(checks: item.entry.checks)
+                            ChecksBadge(checks: item.entry.checks, isEnabled: showsChecks)
                                 .font(.caption)
                         }
                     }

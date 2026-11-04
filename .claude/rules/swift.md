@@ -175,6 +175,12 @@ CI treats warnings as errors.
   the whole `AppModel`, which is for intents that span models (removing an
   account, Cmd-R, the settings with side effects). Bindings to an environment
   model go through `Bindable(router).path`.
+- **A view inside a `Table` cell or a `List` row never reads a model from
+  the environment**; the screen that owns the table reads it and passes the
+  value in (`ChecksBadge(checks:isEnabled:)`). AppKit draws such a cell in
+  its own hosting view and sometimes without the window's environment, and
+  then SwiftUI stops the app ("No Observable object of type AccountsModel
+  found"). `CellEnvironmentTests` draws these views without any model.
 - In the app the default isolation already makes a model `@MainActor`; do
   not repeat it. A model in PullwatchKit has none, so it would need
   `@MainActor` itself.

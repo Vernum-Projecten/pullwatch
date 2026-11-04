@@ -97,7 +97,8 @@ struct HistoryView: View {
             // en "4/8". Alleen bij PR's, en niet als de bron CI-checks uit staat; zonder checks een lege cel.
             if kind == .pullRequest, accounts.config.isEnabled(.ciChecks) {
                 TableColumn(Text(verbatim: ""), value: \.checksSortKey) { item in
-                    ChecksBadge(checks: item.entry.checks)
+                    // De kolom staat er alleen als de bron aan staat.
+                    ChecksBadge(checks: item.entry.checks, isEnabled: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .width(min: 48, ideal: 58, max: 76)
