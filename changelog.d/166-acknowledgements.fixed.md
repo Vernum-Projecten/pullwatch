@@ -1,0 +1,1 @@
+- The app now includes the licenses of the open-source software it uses (Sparkle, the MCP Swift SDK with SwiftLog, Swift System and EventSource, and GitHub Octicons), next to its own license and NOTICE. Read them under About Pullwatch, Acknowledgements, or Help, Acknowledgements.

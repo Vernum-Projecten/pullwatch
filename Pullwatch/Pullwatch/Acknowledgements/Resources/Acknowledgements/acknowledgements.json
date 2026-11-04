@@ -1,0 +1,58 @@
+{
+  "components" : [
+    {
+      "id" : "sparkle",
+      "name" : "Sparkle",
+      "version" : "2.10.1",
+      "license" : "MIT AND BSD-2-Clause AND Zlib",
+      "homepage" : "https://sparkle-project.org",
+      "file" : "sparkle-LICENSE.txt",
+      "package" : "sparkle"
+    },
+    {
+      "id" : "swift-sdk",
+      "name" : "MCP Swift SDK",
+      "version" : "0.12.1",
+      "license" : "Apache-2.0 AND MIT",
+      "homepage" : "https://github.com/modelcontextprotocol/swift-sdk",
+      "file" : "swift-sdk-LICENSE.txt",
+      "package" : "swift-sdk"
+    },
+    {
+      "id" : "swift-log",
+      "name" : "SwiftLog",
+      "version" : "1.16.2",
+      "license" : "Apache-2.0",
+      "homepage" : "https://github.com/apple/swift-log",
+      "file" : "swift-log-LICENSE.txt",
+      "notice" : "swift-log-NOTICE.txt",
+      "package" : "swift-log"
+    },
+    {
+      "id" : "swift-system",
+      "name" : "Swift System",
+      "version" : "1.8.1",
+      "license" : "Apache-2.0 WITH Swift-exception",
+      "homepage" : "https://github.com/apple/swift-system",
+      "file" : "swift-system-LICENSE.txt",
+      "package" : "swift-system"
+    },
+    {
+      "id" : "eventsource",
+      "name" : "EventSource",
+      "version" : "1.6.0",
+      "license" : "MIT",
+      "homepage" : "https://github.com/mattt/eventsource",
+      "file" : "eventsource-LICENSE.txt",
+      "package" : "eventsource"
+    },
+    {
+      "id" : "octicons",
+      "name" : "GitHub Octicons",
+      "version" : "19.41.0",
+      "license" : "MIT",
+      "homepage" : "https://github.com/primer/octicons",
+      "file" : "octicons-LICENSE.txt"
+    }
+  ]
+}

@@ -13,9 +13,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UNUserNotificationCenter.current().delegate = Notifier.shared
         AppModel.shared.start()
         #if DEBUG
-        // Voor schermafbeeldingen: meteen de instellingen of het Over-venster open.
+        // `-PullwatchSnapshotDark YES`: donkere modus voor de camera, los van de instelling van de Mac.
+        if UserDefaults.standard.bool(forKey: "PullwatchSnapshotDark") { NSApp.appearance = NSAppearance(named: .darkAqua) }
+        // Voor schermafbeeldingen: meteen de instellingen, het Over-venster of Erkenningen open.
         if UserDefaults.standard.bool(forKey: "PullwatchOpenSettings") { AppModel.shared.router.show(.settings) }
         if UserDefaults.standard.bool(forKey: "PullwatchOpenAbout") { AppModel.shared.router.show(.about) }
+        if UserDefaults.standard.bool(forKey: "PullwatchOpenAcknowledgements") { AppModel.shared.router.show(.acknowledgements) }
         #endif
     }
 

@@ -2,10 +2,12 @@ import AppKit
 import SwiftUI
 
 /// Het Over-venster: icoon, naam en versie, wat Pullwatch doet, de links (code, release notes,
-/// een probleem melden, licentie), wie het maakte en waar de versie- en kwetsbaarheidsgegevens
+/// een probleem melden, licentie, erkenningen), wie het maakte en waar de versie- en kwetsbaarheidsgegevens
 /// en de PR-iconen vandaan komen. Geopend via "Over Pullwatch" in het appmenu en de ℹ︎ in het
 /// menupaneel.
 struct AboutView: View {
+    @Environment(AppRouter.self) private var router
+
     static let repository = URL(string: "https://github.com/alessandro823/pullwatch")!
 
     private var info: [String: Any] { Bundle.main.infoDictionary ?? [:] }
@@ -59,6 +61,11 @@ struct AboutView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
+
+            // Zoals Apple's eigen apps: de licenties van wat in de app zit, vanuit Over.
+            Button("Erkenningen") { router.show(.acknowledgements) }
+                .buttonStyle(.link)
+                .font(.callout)
         }
         .padding(28)
         .frame(width: 460)

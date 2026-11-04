@@ -35,4 +35,12 @@ import Testing
     func `PullRequestRow draws without a model in the environment`(showsChecks: Bool) {
         #expect(draws(PullRequestRow(item: Self.item, showsChecks: showsChecks)))
     }
+
+    @Test func `AcknowledgementRow draws without a model in the environment`() {
+        let component = Acknowledgement(
+            id: "sparkle", name: "Sparkle", version: "2.10.1", license: "MIT AND BSD-2-Clause AND Zlib",
+            homepage: URL(string: "https://sparkle-project.org")!, file: "sparkle-LICENSE.txt", notice: nil, package: "sparkle"
+        )
+        #expect(draws(AcknowledgementRow(component: component)))
+    }
 }

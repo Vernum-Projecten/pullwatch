@@ -9,6 +9,8 @@ enum WindowID: String {
     case settings
     /// Het Over-venster.
     case about
+    /// Erkenningen: de licenties van de open-sourcesoftware in de app.
+    case acknowledgements
 }
 
 /// Een verzoek om een venster te openen; elk verzoek is nieuw, ook voor hetzelfde venster.
