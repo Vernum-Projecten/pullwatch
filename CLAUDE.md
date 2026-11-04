@@ -252,8 +252,12 @@ of each part is in `docs/superpowers/specs/` and its plan in
 - `site/`: the website, an Astro Starlight project (`site/README.md`): the
   landing page (`src/content/docs/index.mdx` with the components in
   `src/components/`) and the user documentation in English
-  (`src/content/docs/`), with screenshots from the camera tour in
-  `src/assets/screenshots/` (light and dark, fake data only). Versions pinned
+  (`src/content/docs/`, the root locale) and in Dutch, German and French
+  (`src/content/docs/<lang>/`, same slugs, UI names from the String Catalogs,
+  checked by `scripts/check-terms.py`; the landing page's own text in
+  `src/content/i18n/<lang>.json`), with screenshots from the camera tour in
+  `src/assets/screenshots/` and `src/assets/screenshots/<lang>/` (light and
+  dark, fake data only). Versions pinned
   exactly with a committed `package-lock.json`; Node from `site/.nvmrc`.
   `astro.config.mjs` takes `site` and `base` from `PAGES_DOMAIN`; a Markdown
   link is written from the site root (`/using/menu/`) and gets the base from
