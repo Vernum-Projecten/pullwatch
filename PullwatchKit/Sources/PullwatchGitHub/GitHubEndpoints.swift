@@ -10,18 +10,16 @@ import Foundation
 /// - GitHub Enterprise Server (elk ander adres): REST op `<server>/api/v3`, GraphQL op
 ///   `<server>/api/graphql`.
 public struct GitHubEndpoints: Sendable, Equatable {
-    public enum Flavor: Sendable, Equatable {
+    enum Flavor: Sendable, Equatable {
         case dotCom, dataResidency, server
     }
 
-    public let flavor: Flavor
+    let flavor: Flavor
     /// De webpagina's: repo's, PR's, releases, installaties.
-    public let web: URL
+    let web: URL
     /// De REST-API, zonder "/" aan het eind.
-    public let api: URL
-    public let graphQL: URL
-
-    public static let dotCom = GitHubEndpoints(instanceURL: nil)
+    let api: URL
+    let graphQL: URL
 
     public init(instanceURL: URL?) {
         let host = instanceURL?.host()?.lowercased()
@@ -47,7 +45,7 @@ public struct GitHubEndpoints: Sendable, Equatable {
         }
     }
 
-    public var isDotCom: Bool { flavor == .dotCom }
+    var isDotCom: Bool { flavor == .dotCom }
 
     /// De host voor `gh auth token --hostname`: "github.com", "acme.ghe.com" of de server.
     /// Een poort hoort erbij ("github.example.com:8443"), zoals `gh` de host zelf noemt.

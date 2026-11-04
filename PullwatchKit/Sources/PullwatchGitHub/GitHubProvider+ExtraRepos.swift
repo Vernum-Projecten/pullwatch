@@ -102,7 +102,7 @@ extension GitHubProvider {
         } catch ProviderError.server(status: 404) {
             return nil
         }
-        return try JSONDecoding.decode(RepositoryDTO.self, from: data, snakeCase: true).fullName
+        return try JSONDecoding.decode(RepoDTO.self, from: data, snakeCase: true).fullName
     }
 
     /// De losse repo's met hun naam zoals GitHub hem schrijft, zonder de niet gevonden. Lukt het
@@ -203,11 +203,11 @@ extension GitHubProvider {
         do {
             let tagsURL = apiBase.appending(path: "repos").appending(path: repo).appending(path: "tags")
             let releasesURL = apiBase.appending(path: "repos").appending(path: repo).appending(path: "releases")
-            let page = [URLQueryItem(name: "per_page", value: "100")]
+            let page = [URLQueryItem(name: "per_page", value: String(Self.tagLimit))]
             let refs = try JSONDecoding.decode([RestTagDTO].self, from: try await repoData(repo, tagsURL, query: page), snakeCase: true)
             let releases = try JSONDecoding.decode(
                 [RestReleaseDTO].self,
-                from: try await repoData(repo, releasesURL, query: [URLQueryItem(name: "per_page", value: "20")]),
+                from: try await repoData(repo, releasesURL, query: [URLQueryItem(name: "per_page", value: String(Self.releaseLimit))]),
                 snakeCase: true
             ).filter { !$0.draft }
             var byTag: [String: RestReleaseDTO] = [:]
@@ -228,7 +228,7 @@ extension GitHubProvider {
                     }
                 }
                 // REST geeft bij een tag geen maker; die van de release, tenzij dat een bot is.
-                let author = release?.author.flatMap { $0.login.hasSuffix("[bot]") ? nil : $0 }
+                let author = release?.author.flatMap { Self.isBot($0.login) ? nil : $0 }
                 fetch.tags.append(Tag(
                     accountId: accountId,
                     repo: repo,
@@ -282,10 +282,6 @@ extension GitHubProvider {
             throw ProviderError.rateLimited(until: until)
         }
     }
-}
-
-private struct RepositoryDTO: Decodable {
-    let fullName: String
 }
 
 private struct RestTagDTO: Decodable {

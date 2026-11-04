@@ -4,6 +4,8 @@ import PullwatchCore
 import PullwatchGitHub
 import PullwatchGitLab
 
+/// Maakt bij een account de provider van zijn dienst, met de juiste tokenbron; de enige plek die
+/// elke provider kent.
 public enum ProviderFactory {
     /// `pat` overschrijft de Keychain (gebruikt bij "Test verbinding" vóór opslaan).
     public static func make(

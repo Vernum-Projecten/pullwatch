@@ -55,7 +55,7 @@ public struct GitHubAppTokens: Codable, Sendable, Equatable {
     public var access: String
     public var accessExpires: Date
     public var refresh: String?
-    public var refreshExpires: Date?
+    var refreshExpires: Date?
 
     public init(access: String, accessExpires: Date, refresh: String? = nil, refreshExpires: Date? = nil) {
         self.access = access

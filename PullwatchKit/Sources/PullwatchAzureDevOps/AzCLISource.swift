@@ -1,6 +1,7 @@
 import Foundation
 import PullwatchCore
 
+/// Het token van de Azure CLI (`az account get-access-token`) voor Azure DevOps.
 public actor AzCLISource: TokenSource {
     private static let devOpsResource = "499b84ac-1321-427f-aa17-267ca6975798"
 

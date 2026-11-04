@@ -17,7 +17,7 @@ extension AzureDevOpsProvider {
         for pr in pullRequests {
             let parts = pr.repo.split(separator: "/", maxSplits: 1).map(String.init)
             guard parts.count == 2 else { continue }
-            let statuses: StatusList
+            let statuses: ValueList<StatusDTO>
             do {
                 statuses = try await get(
                     baseURL.appending(path: parts[0]).appending(path: "_apis/git/repositories").appending(path: parts[1])
@@ -95,8 +95,6 @@ extension AzureDevOpsProvider {
         let iterationId: Int?
         let context: Context?
     }
-
-    struct StatusList: Decodable { let value: [StatusDTO] }
 
     struct EvaluationList: Decodable {
         struct Evaluation: Decodable {
