@@ -28,7 +28,7 @@ scripts/release/release.sh                          # signed with Developer ID, 
 
 The version is `MARKETING_VERSION` (and the build number `CURRENT_PROJECT_VERSION`) in `Pullwatch/App.xcconfig`. A signed release needs a Developer ID Application certificate in the Keychain and a notarytool profile (`xcrun notarytool store-credentials pullwatch --apple-id <id> --team-id <team>`); override with `SIGN_ID=…` and `NOTARY_PROFILE=…`.
 
-The repository holds the app (`Pullwatch/`: the Xcode project, `App/` for state and wiring, `Views/` for the screens) and the `PullwatchKit` Swift package, which the app links and which has the unit tests. Its modules: `PullwatchCore` (models, polling, history, version checks, updates), `PullwatchGitHub`, `PullwatchAzureDevOps` and `PullwatchGitLab` (one per provider), and `PullwatchProviders` (picks the provider for an account).
+The repository holds the app (`Pullwatch/`: the Xcode project, and in `Pullwatch/Pullwatch/` one folder per feature with its model and its views, such as `Accounts/`, `PullRequests/`, `Repositories/` and `Settings/`) and the `PullwatchKit` Swift package, which the app links and which has the unit tests. Its modules: `PullwatchCore` (models, polling, history, version checks, updates), `PullwatchGitHub`, `PullwatchAzureDevOps` and `PullwatchGitLab` (one per provider), and `PullwatchProviders` (picks the provider for an account).
 
 ## Usage
 

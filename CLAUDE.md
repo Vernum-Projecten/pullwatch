@@ -34,52 +34,68 @@ of each part is in `docs/superpowers/specs/` and its plan in
   Vernum-Projecten; then the optional, git-ignored `Local.xcconfig`) and
   `Release.xcconfig` (the maintainer's GitHub App). Never put the test app in
   `Release.xcconfig`.
-  `Pullwatch/Pullwatch/App/`: state and wiring. `PullwatchApp.swift` (four
-  scenes: the `MenuBarExtra`, the main `Window`, the welcome `Window` that
-  opens by itself on a first launch via `defaultLaunchBehavior`, and the
-  `Settings` scene; `appModels(_:)` puts every model in each scene's
-  environment), `AppDelegate` (starts the model, except as a test host),
-  `WindowPresence` (shows the Dock icon while one of those windows is open),
-  `AppModel.swift` (the composition root: creates the models
-  once, starts the loop, and keeps the intents that span models), and one
-  `@Observable` model per job, each read by views from the environment:
-  `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
-  `HistoryModel` (history, read state, menu lists, Dock badge),
-  `PollingModel` (one poll, statuses, refetch), `VersionsModel` (the version
-  check, the stored report and the one the screens show without the data of
-  sources that are off), `OverviewModel` (repo summaries and sidebar),
-  `NotificationsModel`, `UpdatesModel`, `AgentServer` (the MCP socket for
-  coding agents: listens while `AppConfig.agentAccess` is not `never`, never
-  as a test host; `sessions` lists the connected agents with the client name
-  and version from `initialize` and `connectedSince`; the tools come from
-  `AppModel.mcpTools()`, still empty) and `AppRouter` (windows, sidebar,
-  paths, filters; `show(_:)` opens a window or section); `AppServices` holds
-  the stores, the engine and the notifier,
-  `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
-  the app when the build has `SPARKLE_PUBLIC_ED_KEY`), `FakeGitHub` and
-  `FakeWorld` (debug only: a GitHub without network and its repositories, for
-  the UI tests and the camera tours), `Notifier` and `NotificationGlyph`,
-  `Shortcuts` (commands; ⌘O reads the `browserTarget` focused value),
-  `AppLanguage` (the language choice in General: follow macOS or a fixed
-  language through `AppleLanguages`, applied by relaunching), and the models
-  of single screens (`RepoPage`, `PackageRows`, `RepoBriefs`, `TagFilter`,
-  `RepoVersions+Clipboard`).
-  `Pullwatch/Pullwatch/Views/`: only draws. `MenuBarLabel` (the menu-bar
-  icon; it opens the windows the model asks for through
-  `AppRouter.windowRequest`), `AboutView` (the About window), `MenuView`
-  (the menu-bar popover), `MainView` (sidebar: PRs, Tags, Repos, Versions,
-  Statistics), `SettingsView` (the Settings window: Accounts, Notifications,
-  General with the language choice, and Sources), `SourcesSettingsView` (the Sources tab:
-  every outgoing connection, switches for the data sources, **Copy
-  overview**), `AccountEditor`, `OnboardingView` with `OnboardingSteps`, the
-  section views, and `Components/` (shared pieces: `SourceStatusParts` with
-  the "Niet gecontroleerd: bron … staat uit" texts, `Pasteboard`,
-  `CopyButton`, `AgentBriefButton` and `AgentBriefMenu`, the vulnerability
-  table and its cells). The repository page is `RepoDetailView` with a file
+  `Pullwatch/Pullwatch/`: one folder per feature, holding its `@Observable`
+  model and its views (each type in its own file), as Apple's sample apps
+  do. Every model is read by views from the environment.
+  `App/`: the wiring. `PullwatchApp.swift` (four scenes: the
+  `MenuBarExtra`, the main `Window`, the welcome `Window` that opens by
+  itself on a first launch via `defaultLaunchBehavior`, and the `Settings`
+  scene; `appModels(_:)` puts every model in each scene's environment),
+  `AppDelegate` (starts the model, except as a test host), `WindowPresence`
+  (shows the Dock icon while one of those windows is open), `AppModel.swift`
+  (the composition root: creates the models once, starts the loop, and
+  keeps the intents that span models), `AppServices` (the stores, the engine
+  and the notifier) and `AppLanguage` (the language choice in General:
+  follow macOS or a fixed language through `AppleLanguages`, applied by
+  relaunching).
+  `Navigation/`: `AppRouter` (windows, sidebar, paths, filters; `show(_:)`
+  opens a window or section), `Shortcuts` (commands; ⌘O reads the
+  `browserTarget` focused value), `SearchShortcut` and `MainView` (sidebar:
+  PRs, Tags, Repos, Versions, Statistics).
+  `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
+  model asks for through `AppRouter.windowRequest`) and `MenuView` (the
+  menu-bar popover).
+  `Accounts/`: `AccountsModel` (config, accounts, Keychain, GitHub sign-in),
+  `GitHubSignIn` (the GitHub sign-in flow), `AccountEditor` and its rows.
+  `Onboarding/`: `OnboardingView` with `OnboardingSteps`.
+  `PullRequests/`: `HistoryModel` (history, read state, menu lists, Dock
+  badge), `HistoryView`, `TagFilter` and the PR and tag pieces
+  (`ChecksBadge`, `PRStatus`, `KindStyle`).
+  `Repositories/`: `OverviewModel` (repo summaries and sidebar), `ReposView`,
+  the models of the repository page (`RepoPage`, `RepoBriefs`,
+  `RepoVersions+Clipboard`) and `RepoDetail/`: `RepoDetailView` with a file
   per tab (`RepoOverviewTab`, `RepoCheckTab`, `RepoPackagesTab`,
   `RepoSecurityTab`), `RepoInspector` and `RepoDetailToolbar`; it puts the
   agent briefs behind the Overview headings and in the toolbar's More menu
-  (`RepoBriefs`, one per section). `Localizable.xcstrings`
+  (`RepoBriefs`, one per section).
+  `Dependencies/`: `VersionsModel` (the version check, the stored report and
+  the one the screens show without the data of sources that are off),
+  `PackagesView` and `PackageRows`.
+  `Security/`: the vulnerability table and its cells, `AdvisoryInspector`.
+  `Statistics/`: `StatsView` and its charts.
+  `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,
+  the notification content and the Notifications settings.
+  `Settings/`: `SettingsView` (the Settings window: Accounts, Notifications,
+  General with the language choice, and Sources), `SourcesSettingsView` (the
+  Sources tab: every outgoing connection, switches for the data sources,
+  **Copy overview**) and `SourceStatusParts` (the "Niet gecontroleerd: bron
+  … staat uit" texts).
+  `Polling/`: `PollingModel` (one poll, statuses, refetch).
+  `Updates/`: `UpdatesModel`, `Updater` (Sparkle 2: updates in the app when
+  the build has `SPARKLE_PUBLIC_ED_KEY`) and `AboutView` (the About window).
+  `Agents/`: `AgentServer` (the MCP socket for coding agents: listens while
+  `AppConfig.agentAccess` is not `never`, never as a test host; `sessions`
+  lists the connected agents with the client name and version from
+  `initialize` and `connectedSince`; the tools come from
+  `AppModel.mcpTools()`, still empty).
+  `General/`: what two or more features use (`Pasteboard`, `CopyButton`
+  with `AgentBriefButton`, `AgentBriefMenu`, `FilteredEmptyView`, `Pill`,
+  `AddButton`).
+  `Debug/`: debug-only tooling: `FakeGitHub` and `FakeWorld` (a GitHub
+  without network and its repositories, for the UI tests and the camera
+  tours), `SnapshotCamera`, `SnapshotTour` and
+  `NotificationPreviewGallery`.
+  At the top: `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
   app icon, an Icon Composer bundle (`icon.json` plus one SVG per layer in
@@ -105,11 +121,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `-PullwatchFakeGitHub`; `SecretStores`), and walk
   the first-run onboarding in Dutch and English. In debug builds
   `-PullwatchSnapshotDirectory <dir>` makes the app draw its own windows to
-  PNG (`App/SnapshotCamera.swift`), no Screen Recording permission needed;
+  PNG (`Debug/SnapshotCamera.swift`), no Screen Recording permission needed;
   with `-PullwatchFakeGitHub YES -PullwatchFakeData YES
   -PullwatchSnapshotTour YES` and a `config.json` with a GitHub account in
   the data folder it walks every screen of the main window
-  (`App/SnapshotTour.swift`), and `-PullwatchOnboardingTour YES` every step of
+  (`Debug/SnapshotTour.swift`), and `-PullwatchOnboardingTour YES` every step of
   the welcome window. Comparing the PNGs of two builds pixel by pixel shows a
   refactor changed nothing; only clocks and time stamps differ.
 - `PullwatchKit/`: the local Swift package (`Package.swift`), everything
@@ -120,16 +136,23 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `ProviderError`, `StaticTokenSource`), `Polling/` (`PollEngine`, backoff,
   notification planning, filters, seen state), `History/` (history,
   statistics, repo overview), `Versions/` (the version and vulnerability
-  checks: stack and dependency detection, package registries, end-of-life,
-  OSV; `DataSource` is the catalogue of data sources that can be switched
-  off, vulnerability and version sources and the CI checks of pull
-  requests, `SourcesOverview` lists every connection for the Sources tab
-  and its copied overview, `AgentBrief` turns a section of the repository
-  page into a Markdown brief for an AI agent), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
+  checks, in six parts: `Detection/` (stack and dependency detection,
+  lockfiles, provenance), `Registries/` (package registries, metadata per
+  version, end-of-life), `Updates/` (whether an update can go, what blocks
+  it, and `Ranges/`, the version ranges per ecosystem),
+  `Vulnerabilities/` (OSV, the GitHub Advisory Database, CVSS, the
+  service's own alerts), `Check/` (`VersionChecker`, `VersionReport`,
+  `VersionHistory`) and `Tables/` (the rows and tables of the repository
+  page)), `DataSources/` (`DataSource` is the catalogue of data sources
+  that can be switched off, vulnerability and version sources and the CI
+  checks of pull requests; `SourcesOverview` lists every connection for the
+  Sources tab and its copied overview), `AgentBrief/` (turns a section of
+  the repository page into a Markdown brief for an AI agent), `Updates/` (`UpdateChecker`, `Appcast`, `UpdateFeed`), `Support/` (HTTP, processes, JSON
   store, Keychain and `SecretStores`, logging, localisation). `PullwatchGitHub/`:
   `GitHubProvider` (github.com, GitHub Enterprise Server and GHE.com through
-  `GitHubEndpoints`), the GitHub App device flow and token store
-  (`GitHubAppAuth`), the `gh` token source and `GhCLIAccounts`.
+  `GitHubEndpoints`), and in `Auth/` the GitHub App device flow and token store
+  (`GitHubAppAuth`, `GitHubAppTokenRefresher`), the `gh` token source and
+  `GhCLIAccounts`.
   `PullwatchAzureDevOps/`: `AzureDevOpsProvider` and the `az` token source.
   `PullwatchGitLab/`: `GitLabProvider` (gitlab.com and self-managed, REST v4)
   and the `glab` token source. Each provider has the same layout: the
@@ -188,7 +211,9 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `MockHTTPClient`, `MockProcessRunner`, `InMemorySecretStore`, `TestClock`
   (starting at `Date.testStart`), `CLILocator.homebrew` and `.nothing`,
   `expectCalledHostsAreListed` and fixtures; a helper only one target needs
-  goes in that target's `Support/`.
+  goes in that target's `Support/`. A test target mirrors its module's
+  folders (`PullwatchCoreTests/Versions/Detection/`, `PullwatchMCPTests/Transport/`,
+  `PullwatchGitHubTests/Auth/`), so a test sits where its subject sits.
 - `docs/setup.md`: everything the maintainer configures outside the code
   (signing, the GitHub App, the release secrets), each with its steps;
   `docs/github-app.md`: the GitHub App for **Sign in with GitHub**. Keep both

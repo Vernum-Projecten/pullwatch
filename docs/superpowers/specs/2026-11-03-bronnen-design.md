@@ -63,9 +63,9 @@ Wat de code nu aanroept (`PullwatchKit/Sources`):
 | endoflife.date | Releasecycli en end-of-life van runtimes (Go, .NET, Node en meer) | `endoflife.date/api/v1/products/{product}` |
 | swift.org | Swift-releases (Swift heeft geen EOL-beleid) | `swift.org/api/v1/install/releases.json` |
 
-De registries staan in `Versions/PackageRegistry.swift` en
-`Versions/Registry/RegistryMetadata.swift`, endoflife.date en swift.org in
-`Versions/EndOfLife.swift`.
+De registries staan in `Versions/Registries/PackageRegistry.swift` en
+`Versions/Registries/RegistryMetadata.swift`, endoflife.date en swift.org in
+`Versions/Registries/EndOfLife.swift`.
 
 **Overige verbindingen** (beslist door Alessandro: het overzicht toont élke
 verbinding naar buiten, zodat het het volledige antwoord is op "met wie praat
