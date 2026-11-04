@@ -48,7 +48,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `PollingModel` (one poll, statuses, refetch), `VersionsModel` (the version
   check, the stored report and the one the screens show without the data of
   sources that are off), `OverviewModel` (repo summaries and sidebar),
-  `NotificationsModel`, `UpdatesModel` and `AppRouter` (windows, sidebar,
+  `NotificationsModel`, `UpdatesModel`, `AgentServer` (the MCP socket for
+  coding agents: listens while `AppConfig.agentAccess` is not `never`, never
+  as a test host; `sessions` lists the connected agents with the client name
+  and version from `initialize` and `connectedSince`; the tools come from
+  `AppModel.mcpTools()`, still empty) and `AppRouter` (windows, sidebar,
   paths, filters; `show(_:)` opens a window or section); `AppServices` holds
   the stores, the engine and the notifier,
   `GitHubSignIn` (the GitHub sign-in flow), `Updater` (Sparkle 2: updates in
@@ -83,7 +87,18 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `ictool` (inside Icon Composer) in light, dark, tinted and clear.
   `Pullwatch/PullwatchTests/`: hosted Swift Testing suites for the built app
   (bundle id, menu-bar app, languages, translations complete, SF Symbols).
-  While XCTest hosts the app, `AppDelegate` does not start polling.
+  While XCTest hosts the app, `AppDelegate` does not start polling and no
+  socket opens. `AgentServerTests` runs the real helper against a socket in
+  a temporary data folder.
+  `Pullwatch/pullwatch-mcp/`: the command-line target `pullwatch-mcp`
+  (bundle id `nl.torrisi.pullwatch.mcp`, hardened runtime, stripped in
+  Release), embedded by the app's "Embed Helpers" phase in
+  `Pullwatch.app/Contents/Helpers/`. An agent starts it with stdio
+  (`claude mcp add --transport stdio pullwatch --
+  /Applications/Pullwatch.app/Contents/Helpers/pullwatch-mcp`); `main.swift`
+  only wires `MCPBridge` and `WorkspaceLauncher` (`NSWorkspace`, not
+  activated). It honours `-PullwatchDataDirectory` and passes it on to an
+  app it starts.
   `Pullwatch/PullwatchUITests/`: XCUITests that launch the app with an empty
   data folder (`-PullwatchDataDirectory <dir>`, read by `AppPaths`) and
   tokens in memory only (`-PullwatchEphemeralSecrets`, also implied by
@@ -138,14 +153,31 @@ of each part is in `docs/superpowers/specs/` and its plan in
   history, repo summaries, the shown version report, update contexts, poll
   states, sources that are off). They show only followed repositories,
   accounts as name and host, no credentials, "Not checked: source X is off"
-  instead of clean, and page lists with `limit` and `cursor`. The app does
-  not link it yet.
+  instead of clean, and page lists with `limit` and `cursor`.
+  `Transport/`: the local connection. `MCPSocketServer` listens on
+  `mcp.sock` in the data folder (`UnixSocket.url()`; folder 0700, socket
+  0600, a stale socket removed, `MCPSocketListener`), checks every peer
+  before reading a byte (`MCPPeerCheck`: same uid through `getpeereid`, and
+  the code signature from the audit token judged by `MCPPeerPolicy`: with a
+  team only `nl.torrisi.pullwatch.mcp` of the app's own team; without one,
+  as in debug and CI builds, that identifier or the linker-signed
+  `pullwatch-mcp`), and serves one `PullwatchMCPServer` per connection over
+  `MCPSocketTransport` (newline-delimited JSON, `LineFramer` stops at
+  `MCPLimits.maxMessageBytes`). `NonBlockingDescriptor` is the only wrapper
+  of `FileHandle`'s readability and writeability callbacks. `Bridge/`: the
+  helper's logic, `MCPBridge`, per `AgentAccess` (`never`: every request
+  gets "Agents are turned off in Pullwatch: Settings, Agents";
+  `whileOpen`: without a socket "Open Pullwatch to use it from an agent.";
+  `always`: starts Pullwatch through `PullwatchLaunching` and waits up to
+  10 s), reconnecting once with a replayed handshake when the app restarts.
+  The app links it.
   `PullwatchKit/Package.resolved` and the project's `Package.resolved` pin
   the same versions; a dependency change updates both. Every provider also reads the repositories a person adds by
   hand (`Account.extraRepos`, `PRProvider.checkRepository`), with an
   anonymous fallback for public repositories on github.com and gitlab.com
   only. The app links `PullwatchCore`, `PullwatchGitHub` (the sign-in
-  screens) and `PullwatchProviders`. Only what another module or the app
+  screens), `PullwatchProviders` and `PullwatchMCP` (the helper only
+  `PullwatchMCP`). Only what another module or the app
   uses is `public`; what only the package's own modules share is `package`.
   A module with text has its own `Localizable.xcstrings` and its own
   `Bundle.localized…` helper (`Support/Localization.swift`).
@@ -164,15 +196,17 @@ of each part is in `docs/superpowers/specs/` and its plan in
   plans (Dutch).
 - `.github/workflows/`: `ci.yml` (every pull request and push to `main`:
   shellcheck and actionlint, the changelog fragment guard, `swift test`, `xcodebuild test` with the unit
-  and UI tests, `release.sh --unsigned` with a universal check; no secrets)
+  and UI tests, `release.sh --unsigned` with a universal check of the app
+  and `pullwatch-mcp`, and the helper in the DMG and zip; no secrets)
   and `release.yml` (a `v*` tag: check, sign, notarise, package, draft
   release). `.github/actionlint.yaml` names the `xcode-27` runner label.
   `CHANGELOG.md` (Keep a Changelog) gives each release its notes, assembled
   from the fragments in `changelog.d/`.
   `docs/releasing.md`: the release procedure and its Actions secrets.
 - `scripts/release/release.sh [--unsigned]`: Release build (universal), and
-  with a Developer ID also signing, notarisation and stapling of the app
-  and the DMG; local (notarytool profile) and in `release.yml` (API key in
+  with a Developer ID also signing (inside out: Sparkle, the
+  `pullwatch-mcp` helper with its own identifier, the app), notarisation and
+  stapling of the app and the DMG; local (notarytool profile) and in `release.yml` (API key in
   `NOTARY_KEY_FILE`). `package.sh <app> <version> <out-dir>` makes
   `Pullwatch-<version>.dmg` (the install window: background from
   `dmg-background.swift`, icons placed by Finder through AppleScript) and
@@ -228,12 +262,17 @@ The same as CI (`.github/workflows/ci.yml`), warnings as errors:
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 swift test --package-path PullwatchKit -Xswiftc -warnings-as-errors
 xcodebuild test -project Pullwatch/Pullwatch.xcodeproj -scheme Pullwatch \
-  -destination 'platform=macOS' SWIFT_TREAT_WARNINGS_AS_ERRORS=YES     # unit and UI tests
+  -destination 'platform=macOS'     # unit and UI tests
 shellcheck scripts/*/*.sh .claude/hooks/*.sh .githooks/*
 actionlint
 bash scripts/release/changelog.sh --check
 bash scripts/dev/sync-strings.sh && git diff --exit-code -- '*.xcstrings'
 ```
+
+Warnings are errors in the app's targets through the project's
+`SWIFT_TREAT_WARNINGS_AS_ERRORS`. Do not pass it to `xcodebuild` on the
+command line: it then also reaches the MCP SDK's packages, which Xcode
+builds with `-suppress-warnings`, and the build stops.
 
 The UI tests take over the screen. On a Mac someone is working on, run
 `-only-testing:PullwatchTests` and `xcodebuild build-for-testing` instead,

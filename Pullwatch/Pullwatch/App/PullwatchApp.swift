@@ -16,6 +16,7 @@ extension View {
             .environment(app.polling)
             .environment(app.updates)
             .environment(app.router)
+            .environment(app.agents)
     }
 }
 
