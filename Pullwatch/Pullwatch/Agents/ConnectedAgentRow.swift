@@ -13,7 +13,8 @@ struct ConnectedAgentRow: View {
         HStack(alignment: .center, spacing: 10) {
             Image(systemName: AgentsSettingsView.symbol)
                 .font(.title3)
-                .foregroundStyle(isWaiting ? AnyShapeStyle(.orange) : AnyShapeStyle(.tint))
+                // Oranje als hij wacht, grijs tot hij zegt wie hij is.
+                .foregroundStyle(isWaiting ? AnyShapeStyle(.orange) : session.clientName == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
                 .frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {

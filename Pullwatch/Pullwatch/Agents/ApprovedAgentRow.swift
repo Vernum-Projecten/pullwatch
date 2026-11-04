@@ -11,11 +11,22 @@ struct ApprovedAgentRow: View {
     let displayName: String
     let status: Status
 
+    private var isWaiting: Bool {
+        if case .waiting = status { true } else { false }
+    }
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: 10) {
+            // Dezelfde kolom als bij de verbonden agents, zodat de namen onder elkaar staan.
+            Image(systemName: isWaiting ? "hourglass" : "checkmark.circle.fill")
+                .font(.title3)
+                .foregroundStyle(isWaiting ? AnyShapeStyle(.orange) : AnyShapeStyle(.green))
+                .frame(width: 24)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: displayName)
-                if case .waiting = status {
+                    .fontWeight(.medium)
+                if isWaiting {
                     Text("Wacht op toestemming")
                         .font(.caption)
                         .foregroundStyle(.orange)
@@ -29,6 +40,7 @@ struct ApprovedAgentRow: View {
                         .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
                 .help("Haal \(displayName) van de lijst; Pullwatch vraagt het dan opnieuw")
             case .waiting(let allow, let deny):
                 Button("Sta niet toe", action: deny)

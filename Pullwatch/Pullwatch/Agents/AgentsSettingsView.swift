@@ -20,7 +20,7 @@ struct AgentsSettingsView: View {
     }
 }
 
-/// De keuze Nooit, Zolang Pullwatch open is, Altijd, met wat delen betekent.
+/// De keuze Nooit, Zolang Pullwatch open is, Altijd; daaronder wat delen betekent.
 private struct AgentAccessSection: View {
     @Environment(AppModel.self) private var app
 
@@ -33,23 +33,35 @@ private struct AgentAccessSection: View {
             }
             .pickerStyle(.menu)
             .accessibilityIdentifier("settings.agents.access")
-            Text("Wat een agent in Pullwatch leest, gaat naar de aanbieder van zijn model.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
         } footer: {
-            Text("Agents lezen alleen wat Pullwatch al heeft opgehaald en kunnen niets veranderen op GitHub, Azure DevOps of GitLab.")
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Wat een agent in Pullwatch leest, gaat naar de aanbieder van zijn model.")
+                Text("Agents lezen alleen wat Pullwatch al heeft opgehaald en kunnen niets veranderen op GitHub, Azure DevOps of GitLab.")
+            }
         }
     }
 }
 
-/// Per client de opdracht of JSON, met het pad van de helper in deze app.
+/// Eén client tegelijk, gekozen met een gesegmenteerde knop: de opdracht of JSON met het pad van
+/// de helper in deze app.
 private struct AgentSetupSection: View {
+    @State private var client: AgentClient = .claudeCode
+
     var body: some View {
-        let helper = AgentClient.helperPath
-        Section("Een agent instellen") {
-            ForEach(AgentClient.allCases) { client in
-                AgentSetupRow(name: client.name, setup: client.setup(helper: helper), placement: client.placement)
+        Section {
+            Picker("Agent", selection: $client) {
+                ForEach(AgentClient.allCases) { client in
+                    Text(verbatim: client.name).tag(client)
+                }
             }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityIdentifier("settings.agents.client")
+            AgentSetupRow(name: client.name, setup: client.setup(helper: AgentClient.helperPath), placement: client.placement)
+        } header: {
+            Text("Een agent instellen")
+        } footer: {
+            Text("Gebruikt het pad van deze Pullwatch. Verplaats je de app, stel de agent dan opnieuw in.")
         }
     }
 }
@@ -61,11 +73,11 @@ private struct ConnectedAgentsSection: View {
     var body: some View {
         Section("Verbonden agents") {
             if agents.sessions.isEmpty {
-                ContentUnavailableView {
-                    Label("Geen agent verbonden", systemImage: AgentsSettingsView.symbol)
-                } description: {
-                    Text("Een agent die je hierboven hebt ingesteld, verschijnt hier zodra hij Pullwatch gebruikt.")
-                }
+                EmptyListRow(
+                    symbol: AgentsSettingsView.symbol,
+                    title: "Geen agent verbonden",
+                    message: "Een agent die je hierboven hebt ingesteld, verschijnt hier zodra hij Pullwatch gebruikt."
+                )
             } else {
                 ForEach(agents.sessions) { session in
                     ConnectedAgentRow(
@@ -86,6 +98,9 @@ private struct ApprovedAgentsSection: View {
 
     var body: some View {
         Section {
+            if agents.pendingAgents.isEmpty && agents.approvedAgents.isEmpty {
+                EmptyListRow(symbol: "checkmark.circle", title: "Nog geen agent toegestaan", message: nil)
+            }
             ForEach(agents.pendingAgents) { pending in
                 ApprovedAgentRow(
                     displayName: pending.displayName,
@@ -98,14 +113,38 @@ private struct ApprovedAgentsSection: View {
                     status: .approved(remove: { agents.removeApproval(name) })
                 )
             }
-            if agents.pendingAgents.isEmpty && agents.approvedAgents.isEmpty {
-                Text("Nog geen agent toegestaan.")
-                    .foregroundStyle(.secondary)
-            }
         } header: {
             Text("Toegestane agents")
         } footer: {
             Text("De eerste keer dat een agent Pullwatch gebruikt, vraagt Pullwatch het met een melding. Tot je toestaat, krijgt de agent geen gegevens.")
         }
+    }
+}
+
+/// Een lege lijst in een groep, gecentreerd zoals Systeeminstellingen het doet: een klein symbool,
+/// de titel en eventueel een regel uitleg, in `.secondary`.
+private struct EmptyListRow: View {
+    let symbol: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey?
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.title2)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.headline)
+            if let message {
+                Text(message)
+                    .font(.callout)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .accessibilityElement(children: .combine)
     }
 }

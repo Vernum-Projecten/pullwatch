@@ -76,7 +76,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,
   the notification content and the Notifications settings.
   `Settings/`: `SettingsView` (the Settings window: Accounts, Notifications,
-  General with the language choice, and Sources), `SourcesSettingsView` (the
+  General with the language choice, Sources, and Agents from `Agents/`), `SourcesSettingsView` (the
   Sources tab: every outgoing connection, switches for the data sources,
   **Copy overview**) and `SourceStatusParts` (the "Niet gecontroleerd: bron
   … staat uit" texts).
@@ -85,16 +85,23 @@ of each part is in `docs/superpowers/specs/` and its plan in
   the build has `SPARKLE_PUBLIC_ED_KEY`) and `AboutView` (the About window).
   `Agents/`: `AgentServer` (the MCP socket for coding agents: listens while
   `AppConfig.agentAccess` is not `never`, never as a test host; `sessions`
-  lists the connected agents with the client name and version from
-  `initialize` and `connectedSince`; the tools come from
-  `AppModel.mcpTools()`, still empty).
+  lists the connected agents with the client name, title and version from
+  `initialize`, `connectedSince`, `lastTool` and `lastActivity`;
+  `disconnect(id:)`; the approval per client name: `approvedAgents` (kept in
+  `AppConfig.approvedAgents`), `pendingAgents`, `allow`, `deny`,
+  `removeApproval`, and a notification with Allow and Don't Allow the first
+  time a client shows up), `AppMCPDataSource` (the `MCPDataSource` over the
+  models, read live on every call; the tools are `AppModel.mcpTools()`),
+  `AgentClient` (the setup command or JSON per client with the helper path
+  of the running app) and the Settings tab `AgentsSettingsView` with its rows.
   `General/`: what two or more features use (`Pasteboard`, `CopyButton`
   with `AgentBriefButton`, `AgentBriefMenu`, `FilteredEmptyView`, `Pill`,
   `AddButton`).
   `Debug/`: debug-only tooling: `FakeGitHub` and `FakeWorld` (a GitHub
   without network and its repositories, for the UI tests and the camera
-  tours), `SnapshotCamera`, `SnapshotTour` and
-  `NotificationPreviewGallery`.
+  tours), `SnapshotCamera`, `SnapshotTour`, `NotificationPreviewGallery` and
+  `FakeAgents` (`-PullwatchFakeAgents <n>`: fake agents in Settings, Agents for
+  the camera, with `-PullwatchOpenSettings YES -PullwatchSettingsPane agents`).
   At the top: `Localizable.xcstrings`
   holds the app's text in nl, en, de and fr; `Info.plist` holds only what the
   generated one cannot (`CFBundleLocalizations`). `AppIcon.icon` is the
@@ -187,7 +194,13 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `pullwatch-mcp`), and serves one `PullwatchMCPServer` per connection over
   `MCPSocketTransport` (newline-delimited JSON, `LineFramer` stops at
   `MCPLimits.maxMessageBytes`). `NonBlockingDescriptor` is the only wrapper
-  of `FileHandle`'s readability and writeability callbacks. `Bridge/`: the
+  of `FileHandle`'s readability and writeability callbacks. `Approval/`: `MCPApproval` (until a client name is
+  approved, every `tools/call` is a tool error "Waiting for approval in
+  Pullwatch: …"; `tools/list` still answers) and `MCPClientName` (the name
+  people know: `title`, then known clients, then `clientInfo.name`).
+  `MCPSocketServer.disconnect(id:)` first sends
+  `notifications/pullwatch/disconnected`, so the helper does not reconnect.
+  `Bridge/`: the
   helper's logic, `MCPBridge`, per `AgentAccess` (`never`: every request
   gets "Agents are turned off in Pullwatch: Settings, Agents";
   `whileOpen`: without a socket "Open Pullwatch to use it from an agent.";
