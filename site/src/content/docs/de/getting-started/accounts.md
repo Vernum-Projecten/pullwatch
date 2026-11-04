@@ -54,7 +54,7 @@ Unter **Andere Repositorys** unten in der Liste fügst du ein einzelnes Reposito
 - Azure DevOps: `project/repo` innerhalb der Organisation des Kontos, oder ein Link von dev.azure.com.
 - GitLab: `group/subgroup/project`, oder ein Link von gitlab.com oder vom eigenen Server des Kontos.
 
-Pullwatch prüft es mit einer Anfrage und sagt dir in klaren Worten, wenn es das Repository nicht finden oder lesen kann. Ein öffentliches Repository auf github.com oder gitlab.com, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. **Einem Repository folgen…** (⇧⌘N, im Menü Gehe zu und in der Symbolleiste von Repositories) öffnet dasselbe Feld mit einer Auswahl des Kontos. Entferne eines per Rechtsklick oder mit der Entfernen-Taste.
+Pullwatch prüft es mit einer Anfrage und sagt dir in klaren Worten, wenn es das Repository nicht finden oder lesen kann. Ein öffentliches Repository auf github.com oder gitlab.com, das dein Token nicht lesen darf, wird ohne Anmeldung gelesen. **Einem Repository folgen…** (⇧⌘N, im Menü Ablage und in der Symbolleiste von Repositories) öffnet dasselbe Feld mit einer Auswahl des Kontos. Entferne eines per Rechtsklick oder mit der Entfernen-Taste.
 
 Ein solches Repository erscheint überall wie die anderen, denen du folgst, gruppiert unter seinem eigenen Owner.
 

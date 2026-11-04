@@ -1,32 +1,91 @@
 ---
 title: Sneltoetsen
-description: Elke sneltoets in het menupaneel van Pullwatch en in het menu Ga van het hoofdvenster.
+description: Elke sneltoets in de menubalk van de vensters van Pullwatch en in het menupaneel.
 ---
 
-## Hoofdvenster: het menu Ga
+De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, Ga, Onderdeel, Repository, Venster en Help. Elke opdracht staat er altijd; een opdracht die niet past bij wat je gekozen hebt, is grijs.
+
+## Pullwatch
 
 | Sneltoets | Wat hij doet |
 |---|---|
+| | Controleer op updates… |
+| ⌘, | Instellingen |
+| ⌘H | Pullwatch verbergen |
+| ⌘Q | Stop Pullwatch |
+
+## Archief
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⌘N | Nieuw account…: Instellingen, Accounts, met de keuze van de dienst |
+| ⇧⌘N | Volg een repository… |
+| ⌘O | De selectie (of de open repository) in de browser openen |
+| ⌘W | Het venster sluiten |
+
+## Wijzig
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⌘F | Zoek…: zoeken in het huidige onderdeel |
+
+## Weergave
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⌃⌘S | De navigatiekolom tonen of verbergen |
+| ⌥⌘T | De knoppenbalk tonen of verbergen |
+| ⌘R | Laad opnieuw: de open repository, anders alles ophalen of checken |
+| ⌃⌘F | Schermvullende weergave aan of uit |
+
+## Ga
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⌘[ | Terug vanaf de pagina van een repository |
 | ⌘1 | PR's |
 | ⌘2 | Tags en releases |
 | ⌘3 | Statistieken |
 | ⌘4 | Repo's |
 | ⌘5 | Afhankelijkheden |
-| ⌘F | Zoeken in het huidige onderdeel |
-| ⌘R | Verversen: de open repository, anders alles ophalen of checken |
-| ⌘[ | Terug vanaf de pagina van een repository |
-| ⌘O | De selectie (of de open repository) in de browser openen |
-| ⇧⌘U | De selectie als gelezen of ongelezen markeren |
+| ⌘↓ | Repositorypagina: de pagina van de gekozen repository |
+
+## Onderdeel
+
+De gekozen pull request, tag of release.
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⇧⌘U | Markeer als gelezen of Markeer als ongelezen |
 | ⌘K | Alles als gelezen markeren |
-| ⌘↓ | De pagina van de gekozen repository openen |
-| ⌥⌘S | Statistieken van de repo |
-| ⇧⌘C | De afhankelijkheden van de repo kopiëren |
-| ⇧⌘N | Een repository volgen |
-| ⇧⌘R | De geschiedenis opnieuw ophalen |
+| ⇧⌘L | Kopieer link |
+
+## Repository
+
+De gekozen repository, of de open pagina van een repository.
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| | Check repository: de repository opnieuw checken |
 | ⌥⌘R | Alle repo's checken |
+| ⌥⌘S | Statistieken van repository |
+| ⇧⌘C | Kopieer afhankelijkheden voor agent |
+| ⇧⌘R | Geschiedenis opnieuw ophalen |
 | ⌘. | Ophalen stoppen |
-| ⌥⌘I | Het inspectievenster op de pagina van een repository tonen of verbergen |
-| ⌘, | Instellingen |
+| ⌥⌘I | Het inspectievenster op de pagina van een repository tonen of verbergen (knoppenbalk) |
+
+## Venster en Help
+
+| Sneltoets | Wat hij doet |
+|---|---|
+| ⌘M | Minimaliseren |
+| ⌘0 | Pullwatch: het hoofdvenster openen of naar voren halen |
+
+Help leidt naar deze documentatie (Pullwatch-help), naar deze pagina (Toetscombinaties), naar de release notes van jouw versie (Nieuw in Pullwatch), naar een nieuw issue op GitHub (Meld een probleem…) en naar Erkenningen.
+
+## Dock
+
+Zolang het icoon in het Dock staat, heeft het menu ervan **Laad opnieuw** en **Alle repo's checken**.
 
 ## Menupaneel
 

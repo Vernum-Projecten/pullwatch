@@ -1,32 +1,91 @@
 ---
 title: Raccourcis clavier
-description: "Tous les raccourcis du panneau du menu de Pullwatch et du menu Aller de la fenêtre principale."
+description: "Chaque raccourci de la barre des menus des fenêtres de Pullwatch et du panneau du menu."
 ---
 
-## Fenêtre principale : le menu Aller
+La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Présentation, Aller, Élément, Dépôt, Fenêtre et Aide. Chaque commande est toujours là ; une commande qui ne s’applique pas à la sélection est grisée.
+
+## Pullwatch
 
 | Raccourci | Action |
 |---|---|
+| | Rechercher les mises à jour… |
+| ⌘, | Réglages |
+| ⌘H | Masquer Pullwatch |
+| ⌘Q | Quitter Pullwatch |
+
+## Fichier
+
+| Raccourci | Action |
+|---|---|
+| ⌘N | Nouveau compte… : Réglages, Comptes, avec le choix du service |
+| ⇧⌘N | Suivre un dépôt… |
+| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur |
+| ⌘W | Fermer la fenêtre |
+
+## Édition
+
+| Raccourci | Action |
+|---|---|
+| ⌘F | Rechercher… : chercher dans la section actuelle |
+
+## Présentation
+
+| Raccourci | Action |
+|---|---|
+| ⌃⌘S | Afficher ou masquer la barre latérale |
+| ⌥⌘T | Afficher ou masquer la barre d’outils |
+| ⌘R | Recharger : le dépôt ouvert, sinon tout récupérer ou vérifier |
+| ⌃⌘F | Activer ou quitter le plein écran |
+
+## Aller
+
+| Raccourci | Action |
+|---|---|
+| ⌘[ | Retour depuis la page d’un dépôt |
 | ⌘1 | PR |
 | ⌘2 | Tags et versions publiées |
 | ⌘3 | Statistiques |
 | ⌘4 | Dépôts |
 | ⌘5 | Dépendances |
-| ⌘F | Rechercher dans la section actuelle |
-| ⌘R | Actualiser : le dépôt ouvert, sinon interroger ou vérifier tout |
-| ⌘[ | Revenir d’une page de dépôt |
-| ⌘O | Ouvrir la sélection (ou le dépôt ouvert) dans le navigateur |
-| ⇧⌘U | Marquer la sélection comme lue ou non lue |
+| ⌘↓ | Page du dépôt : la page du dépôt sélectionné |
+
+## Élément
+
+La pull request, le tag ou la version publiée sélectionnés.
+
+| Raccourci | Action |
+|---|---|
+| ⇧⌘U | Marquer comme lu ou Marquer comme non lu |
 | ⌘K | Tout marquer comme lu |
-| ⌘↓ | Ouvrir la page du dépôt sélectionné |
-| ⌥⌘S | Statistiques du dépôt |
-| ⇧⌘C | Copier les dépendances du dépôt |
-| ⇧⌘N | Suivre un dépôt |
-| ⇧⌘R | Récupérer à nouveau l’historique |
+| ⇧⌘L | Copier le lien |
+
+## Dépôt
+
+Le dépôt sélectionné, ou la page de dépôt ouverte.
+
+| Raccourci | Action |
+|---|---|
+| | Vérifier le dépôt : vérifier à nouveau ce dépôt |
 | ⌥⌘R | Vérifier tous les dépôts |
+| ⌥⌘S | Statistiques du dépôt |
+| ⇧⌘C | Copier les dépendances pour un agent |
+| ⇧⌘R | Récupérer à nouveau l’historique |
 | ⌘. | Arrêter la récupération |
-| ⌥⌘I | Afficher ou masquer l’inspecteur sur une page de dépôt |
-| ⌘, | Réglages |
+| ⌥⌘I | Afficher ou masquer l’inspecteur sur la page d’un dépôt (barre d’outils) |
+
+## Fenêtre et Aide
+
+| Raccourci | Action |
+|---|---|
+| ⌘M | Placer dans le Dock |
+| ⌘0 | Pullwatch : ouvrir la fenêtre principale ou la mettre au premier plan |
+
+Aide mène à cette documentation (Aide Pullwatch), à cette page (Raccourcis clavier), aux notes de version de votre version (Nouveautés de Pullwatch), à un nouveau ticket sur GitHub (Signaler un problème…) et aux Remerciements.
+
+## Dock
+
+Tant que l’icône est dans le Dock, son menu propose **Recharger** et **Vérifier tous les dépôts**.
 
 ## Panneau du menu
 

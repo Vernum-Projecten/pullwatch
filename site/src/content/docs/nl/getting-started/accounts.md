@@ -54,7 +54,7 @@ Onder **Andere repositories**, onderaan de lijst, voeg je een losse repository t
 - Azure DevOps: `project/repo` binnen de organisatie van het account, of een link van dev.azure.com.
 - GitLab: `groep/subgroep/project`, of een link van gitlab.com of van de eigen server van het account.
 
-Pullwatch controleert hem met één verzoek en zegt in gewone woorden wanneer het hem niet kan vinden of lezen. Een openbare repository op github.com of gitlab.com die je token niet mag lezen, wordt gelezen zonder in te loggen. **Volg een repository…** (⇧⌘N, in het menu Ga en in de knoppenbalk van Repo's) opent hetzelfde veld, met een keuze voor het account. Haal er een weg met een rechtermuisklik of de Delete-toets.
+Pullwatch controleert hem met één verzoek en zegt in gewone woorden wanneer het hem niet kan vinden of lezen. Een openbare repository op github.com of gitlab.com die je token niet mag lezen, wordt gelezen zonder in te loggen. **Volg een repository…** (⇧⌘N, in het menu Archief en in de knoppenbalk van Repo's) opent hetzelfde veld, met een keuze voor het account. Haal er een weg met een rechtermuisklik of de Delete-toets.
 
 Zo'n repository verschijnt overal zoals de andere die je volgt, gegroepeerd onder zijn eigen eigenaar.
 

@@ -54,7 +54,7 @@ Sous **Autres dépôts**, en bas de la liste, ajoutez un dépôt isolé qui ne f
 - Azure DevOps : `project/repo` dans l’organisation du compte, ou un lien dev.azure.com.
 - GitLab : `group/subgroup/project`, ou un lien de gitlab.com ou du propre serveur du compte.
 
-Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com ou gitlab.com que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Aller et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
+Pullwatch le vérifie avec une seule requête et vous dit en termes simples quand il ne peut pas le trouver ou le lire. Un dépôt public sur github.com ou gitlab.com que votre jeton ne peut pas lire est lu sans connexion. **Suivre un dépôt…** (⇧⌘N, dans le menu Fichier et dans la barre d’outils de Dépôts) ouvre le même champ avec un choix de compte. Retirez-en un avec un clic droit ou la touche Supprimer.
 
 Un tel dépôt apparaît partout comme les autres dépôts que vous suivez, regroupé sous son propre propriétaire.
 
