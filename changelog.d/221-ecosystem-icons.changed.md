@@ -1,1 +1,0 @@
-- Packages shows the logo of a package's ecosystem next to its name and in the inspector, from Simple Icons: npm, container images, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform and Cargo (the Rust logo). Generic and Universal packages keep their symbol.

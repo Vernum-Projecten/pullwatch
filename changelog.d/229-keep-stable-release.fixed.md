@@ -1,1 +1,0 @@
-- A package in GitHub Packages or the GitLab Package Registry with more than ten pre-releases newer than its last stable release no longer shows a pre-release as its latest version: the stable release stays the latest, and the newest pre-release is mentioned next to it, as for Azure Artifacts and container images.

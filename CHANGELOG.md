@@ -9,6 +9,73 @@ release wait as fragments in `changelog.d/` until the cut writes them here.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-05
+
+### Thank you again, Ruben
+
+This release was built by **Ruben Talstra** (@rubentalstra) in [Vernum-Projecten/pullwatch](https://github.com/Vernum-Projecten/pullwatch) as well: the answers to the review of 0.8.0, a notification when a pull request leaves the merge queue, the logos of package ecosystems, a smaller download and a tighter hold on where your token and your private package names go. Thank you!
+
+### Added
+
+- A notification when an open pull request leaves the merge queue or merge
+  train, or loses auto-merge or auto-complete, without merging: on GitHub
+  (with the reason GitHub gives), GitLab, Azure DevOps and Bitbucket Cloud.
+  It has its own switch in Settings, Notifications, on by default, follows
+  the bell of each repository, and never fires for a pull request that
+  merged, closed or became a draft. Agents see it as `left_queue` in
+  `get_pull_request`. GitHub pull requests with auto-merge on now show as
+  Queued too (Vernum-Projecten/pullwatch#236).
+
+### Changed
+
+- Packages shows the logo of a package's ecosystem next to its name and in the inspector, from Simple Icons: npm, container images, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform and Cargo (the Rust logo). Generic and Universal packages keep their symbol (Vernum-Projecten/pullwatch#221).
+- The download is smaller: the app no longer carries its debugging symbols,
+  which made up more than half of the program itself (Vernum-Projecten/pullwatch#230).
+
+### Fixed
+
+- A dependency only counts as in-house when its lockfile shows it comes
+  from your own registry (or it is an npm name with your scope), not just
+  because one of your repositories publishes a package with the same name.
+  A public package that shares a name with one of yours stays public, so
+  its known vulnerabilities are reported again, and OSV.dev still checks an
+  in-house package whose name the public registry also knows. In-house
+  status ends when the publishing account is removed or paused (Vernum-Projecten/pullwatch#214).
+- A package from your own registry whose versions could not be read, or
+  that has no version, no longer counts as an in-house package that is up to
+  date. It now keeps the latest version from the previous check, or gets the
+  public lookup and vulnerability check like any other package. A name that
+  only your own registry knows is still never sent anywhere: it shows "Not
+  checked" with the reason that the registry gave no latest version (Vernum-Projecten/pullwatch#215).
+- A package whose lockfile gets it from your own registry no longer reaches
+  a public registry or OSV.dev when Pullwatch could not read that registry:
+  on a first check where reading failed, with the source Package registries
+  of your accounts off, without permission to read the registry, on Gitea,
+  Forgejo, Codeberg and Bitbucket, or when the repository that publishes it
+  is not followed. It shows as in-house and not checked instead. The
+  Dependencies and Agents pages now list exactly which names stay private
+  and which can still reach public services (Vernum-Projecten/pullwatch#216).
+- Your token now only goes to the server of your account. Pullwatch no longer
+  follows a link to the next page of GitHub security alerts or packages when
+  it points to another host, and an account whose server address is missing
+  or is not an https address (for example one edited by hand in the settings
+  file) is no longer checked: its card in Settings, Accounts says what to fix (Vernum-Projecten/pullwatch#217).
+- A Bitbucket account without the email address of its Atlassian account is
+  no longer checked and failing on every refresh. Settings and the menu say
+  the email address is missing until you fill it in (Vernum-Projecten/pullwatch#218).
+- A Bitbucket API token without a scope Pullwatch needs now says which scope
+  is missing, instead of "Token invalid or expired" (Vernum-Projecten/pullwatch#218).
+- An Azure Artifacts package whose newest version is a pre-release no longer shows that pre-release as its latest version: the highest stable release is the latest, as for container images, and the newer pre-release is mentioned next to it. Dependencies on the stable release no longer read as behind (Vernum-Projecten/pullwatch#219).
+- A package in GitHub Packages or the GitLab Package Registry with more than ten pre-releases newer than its last stable release no longer shows a pre-release as its latest version: the stable release stays the latest, and the newest pre-release is mentioned next to it, as for Azure Artifacts and container images (Vernum-Projecten/pullwatch#229).
+- The tooltip of **In-house** only says the latest version comes from your
+  own registry when Pullwatch read it there. Otherwise it says who publishes
+  the package, that it was not checked and why, as the line next to it does (Vernum-Projecten/pullwatch#231).
+- Relative times such as "5 minutes ago" now keep up by themselves: the When
+  column of the pull request list, the menu, the last poll per account, the
+  repository overview, Dependencies, Packages and the connected agents no
+  longer stay at the time they were first drawn until the pointer moves over
+  them (Vernum-Projecten/pullwatch#238).
+
 ## [0.8.0] - 2026-11-04
 
 ### Added
@@ -393,7 +460,8 @@ before this changelog existed. The fork starts from this version.
 - The repository overview is calculated once instead of on every screen
   update.
 
-[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/alessandro823/pullwatch/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/alessandro823/pullwatch/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/alessandro823/pullwatch/compare/v0.5.0...v0.6.0
