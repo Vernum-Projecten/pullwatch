@@ -59,7 +59,7 @@ Een package dat geen repo zelf vraagt en dat alleen via een ander package binnen
 
 ## In-house packages
 
-Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts), en die je repository aantoonbaar daarvandaan haalt, is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
+Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts), en die je repository aantoonbaar daarvandaan haalt, is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Las Pullwatch de nieuwste versie niet uit je register, dan zegt de tooltip dat met de reden, bijvoorbeeld "Gepubliceerd door octocat/linguist, niet gecontroleerd: geen toegang tot het packageregister van dit account." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
 
 ### Bewijs, niet de naam
 
