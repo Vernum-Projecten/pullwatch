@@ -26,7 +26,7 @@ Der Tab Quellen listet jeden externen Dienst in einfacher Sprache auf. Jede Zeil
 **Versionen**
 
 - Die Paket-Registries: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io und rubygems.org. Paketnamen werden gesendet, auch bei privaten Repositories.
-- **Paket-Registrys deiner Konten**: die Pakete und Container-Images, die die Repositories, denen du folgst, in GitHub Packages, den Registries von GitLab und Azure Artifacts veröffentlichen, einmal am Tag mit dem Token jedes Kontos gelesen und nirgendwohin sonst gesendet. Hauseigene Paketnamen werden nie an die öffentlichen Registries oder OSV.dev gesendet. Aus: Keine deiner Registries wird gelesen, der Bereich Pakete ist leer, und bei hauseigenen Abhängigkeiten steht „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“.
+- **Paket-Registrys deiner Konten**: die Pakete und Container-Images, die die Repositories, denen du folgst, in GitHub Packages, den Registries von GitLab und Azure Artifacts veröffentlichen, einmal am Tag mit dem Token jedes Kontos gelesen und nirgendwohin sonst gesendet. Pullwatch hält einen Paketnamen nur von den öffentlichen Registries und OSV.dev fern, wenn es erkennen kann, dass das Paket deins ist: Deine Registry nennt es, oder die Lockfile holt es aus deiner eigenen Registry. Ohne Registry in der Lockfile kann der Name sie erreichen; [Welche Namen privat bleiben](/de/using/dependencies/#welche-namen-privat-bleiben) nennt die Fälle. Aus: Keine deiner Registries wird gelesen, der Bereich Pakete ist leer, und bei hauseigenen Abhängigkeiten steht „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“.
 - **endoflife.date**: Releasezyklen und Support-Ende von Runtimes und Frameworks.
 - **swift.org**: die Swift-Releases.
 

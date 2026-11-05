@@ -116,7 +116,7 @@ import PullwatchTestSupport
         #expect(inHouse.source == "acme")
     }
 
-    @Test(arguments: [InHousePackage.Status.checked, .sourceOff, .needsPermission(reason: "read:packages")])
+    @Test(arguments: [InHousePackage.Status.checked, .sourceOff, .needsPermission(reason: "read:packages"), .readFailed, .unconfirmed])
     func `The marker survives a round trip`(status: InHousePackage.Status) throws {
         let inHouse = InHousePackage(
             accountId: fixedAccountId, name: "ui", type: .npm, owner: "acme", repository: "acme/ui",

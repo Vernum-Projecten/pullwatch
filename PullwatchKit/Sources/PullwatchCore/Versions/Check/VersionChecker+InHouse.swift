@@ -21,10 +21,19 @@ extension VersionChecker {
     ///   check doet wat hij voor elk publiek package doet.
     /// - Het register noemt het package zonder nieuwste versie (geen repository, versies niet te
     ///   lezen): nooit `.checked`, zie `withoutVersion` (#215).
-    func inHouseCheck(dependencies: [Dependency], published: [AccountPackages], accounts: [Account]) -> InHouseCheck {
+    ///
+    /// Daarna het bewijs uit de lockfile alleen (#216): haalt elke install van een sleutel die nu
+    /// nog niet eigen is het package uit het eigen register van het account van zijn repository
+    /// (`InHouseEvidence.keepsPrivate`), dan is de sleutel toch eigen, wat het register ook deed.
+    /// Zo gaat de naam bij een eerste check nergens heen als het register mislukte, de bron uit
+    /// staat, het account het register niet mag lezen, de dienst geen register heeft dat Pullwatch
+    /// leest, of de publicerende repository niet gevolgd wordt. Alleen als een eerdere check de
+    /// naam in het publieke register vond (`isPublicName`), lekt vragen niets en blijft hij publiek.
+    func inHouseCheck(installs owned: [InHouseCheck.Install], published: [AccountPackages], accounts: [Account]) -> InHouseCheck {
         let byId = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         func isActive(_ id: UUID) -> Bool { byId[id].map { !$0.isPaused } ?? false }
-        let installs = Dictionary(grouping: dependencies, by: { "\($0.ecosystem):\($0.name)" })
+        let installs = Dictionary(grouping: owned.map(\.dependency), by: { "\($0.ecosystem):\($0.name)" })
+        let ownedByKey = Dictionary(grouping: owned, by: \.key)
         func isProven(_ key: String, owner: String, accountId: UUID) -> Bool {
             let found = installs[key] ?? []
             return !found.isEmpty && found.allSatisfy { InHouseEvidence.proves($0, owner: owner, account: byId[accountId]) }
@@ -34,6 +43,22 @@ extension VersionChecker {
             guard let old = metadataCache[key] else { return false }
             return old.inHouse?.isPublicName ?? (old.latest != nil)
         }
+        /// De eerste install als de lockfile alleen al elke install van `key` eigen maakt.
+        func lockfileEvidence(_ key: String) -> InHouseCheck.Install? {
+            guard !isPublicName(key), let found = ownedByKey[key], let first = found.first else { return nil }
+            let all = found.allSatisfy { install in
+                byId[install.accountId].map { InHouseEvidence.keepsPrivate(install.dependency, owner: install.owner, account: $0) } ?? false
+            }
+            return all ? first : nil
+        }
+        /// Elke sleutel die nog niet eigen is maar dat volgens de lockfile wel is, met `status`.
+        func addLockfileEvidence(to result: inout InHouseCheck, status: (UUID) -> InHousePackage.Status) {
+            for key in installs.keys where result.metadata[key] == nil {
+                guard let install = lockfileEvidence(key) else { continue }
+                result.metadata[key] = Self.unlisted(install, status: status(install.accountId))
+                result.namesakes[key] = nil
+            }
+        }
         let cached = metadataCache.filter { $0.value.inHouse != nil }
         var result = InHouseCheck()
         guard isEnabled(.packageRegistries) else {
@@ -41,6 +66,7 @@ extension VersionChecker {
                 guard let old = cached[key]?.inHouse, isActive(old.accountId), isProven(key, owner: old.owner, accountId: old.accountId) else { continue }
                 result.metadata[key] = PackageMetadata(latest: nil, versions: [:], inHouse: old.with(status: .sourceOff))
             }
+            addLockfileEvidence(to: &result) { _ in .sourceOff }
             return result
         }
         let active = published.filter { isActive($0.accountId) }
@@ -74,7 +100,22 @@ extension VersionChecker {
                 continue
             }
         }
+        addLockfileEvidence(to: &result) { accountId in
+            if case .needsPermission(let reason)? = results[accountId] { return .needsPermission(reason: reason) }
+            return .unconfirmed
+        }
         return result
+    }
+
+    /// Een eigen package dat alleen de lockfile aanwijst: zonder versies, zonder publicerende
+    /// repository (die is niet bekend), onder de eigenaar van de repository die het gebruikt.
+    static func unlisted(_ install: InHouseCheck.Install, status: InHousePackage.Status) -> PackageMetadata {
+        let inHouse = InHousePackage(
+            accountId: install.accountId, name: install.dependency.name,
+            type: PublishedPackageType(dependencyEcosystem: install.dependency.ecosystem) ?? .generic,
+            owner: install.owner, repository: nil, status: status
+        )
+        return PackageMetadata(latest: nil, versions: [:], inHouse: inHouse)
     }
 
     /// De metadata van een eigen package: de versies uit het eigen register (wat ze vragen staat

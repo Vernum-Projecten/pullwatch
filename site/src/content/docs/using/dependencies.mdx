@@ -73,13 +73,27 @@ A name alone does not make a package yours. An organisation can publish a patche
 
 A dependency without evidence is a public package: Pullwatch looks up its latest version in the public registry and its vulnerabilities in OSV.dev, as for any other package. When the account that publishes a package is removed or paused, or no longer lists the package, the next check treats it as public again.
 
-Pullwatch reads your registries first, before it looks anything up, and leaves every in-house name out of every public registry: registry.npmjs.org and the others never see it. OSV.dev sees an in-house name only when an earlier check found that name in the public registry too, so a fork of a public package still gets the known vulnerabilities of that name; a name that only your registry knows never reaches OSV.dev. When reading your registry fails, Pullwatch keeps what the check before found.
+### Which names stay private
+
+Pullwatch keeps a name private only when it can tell the package is yours. It then leaves the name out of every public registry, so registry.npmjs.org and the others never see it, and OSV.dev sees it only when an earlier check found that name in the public registry too (a fork of a public package still gets the known vulnerabilities of that name). Pullwatch can tell in these cases:
+
+- Your registry lists the package and the evidence above holds. Pullwatch reads your registries first, before it looks anything up.
+- The lockfile names a registry that is not the public one, and that registry is the own registry of the account the repository belongs to, or the package is an npm package with the owner's scope. This holds whatever reading your registry did: a first check where reading failed, the source Package registries of your accounts off, no permission to read the registry (for example a GitHub account without `gh`), Gitea, Forgejo, Codeberg and Bitbucket (Pullwatch reads no registry there), and a package published by a repository you do not follow.
+- An earlier check knew the package as in-house: when reading your registry fails, Pullwatch keeps what that check found.
+
+Where Pullwatch cannot tell, the name can reach the public registry and OSV.dev:
+
+- The lockfile names no registry for the package: `packages.lock.json`, `pnpm-lock.yaml`, the `yarn.lock` of Yarn 2 and later, or the package came from the public registry. An npm name with the owner's scope is then looked up publicly too, because the owner may publish it on npmjs.com.
+- One repository uses the name without evidence.
+- The lockfile names the registry of another of your accounts than the one the repository belongs to, and that registry does not list the package.
+- A Go module that your registry does not list: its module path goes to proxy.golang.org and OSV.dev.
 
 When Pullwatch cannot read the latest version, the row says so instead of showing it as current:
 
-- "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before, with the same evidence, stays in-house and is not looked up publicly.
+- "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before, with the same evidence, stays in-house and is not looked up publicly, and so does a package the lockfile gets from your own registry.
 - "Not checked: no access to this account's package registry": the account may not read its registry. The tooltip says what to grant; see [What to grant](/using/packages/#what-to-grant).
 - "Not checked: this account's package registry gave no latest version": the registry lists the package, but reading its versions failed, or it has none (for example a package without a linked repository). The latest version of the previous check stays when there was one. A name the public registry also knows is looked up there and checked by OSV.dev for this check; a name only your own registry knows is never sent anywhere.
+- "Not checked: the lockfile gets this package from your own registry, but that registry did not list it": the lockfile proves the package is yours, but reading the registry failed, the service has no registry Pullwatch reads, or the repository that publishes it is not followed. The name is not sent anywhere.
 
 Switching off a public registry, such as npm, does not affect an in-house package.
 

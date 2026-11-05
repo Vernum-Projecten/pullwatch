@@ -73,13 +73,27 @@ Un nom seul ne fait pas d’un paquet le vôtre. Une organisation peut publier u
 
 Une dépendance sans preuve est un paquet public : Pullwatch cherche sa dernière version dans le registre public et ses vulnérabilités dans OSV.dev, comme pour tout autre paquet. Quand le compte qui publie un paquet est supprimé ou mis en pause, ou ne liste plus le paquet, la vérification suivante le traite de nouveau comme public.
 
-Pullwatch lit d’abord vos registres, avant toute recherche, et laisse chaque nom interne en dehors de tous les registres publics : registry.npmjs.org et les autres ne le voient jamais. OSV.dev ne voit un nom interne que si une vérification précédente a aussi trouvé ce nom dans le registre public, pour qu’un fork d’un paquet public reçoive quand même les vulnérabilités connues de ce nom ; un nom que seul votre registre connaît n’atteint jamais OSV.dev. Quand la lecture de votre registre échoue, Pullwatch garde ce que la vérification précédente a trouvé.
+### Les noms qui restent privés
+
+Pullwatch ne garde un nom privé que s’il peut voir que le paquet est le vôtre. Il laisse alors le nom en dehors de tous les registres publics, donc registry.npmjs.org et les autres ne le voient jamais, et OSV.dev ne le voit que si une vérification précédente a aussi trouvé ce nom dans le registre public (un fork d’un paquet public reçoit ainsi quand même les vulnérabilités connues de ce nom). Pullwatch peut le voir dans ces cas :
+
+- Votre registre liste le paquet et la preuve ci-dessus est là. Pullwatch lit d’abord vos registres, avant toute recherche.
+- Le lockfile nomme un registre qui n’est pas le registre public, et ce registre est le propre registre du compte auquel appartient le dépôt, ou le paquet est un paquet npm avec le scope du propriétaire. Cela vaut quel que soit le résultat de la lecture de votre registre : une première vérification où la lecture a échoué, la source Registres de paquets de vos comptes désactivée, aucun accès au registre (par exemple un compte GitHub sans `gh`), Gitea, Forgejo, Codeberg et Bitbucket (Pullwatch n’y lit aucun registre), et un paquet publié par un dépôt que vous ne suivez pas.
+- Une vérification précédente connaissait le paquet comme interne : quand la lecture de votre registre échoue, Pullwatch garde ce que cette vérification a trouvé.
+
+Là où Pullwatch ne peut pas le voir, le nom peut atteindre le registre public et OSV.dev :
+
+- Le lockfile ne nomme aucun registre pour le paquet : `packages.lock.json`, `pnpm-lock.yaml`, le `yarn.lock` de Yarn 2 et suivants, ou le paquet vient du registre public. Un nom npm avec le scope du propriétaire est alors aussi recherché publiquement, car le propriétaire peut le publier sur npmjs.com.
+- Un dépôt utilise le nom sans preuve.
+- Le lockfile nomme le registre d’un autre de vos comptes que celui du dépôt, et ce registre ne liste pas le paquet.
+- Un module Go que votre registre ne liste pas : son chemin de module part vers proxy.golang.org et OSV.dev.
 
 Quand Pullwatch ne peut pas lire la dernière version, la ligne le dit au lieu de l’afficher comme à jour :
 
-- « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste avec la même preuve et n’est pas recherché publiquement.
+- « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste avec la même preuve et n’est pas recherché publiquement, tout comme un paquet que le lockfile prend dans votre propre registre.
 - « Non vérifié : aucun accès au registre de paquets de ce compte » : le compte ne peut pas lire son registre. L’infobulle dit ce qu’il faut accorder ; voir [Les autorisations à accorder](/fr/using/packages/#les-autorisations-à-accorder).
 - « Non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version » : le registre nomme le paquet, mais la lecture de ses versions a échoué, ou il n’en a aucune (par exemple un paquet sans dépôt lié). La dernière version de la vérification précédente reste, s’il y en avait une. Un nom que le registre public connaît aussi y est recherché pour cette vérification et contrôlé par OSV.dev ; un nom que seul votre propre registre connaît n’est envoyé nulle part.
+- « Non vérifié : le lockfile prend ce paquet dans votre propre registre, mais ce registre ne l'a pas listé » : le lockfile prouve que le paquet est le vôtre, mais la lecture du registre a échoué, le service n’a aucun registre que Pullwatch lit, ou vous ne suivez pas le dépôt qui le publie. Le nom n’est envoyé nulle part.
 
 Désactiver un registre public, comme npm, n’a aucun effet sur un paquet interne.
 

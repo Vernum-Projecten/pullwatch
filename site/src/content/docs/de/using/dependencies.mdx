@@ -73,13 +73,27 @@ Ein Name allein macht ein Paket nicht zu deinem. Eine Organisation kann einen ge
 
 Eine Abhängigkeit ohne Nachweis ist ein öffentliches Paket: Pullwatch schlägt ihre neueste Version in der öffentlichen Registry und ihre Schwachstellen bei OSV.dev nach, wie bei jedem anderen Paket. Wird das Konto, das ein Paket veröffentlicht, entfernt oder pausiert, oder nennt es das Paket nicht mehr, behandelt die nächste Prüfung es wieder als öffentlich.
 
-Pullwatch liest zuerst deine Registries, bevor es irgendetwas nachschlägt, und lässt jeden hauseigenen Namen aus jeder öffentlichen Registry heraus: registry.npmjs.org und die anderen sehen ihn nie. OSV.dev sieht einen hauseigenen Namen nur, wenn eine frühere Prüfung diesen Namen auch in der öffentlichen Registry gefunden hat, damit ein Fork eines öffentlichen Pakets trotzdem die bekannten Schwachstellen dieses Namens bekommt; ein Name, den nur deine Registry kennt, erreicht OSV.dev nie. Schlägt das Lesen deiner Registry fehl, behält Pullwatch, was die vorige Prüfung gefunden hat.
+### Welche Namen privat bleiben
+
+Pullwatch hält einen Namen nur privat, wenn es erkennen kann, dass das Paket deins ist. Dann lässt es den Namen aus jeder öffentlichen Registry heraus, sodass registry.npmjs.org und die anderen ihn nie sehen, und OSV.dev sieht ihn nur, wenn eine frühere Prüfung diesen Namen auch in der öffentlichen Registry gefunden hat (ein Fork eines öffentlichen Pakets bekommt so trotzdem die bekannten Schwachstellen dieses Namens). Pullwatch erkennt es in diesen Fällen:
+
+- Deine Registry nennt das Paket und der Nachweis oben stimmt. Pullwatch liest zuerst deine Registries, bevor es irgendetwas nachschlägt.
+- Die Lockfile nennt eine Registry, die nicht die öffentliche ist, und diese Registry ist die eigene Registry des Kontos, zu dem das Repository gehört, oder das Paket ist ein npm-Paket mit dem Scope des Owners. Das gilt, egal was das Lesen deiner Registry ergab: eine erste Prüfung, bei der das Lesen fehlschlug, die Quelle Paket-Registrys deiner Konten aus, kein Zugriff auf die Registry (zum Beispiel ein GitHub-Konto ohne `gh`), Gitea, Forgejo, Codeberg und Bitbucket (dort liest Pullwatch keine Registry) und ein Paket, das ein Repository veröffentlicht, dem du nicht folgst.
+- Eine frühere Prüfung kannte das Paket als hauseigen: Schlägt das Lesen deiner Registry fehl, behält Pullwatch, was diese Prüfung gefunden hat.
+
+Wo Pullwatch es nicht erkennen kann, kann der Name die öffentliche Registry und OSV.dev erreichen:
+
+- Die Lockfile nennt keine Registry für das Paket: `packages.lock.json`, `pnpm-lock.yaml`, die `yarn.lock` von Yarn 2 und neuer, oder das Paket kam aus der öffentlichen Registry. Ein npm-Name mit dem Scope des Owners wird dann auch öffentlich nachgeschlagen, denn der Owner kann ihn auf npmjs.com veröffentlichen.
+- Ein Repository verwendet den Namen ohne Nachweis.
+- Die Lockfile nennt die Registry eines anderen deiner Konten als des Kontos des Repositorys, und diese Registry nennt das Paket nicht.
+- Ein Go-Modul, das deine Registry nicht nennt: Sein Modulpfad geht an proxy.golang.org und OSV.dev.
 
 Kann Pullwatch die neueste Version nicht lesen, sagt die Zeile das, statt sie als aktuell zu zeigen:
 
-- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt mit demselben Nachweis hauseigen und wird nicht öffentlich nachgeschlagen.
+- „Nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus“: Die Quelle ist unter Einstellungen, **Quellen** ausgeschaltet. Ein Paket, das vorher hauseigen war, bleibt mit demselben Nachweis hauseigen und wird nicht öffentlich nachgeschlagen, ebenso ein Paket, das die Lockfile aus deiner eigenen Registry holt.
 - „Nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos“: Das Konto darf seine Registry nicht lesen. Der Tooltip sagt, was du freigeben musst; siehe [Welche Berechtigung nötig ist](/de/using/packages/#welche-berechtigung-nötig-ist).
 - „Nicht geprüft: die Paket-Registry dieses Kontos lieferte keine neueste Version“: Die Registry nennt das Paket, aber das Lesen seiner Versionen schlug fehl, oder es hat keine (zum Beispiel ein Paket ohne verknüpftes Repository). Die neueste Version der vorigen Prüfung bleibt, wenn es eine gab. Einen Namen, den auch die öffentliche Registry kennt, schlägt die Prüfung diesmal dort nach und lässt ihn von OSV.dev prüfen; ein Name, den nur deine eigene Registry kennt, geht nirgendwohin.
+- „Nicht geprüft: die Lockfile holt dieses Paket aus deiner eigenen Registry, aber diese Registry nannte es nicht“: Die Lockfile weist nach, dass das Paket deins ist, aber das Lesen der Registry schlug fehl, der Dienst hat keine Registry, die Pullwatch liest, oder du folgst dem Repository nicht, das es veröffentlicht. Der Name geht nirgendwohin.
 
 Schaltest du eine öffentliche Registry aus, etwa npm, betrifft das kein hauseigenes Paket.
 

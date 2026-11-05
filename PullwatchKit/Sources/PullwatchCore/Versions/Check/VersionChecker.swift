@@ -201,7 +201,14 @@ public struct VersionChecker: Sendable {
         // 3b. Eigen packages: wat een gevolgde repo zelf publiceert en aantoonbaar uit dat register
         //     komt, krijgt zijn versies uit het eigen register. Die namen gaan hierna naar geen
         //     publiek register, en naar OSV alleen als het publieke register de naam ook kent.
-        let own = inHouseCheck(dependencies: scans.flatMap(\.dependencies), published: published, accounts: targets.map(\.account) + knownAccounts)
+        //     Wat de lockfile uit het eigen register van het account haalt, blijft ook zonder
+        //     register binnen (#216).
+        let owned = scanned.flatMap { item -> [InHouseCheck.Install] in
+            guard let repoScan = try? item.found.get() else { return [] }
+            let all = [repoScan.main] + ((try? repoScan.release?.found.get()).map { [$0] } ?? [])
+            return all.flatMap(\.dependencies).map { InHouseCheck.Install($0, accountId: item.accountId, repo: item.repo) }
+        }
+        let own = inHouseCheck(installs: owned, published: published, accounts: targets.map(\.account) + knownAccounts)
         let inHouse = own.metadata
 
         // 4. Kwetsbaarheden: één batch voor alle unieke naam@versie, daarna details per id. Elke

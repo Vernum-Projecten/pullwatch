@@ -30,6 +30,25 @@ enum InHouseEvidence {
         return isOwnRegistry(registry, ecosystem: dependency.ecosystem, owner: owner, account: account)
     }
 
+    /// Of de lockfile alleen al zegt dat `dependency` het package van `owner` bij `account` is,
+    /// zonder dat het register van het account het noemt (#216). Dan gaat de naam nooit naar een
+    /// publiek register of OSV, wat het lezen van dat register ook deed (mislukt, bron uit, geen
+    /// toegang, geen register bij de dienst, of de publicerende repository niet gevolgd).
+    ///
+    /// Alleen met een register in de lockfile dat niet het publieke is (`Dependency.registry`):
+    /// - het eigen register van het account (`isOwnRegistry`), of
+    /// - bij npm een ander niet-publiek register met een scope van de eigenaar (`isOwnScope`).
+    ///
+    /// Zonder register weet Pullwatch het niet: een install uit het publieke register heeft geen
+    /// `registry`, en pnpm en Yarn Berry noemen het register helemaal niet. Een eigen scope zonder
+    /// register kan een publiek package van de eigenaar op npmjs.com zijn, dat zijn nieuwste versie
+    /// en CVE's moet blijven krijgen. Go telt hier niet: het modulepad gaat altijd al naar buiten.
+    static func keepsPrivate(_ dependency: Dependency, owner: String, account: Account) -> Bool {
+        guard let registry = dependency.registry else { return false }
+        if dependency.ecosystem == "npm", isOwnScope(name: dependency.name, owner: owner, account: account) { return true }
+        return isOwnRegistry(registry, ecosystem: dependency.ecosystem, owner: owner, account: account)
+    }
+
     /// `@acme/ui` met eigenaar `acme` (GitLab: `acme/web` telt als `acme`); bij Azure DevOps ook
     /// de organisatie, want een feed hangt aan een project.
     static func isOwnScope(name: String, owner: String, account: Account?) -> Bool {

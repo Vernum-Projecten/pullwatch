@@ -32,6 +32,13 @@ struct MCPSourceOff: Encodable, Hashable {
         self.repository = repository
     }
 
+    /// Een eigen package volgens de lockfile, dat het register van het account niet noemde (#216).
+    init(unconfirmedFor repository: String?) {
+        source = DataSourceID.packageRegistries.rawValue
+        message = "Not checked: the lockfile installs it from this account's own package registry, but that registry did not list it."
+        self.repository = repository
+    }
+
     /// De Engelse naam van de bron ("OSV.dev", "GitHub security").
     static func name(_ id: DataSourceID) -> String {
         AgentBrief.englishName(id)
