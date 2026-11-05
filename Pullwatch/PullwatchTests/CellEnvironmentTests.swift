@@ -48,6 +48,8 @@ import Testing
         (URL(string: "https://github.com/octo/ui"), InHousePackage.Status.checked),
         (nil, .sourceOff),
         (nil, .needsPermission(reason: "read:packages")),
+        (URL(string: "https://github.com/octo/ui"), .readFailed),
+        (URL(string: "https://github.com/octo/ui"), .unconfirmed),
     ])
     func `InHouseBadge draws without a model in the environment`(link: URL?, status: InHousePackage.Status) {
         let inHouse = InHousePackage(
@@ -56,6 +58,39 @@ import Testing
         )
         #expect(draws(InHouseBadge(inHouse: inHouse)))
         #expect(draws(HStack { Text(verbatim: "@octo/ui"); InHouseBadge(inHouse: inHouse) }))
+    }
+
+    private func language(_ code: String) throws -> Bundle {
+        let path = try #require(Bundle.main.path(forResource: code, ofType: "lproj"))
+        return try #require(Bundle(path: path))
+    }
+
+    /// De tooltip van In-house volgt de stand (#231): alleen `.checked` zegt dat de nieuwste versie
+    /// uit je eigen register komt, de andere standen zeggen wie het publiceert en waarom het niet
+    /// gecontroleerd is.
+    @Test(arguments: [
+        (InHousePackage.Status.checked,
+         "Gepubliceerd door octo/ui: de nieuwste versie komt uit je eigen register.",
+         "Published by octo/ui: the latest version comes from your own registry."),
+        (.sourceOff,
+         "Gepubliceerd door octo/ui, niet gecontroleerd: bron Packageregisters van je accounts staat uit.",
+         "Published by octo/ui, not checked: source Package registries of your accounts is off."),
+        (.needsPermission(reason: "read:packages"),
+         "Gepubliceerd door octo/ui, niet gecontroleerd: geen toegang tot het packageregister van dit account.",
+         "Published by octo/ui, not checked: no access to this account's package registry."),
+        (.readFailed,
+         "Gepubliceerd door octo/ui, niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie.",
+         "Published by octo/ui, not checked: this account's package registry gave no latest version."),
+        (.unconfirmed,
+         "Gepubliceerd door octo/ui, niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet.",
+         "Published by octo/ui, not checked: the lockfile gets this package from your own registry, but that registry did not list it."),
+    ])
+    func `The InHouseBadge tooltip follows the status`(status: InHousePackage.Status, dutch: String, english: String) throws {
+        let inHouse = InHousePackage(accountId: UUID(), name: "ui", type: .npm, owner: "octo", repository: "octo/ui", status: status)
+
+        #expect(InHouseBadge.help(inHouse, bundle: try language("nl")) == dutch)
+        #expect(InHouseBadge.help(inHouse, bundle: try language("en")) == english)
+        #expect(InHouseBadge.help(inHouse, bundle: try language("en")).contains("your own registry.") == (status == .checked))
     }
 
     /// De schakelaar Packages lezen met de GitHub CLI in de account-editor (#206), in elke stand

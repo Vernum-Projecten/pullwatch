@@ -59,7 +59,7 @@ A package that no repository asks for itself, and that only comes in through ano
 
 ## In-house packages
 
-A dependency that one of your followed repositories publishes to the registry of its own service (GitHub Packages, a GitLab registry or an Azure Artifacts feed), and that your repository provably gets from there, is an in-house package. npmjs.com or nuget.org do not know a private `@acme/ui`, so Pullwatch takes its latest version from your registry, which [Packages](/using/packages/) lists. The row says **In-house**, with a link to the repository that publishes it, and its tooltip says "Published by octocat/linguist: the latest version comes from your own registry." Ranges, the update groups and what blocks an update work as for any other package.
+A dependency that one of your followed repositories publishes to the registry of its own service (GitHub Packages, a GitLab registry or an Azure Artifacts feed), and that your repository provably gets from there, is an in-house package. npmjs.com or nuget.org do not know a private `@acme/ui`, so Pullwatch takes its latest version from your registry, which [Packages](/using/packages/) lists. The row says **In-house**, with a link to the repository that publishes it, and its tooltip says "Published by octocat/linguist: the latest version comes from your own registry." When Pullwatch did not read the latest version from your registry, the tooltip says so with the reason, for example "Published by octocat/linguist, not checked: no access to this account's package registry." Ranges, the update groups and what blocks an update work as for any other package.
 
 ### Evidence, not the name
 

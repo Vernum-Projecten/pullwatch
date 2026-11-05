@@ -59,7 +59,7 @@ Un paquet qu’aucun dépôt ne demande lui-même, et qui n’arrive que par un 
 
 ## Paquets internes
 
-Une dépendance qu’un de vos dépôts suivis publie dans le registre de son propre service (GitHub Packages, un registre GitLab ou un flux Azure Artifacts), et que votre dépôt obtient de façon prouvée à cet endroit, est un paquet interne. npmjs.com ou nuget.org ne connaissent pas un `@acme/ui` privé, donc Pullwatch prend sa dernière version dans votre registre, que [Paquets](/fr/using/packages/) liste. La ligne indique **Interne**, avec un lien vers le dépôt qui le publie, et son infobulle dit « Publié par octocat/linguist : la dernière version provient de votre propre registre. ». Les plages, les groupes de mise à jour et ce qui bloque une mise à jour fonctionnent comme pour tout autre paquet.
+Une dépendance qu’un de vos dépôts suivis publie dans le registre de son propre service (GitHub Packages, un registre GitLab ou un flux Azure Artifacts), et que votre dépôt obtient de façon prouvée à cet endroit, est un paquet interne. npmjs.com ou nuget.org ne connaissent pas un `@acme/ui` privé, donc Pullwatch prend sa dernière version dans votre registre, que [Paquets](/fr/using/packages/) liste. La ligne indique **Interne**, avec un lien vers le dépôt qui le publie, et son infobulle dit « Publié par octocat/linguist : la dernière version provient de votre propre registre. ». Quand Pullwatch n’a pas lu la dernière version dans votre registre, l’infobulle le dit avec la raison, par exemple « Publié par octocat/linguist, non vérifié : aucun accès au registre de paquets de ce compte. ». Les plages, les groupes de mise à jour et ce qui bloque une mise à jour fonctionnent comme pour tout autre paquet.
 
 ### Une preuve, pas le nom
 

@@ -8733,6 +8733,122 @@
         }
       }
     },
+    "Gepubliceerd door %@, niet gecontroleerd: bron Packageregisters van je accounts staat uit.": {
+      "comment": "Repository of project dat een eigen package publiceert; de bron Packageregisters van je accounts (Instellingen, Bronnen) staat uit",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: source Package registries of your accounts is off."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : la source Registres de paquets de vos comptes est désactivée."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: bron Packageregisters van je accounts staat uit."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: geen toegang tot het packageregister van dit account.": {
+      "comment": "Repository of project dat een eigen package publiceert; het token van het account mist het recht om het register te lezen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: no access to this account's package registry."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : aucun accès au registre de paquets de ce compte."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: geen toegang tot het packageregister van dit account."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet.": {
+      "comment": "Repository of project dat een eigen package publiceert volgens het lockbestand; het register van het account kon niet gelezen worden of noemde het package niet",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Die Lockfile holt dieses Paket aus deiner eigenen Registry, aber diese Registry nannte es nicht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: the lockfile gets this package from your own registry, but that registry did not list it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : le lockfile prend ce paquet dans votre propre registre, mais ce registre ne l'a pas listé."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie.": {
+      "comment": "Repository of project dat een eigen package publiceert; het lezen van de versies uit het eigen register mislukte",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Die Paket-Registry dieses Kontos lieferte keine neueste Version."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: this account's package registry gave no latest version."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie."
+          }
+        }
+      }
+    },
     "Gepubliceerd door %@: de nieuwste versie komt uit je eigen register.": {
       "comment": "Repository of project dat een eigen package publiceert",
       "localizations": {
