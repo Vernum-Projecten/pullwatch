@@ -1,5 +1,5 @@
 {
-  "originHash" : "f0bdd8247b525da826a19c31501a019bd45399816a8838c0f9179f8bbe0819e8",
+  "originHash" : "3138dff46e40082a1e6a9da61cea0f0e8216bb48742855992c1444cb8a830098",
   "pins" : [
     {
       "identity" : "eventsource",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "bb4b61273b5a976bb571859c17f903ebc3439df1",
         "version" : "1.6.0"
+      }
+    },
+    {
+      "identity" : "simple-icons-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Vernum-Projecten/simple-icons-swift",
+      "state" : {
+        "revision" : "203ae915ccb5654b06f9a8159007cbfafb8d2a8d",
+        "version" : "16.36.2"
       }
     },
     {

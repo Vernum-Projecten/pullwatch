@@ -46,7 +46,7 @@ private struct PublishedPackageHeaderSection: View {
                         .font(.headline)
                         .textSelection(.enabled)
                 } icon: {
-                    Image(systemName: package.type.symbol).foregroundStyle(.secondary)
+                    PublishedPackageTypeIcon(type: package.type).foregroundStyle(.secondary)
                 }
                 package.type.text.foregroundStyle(.secondary)
             }

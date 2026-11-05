@@ -47,6 +47,31 @@
       "package" : "eventsource"
     },
     {
+      "id" : "simple-icons-swift",
+      "name" : "simple-icons-swift",
+      "version" : "16.36.2",
+      "license" : "MIT",
+      "homepage" : "https://github.com/Vernum-Projecten/simple-icons-swift",
+      "file" : "simple-icons-swift-LICENSE.txt",
+      "package" : "simple-icons-swift"
+    },
+    {
+      "id" : "simple-icons",
+      "name" : "Simple Icons",
+      "version" : "16.36.0",
+      "license" : "CC0-1.0",
+      "homepage" : "https://simpleicons.org",
+      "file" : "simple-icons-LICENSE.txt"
+    },
+    {
+      "id" : "rust-logo",
+      "name" : "Rust logo",
+      "version" : "16.36.0",
+      "license" : "CC-BY-SA-4.0",
+      "homepage" : "https://www.rust-lang.org/policies/media-guide",
+      "file" : "rust-logo-LICENSE.txt"
+    },
+    {
       "id" : "octicons",
       "name" : "GitHub Octicons",
       "version" : "19.41.0",

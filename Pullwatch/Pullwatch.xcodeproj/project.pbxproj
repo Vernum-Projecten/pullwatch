@@ -14,6 +14,8 @@
 		0000000000000000000C0005 /* PullwatchMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0005 /* PullwatchMCP */; };
 		0000000000000000000C0006 /* pullwatch-mcp in Embed Helpers */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* pullwatch-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0000000000000000000C0007 /* PullwatchMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0006 /* PullwatchMCP */; };
+		0000000000000000000C0008 /* SimpleIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0007 /* SimpleIcons */; };
+		0000000000000000000C0009 /* SimpleIconsSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000B0008 /* SimpleIconsSwiftUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +112,8 @@
 				0000000000000000000C0003 /* PullwatchProviders in Frameworks */,
 				0000000000000000000C0004 /* Sparkle in Frameworks */,
 				0000000000000000000C0005 /* PullwatchMCP in Frameworks */,
+				0000000000000000000C0008 /* SimpleIcons in Frameworks */,
+				0000000000000000000C0009 /* SimpleIconsSwiftUI in Frameworks */,
 			);
 		};
 		000000000000000230000000 /* Frameworks */ = {
@@ -183,6 +187,8 @@
 				0000000000000000000B0003 /* PullwatchProviders */,
 				0000000000000000000B0004 /* Sparkle */,
 				0000000000000000000B0005 /* PullwatchMCP */,
+				0000000000000000000B0007 /* SimpleIcons */,
+				0000000000000000000B0008 /* SimpleIconsSwiftUI */,
 			);
 			productName = Pullwatch;
 			productReference = 000000000000000000000120 /* Pullwatch.app */;
@@ -293,6 +299,7 @@
 			packageReferences = (
 				0000000000000000000A0001 /* XCLocalSwiftPackageReference "../PullwatchKit" */,
 				0000000000000000000A0002 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				0000000000000000000A0003 /* XCRemoteSwiftPackageReference "simple-icons-swift" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -714,6 +721,14 @@
 				version = 2.10.1;
 			};
 		};
+		0000000000000000000A0003 /* XCRemoteSwiftPackageReference "simple-icons-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Vernum-Projecten/simple-icons-swift";
+			requirement = {
+				kind = exactVersion;
+				version = 16.36.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -741,6 +756,16 @@
 		0000000000000000000B0006 /* PullwatchMCP */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PullwatchMCP;
+		};
+		0000000000000000000B0007 /* SimpleIcons */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0000000000000000000A0003 /* XCRemoteSwiftPackageReference "simple-icons-swift" */;
+			productName = SimpleIcons;
+		};
+		0000000000000000000B0008 /* SimpleIconsSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0000000000000000000A0003 /* XCRemoteSwiftPackageReference "simple-icons-swift" */;
+			productName = SimpleIconsSwiftUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

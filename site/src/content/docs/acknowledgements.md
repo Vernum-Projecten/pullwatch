@@ -15,6 +15,9 @@ Pullwatch is free and open source under the [Apache License 2.0](https://github.
 | [GitHub Octicons](https://github.com/primer/octicons) | 19.41.0 | MIT | The pull request and check symbols, the menu bar icon and the glyph of the app icon |
 | [Codeberg logo](https://codeberg.org/Codeberg/Design) | 9f8c699 | CC0 1.0 | The mark of a Codeberg account |
 | [Forgejo logo](https://codeberg.org/forgejo/meta/src/branch/readme/branding) by Caesar Schinas | e34fea4 | CC BY-SA 4.0 | The mark of a Forgejo account |
+| [simple-icons-swift](https://github.com/Vernum-Projecten/simple-icons-swift) | 16.36.2 | MIT | Drawing the ecosystem logos in Packages |
+| [Simple Icons](https://simpleicons.org) | 16.36.0 | CC0 1.0 (the brands keep their rights) | The ecosystem logos in Packages |
+| [Rust logo](https://www.rust-lang.org/policies/media-guide) by the Rust Foundation, from Simple Icons | 16.36.0 | CC BY-SA 4.0 | The logo of a Cargo package in Packages |
 
 The MCP Swift SDK also pulls in SwiftNIO, Swift Atomics and Swift Collections for its own test tools. Pullwatch does not link them, so they are not part of the app.
 

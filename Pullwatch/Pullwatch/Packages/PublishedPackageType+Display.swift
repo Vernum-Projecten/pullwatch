@@ -1,4 +1,5 @@
 import PullwatchCore
+import SimpleIcons
 import SwiftUI
 
 // Hoe het onderdeel Packages een soort package toont: een SF Symbol en een naam. Waarden, geen
@@ -23,6 +24,32 @@ nonisolated extension PublishedPackageType {
         case .cargo: "gearshape.2"
         case .generic: "doc.zipper"
         default: "archivebox"
+        }
+    }
+
+    /// Het logo van het ecosysteem uit Simple Icons, voor elke soort waar het pakket een logo voor
+    /// heeft (keuze van de eigenaar, net als bij de logo's van Gitea en Bitbucket); nil houdt het SF
+    /// Symbol (`symbol`): algemeen, universeel en een soort die Pullwatch niet kent. Een
+    /// container-image (OCI, zoals ghcr.io) krijgt het logo van het Open Container Initiative, het
+    /// oude Docker-register dat van Docker, een crate dat van Rust. De licentie per logo staat in
+    /// NOTICE. Alleen de iconen die hier staan komen in de app; nooit `SimpleIcon.allCases`, dat
+    /// neemt elk icoon mee.
+    var simpleIcon: SimpleIcon? {
+        switch self {
+        case .npm: .npm()
+        case .container: .opencontainersinitiative()
+        case .docker: .docker()
+        case .maven: .apachemaven()
+        case .golang: .go()
+        case .terraformModule: .terraform()
+        case .cargo: .rust()
+        case .nuGet: .nuget()
+        case .rubyGems: .rubygems()
+        case .pyPI: .pypi()
+        case .helm: .helm()
+        case .composer: .composer()
+        case .conan: .conan()
+        default: nil
         }
     }
 

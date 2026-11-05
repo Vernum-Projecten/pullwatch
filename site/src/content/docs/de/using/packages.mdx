@@ -13,7 +13,7 @@ import Screenshot from '../../../../components/Screenshot.astro';
 
 Jedes Paket hat eine Zeile, gruppiert nach Owner (der Benutzer, die Organisation oder Gruppe, bei Azure Artifacts das Projekt des Feeds). Versionen bekommen keine eigene Zeile. Die Spalten, jede sortierbar:
 
-- **Paket**: der Name, mit einem Symbol für seinen Typ.
+- **Paket**: der Name, mit dem Logo seines Ökosystems (npm, Container-Images, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform, und Rust für Cargo) oder einem Symbol für ein allgemeines Paket oder ein Universal Package.
 - **Repository**: das Repository, das es veröffentlicht, vollständig (`octocat/linguist`). Ein Paket, das an kein Repository gebunden ist, etwa eines in einem Feed von Azure Artifacts, zeigt seinen Owner in Grau.
 - **Neueste Version** und **Veröffentlicht**: die neueste Version und wann sie veröffentlicht wurde.
 - **Verwendet von**: wie viele der Repositories, denen du folgst, davon abhängen, aus der Prüfung der Abhängigkeiten. Ein Container-Image oder Helm-Chart zeigt „-“: Die Prüfung erkennt diese noch nicht als Abhängigkeiten, die Zahl ist also unbekannt und nie null.
