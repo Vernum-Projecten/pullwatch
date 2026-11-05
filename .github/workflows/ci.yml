@@ -157,6 +157,7 @@ jobs:
             exported="$(nm -gU -arch "$arch" "$binary" | wc -l | tr -d ' ')"
             echo "$arch: $locals local symbols, $exported exported symbols"
             [ "$locals" -le 10 ] || { echo "the $arch slice still has a local symbol table" >&2; exit 1; }
+            [ "$exported" -eq 0 ] || { echo "the $arch slice still exports symbols (LD_EXPORT_SYMBOLS)" >&2; exit 1; }
           done
           test -d "$products/Pullwatch.app.dSYM" || { echo "no Pullwatch.app.dSYM" >&2; exit 1; }
           if unzip -l dist/Pullwatch-*.zip | grep -F ".dSYM"; then
