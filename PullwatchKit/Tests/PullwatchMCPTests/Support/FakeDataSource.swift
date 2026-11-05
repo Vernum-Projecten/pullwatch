@@ -85,7 +85,7 @@ struct FakeDataSource: MCPDataSource {
     static func pr(
         _ number: Int, repo: String = "acme/web", account: UUID = gitHubId, title: String? = nil, author: String = "octo",
         authorId: String = "1001", draft: Bool = false, state: PRState = .open, checks: PRChecks? = nil,
-        queue: MergeQueueEntry? = nil, created: Int
+        queue: MergeQueueEntry? = nil, left: MergeQueueExit? = nil, created: Int
     ) -> PullRequest {
         PullRequest(
             accountId: account, repo: repo, number: number, title: title ?? "Change \(number)", authorId: authorId, authorName: author,
@@ -93,7 +93,7 @@ struct FakeDataSource: MCPDataSource {
             webURL: URL(string: "https://github.com/\(repo)/pull/\(number)")!, state: state,
             closedAt: state == .open ? nil : checkedAt.addingTimeInterval(TimeInterval(created + 1) * 3600),
             coAuthors: number == 1 ? [Person(name: "Ada", login: "ada", email: "ada@example.com")] : [],
-            checks: checks, mergeQueue: queue
+            checks: checks, mergeQueue: queue, leftQueue: left
         )
     }
 
@@ -104,7 +104,8 @@ struct FakeDataSource: MCPDataSource {
            queue: MergeQueueEntry(kind: .mergeQueue, position: 1, enqueuedAt: checkedAt), created: 8),
         pr(4, title: "Merged fix", state: .merged, checks: .counts(CheckCounts(passed: 2, skipped: 1)), created: 7),
         pr(5, title: "Closed idea", author: "bob", authorId: "3003", state: .closed, created: 6),
-        pr(6, title: "Still running", author: "bob", authorId: "3003", checks: .counts(CheckCounts(passed: 1, pending: 2)), created: 5),
+        pr(6, title: "Still running", author: "bob", authorId: "3003", checks: .counts(CheckCounts(passed: 1, pending: 2)),
+           left: MergeQueueExit(kind: .mergeQueue, at: checkedAt, reason: "The merge commit failed its checks"), created: 5),
         pr(7, title: "No permission", author: "bob", authorId: "3003", checks: .needsPermission, created: 4),
         pr(10, repo: "group/app", account: gitLabId, title: "GitLab change", author: "gina", authorId: "77", created: 3),
         // Niet meer gevolgd: bestaat niet voor de agent.

@@ -56,11 +56,12 @@ import Testing
         #expect(content.payload.repo == repo)
     }
 
-    @Test(arguments: ProviderKind.allCases, ["new", "merged", "checks failed"])
+    @Test(arguments: ProviderKind.allCases, ["new", "merged", "checks failed", "left queue"])
     func `The subtitle names the repository and the number as the service writes it`(kind: ProviderKind, event: String) throws {
         let item: RepositoryItem = switch event {
         case "merged": .merged(pr())
         case "checks failed": .checksFailed(pr())
+        case "left queue": .leftQueue(pr())
         default: .pullRequest(pr())
         }
 
@@ -144,6 +145,44 @@ import Testing
         #expect(try builder("nl").content(for: .checksFailed(own)).body == "Add dark mode\n1 van 8 checks mislukt")
         let summary = try builder().summary(RepositoryKey(accountId: accountId, repo: repo), [.checksFailed(own), .checksFailed(pr(7))])
         #expect(summary.title == "Checks Failed on 2 Pull Requests")
+    }
+
+    private func left(_ kind: MergeQueueEntry.Kind, reason: String? = nil) -> PullRequest {
+        var pr = pr()
+        pr.leftQueue = MergeQueueExit(kind: kind, at: Date(timeIntervalSince1970: 1_790_100_000), reason: reason)
+        return pr
+    }
+
+    @Test func `Leaving the queue names the queue and the reason of the service`() throws {
+        let pr = left(.mergeQueue, reason: "The merge commit failed its checks")
+        let content = try builder().content(for: .leftQueue(pr))
+        #expect(content.title == "Left the Merge Queue Without Merging")
+        #expect(content.subtitle == "\(repo) #42")
+        #expect(content.body == "Add dark mode\nReason: The merge commit failed its checks")
+        #expect(content.kind == .leftQueue)
+        #expect(content.identifier == pr.dedupKey + ":queue")
+        #expect(content.payload.url == pr.webURL)
+        #expect(content.payload.historyKeys == [pr.dedupKey])
+        #expect(content.payload.watchKinds == [.pullRequests])
+        #expect(content.importance.level == .active)
+        #expect(try builder("nl").content(for: .leftQueue(pr)).title == "Uit de merge queue zonder te mergen")
+        #expect(try builder("nl").content(for: .leftQueue(pr)).body == "Add dark mode\nReden: The merge commit failed its checks")
+        let summary = try builder().summary(RepositoryKey(accountId: accountId, repo: repo), [.leftQueue(pr), .leftQueue(self.pr(7))])
+        #expect(summary.title == "2 Pull Requests Left the Queue Without Merging")
+    }
+
+    @Test(arguments: [
+        (MergeQueueEntry.Kind.mergeTrain, ProviderKind.gitLab, "Left the Merge Train Without Merging", "!42"),
+        (.autoMerge, .gitHub, "Auto-Merge Turned Off Without Merging", "#42"),
+        (.autoComplete, .azureDevOps, "Auto-Complete Turned Off Without Completing", "!42"),
+    ])
+    func `Each queue has its own title, without a reason when the service gives none`(
+        kind: MergeQueueEntry.Kind, service: ProviderKind, title: String, number: String
+    ) throws {
+        let content = try builder(kind: service).content(for: .leftQueue(left(kind)))
+        #expect(content.title == title)
+        #expect(content.subtitle == "\(repo) \(number)")
+        #expect(content.body == "Add dark mode")
     }
 
     // MARK: Releases en tags

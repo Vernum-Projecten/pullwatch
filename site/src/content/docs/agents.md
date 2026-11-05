@@ -126,7 +126,7 @@ Pull requests from the history, newest first, with their checks. Each has a `ref
 
 ### get_pull_request
 
-One pull request: its `reference`, state, draft, author and co-authors, check counts, merge queue position, read state, dates and link. Arguments: `repo` and `number` (both required), `account_id`.
+One pull request: its `reference`, state, draft, author and co-authors, check counts, merge queue position, whether it left the queue without merging (`left_queue`, with the reason when the service gives one), read state, dates and link. Arguments: `repo` and `number` (both required), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}

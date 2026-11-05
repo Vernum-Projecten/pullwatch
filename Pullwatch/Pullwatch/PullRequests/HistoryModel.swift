@@ -184,6 +184,7 @@ final class HistoryModel {
         if history.update(checks: result.checks) { changed = true }
         // Of open PR's in de rij staan om vanzelf te mergen, op hun plek en zonder melding.
         if history.update(mergeQueues: result.mergeQueues) { changed = true }
+        if history.update(leftQueue: result.leftQueue) { changed = true }
         if history.prune(now: now, retention: retention) { changed = true }
         if changed { save() }
     }

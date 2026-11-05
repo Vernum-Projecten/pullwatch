@@ -63,6 +63,16 @@ public protocol PRProvider: Sendable {
     /// Weigert de dienst het register (rechten), dan `.needsPermission` met de reden, geen fout;
     /// een dienst zonder register geeft `.notSupported` (de standaard).
     func publishedPackages(followedRepos: [String]) async throws -> PublishedPackages
+    /// De open PR's (dedupKeys) waarvan de laatste `openPullRequests()` niet kon lezen of ze in de
+    /// rij staan (een mislukt verzoek, een server zonder die velden, of de dienst zegt dat de PR
+    /// niet meer open is): hun `mergeQueue` is dan wat de provider eerder wist of nil, en
+    /// `PollEngine` houdt voor hen de vorige stand en meldt niets. De standaard: alles gelezen.
+    func unreadMergeQueues() async -> Set<String>
+    /// Voor de PR's die net uit de rij gingen (`PullRequest.leftQueue` gezet): waarom, en welke
+    /// toch niet zonder mergen uit de rij gingen (inmiddels gemerged, gesloten of weer in de rij).
+    /// Alleen voor die paar PR's, nooit voor de hele lijst. Een fout geeft een leeg antwoord: de
+    /// melding komt dan zonder reden. De standaard: geen reden.
+    func mergeQueueExits(of pullRequests: [PullRequest]) async -> MergeQueueExits
 }
 
 extension PRProvider {
@@ -73,6 +83,10 @@ extension PRProvider {
     public func securityAlerts(in repo: String) async throws -> SecurityScan? { nil }
 
     public func advisoryDatabaseToken() async -> String? { nil }
+
+    public func unreadMergeQueues() async -> Set<String> { [] }
+
+    public func mergeQueueExits(of pullRequests: [PullRequest]) async -> MergeQueueExits { MergeQueueExits() }
 
     /// Een provider zonder losse repo's (de standaard voor een nieuwe dienst tot hij ze kent).
     public func checkRepository(_ repo: String) async throws -> RepositoryCheck {

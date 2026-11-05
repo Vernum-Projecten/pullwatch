@@ -4,13 +4,14 @@ import SwiftUI
 /// Het teken van een soort melding als bijlage als er geen profielfoto is: de Octicon van de PR
 /// zoals in de lijsten, of een SF Symbol, in de kleur van de soort.
 nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
-    case pullRequest, merged, checksFailed, release, tag, vulnerability, securityAlert, packageUpdate, publishedPackage
+    case pullRequest, merged, checksFailed, leftQueue, release, tag, vulnerability, securityAlert, packageUpdate, publishedPackage
 
     init?(kind: NotificationKind) {
         switch kind {
         case .pullRequest: self = .pullRequest
         case .merged: self = .merged
         case .checksFailed: self = .checksFailed
+        case .leftQueue: self = .leftQueue
         case .release: self = .release
         case .tag: self = .tag
         case .vulnerability: self = .vulnerability
@@ -27,6 +28,8 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .pullRequest: PRStatus.open.glyph
         case .merged: PRStatus.merged.glyph
         case .checksFailed: CheckState.failed.glyph
+        // Terug uit de rij: de pijl terug, in de kleur van Queued.
+        case .leftQueue: .system("arrow.uturn.backward.circle.fill")
         case .release: .system("shippingbox.fill")
         case .tag: ItemKind.tag.glyph
         case .vulnerability: .system("exclamationmark.shield.fill")
@@ -41,6 +44,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .pullRequest: PRStatus.open.color
         case .merged: PRStatus.merged.color
         case .checksFailed: CheckState.failed.color
+        case .leftQueue: PRStatus.queued.color
         case .release, .tag: ItemKind.tag.color
         case .vulnerability: .red
         case .securityAlert: .orange

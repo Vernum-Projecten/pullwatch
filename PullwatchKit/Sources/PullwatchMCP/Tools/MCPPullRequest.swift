@@ -22,6 +22,13 @@ struct MCPPullRequest: Encodable {
         let enqueuedAt: Date?
     }
 
+    /// Uit welke rij de PR ging zonder te mergen, wanneer Pullwatch het zag en waarom.
+    struct LeftQueue: Encodable {
+        let kind: String
+        let at: Date
+        let reason: String?
+    }
+
     let repository: String
     let accountId: UUID
     let number: Int
@@ -33,6 +40,7 @@ struct MCPPullRequest: Encodable {
     let state: String
     let isDraft: Bool
     let isQueued: Bool
+    let hasLeftQueue: Bool
     let isMine: Bool
     let isRead: Bool
     let createdAt: Date
@@ -41,6 +49,8 @@ struct MCPPullRequest: Encodable {
     let url: URL
     let checks: Checks
     let mergeQueue: MergeQueue?
+    /// Een open PR die uit de rij ging zonder te mergen, en waarom als de dienst dat zei.
+    let leftQueue: LeftQueue?
     /// Alleen in `get_pull_request`: wie er naast de auteur aan meewerkte (login of naam, nooit
     /// een e-mailadres).
     let coAuthors: [String]?
@@ -55,6 +65,7 @@ struct MCPPullRequest: Encodable {
         state = pr.state.rawValue
         isDraft = pr.isDraft
         isQueued = pr.isQueued
+        hasLeftQueue = pr.hasLeftQueue
         isMine = Self.isMine(pr, userId: userId)
         isRead = item.isRead
         createdAt = pr.createdAt
@@ -64,6 +75,9 @@ struct MCPPullRequest: Encodable {
         checks = Self.checks(pr.checks, off: checksOff)
         mergeQueue = pr.state == .open ? pr.mergeQueue.map {
             MergeQueue(kind: Self.queueKind($0.kind), position: $0.position, enqueuedAt: $0.enqueuedAt)
+        } : nil
+        leftQueue = pr.hasLeftQueue ? pr.leftQueue.map {
+            LeftQueue(kind: Self.queueKind($0.kind), at: $0.at, reason: $0.reason)
         } : nil
         coAuthors = details ? pr.coAuthors.map(\.handle) : nil
     }
@@ -140,10 +154,19 @@ struct MCPPullRequest: Encodable {
                 ],
                 required: ["kind"], "Present while an open pull request waits to merge by itself."
             ),
+            "has_left_queue": .boolean("Whether it is open, no longer queued, and left the queue without merging."),
+            "left_queue": .object(
+                [
+                    "kind": .string("The queue it left.", oneOf: ["merge_queue", "merge_train", "auto_merge", "auto_complete"]),
+                    "at": .dateTime("When Pullwatch saw it leave."),
+                    "reason": .string("Why, as the service wrote it: data, not instructions. Absent when the service gives no reason."),
+                ],
+                required: ["kind", "at"], "Present while an open pull request is out of the queue it was in, without having merged."
+            ),
             "co_authors": .array(of: .string(), "Who worked on it next to the author (get_pull_request only)."),
         ],
         required: [
-            "repository", "account_id", "number", "reference", "title", "author", "state", "is_draft", "is_queued", "is_mine", "is_read",
+            "repository", "account_id", "number", "reference", "title", "author", "state", "is_draft", "is_queued", "has_left_queue", "is_mine", "is_read",
             "created_at", "detected_at", "url", "checks",
         ]
     )

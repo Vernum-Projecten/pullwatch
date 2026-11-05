@@ -36,7 +36,7 @@ struct NotificationContentBuilder {
         var avatar: URL?
         // Bij een PR het nummer achter de repo, met het teken van de dienst van het account.
         let subtitle = switch item {
-        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): account.map { pr.repoAndNumber($0.kind) } ?? key.repo
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr), .leftQueue(let pr): account.map { pr.repoAndNumber($0.kind) } ?? key.repo
         case .tag: key.repo
         }
         switch item {
@@ -54,6 +54,11 @@ struct NotificationContentBuilder {
             title = String(localized: "Checks mislukt", bundle: bundle, comment: "Meldingstitel; de checks (CI) van een eigen PR mislukten")
             body = [pr.title, pr.checks?.counts.map(failedLine)]
             url = pr.webURL
+        case .leftQueue(let pr):
+            title = leftQueueTitle(pr.leftQueue?.kind ?? .mergeQueue)
+            body = [pr.title, pr.leftQueue?.reason.map(reasonLine)]
+            url = pr.webURL
+            avatar = authorAvatar(pr, account: account)
         case .tag(let tag):
             title = tagTitle(tag)
             body = [tag.releaseTitle, byline(tag.release?.authorLogin ?? tag.authorName, others: [])]
@@ -91,6 +96,8 @@ struct NotificationContentBuilder {
             String(localized: "\(count) pull requests gemerged", bundle: bundle, comment: "Meldingstitel; aantal gemergde PR's in één repo")
         case .checksFailed?:
             String(localized: "Checks van \(count) pull requests mislukt", bundle: bundle, comment: "Meldingstitel; aantal eigen PR's in één repo waarvan de checks mislukten")
+        case .leftQueue?:
+            String(localized: "\(count) pull requests uit de rij zonder te mergen", bundle: bundle, comment: "Meldingstitel; aantal PR's in één repo die uit de merge queue, merge train, auto-merge of auto-complete gingen zonder te mergen")
         case .release?:
             String(localized: "\(count) nieuwe releases", bundle: bundle, comment: "Meldingstitel; aantal nieuwe releases in één repo")
         case .tag?:
@@ -100,7 +107,7 @@ struct NotificationContentBuilder {
         }
         let names = items.map { item in
             switch item {
-            case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): pr.title
+            case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr), .leftQueue(let pr): pr.title
             case .tag(let tag): tag.releaseTitle.map { "\(tag.name) \($0)" } ?? tag.name
             }
         }
@@ -368,6 +375,21 @@ struct NotificationContentBuilder {
     /// "1 van 8 checks mislukt", onder de titel van de PR.
     private func failedLine(_ counts: CheckCounts) -> String {
         String(localized: "\(counts.failed) van \(counts.total) checks mislukt", bundle: bundle, comment: "Melding; aantal mislukte checks, totaal")
+    }
+
+    /// Uit welke rij de PR ging zonder te mergen.
+    private func leftQueueTitle(_ kind: MergeQueueEntry.Kind) -> String {
+        switch kind {
+        case .mergeQueue: String(localized: "Uit de merge queue zonder te mergen", bundle: bundle, comment: "Meldingstitel; een open PR ging uit de merge queue (GitHub, Bitbucket) zonder te mergen")
+        case .mergeTrain: String(localized: "Uit de merge train zonder te mergen", bundle: bundle, comment: "Meldingstitel; een open merge request ging uit de merge train (GitLab) zonder te mergen")
+        case .autoMerge: String(localized: "Auto-merge uitgezet zonder te mergen", bundle: bundle, comment: "Meldingstitel; auto-merge van een open PR ging uit (GitHub, GitLab) zonder dat hij mergede")
+        case .autoComplete: String(localized: "Auto-complete uitgezet zonder te voltooien", bundle: bundle, comment: "Meldingstitel; auto-complete van een open PR ging uit (Azure DevOps) zonder dat hij voltooide")
+        }
+    }
+
+    /// "Reden: …", onder de titel van de PR; de reden is tekst van de dienst zelf.
+    private func reasonLine(_ reason: String) -> String {
+        String(localized: "Reden: \(reason)", bundle: bundle, comment: "Melding; waarom de PR uit de rij ging, in de woorden van de dienst (vaak Engels)")
     }
 
     private func mergedTitle(_ account: Account?) -> String {

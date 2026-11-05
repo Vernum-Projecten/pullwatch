@@ -126,7 +126,7 @@ Pull Requests aus dem Verlauf, neueste zuerst, mit ihren Checks. Jeder hat eine 
 
 ### get_pull_request
 
-Ein Pull Request: seine `reference`, Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
+Ein Pull Request: seine `reference`, Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, ob er die Warteschlange ohne Merge verlassen hat (`left_queue`, mit dem Grund, wenn der Dienst einen nennt), gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}

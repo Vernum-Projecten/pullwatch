@@ -126,7 +126,7 @@ Pull requests uit de geschiedenis, nieuwste eerst, met hun checks. Elke heeft ee
 
 ### get_pull_request
 
-Eén pull request: de `reference`, staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
+Eén pull request: de `reference`, staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, of hij uit de rij ging zonder te mergen (`left_queue`, met de reden als de dienst die geeft), gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
