@@ -54,7 +54,8 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
     public let visibility: Visibility?
     /// De pagina van het package bij het register.
     public let webURL: URL?
-    /// De recente versies, nieuwste eerst, hooguit `recentVersionLimit`.
+    /// De recente versies, nieuwste eerst, hooguit `recentVersionLimit`, altijd met de hoogste
+    /// stabiele release (`recentVersions(_:version:)`).
     public let versions: [PublishedVersion]
     /// Wat `latestVersion` is; `.version` bij elk ander soort package en in oudere gegevens.
     public let latestKind: LatestKind
@@ -76,7 +77,7 @@ public struct PublishedPackage: Codable, Hashable, Sendable, Identifiable {
         self.type = type
         self.owner = owner
         self.repository = repository
-        self.versions = Array(versions.prefix(Self.recentVersionLimit))
+        self.versions = Self.recentVersions(versions, version: \.version)
         self.latestVersion = latestVersion ?? versions.first?.version
         self.publishedAt = publishedAt ?? versions.first?.publishedAt
         self.visibility = visibility

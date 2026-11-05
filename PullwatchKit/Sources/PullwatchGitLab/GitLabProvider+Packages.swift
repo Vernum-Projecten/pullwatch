@@ -138,10 +138,10 @@ extension GitLabProvider {
         return order.compactMap { key in
             guard let items = grouped[key], let first = items.first else { return nil }
             let sorted = items.sorted { ($0.row.created ?? .distantPast) > ($1.row.created ?? .distantPast) }
-            let versions = sorted.prefix(PublishedPackage.recentVersionLimit).map { $0.row.version(instanceURL: instanceURL) }
+            let versions = PublishedPackage.recentVersions(sorted, version: { $0.row.version ?? "" }).map { $0.row.version(instanceURL: instanceURL) }
             return PublishedPackage(
                 accountId: accountId, name: first.row.name, type: PublishedPackageType(rawValue: first.row.packageType),
-                owner: namespace(of: first.repo), repository: first.repo, webURL: versions.first?.webURL, versions: Array(versions)
+                owner: namespace(of: first.repo), repository: first.repo, webURL: versions.first?.webURL, versions: versions
             )
         }
     }

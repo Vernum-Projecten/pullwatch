@@ -192,19 +192,18 @@ extension AzureDevOpsProvider {
         }
     }
 
-    /// De recente versies van eigen makelij, hoogste eerst, hooguit `recentVersionLimit`, met
-    /// `latest` erbij en altijd de hoogste stabiele release, ook achter veel pre-releases.
+    /// De recente versies van eigen makelij, hoogste eerst, met `latest` erbij, gekort zoals elk
+    /// register (`PublishedPackage.recentVersions`): hooguit `recentVersionLimit`, en altijd de
+    /// hoogste stabiele release, ook achter veel pre-releases.
     static func recentVersions(_ all: [FeedPackageDTO.Version], latest: FeedPackageDTO.Version) -> [FeedPackageDTO.Version] {
         var seen: Set<String> = []
         let own = ([latest] + all.filter { $0.isDeleted != true && $0.directUpstreamSourceId == nil })
             .filter { seen.insert($0.version).inserted }
             .compactMap { item in Version(item.version).map { (item: item, version: $0) } }
             .sorted { $0.version > $1.version }
-        var recent = Array(own.prefix(PublishedPackage.recentVersionLimit))
-        if let stable = own.first(where: { !$0.version.isPrerelease }), !recent.contains(where: { $0.item.version == stable.item.version }) {
-            recent[recent.count - 1] = stable
-        }
-        return recent.isEmpty ? [latest] : recent.map(\.item)
+            .map(\.item)
+        let recent = PublishedPackage.recentVersions(own, version: \.version)
+        return recent.isEmpty ? [latest] : recent
     }
 
     /// false: niets te lezen (404). Gooit `needsPermission` bij 401 en bij een 403 die geen rate

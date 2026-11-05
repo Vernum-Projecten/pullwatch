@@ -153,6 +153,15 @@ import Testing
         #expect(found.latestKind == .version)
     }
 
+    @Test func `The stable release stays among the recent versions behind many newer pre-releases`() {
+        let images = (1...12).reversed().map { image(["3.0.0-beta.\($0)"], 12 + $0) } + [image(["2.9.0"], 2)]
+        let found = ContainerVersions(images: images)
+
+        #expect(found.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(found.versions.last?.version == "2.9.0")
+        #expect(found.latestVersion == "2.9.0")
+    }
+
     @Test func `Keeps at most ten recent versions`() {
         let images = (0..<15).map { image(["1.\(20 - $0).0"], 30 - $0) }
 
