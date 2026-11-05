@@ -110,6 +110,23 @@ import PullwatchTestSupport
         #expect(urls(http).contains("\(api)groups/acme/packages?order_by=created_at&sort=desc&per_page=100&page=1"))
     }
 
+    @Test func `The stable release stays behind many newer pre-releases`() async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/registry/repositories", body: "[]")
+        let betas = (1...12).reversed().map { row("@acme/ui", version: "3.0.0-beta.\($0)", id: 100 + $0, created: "2026-10-\(10 + $0)T10:00:00.000Z") }
+        let rows = betas + [row("@acme/ui", version: "2.9.0", id: 1, created: "2026-09-01T10:00:00.000Z")]
+        http.on("groups/acme/packages", body: "[\(rows.joined(separator: ","))]")
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(ui.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(ui.versions.first?.version == "3.0.0-beta.12")
+        #expect(ui.versions.last?.version == "2.9.0")
+        #expect(ui.releasedVersion == "2.9.0")
+        #expect(ui.newestPrerelease == "3.0.0-beta.12")
+    }
+
     @Test func `Follows X-Next-Page through the packages of a group`() async throws {
         let http = MockHTTPClient()
         group(http)
@@ -248,6 +265,30 @@ import PullwatchTestSupport
         #expect(web.versions.map(\.version) == ["1.9.0", "1.10.0"], "nieuwste eerst, op datum")
         #expect(web.latestVersion == "1.10.0", "de hoogste versie, niet de nieuwste datum")
         #expect(web.publishedAt == DateParsing.parse("2026-10-01T10:00:00.000+00:00"), "de datum van die versie")
+    }
+
+    /// Hoe het lezen van de tags van een image mislukt (#215).
+    enum TagsFailure: String, CaseIterable, Sendable {
+        case serverError, timeout, undecodable
+    }
+
+    @Test(arguments: TagsFailure.allCases)
+    func `Tags that cannot be read mark the image as failed, not as untagged`(_ failure: TagsFailure) async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/packages", body: "[]")
+        switch failure {
+        case .serverError: http.on("repositories/5/tags?", status: 502, body: #"{"message":"502 Bad Gateway"}"#)
+        case .timeout: http.fail("repositories/5/tags?", with: ProviderError.timeout(command: "gitlab.com"))
+        case .undecodable: http.on("repositories/5/tags?", body: #"{"unexpected":"object"}"#)
+        }
+        http.on("groups/acme/registry/repositories", body: "[\(image(id: 5, path: "acme/web"))]")
+
+        let result = try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"])
+
+        let web = try #require(result.packages.first)
+        #expect(web.versionsReadFailed)
+        #expect(web.latestVersion == nil)
     }
 
     @Test func `Keeps latest when it is the only tag`() {

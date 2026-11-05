@@ -2512,6 +2512,83 @@
         }
       }
     },
+    "%lld pull requests uit de rij zonder te mergen": {
+      "comment": "Meldingstitel; aantal PR's in één repo die uit de merge queue, merge train, auto-merge of auto-complete gingen zonder te mergen",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Request hat die Warteschlange ohne Merge verlassen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Requests haben die Warteschlange ohne Merge verlassen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Request Left the Queue Without Merging"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Pull Requests Left the Queue Without Merging"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull request a quitté la file d’attente sans fusion"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull requests ont quitté la file d’attente sans fusion"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull request uit de rij zonder te mergen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld pull requests uit de rij zonder te mergen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld repo's lopen achter": {
       "comment": "Ondertitel van een melding; aantal repo's met een oudere versie",
       "localizations": {
@@ -4647,6 +4724,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Authenticatie"
+          }
+        }
+      }
+    },
+    "Auto-complete uitgezet zonder te voltooien": {
+      "comment": "Meldingstitel; auto-complete van een open PR ging uit (Azure DevOps) zonder dat hij voltooide",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Complete ohne Abschluss deaktiviert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Complete Turned Off Without Completing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-complete désactivé sans achèvement"
+          }
+        }
+      }
+    },
+    "Auto-merge uitgezet zonder te mergen": {
+      "comment": "Meldingstitel; auto-merge van een open PR ging uit (GitHub, GitLab) zonder dat hij mergede",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Merge ohne Merge deaktiviert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Merge Turned Off Without Merging"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-merge désactivé sans fusion"
           }
         }
       }
@@ -6937,6 +7060,28 @@
         }
       }
     },
+    "Een melding als een open pull request uit de merge queue of merge train gaat, of auto-merge of auto-complete uit gaat, zonder dat hij mergede": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Mitteilung, wenn ein offener Pull Request die Merge Queue oder den Merge Train verlässt oder Auto-Merge bzw. Auto-Complete verliert, ohne gemergt zu sein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification when an open pull request leaves the merge queue or merge train, or loses auto-merge or auto-complete, without having merged"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une notification quand une pull request ouverte quitte la merge queue ou le merge train, ou perd l’auto-merge ou l’auto-complete, sans avoir été fusionnée"
+          }
+        }
+      }
+    },
     "Een melding als een package dat een gevolgde repo publiceert een nieuwe versie heeft (het onderdeel Packages)": {
       "localizations": {
         "de": {
@@ -8729,6 +8874,122 @@
           "stringUnit": {
             "state": "translated",
             "value": "Publié par"
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: bron Packageregisters van je accounts staat uit.": {
+      "comment": "Repository of project dat een eigen package publiceert; de bron Packageregisters van je accounts (Instellingen, Bronnen) staat uit",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Quelle Paket-Registrys deiner Konten ist aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: source Package registries of your accounts is off."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : la source Registres de paquets de vos comptes est désactivée."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: bron Packageregisters van je accounts staat uit."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: geen toegang tot het packageregister van dit account.": {
+      "comment": "Repository of project dat een eigen package publiceert; het token van het account mist het recht om het register te lezen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: kein Zugriff auf die Paket-Registry dieses Kontos."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: no access to this account's package registry."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : aucun accès au registre de paquets de ce compte."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: geen toegang tot het packageregister van dit account."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet.": {
+      "comment": "Repository of project dat een eigen package publiceert volgens het lockbestand; het register van het account kon niet gelezen worden of noemde het package niet",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Die Lockfile holt dieses Paket aus deiner eigenen Registry, aber diese Registry nannte es nicht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: the lockfile gets this package from your own registry, but that registry did not list it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : le lockfile prend ce paquet dans votre propre registre, mais ce registre ne l'a pas listé."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet."
+          }
+        }
+      }
+    },
+    "Gepubliceerd door %@, niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie.": {
+      "comment": "Repository of project dat een eigen package publiceert; het lezen van de versies uit het eigen register mislukte",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht von %@, nicht geprüft: Die Paket-Registry dieses Kontos lieferte keine neueste Version."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Published by %@, not checked: this account's package registry gave no latest version."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié par %@, non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gepubliceerd door %@, niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie."
           }
         }
       }
@@ -12745,6 +13006,64 @@
         }
       }
     },
+    "Niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet": {
+      "comment": "Een eigen package volgens het lockbestand; het register van het account kon niet gelezen worden of noemde het package niet",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: die Lockfile holt dieses Paket aus deiner eigenen Registry, aber diese Registry nannte es nicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: the lockfile gets this package from your own registry, but that registry did not list it"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : le lockfile prend ce paquet dans votre propre registre, mais ce registre ne l'a pas listé"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet"
+          }
+        }
+      }
+    },
+    "Niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie": {
+      "comment": "Een eigen package; het lezen van de versies uit het eigen register mislukte",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht geprüft: die Paket-Registry dieses Kontos lieferte keine neueste Version"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked: this account's package registry gave no latest version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie"
+          }
+        }
+      }
+    },
     "Niet te checken": {
       "localizations": {
         "de": {
@@ -14194,6 +14513,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non lu"
+          }
+        }
+      }
+    },
+    "Ook gepubliceerd door %@ (hier niet gebruikt)": {
+      "comment": "Repository of project dat een package met dezelfde naam publiceert; deze repo gebruikt het publieke package",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch veröffentlicht von %@ (hier nicht verwendet)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also published by %@ (not used here)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Également publié par %@ (non utilisé ici)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ook gepubliceerd door %@ (hier niet gebruikt)"
           }
         }
       }
@@ -16550,6 +16898,28 @@
         }
       }
     },
+    "Pull requests die uit de rij gaan zonder te mergen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests, die die Warteschlange ohne Merge verlassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests that leave the queue without merging"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests qui quittent la file d’attente sans fusion"
+          }
+        }
+      }
+    },
     "Pull requests en tags": {
       "localizations": {
         "de": {
@@ -17190,6 +17560,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versions récentes"
+          }
+        }
+      }
+    },
+    "Reden: %@": {
+      "comment": "Melding; waarom de PR uit de rij ging, in de woorden van de dienst (vaak Engels)",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grund: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reason: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raison : %@"
           }
         }
       }
@@ -19338,6 +19731,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saisissez workspace/dépôt, ou collez le lien de bitbucket.org. Un dépôt public d'un autre workspace fonctionne aussi ; Pullwatch le lit sans connexion si nécessaire."
+          }
+        }
+      }
+    },
+    "Uit de merge queue zonder te mergen": {
+      "comment": "Meldingstitel; een open PR ging uit de merge queue (GitHub, Bitbucket) zonder te mergen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Queue ohne Merge verlassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left the Merge Queue Without Merging"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortie de la merge queue sans fusion"
+          }
+        }
+      }
+    },
+    "Uit de merge train zonder te mergen": {
+      "comment": "Meldingstitel; een open merge request ging uit de merge train (GitLab) zonder te mergen",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge Train ohne Merge verlassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left the Merge Train Without Merging"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortie du merge train sans fusion"
           }
         }
       }

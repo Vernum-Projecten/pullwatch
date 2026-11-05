@@ -204,6 +204,8 @@ enum ExplainUpdateTool {
                 blocker: nil,
                 explanation: inHouse?.status == "needs_permission"
                     ? "\(use.name) \(install.version) in \(place): the latest version is not checked because Pullwatch may not read the package registry that publishes it."
+                    : inHouse?.status == "read_failed"
+                    ? "\(use.name) \(install.version) in \(place): the latest version is not checked because reading it from the package registry that publishes it failed."
                     : inHouse != nil
                         ? "\(use.name) \(install.version) in \(place): the latest version is not checked because the source Package registries of your accounts is off."
                         : "\(use.name) \(install.version) in \(place): the latest version is not checked because its registry source is off."

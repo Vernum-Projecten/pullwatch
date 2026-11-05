@@ -74,10 +74,11 @@ struct AccountEditor: View {
         self.accounts = accounts
         self.saveAction = saveAction
         _draft = State(initialValue: original)
-        _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? "")
+        // Een adres uit de config dat niet bruikbaar is, staat in het veld zoals het er stond.
+        _instanceText = State(initialValue: original.instanceURL?.absoluteString ?? original.unusableInstanceURL ?? "")
         isEnterprise = switch original.kind {
-        case .gitHub: enterprise || original.isGitHubEnterprise
-        case .gitLab: enterprise || original.instanceURL != nil
+        case .gitHub: enterprise || original.isGitHubEnterprise || original.unusableInstanceURL != nil
+        case .gitLab: enterprise || original.instanceURL != nil || original.unusableInstanceURL != nil
         // Forgejo en Gitea: een eigen server (bij Gitea mag het veld leeg: gitea.com); Codeberg niet.
         case .gitea: original.giteaFlavour.allowsOwnServer
         case .azureDevOps, .bitbucket: false
@@ -118,10 +119,6 @@ struct AccountEditor: View {
         draft.kind == .bitbucket
     }
 
-    private var lacksEmail: Bool {
-        needsEmail && (draft.email ?? "").isEmpty
-    }
-
     /// Of er een veld voor het adres van de server staat.
     private var showsServerField: Bool {
         isEnterprise
@@ -143,16 +140,22 @@ struct AccountEditor: View {
         }
     }
 
-    /// Een getypt adres dat geen https-adres is (leeg is bij GitLab goed: dan gitlab.com).
+    /// Een getypt adres dat geen https-adres is.
     private var instanceTextIsInvalid: Bool {
         showsServerField && !instanceText.trimmingCharacters(in: .whitespaces).isEmpty
             && InstanceURL.parse(instanceText, for: draft.kind) == nil
     }
 
-    /// Een eigen server zonder (geldig) adres: github.com en gitlab.com tellen hier niet. Bij
-    /// Gitea is een leeg veld gitea.com; alleen Forgejo eist een server.
+    /// Moet het veld een adres hebben? GitHub Enterprise en een eigen GitLab-server wel (leeg zou
+    /// het token naar github.com of gitlab.com sturen); bij Gitea is leeg gitea.com, en Forgejo
+    /// zonder server ziet `Account.serverProblem` zelf.
+    private var requiresServer: Bool {
+        isEnterprise && draft.kind != .gitea
+    }
+
+    /// Een eigen server zonder adres (`Account.serverProblem`).
     private var lacksEnterpriseServer: Bool {
-        isEnterprise && draft.instanceURL == nil && draft.defaultInstanceURL == nil
+        draft.serverProblem == .missing
     }
 
     /// Waar je een token maakt, met de naam en de scopes al ingevuld: bij GitLab, en op een GitHub
@@ -258,10 +261,18 @@ struct AccountEditor: View {
                     .autocorrectionDisabled()
                     .accessibilityIdentifier("account.instanceURL")
                     .onChange(of: instanceText) { _, text in
-                        if text.trimmingCharacters(in: .whitespaces).isEmpty {
-                            draft.instanceURL = nil
-                        } else if let url = InstanceURL.parse(text, for: draft.kind) {
+                        // Zolang het adres niet bruikbaar is, gaat het account nergens heen
+                        // (`unusableInstanceURL`), ook niet naar de standaard van de dienst.
+                        let typed = text.trimmingCharacters(in: .whitespaces)
+                        if let url = InstanceURL.parse(text, for: draft.kind) {
                             draft.instanceURL = url == draft.defaultInstanceURL ? nil : url
+                            draft.unusableInstanceURL = nil
+                        } else if typed.isEmpty && !requiresServer {
+                            draft.instanceURL = nil
+                            draft.unusableInstanceURL = nil
+                        } else {
+                            draft.instanceURL = nil
+                            draft.unusableInstanceURL = typed
                         }
                     }
                     if instanceTextIsInvalid {
@@ -553,11 +564,12 @@ struct AccountEditor: View {
         return ghAccounts + [chosen]
     }
 
-    private var hasRequiredFields: Bool { draft.isComplete && !lacksEmail }
+    /// Eigenaar, server en bij Bitbucket het e-mailadres (`Account.isComplete`).
+    private var hasRequiredFields: Bool { draft.isComplete }
 
     private var validationMessage: LocalizedStringKey? {
         if draft.authMethod == .gitHubApp && signIn?.isSignedIn != true { return "Log eerst in bij GitHub" }
-        if draft.authMethod == .gitHubApp && !hasRequiredFields { return "Volg minstens één plek" }
+        if draft.authMethod == .gitHubApp && !draft.hasOwner { return "Volg minstens één plek" }
         if instanceTextIsInvalid { return "Vul een https-adres in voor de server" }
         if lacksEnterpriseServer {
             switch draft.kind {
@@ -566,7 +578,8 @@ struct AccountEditor: View {
             default: return "Vul het adres van je GitHub Enterprise-server in"
             }
         }
-        if !hasRequiredFields {
+        if draft.serverProblem != nil { return "Vul een https-adres in voor de server" }
+        if !draft.hasOwner {
             switch draft.kind {
             case .azureDevOps: return "Vul de organisatie in"
             case .gitHub: return "Vul de owner in"
@@ -575,7 +588,7 @@ struct AccountEditor: View {
             case .gitea: return "Vul een organisatie of gebruiker in"
             }
         }
-        if lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }
+        if draft.lacksEmail { return "Vul het e-mailadres van je Atlassian-account in" }
         if draft.authMethod == .pat && pat.isEmpty && !storedPAT { return "Vul een token in" }
         return nil
     }

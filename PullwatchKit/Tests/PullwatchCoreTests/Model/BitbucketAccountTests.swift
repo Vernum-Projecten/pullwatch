@@ -29,6 +29,43 @@ import Testing
         #expect(!String(decoding: try JSONEncoder().encode(account), as: UTF8.self).contains("email"))
     }
 
+    @Test(arguments: [nil, "", "  "])
+    func `Without an email the account is incomplete and not polled`(email: String?) {
+        let account = Account(kind: .bitbucket, organization: "atlassian", authMethod: .pat, email: email)
+        #expect(account.lacksEmail)
+        #expect(!account.isComplete)
+        #expect(account.hasOwner)
+        #expect(account.serverProblem == nil)
+        #expect(account.setupProblemMessage == ProviderError.missingEmail.userMessage)
+        let config = AppConfig(accounts: [account])
+        #expect(config.pollableAccounts.isEmpty)
+    }
+
+    @Test func `With an email the account is complete`() {
+        let account = Account(kind: .bitbucket, organization: "atlassian", authMethod: .pat, email: "jane@example.com")
+        #expect(!account.lacksEmail)
+        #expect(account.isComplete)
+        #expect(account.setupProblemMessage == nil)
+        #expect(AppConfig(accounts: [account]).pollableAccounts.map(\.id) == [account.id])
+    }
+
+    @Test(arguments: [ProviderKind.azureDevOps, .gitHub, .gitLab, .gitea])
+    func `Other services need no email`(kind: ProviderKind) {
+        let account = Account(kind: kind, organization: "acme", authMethod: .pat)
+        #expect(!account.lacksEmail)
+        #expect(account.isComplete)
+    }
+
+    @Test(arguments: [
+        ("nl", "Het e-mailadres van het Atlassian-account ontbreekt"),
+        ("en", "The email address of the Atlassian account is missing"),
+        ("de", "Die E-Mail-Adresse des Atlassian-Kontos fehlt"),
+        ("fr", "L’adresse e-mail du compte Atlassian est manquante"),
+    ])
+    func `A missing email says so in every language`(language: String, expected: String) {
+        #expect(ProviderError.missingEmail.userMessage(bundle: .core(for: language)) == expected)
+    }
+
     @Test func `A repository links to bitbucket.org`() {
         let account = Account(kind: .bitbucket, organization: "atlassian", authMethod: .pat)
         #expect(account.repoWebURL("atlassian/aui")?.absoluteString == "https://bitbucket.org/atlassian/aui")

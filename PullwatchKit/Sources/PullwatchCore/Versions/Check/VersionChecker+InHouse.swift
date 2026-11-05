@@ -3,71 +3,167 @@ import Foundation
 // MARK: - Eigen packages
 
 extension VersionChecker {
-    /// De metadata van elke dependency in `keys` ("ecosysteem:naam") die een gevolgde repo zelf
-    /// publiceert, uit de eigen registers in `published`. Deze namen gaan nooit naar het publieke
-    /// register (npmjs.com, nuget.org, pypi.org, rubygems.org) of naar OSV: een private naam lekt
-    /// zo niet, en een publiek package met dezelfde naam wordt niet voor het eigen aangezien.
+    /// Welke dependencies eigen packages zijn (#214). Een sleutel is eigen als een actief account
+    /// (bekend en niet gepauzeerd) een package met die naam publiceert en elke install ervan in
+    /// deze check aantoonbaar uit dat register komt (`InHouseEvidence`): een scope van de
+    /// eigenaar, of het register in de lockfile. Eén install zonder bewijs (een andere repo die
+    /// het publieke package gebruikt) maakt de sleutel publiek: die install moet de publieke
+    /// nieuwste versie en de CVE's van OSV krijgen, en de naam gaat dan toch al naar buiten.
     ///
     /// - Bron Packageregisters van je accounts uit: geen eigen register, dus ook geen nieuwste
-    ///   versie. Wat de vorige check als eigen package kende (`metadataCache`), blijft eigen en
-    ///   staat als "niet gecontroleerd: bron staat uit", nooit als actueel.
+    ///   versie. Wat de vorige check als eigen package kende (`metadataCache`), blijft eigen (met
+    ///   bewijs en een actief account) en staat als "niet gecontroleerd: bron staat uit".
     /// - Het account mag het register niet (meer) lezen: wat het vorige keer publiceerde staat
     ///   als "niet gecontroleerd" met de reden.
-    /// - Het register mislukte (netwerk) of het account zat niet in deze check: de metadata van
-    ///   de vorige check blijft.
-    /// - Een naam die geen gevolgde repo publiceert: nil, de check doet wat hij altijd deed.
-    func inHouseMetadata(keys: Set<String>, published: [AccountPackages], accounts: [Account]) -> [String: PackageMetadata] {
-        let cached = metadataCache.filter { $0.value.inHouse != nil }
-        guard isEnabled(.packageRegistries) else {
-            var result: [String: PackageMetadata] = [:]
-            for key in keys {
-                guard let old = cached[key]?.inHouse else { continue }
-                result[key] = PackageMetadata(latest: nil, versions: [:], inHouse: old.with(status: .sourceOff))
+    /// - Het register mislukte (netwerk) of het actieve account zat niet in deze check: de
+    ///   metadata van de vorige check blijft.
+    /// - Het account is weg of gepauzeerd, of noemt het package niet meer: niet meer eigen, de
+    ///   check doet wat hij voor elk publiek package doet.
+    /// - Het register noemt het package zonder nieuwste versie (geen repository, versies niet te
+    ///   lezen): nooit `.checked`, zie `withoutVersion` (#215).
+    ///
+    /// Daarna het bewijs uit de lockfile alleen (#216): haalt elke install van een sleutel die nu
+    /// nog niet eigen is het package uit het eigen register van het account van zijn repository
+    /// (`InHouseEvidence.keepsPrivate`), dan is de sleutel toch eigen, wat het register ook deed.
+    /// Zo gaat de naam bij een eerste check nergens heen als het register mislukte, de bron uit
+    /// staat, het account het register niet mag lezen, de dienst geen register heeft dat Pullwatch
+    /// leest, of de publicerende repository niet gevolgd wordt. Alleen als een eerdere check de
+    /// naam in het publieke register vond (`isPublicName`), lekt vragen niets en blijft hij publiek.
+    func inHouseCheck(installs owned: [InHouseCheck.Install], published: [AccountPackages], accounts: [Account]) -> InHouseCheck {
+        let byId = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        func isActive(_ id: UUID) -> Bool { byId[id].map { !$0.isPaused } ?? false }
+        let installs = Dictionary(grouping: owned.map(\.dependency), by: { "\($0.ecosystem):\($0.name)" })
+        let ownedByKey = Dictionary(grouping: owned, by: \.key)
+        func isProven(_ key: String, owner: String, accountId: UUID) -> Bool {
+            let found = installs[key] ?? []
+            return !found.isEmpty && found.allSatisfy { InHouseEvidence.proves($0, owner: owner, account: byId[accountId]) }
+        }
+        /// Een eerdere check vond de naam in het publieke register, of wist dat al.
+        func isPublicName(_ key: String) -> Bool {
+            guard let old = metadataCache[key] else { return false }
+            return old.inHouse?.isPublicName ?? (old.latest != nil)
+        }
+        /// De eerste install als de lockfile alleen al elke install van `key` eigen maakt.
+        func lockfileEvidence(_ key: String) -> InHouseCheck.Install? {
+            guard !isPublicName(key), let found = ownedByKey[key], let first = found.first else { return nil }
+            let all = found.allSatisfy { install in
+                byId[install.accountId].map { InHouseEvidence.keepsPrivate(install.dependency, owner: install.owner, account: $0) } ?? false
             }
+            return all ? first : nil
+        }
+        /// Elke sleutel die nog niet eigen is maar dat volgens de lockfile wel is, met `status`.
+        func addLockfileEvidence(to result: inout InHouseCheck, status: (UUID) -> InHousePackage.Status) {
+            for key in installs.keys where result.metadata[key] == nil {
+                guard let install = lockfileEvidence(key) else { continue }
+                result.metadata[key] = Self.unlisted(install, status: status(install.accountId))
+                result.namesakes[key] = nil
+            }
+        }
+        let cached = metadataCache.filter { $0.value.inHouse != nil }
+        var result = InHouseCheck()
+        guard isEnabled(.packageRegistries) else {
+            for key in installs.keys {
+                guard let old = cached[key]?.inHouse, isActive(old.accountId), isProven(key, owner: old.owner, accountId: old.accountId) else { continue }
+                result.metadata[key] = PackageMetadata(latest: nil, versions: [:], inHouse: old.with(status: .sourceOff))
+            }
+            addLockfileEvidence(to: &result) { _ in .sourceOff }
             return result
         }
-        let results = Dictionary(published.map { ($0.accountId, $0.result) }, uniquingKeysWith: { first, _ in first })
-        let webPages = Dictionary(accounts.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let index = InHouseIndex(published.flatMap(\.result.packages), kinds: webPages.mapValues(\.kind))
-        var result: [String: PackageMetadata] = [:]
-        for key in keys {
+        let active = published.filter { isActive($0.accountId) }
+        let results = Dictionary(active.map { ($0.accountId, $0.result) }, uniquingKeysWith: { first, _ in first })
+        let index = InHouseIndex(active.flatMap(\.result.packages), kinds: byId.mapValues(\.kind))
+        for key in installs.keys {
             if let package = index.match(key: key) {
-                let account = webPages[package.accountId]
+                let account = byId[package.accountId]
                 let page = (package.repository.flatMap { account?.repoWebURL($0) } ?? account.flatMap { Self.projectURL(package, account: $0) })
                     .map(Self.withoutCredentials)
-                result[key] = Self.metadata(of: package, repositoryURL: page)
+                guard isProven(key, owner: package.owner, accountId: package.accountId) else {
+                    result.namesakes[key] = Self.inHousePackage(package, repositoryURL: page)
+                    continue
+                }
+                if let own = Self.metadata(of: package, repositoryURL: page) {
+                    result.metadata[key] = own.withInHouse(own.inHouse?.with(isPublicName: isPublicName(key)))
+                } else if let kept = Self.withoutVersion(package, repositoryURL: page, previous: cached[key], isPublicName: isPublicName(key)) {
+                    result.metadata[key] = kept
+                }
                 continue
             }
-            guard let old = cached[key], let inHouse = old.inHouse else { continue }
+            guard let old = cached[key], let inHouse = old.inHouse, isActive(inHouse.accountId),
+                  isProven(key, owner: inHouse.owner, accountId: inHouse.accountId) else { continue }
             switch results[inHouse.accountId] {
             case .needsPermission(let reason)?:
-                result[key] = PackageMetadata(latest: nil, versions: [:], inHouse: inHouse.with(status: .needsPermission(reason: reason)))
+                result.metadata[key] = PackageMetadata(latest: nil, versions: [:], inHouse: inHouse.with(status: .needsPermission(reason: reason)))
             case .failed?, nil:
-                result[key] = old
+                result.metadata[key] = old
             case .packages?, .notSupported?:
                 // Het account zegt nu wat het publiceert, en dit package hoort er niet meer bij.
                 continue
             }
         }
+        addLockfileEvidence(to: &result) { accountId in
+            if case .needsPermission(let reason)? = results[accountId] { return .needsPermission(reason: reason) }
+            return .unconfirmed
+        }
         return result
+    }
+
+    /// Een eigen package dat alleen de lockfile aanwijst: zonder versies, zonder publicerende
+    /// repository (die is niet bekend), onder de eigenaar van de repository die het gebruikt.
+    static func unlisted(_ install: InHouseCheck.Install, status: InHousePackage.Status) -> PackageMetadata {
+        let inHouse = InHousePackage(
+            accountId: install.accountId, name: install.dependency.name,
+            type: PublishedPackageType(dependencyEcosystem: install.dependency.ecosystem) ?? .generic,
+            owner: install.owner, repository: nil, status: status
+        )
+        return PackageMetadata(latest: nil, versions: [:], inHouse: inHouse)
     }
 
     /// De metadata van een eigen package: de versies uit het eigen register (wat ze vragen staat
     /// daar niet, dus `dependencies` blijft onbekend) en de hoogste stabiele versie. Een zwevende
     /// tag of een image zonder tag is nooit de nieuwste versie (`releasedVersion`).
-    static func metadata(of package: PublishedPackage, repositoryURL: URL?) -> PackageMetadata {
+    ///
+    /// nil zonder bekende nieuwste versie: een package zonder versies (geen gekoppelde repository,
+    /// dus niet gevraagd), een zwevende tag, of versies die niet te lezen waren
+    /// (`versionsReadFailed`). `.checked` betekent dat de nieuwste versie uit het eigen register
+    /// komt, en dat kan dan niet (#215).
+    static func metadata(of package: PublishedPackage, repositoryURL: URL?) -> PackageMetadata? {
+        guard !package.versionsReadFailed else { return nil }
         var versions: [String: VersionMetadata] = [:]
         for version in package.versions { versions[version.version] = VersionMetadata() }
         // Op `Version`, zodat "v2.3.0" en "2.3.0" gelijk lezen en "1.10" na "1.9" komt.
         let stable = package.versions.compactMap { item in Version(item.version).map { (text: item.version, version: $0) } }
             .filter { !$0.version.isPrerelease }
         let latest = stable.max { $0.version < $1.version }?.text ?? package.releasedVersion
-        if let latest, versions[latest] == nil { versions[latest] = VersionMetadata() }
-        let inHouse = InHousePackage(
+        guard let latest else { return nil }
+        if versions[latest] == nil { versions[latest] = VersionMetadata() }
+        return PackageMetadata(latest: latest, versions: versions, inHouse: inHousePackage(package, repositoryURL: repositoryURL))
+    }
+
+    /// De herkomst van een eigen package, `.checked`; alleen met een nieuwste versie in de metadata,
+    /// of als hint bij een publiek package met dezelfde naam (`InHouseCheck.namesakes`).
+    static func inHousePackage(_ package: PublishedPackage, repositoryURL: URL?) -> InHousePackage {
+        InHousePackage(
             accountId: package.accountId, name: package.name, type: package.type, owner: package.owner, repository: package.repository,
             repositoryURL: repositoryURL, registryURL: package.webURL
         )
-        return PackageMetadata(latest: latest, versions: versions, inHouse: inHouse)
+    }
+
+    /// Een eigen package met bewijs, waarvan het eigen register nu geen nieuwste versie gaf (#215):
+    /// - had de vorige check er een van hetzelfde account, dan blijft die (zoals bij een mislukt
+    ///   register);
+    /// - kent het publieke register de naam (`isPublicName`), dan is de sleutel deze check publiek:
+    ///   publieke nieuwste versie en OSV, en vragen lekt niets (nil);
+    /// - anders staat de naam alleen in het eigen register en gaat hij nergens heen: niet
+    ///   gecontroleerd, `.readFailed`, zonder nieuwste versie en zonder OSV.
+    static func withoutVersion(
+        _ package: PublishedPackage, repositoryURL: URL?, previous: PackageMetadata?, isPublicName: Bool
+    ) -> PackageMetadata? {
+        if let previous, previous.latest != nil, let old = previous.inHouse, old.isChecked, old.accountId == package.accountId {
+            return previous
+        }
+        if isPublicName { return nil }
+        let inHouse = inHousePackage(package, repositoryURL: repositoryURL).with(status: .readFailed)
+        return PackageMetadata(latest: nil, versions: [:], inHouse: inHouse)
     }
 
     /// Azure Artifacts koppelt een package aan geen repository: de link gaat naar het project van
@@ -96,5 +192,14 @@ extension VersionChecker {
             guard current.isFailed, let old = before[current.accountId], !old.isFailed else { return current }
             return old
         }
+    }
+}
+
+extension PackageMetadata {
+    /// Dezelfde metadata met een andere herkomst.
+    func withInHouse(_ inHouse: InHousePackage?) -> PackageMetadata {
+        var copy = self
+        copy.inHouse = inHouse
+        return copy
     }
 }

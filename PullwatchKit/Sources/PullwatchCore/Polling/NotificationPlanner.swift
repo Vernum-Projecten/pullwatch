@@ -17,11 +17,13 @@ public struct RepositoryKey: Hashable, Sendable {
 }
 
 /// Iets uit een poll dat een melding kan geven: een nieuwe PR, een gemergde PR, een eigen PR
-/// waarvan de checks mislukten, of een tag (met of zonder release).
+/// waarvan de checks mislukten, een open PR die uit de rij ging zonder te mergen
+/// (`PullRequest.leftQueue`), of een tag (met of zonder release).
 public enum RepositoryItem: Equatable, Sendable {
     case pullRequest(PullRequest)
     case merged(PullRequest)
     case checksFailed(PullRequest)
+    case leftQueue(PullRequest)
     case tag(Tag)
 
     public var kind: NotificationKind {
@@ -29,13 +31,14 @@ public enum RepositoryItem: Equatable, Sendable {
         case .pullRequest: .pullRequest
         case .merged: .merged
         case .checksFailed: .checksFailed
+        case .leftQueue: .leftQueue
         case .tag(let tag): tag.release == nil ? .tag : .release
         }
     }
 
     public var repository: RepositoryKey {
         switch self {
-        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): RepositoryKey(accountId: pr.accountId, repo: pr.repo)
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr), .leftQueue(let pr): RepositoryKey(accountId: pr.accountId, repo: pr.repo)
         case .tag(let tag): RepositoryKey(accountId: tag.accountId, repo: tag.repo)
         }
     }
@@ -43,19 +46,20 @@ public enum RepositoryItem: Equatable, Sendable {
     /// Het id van het item in de geschiedenis (`HistoryItem.id`): wat "Markeer als gelezen" leest.
     public var historyKey: String {
         switch self {
-        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr): pr.dedupKey
+        case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr), .leftQueue(let pr): pr.dedupKey
         case .tag(let tag): tag.dedupKey
         }
     }
 
     /// Het id van de melding: vast, zodat dezelfde melding nog eens de oude vervangt. Gemerged
     /// en mislukte checks hebben een eigen id, naast de melding van de nieuwe PR; een volgende
-    /// keer mislukte checks van dezelfde PR vervangt de vorige.
+    /// keer mislukte checks van dezelfde PR vervangt de vorige, en zo ook uit de rij gaan.
     public var notificationIdentifier: String {
         switch self {
         case .pullRequest(let pr): pr.dedupKey
         case .merged(let pr): pr.dedupKey + ":completed"
         case .checksFailed(let pr): pr.dedupKey + ":checks"
+        case .leftQueue(let pr): pr.dedupKey + ":queue"
         case .tag(let tag): tag.dedupKey
         }
     }
@@ -64,7 +68,7 @@ public enum RepositoryItem: Equatable, Sendable {
     /// checks bij de PR's.
     public var watchKind: WatchKind {
         switch self {
-        case .pullRequest, .checksFailed: .pullRequests
+        case .pullRequest, .checksFailed, .leftQueue: .pullRequests
         case .merged: .merged
         case .tag: .tags
         }
@@ -83,16 +87,19 @@ public enum NotificationPlanner {
     public static let cap = 20
 
     /// Wat er van een poll gemeld wordt: per soort alleen als die aan staat (`settings`), per repo
-    /// alleen als die repo voor die soort meldt (#54), in de volgorde PR's, mislukte checks,
-    /// releases, tags en gemergde PR's. Mislukte checks gaan over je eigen PR's en melden ook in
-    /// een repo die nieuwe PR's stil volgt. Boven `cap` één samenvatting per repo.
+    /// alleen als die repo voor die soort meldt (#54), in de volgorde PR's, mislukte checks, uit
+    /// de rij, releases, tags en gemergde PR's. Mislukte checks gaan over je eigen PR's en melden
+    /// ook in een repo die nieuwe PR's stil volgt. Uit de rij gaan (`leftQueue`) meldt alleen in
+    /// een repo die nieuwe PR's meldt, net als een nieuwe PR. Boven `cap` één samenvatting per repo.
     public static func plan(
         pullRequests: [PullRequest], tags: [Tag], completed: [PullRequest] = [], failedChecks: [PullRequest] = [],
-        settings: NotificationSettings = NotificationSettings(), accounts: [Account] = []
+        leftQueue: [PullRequest] = [], settings: NotificationSettings = NotificationSettings(), accounts: [Account] = []
     ) -> [PlannedNotification<RepositoryItem>] {
         let audible = audible(pullRequests: pullRequests, tags: tags, completed: completed, accounts: accounts)
+        let audibleLeft = Self.audible(pullRequests: leftQueue, tags: [], completed: [], accounts: accounts).pullRequests
         let items: [RepositoryItem] = audible.pullRequests.map(RepositoryItem.pullRequest)
             + failedChecks.map(RepositoryItem.checksFailed)
+            + audibleLeft.map(RepositoryItem.leftQueue)
             + audible.tags.filter { $0.release != nil }.map(RepositoryItem.tag)
             + audible.tags.filter { $0.release == nil }.map(RepositoryItem.tag)
             + audible.completed.map(RepositoryItem.merged)
@@ -159,6 +166,7 @@ public struct NotificationImportance: Equatable, Sendable {
         let base: Self = switch kind {
         case .pullRequest: Self(level: .active, relevance: 0.6, playsSound: true)
         case .checksFailed: Self(level: .active, relevance: 0.62, playsSound: true)
+        case .leftQueue: Self(level: .active, relevance: 0.61, playsSound: true)
         case .release: Self(level: .active, relevance: 0.5, playsSound: true)
         case .merged: Self(level: .passive, relevance: 0.3, playsSound: false)
         case .tag: Self(level: .passive, relevance: 0.2, playsSound: false)

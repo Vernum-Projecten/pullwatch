@@ -24,7 +24,7 @@ nonisolated extension PublishedPackageSummary {
     var usedBySortKey: Int { isMatchable ? users.count : -1 }
 }
 
-/// Het symbool van de soort met de naam van het package, en een slot (privé) of gebouw (intern)
+/// Het teken van de soort met de naam van het package, en een slot (privé) of gebouw (intern)
 /// achter de naam.
 struct PublishedPackageNameCell: View {
     let name: String
@@ -40,9 +40,8 @@ struct PublishedPackageNameCell: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(accessibilityName)
         } icon: {
-            Image(systemName: type.symbol)
+            PublishedPackageTypeIcon(type: type)
                 .foregroundStyle(.secondary)
-                .accessibilityLabel(type.text)
         }
         .help(type.text)
     }
@@ -126,6 +125,8 @@ struct PublishedPackageVersionCell: View {
         }
         let lines = [prerelease, latestNote].compactMap { $0 }
         guard lines.isEmpty else { return Text(verbatim: lines.joined(separator: "\n")) }
+        // Een tooltip verschijnt pas als de muis op de cel staat, en dan tekent de cel opnieuw: de
+        // datum klopt dus op het moment dat je hem leest, zonder RelativeDateText.
         return showsDateInHelp
             ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
             : Text(verbatim: "")
@@ -150,7 +151,7 @@ struct PublishedPackageDateCell: View {
 
     var body: some View {
         if let publishedAt {
-            Text(publishedAt, format: .relative(presentation: .named))
+            RelativeDateText(date: publishedAt)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }

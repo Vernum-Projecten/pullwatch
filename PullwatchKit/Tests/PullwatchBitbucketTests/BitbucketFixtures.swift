@@ -24,6 +24,12 @@ enum BitbucketFixtures {
     {"type": "error", "error": {"message": "Your credentials lack one or more required privilege scopes.", "detail": {"granted": ["read:user:bitbucket"], "required": ["read:repository:bitbucket"]}}}
     """#
 
+    /// Zoals Bitbucket een token zonder de scope voor pull requests weigert: `detail` is een object
+    /// met `required` en `granted`, niet de zin die de spec bij `detail` noemt.
+    static let missingPullRequestScope = #"""
+    {"type": "error", "error": {"message": "Your credentials lack one or more required privilege scopes.", "detail": {"required": ["read:pullrequest:bitbucket"], "granted": ["read:user:bitbucket", "read:repository:bitbucket"]}}}
+    """#
+
     static func repositories(_ names: [(String, String)], next: String? = nil) -> String {
         let values = names.map { #"{"full_name": "\#($0.0)", "updated_on": "\#($0.1)"}"# }.joined(separator: ", ")
         return #"{"values": [\#(values)]\#(next.map { #", "next": "\#($0)""# } ?? "")}"#

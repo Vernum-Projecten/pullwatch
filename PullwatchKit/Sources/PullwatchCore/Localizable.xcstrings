@@ -1110,6 +1110,35 @@
         }
       }
     },
+    "Het adres van de %@-server ontbreekt": {
+      "comment": "Dienst (Forgejo, Gitea, GitLab, GitHub); het account wordt niet opgehaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Adresse des %@-Servers fehlt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The address of the %@ server is missing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’adresse du serveur %@ est manquante"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het adres van de %@-server ontbreekt"
+          }
+        }
+      }
+    },
     "Het certificaat van %@ wordt niet vertrouwd; Pullwatch praat alleen met servers met een geldig https-certificaat": {
       "comment": "Host van de server",
       "localizations": {
@@ -1139,6 +1168,35 @@
         }
       }
     },
+    "Het e-mailadres van het Atlassian-account ontbreekt": {
+      "comment": "Bitbucket wil het e-mailadres samen met het API-token; het account wordt niet opgehaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die E-Mail-Adresse des Atlassian-Kontos fehlt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The email address of the Atlassian account is missing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’adresse e-mail du compte Atlassian est manquante"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het e-mailadres van het Atlassian-account ontbreekt"
+          }
+        }
+      }
+    },
     "Het register van GitLab is alleen te lezen met de scope read_api: gebruik een persoonlijk token met read_api, of log opnieuw in met de GitLab CLI (glab auth login).": {
       "comment": "Reden waarom de packages van een GitLab-account niet te lezen zijn; read_api en de glab-opdracht niet vertalen",
       "localizations": {
@@ -1164,6 +1222,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "Het register van GitLab is alleen te lezen met de scope read_api: gebruik een persoonlijk token met read_api, of log opnieuw in met de GitLab CLI (glab auth login)."
+          }
+        }
+      }
+    },
+    "Het serveradres %@ is geen geldig https-adres": {
+      "comment": "Het adres zoals het in de instellingen staat; het account wordt niet opgehaald",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Serveradresse %@ ist keine gültige https-Adresse"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server address %@ is not a valid https address"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’adresse du serveur %@ n’est pas une adresse https valide"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het serveradres %@ is geen geldig https-adres"
           }
         }
       }

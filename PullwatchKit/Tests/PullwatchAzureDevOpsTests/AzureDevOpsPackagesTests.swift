@@ -35,6 +35,10 @@ import PullwatchTestSupport
     }
 
     func list(_ items: String...) -> String {
+        list(items)
+    }
+
+    func list(_ items: [String]) -> String {
         #"{"count":\#(items.count),"value":["# + items.joined(separator: ",") + "]}"
     }
 
@@ -104,6 +108,100 @@ import PullwatchTestSupport
     ])
     func `Azure types name the ecosystem of the dependency check`(type: PublishedPackageType, ecosystem: String?) {
         #expect(type.dependencyEcosystem == ecosystem)
+    }
+
+    // MARK: - Pre-releases (#219)
+
+    let versionsPath = "Feeds/f-org/Packages/0b4d1e5f-0000-4000-8000-000000000002/versions"
+
+    func version(_ version: String, latest: Bool = false, deleted: Bool = false, upstream: Bool = false, published: String) -> String {
+        let upstreamField = upstream ? #""directUpstreamSourceId":"b3a6c0de-0000-4000-8000-000000000009","# : ""
+        return #"""
+        {"id":"9c1e0000-0000-4000-8000-0000000000\#(version.count)","normalizedVersion":"\#(version)","version":"\#(version)",
+         "isLatest":\#(latest),"isListed":true,"isDeleted":\#(deleted),\#(upstreamField)"publishDate":"\#(published)"}
+        """#
+    }
+
+    @Test func `A pre-release marked isLatest leaves the highest stable release as the latest version`() async throws {
+        let http = MockHTTPClient()
+        http.on(versionsPath, body: list(
+            version("2.4.0-beta1", latest: true, published: "2026-10-30T10:00:00Z"),
+            version("2.3.5", deleted: true, published: "2026-10-20T10:00:00Z"),
+            version("3.0.0", upstream: true, published: "2026-10-25T10:00:00Z"),
+            version("2.3.0", published: "2026-10-01T10:00:00Z"),
+            version("2.2.0", published: "2026-09-01T10:00:00Z")
+        ))
+        http.on("Feeds/f-org/packages", body: list(package("@acme/ui", version: "2.4.0-beta1", published: "2026-10-30T10:00:00Z")))
+        http.on("_apis/packaging/feeds", body: list(feed("shared", id: "f-org")))
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: []).packages.first)
+
+        #expect(ui.releasedVersion == "2.3.0", "de hoogste stabiele release, niet de pre-release van isLatest")
+        #expect(ui.newestPrerelease == "2.4.0-beta1", "de nieuwere pre-release wordt alleen genoemd")
+        #expect(ui.versions.map(\.version) == ["2.4.0-beta1", "2.3.0", "2.2.0"], "zonder verwijderde versie en zonder upstream")
+        #expect(ui.releasedAt == DateParsing.parse("2026-10-01T10:00:00Z"))
+        #expect(ui.webURL?.absoluteString == "https://dev.azure.com/acme/_artifacts/feed/shared/Npm/@acme%2Fui/overview/2.3.0")
+        #expect(!ui.versionsReadFailed)
+        #expect(urls(http).contains("\(feeds)_apis/packaging/\(versionsPath)?includeUrls=false&isDeleted=false&api-version=7.1"))
+    }
+
+    /// Alleen pre-releases: dan is de hoogste pre-release de nieuwste versie, zoals bij een image
+    /// zonder stabiele versietag, en er is geen nieuwere pre-release om te noemen.
+    @Test func `With only pre-releases the highest pre-release is the latest version`() async throws {
+        let http = MockHTTPClient()
+        http.on(versionsPath, body: list(
+            version("1.0.0-rc.2", latest: true, published: "2026-10-30T10:00:00Z"),
+            version("1.0.0-rc.1", published: "2026-10-01T10:00:00Z")
+        ))
+        http.on("Feeds/f-org/packages", body: list(package("@acme/ui", version: "1.0.0-rc.2", published: "2026-10-30T10:00:00Z")))
+        http.on("_apis/packaging/feeds", body: list(feed("shared", id: "f-org")))
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: []).packages.first)
+
+        #expect(ui.releasedVersion == "1.0.0-rc.2")
+        #expect(ui.newestPrerelease == nil)
+        #expect(ui.versions.map(\.version) == ["1.0.0-rc.2", "1.0.0-rc.1"])
+        #expect(ui.webURL?.absoluteString == "https://dev.azure.com/acme/_artifacts/feed/shared/Npm/@acme%2Fui/overview/1.0.0-rc.2")
+    }
+
+    @Test func `A stable isLatest needs no further request`() async throws {
+        let http = MockHTTPClient()
+        http.on("Feeds/f-org/packages", body: list(package("@acme/ui", version: "2.3.0")))
+        http.on("_apis/packaging/feeds", body: list(feed("shared", id: "f-org")))
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: []).packages.first)
+
+        #expect(ui.releasedVersion == "2.3.0")
+        #expect(ui.newestPrerelease == nil)
+        #expect(ui.versions.map(\.version) == ["2.3.0"])
+        #expect(!urls(http).contains { $0.contains("/versions") })
+    }
+
+    @Test func `The stable release stays behind many newer pre-releases`() async throws {
+        let http = MockHTTPClient()
+        let betas = (1...12).reversed().map { version("3.0.0-beta.\($0)", latest: $0 == 12, published: "2026-10-\(10 + $0)T10:00:00Z") }
+        http.on(versionsPath, body: list(betas + [version("2.9.0", published: "2026-09-01T10:00:00Z")]))
+        http.on("Feeds/f-org/packages", body: list(package("@acme/ui", version: "3.0.0-beta.12")))
+        http.on("_apis/packaging/feeds", body: list(feed("shared", id: "f-org")))
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: []).packages.first)
+
+        #expect(ui.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(ui.versions.last?.version == "2.9.0")
+        #expect(ui.releasedVersion == "2.9.0")
+        #expect(ui.newestPrerelease == "3.0.0-beta.12")
+    }
+
+    @Test func `Versions that cannot be read mark the package as read failed`() async throws {
+        let http = MockHTTPClient()
+        http.on(versionsPath, status: 500, body: #"{"message":"Internal error"}"#)
+        http.on("Feeds/f-org/packages", body: list(package("@acme/ui", version: "2.4.0-beta1")))
+        http.on("_apis/packaging/feeds", body: list(feed("shared", id: "f-org")))
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: []).packages.first)
+
+        #expect(ui.versionsReadFailed, "geen stabiele versie bekend, dus geen bron van een nieuwste versie (#215)")
+        #expect(ui.versions.map(\.version) == ["2.4.0-beta1"])
     }
 
     // MARK: - Rechten en lege registers

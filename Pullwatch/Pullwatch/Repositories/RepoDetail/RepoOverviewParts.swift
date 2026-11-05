@@ -172,7 +172,7 @@ struct PullRequestRow: View {
             if let author = item.entry.author {
                 Text(verbatim: author).foregroundStyle(.secondary).lineLimit(1)
             }
-            Text(item.detectedAt, format: .relative(presentation: .named))
+            RelativeDateText(date: item.detectedAt)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
         }

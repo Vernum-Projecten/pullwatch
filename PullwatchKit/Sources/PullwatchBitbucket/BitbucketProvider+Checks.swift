@@ -5,7 +5,7 @@ public import PullwatchCore
 /// bronbranch (`/commit/{hash}/statuses`), van Bitbucket Pipelines en van andere CI (Jenkins,
 /// Bamboo, …) die een status meldt. Eén verzoek per pull request.
 extension BitbucketProvider {
-    /// Zonder statussen een lege telling. Mag het token ze niet lezen (401 of 403), dan
+    /// Zonder statussen een lege telling. Mag het token ze niet lezen (401, 403 of een ontbrekende scope), dan
     /// `.needsPermission`. Een pull request zonder bekende commit of een repo die niet (meer)
     /// bestaat ontbreekt.
     public func checks(of pullRequests: [PullRequest]) async throws -> [String: PRChecks] {
@@ -20,7 +20,7 @@ extension BitbucketProvider {
                     maxPages: 1, anonymous: anonymous
                 )
                 result[pr.dedupKey] = .counts(CheckCounts(statuses.compactMap { Self.outcome(of: $0.state) }))
-            } catch ProviderError.unauthorized {
+            } catch ProviderError.unauthorized, ProviderError.missingScope {
                 result[pr.dedupKey] = .needsPermission
             } catch ProviderError.server(status: 404) {
                 continue

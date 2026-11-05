@@ -24,6 +24,21 @@ struct MCPSourceOff: Encodable, Hashable {
         self.repository = repository
     }
 
+    /// Een eigen package waarvan het eigen register geen nieuwste versie gaf (#215): de bron staat
+    /// aan, maar het lezen mislukte.
+    init(readFailedFor repository: String?) {
+        source = DataSourceID.packageRegistries.rawValue
+        message = "Not checked: reading the latest version from this account's package registry failed."
+        self.repository = repository
+    }
+
+    /// Een eigen package volgens de lockfile, dat het register van het account niet noemde (#216).
+    init(unconfirmedFor repository: String?) {
+        source = DataSourceID.packageRegistries.rawValue
+        message = "Not checked: the lockfile installs it from this account's own package registry, but that registry did not list it."
+        self.repository = repository
+    }
+
     /// De Engelse naam van de bron ("OSV.dev", "GitHub security").
     static func name(_ id: DataSourceID) -> String {
         AgentBrief.englishName(id)

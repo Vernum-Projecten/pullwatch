@@ -26,7 +26,7 @@ Het tabblad Bronnen toont elke externe dienst in gewone taal. Elke rij zegt wat 
 **Versies**
 
 - De package-registers: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io en rubygems.org. Namen van packages worden verstuurd, ook voor privé-repositories.
-- **Packageregisters van je accounts**: de packages en container-images die je gevolgde repositories publiceren in GitHub Packages, de registers van GitLab en Azure Artifacts, eens per dag gelezen met het token van elk account en nergens anders heen gestuurd. Namen van in-house packages gaan nooit naar de openbare registers of OSV.dev. Uit: geen enkel register van jou wordt gelezen, het onderdeel Packages is leeg, en in-house dependencies zeggen "Niet gecontroleerd: bron Packageregisters van je accounts staat uit".
+- **Packageregisters van je accounts**: de packages en container-images die je gevolgde repositories publiceren in GitHub Packages, de registers van GitLab en Azure Artifacts, eens per dag gelezen met het token van elk account en nergens anders heen gestuurd. Pullwatch houdt de naam van een package alleen weg van de openbare registers en OSV.dev als het kan zien dat het package van jou is: je register noemt het, of de lockfile haalt het uit je eigen register. Zonder register in de lockfile kan de naam er wel komen; [Welke namen privé blijven](/nl/using/dependencies/#welke-namen-privé-blijven) noemt de gevallen. Uit: geen enkel register van jou wordt gelezen, het onderdeel Packages is leeg, en in-house dependencies zeggen "Niet gecontroleerd: bron Packageregisters van je accounts staat uit".
 - **endoflife.date**: releasecycli en einddata van ondersteuning van runtimes en frameworks.
 - **swift.org**: de releases van Swift.
 

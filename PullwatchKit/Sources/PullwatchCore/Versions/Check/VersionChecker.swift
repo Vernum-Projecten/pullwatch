@@ -198,16 +198,22 @@ public struct VersionChecker: Sendable {
             return await group.reduce(into: [String: [EndOfLifeRelease]]()) { $0[$1.0] = $1.1 }
         }
 
-        // 3b. Eigen packages: wat een gevolgde repo zelf publiceert, krijgt zijn versies uit het
-        //     eigen register. Die namen gaan hierna naar geen publiek register en niet naar OSV.
-        let inHouse = inHouseMetadata(
-            keys: Set(scans.flatMap(\.dependencies).map { "\($0.ecosystem):\($0.name)" }), published: published,
-            accounts: targets.map(\.account) + knownAccounts
-        )
+        // 3b. Eigen packages: wat een gevolgde repo zelf publiceert en aantoonbaar uit dat register
+        //     komt, krijgt zijn versies uit het eigen register. Die namen gaan hierna naar geen
+        //     publiek register, en naar OSV alleen als het publieke register de naam ook kent.
+        //     Wat de lockfile uit het eigen register van het account haalt, blijft ook zonder
+        //     register binnen (#216).
+        let owned = scanned.flatMap { item -> [InHouseCheck.Install] in
+            guard let repoScan = try? item.found.get() else { return [] }
+            let all = [repoScan.main] + ((try? repoScan.release?.found.get()).map { [$0] } ?? [])
+            return all.flatMap(\.dependencies).map { InHouseCheck.Install($0, accountId: item.accountId, repo: item.repo) }
+        }
+        let own = inHouseCheck(installs: owned, published: published, accounts: targets.map(\.account) + knownAccounts)
+        let inHouse = own.metadata
 
         // 4. Kwetsbaarheden: één batch voor alle unieke naam@versie, daarna details per id. Elke
         //    install krijgt daarna het resultaat van zijn naam@versie.
-        let dependencies = Set(scans.flatMap(\.dependencies).filter { inHouse["\($0.ecosystem):\($0.name)"] == nil }.map(\.withoutSource))
+        let dependencies = Set(scans.flatMap(\.dependencies).filter { own.asksOSV("\($0.ecosystem):\($0.name)") }.map(\.withoutSource))
             .sorted { ($0.ecosystem, $0.name, $0.version) < ($1.ecosystem, $1.name, $1.version) }
         var vulnerabilityIds: [Dependency: [String]] = [:]
         var osvError: String?
@@ -335,6 +341,10 @@ public struct VersionChecker: Sendable {
         metadata = await completingMetadata(
             metadata, repos: results, latest: latest, floors: floors, attempted: Set(packages.keys), inHouse: Set(inHouse.keys), date: checkedAt
         )
+        // Een publiek package met dezelfde naam als een eigen package: alleen de hint, opnieuw per check.
+        for key in metadata.keys where metadata[key]?.inHouse == nil {
+            metadata[key]?.alsoPublishedBy = own.namesakes[key]
+        }
         return (results, latest, metadata)
     }
 

@@ -59,18 +59,45 @@ Een package dat geen repo zelf vraagt en dat alleen via een ander package binnen
 
 ## In-house packages
 
-Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts) is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
+Een dependency die een van je gevolgde repositories publiceert in het register van zijn eigen dienst (GitHub Packages, een register van GitLab of een feed van Azure Artifacts), en die je repository aantoonbaar daarvandaan haalt, is een in-house package. npmjs.com of nuget.org kennen een privé `@acme/ui` niet, dus Pullwatch haalt de nieuwste versie uit je eigen register, dat [Packages](/nl/using/packages/) op een rij zet. De rij zegt **In-house**, met een link naar de repository die het publiceert, en de tooltip zegt "Gepubliceerd door octocat/linguist: de nieuwste versie komt uit je eigen register." Las Pullwatch de nieuwste versie niet uit je register, dan zegt de tooltip dat met de reden, bijvoorbeeld "Gepubliceerd door octocat/linguist, niet gecontroleerd: geen toegang tot het packageregister van dit account." Bereiken, de updategroepen en wat een update tegenhoudt werken zoals bij elk ander package.
 
-Je privénamen blijven privé. Pullwatch leest eerst je registers, voordat het iets opzoekt, en laat elke in-house naam weg uit elke openbare opzoeking: registry.npmjs.org en de andere openbare registers zien hem nooit, en OSV.dev ook niet. Lukt het lezen van je register niet, dan houdt Pullwatch wat de check ervoor vond, zodat een slechte dag nooit een privénaam naar buiten stuurt.
+### Bewijs, niet de naam
+
+Een naam alleen maakt een package niet van jou. Een organisatie kan een gepatchte fork van een openbaar package onder dezelfde naam publiceren, zoals `Newtonsoft.Json`, en een repository die het openbare package gebruikt, moet zijn openbare nieuwste versie en zijn bekende kwetsbaarheden houden. Daarom telt Pullwatch een dependency alleen als in-house met bewijs:
+
+- npm: een naam met de scope van de eigenaar (`@acme/ui`, gepubliceerd door `acme`; bij GitLab de bovenste groep, bij Azure DevOps ook de organisatie).
+- Go: het modulepad, dat zijn eigen host en eigenaar noemt.
+- Elk ecosysteem: het register dat de lockfile of het manifest noemt, is het eigen register van het account voor dat ecosysteem. Pullwatch leest het uit `resolved` in `package-lock.json` en een klassieke `yarn.lock`, `remote:` in `Gemfile.lock`, `dist.url` in `composer.lock`, `--index-url` of `--extra-index-url` in een `requirements`-bestand, de bron van een package in `poetry.lock` en `uv.lock`, en `source` in `Cargo.lock`. Eigen registers zijn `npm.pkg.github.com`, `nuget.pkg.github.com` en `rubygems.pkg.github.com` met de eigenaar in het pad (bij GitHub Enterprise `npm.<host>` of `<host>/_registry/npm/`), `/api/v4/…/packages/…` op de GitLab-server van het account, en `pkgs.dev.azure.com/<organisatie>/…/_packaging/…` voor Azure Artifacts.
+
+`packages.lock.json`, `pnpm-lock.yaml` en de `yarn.lock` van Yarn 2 en later noemen geen register per package, dus een NuGet-package, en een npm-package zonder de scope van de eigenaar dat met pnpm of een nieuwere Yarn is geïnstalleerd, is nooit in-house. Gebruikt één repository de naam zonder bewijs, dan is de naam openbaar voor elke repository. Een openbaar package waarvan een van je accounts de naam ook publiceert, zegt dat in de tooltip: "Ook gepubliceerd door acme/lib (hier niet gebruikt)."
+
+Een dependency zonder bewijs is een openbaar package: Pullwatch zoekt de nieuwste versie op in het openbare register en de kwetsbaarheden in OSV.dev, zoals bij elk ander package. Is het account dat een package publiceert verwijderd of gepauzeerd, of noemt het het package niet meer, dan behandelt de volgende check het weer als openbaar.
+
+### Welke namen privé blijven
+
+Pullwatch houdt een naam alleen privé als het kan zien dat het package van jou is. Dan laat het de naam weg uit elk openbaar register, zodat registry.npmjs.org en de andere hem nooit zien, en ziet OSV.dev hem alleen als een eerdere check die naam ook in het openbare register vond (een fork van een openbaar package krijgt zo toch de bekende kwetsbaarheden van die naam). Pullwatch kan het zien in deze gevallen:
+
+- Je register noemt het package en het bewijs hierboven klopt. Pullwatch leest eerst je registers, voordat het iets opzoekt.
+- De lockfile noemt een register dat niet het openbare is, en dat register is het eigen register van het account waar de repository bij hoort, of het package is een npm-package met de scope van de eigenaar. Dat geldt wat het lezen van je register ook deed: een eerste check waarbij het lezen mislukte, de bron Packageregisters van je accounts uit, geen toegang tot het register (bijvoorbeeld een GitHub-account zonder `gh`), Gitea, Forgejo, Codeberg en Bitbucket (daar leest Pullwatch geen register), en een package dat een repository publiceert die je niet volgt.
+- Een eerdere check kende het package als in-house: lukt het lezen van je register niet, dan houdt Pullwatch wat die check vond.
+
+Waar Pullwatch het niet kan zien, kan de naam bij het openbare register en OSV.dev komen:
+
+- De lockfile noemt geen register voor het package: `packages.lock.json`, `pnpm-lock.yaml`, de `yarn.lock` van Yarn 2 en later, of het package kwam uit het openbare register. Een npm-naam met de scope van de eigenaar wordt dan ook openbaar opgezocht, want de eigenaar kan hem op npmjs.com publiceren.
+- Eén repository gebruikt de naam zonder bewijs.
+- De lockfile noemt het register van een ander account van je dan dat van de repository, en dat register noemt het package niet.
+- Een Go-module die je register niet noemt: het modulepad gaat naar proxy.golang.org en OSV.dev.
 
 Kan Pullwatch de nieuwste versie niet lezen, dan zegt de rij dat, in plaats van hem als actueel te tonen:
 
-- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. Een package dat eerder in-house was, blijft in-house en wordt niet openbaar opgezocht.
+- "Niet gecontroleerd: bron Packageregisters van je accounts staat uit": de bron staat uit onder Instellingen, **Bronnen**. Een package dat eerder in-house was, blijft met hetzelfde bewijs in-house en wordt niet openbaar opgezocht, net als een package dat de lockfile uit je eigen register haalt.
 - "Niet gecontroleerd: geen toegang tot het packageregister van dit account": het account mag zijn register niet lezen. De tooltip zegt wat je moet toestaan; zie [Wat je toestaat](/nl/using/packages/#wat-je-toestaat).
+- "Niet gecontroleerd: het packageregister van dit account gaf geen nieuwste versie": het register noemt het package, maar het lezen van de versies mislukte, of het heeft er geen (bijvoorbeeld een package zonder gekoppelde repository). De nieuwste versie van de vorige check blijft als die er was. Een naam die het publieke register ook kent, zoekt de check deze keer daar op en laat hij door OSV.dev controleren; een naam die alleen je eigen register kent, gaat nergens heen.
+- "Niet gecontroleerd: het lockbestand haalt dit package uit je eigen register, maar dat register noemde het niet": de lockfile bewijst dat het package van jou is, maar het lezen van het register mislukte, de dienst heeft geen register dat Pullwatch leest, of de repository die het publiceert volg je niet. De naam gaat nergens heen.
 
 Een openbaar register uitzetten, zoals npm, raakt een in-house package niet.
 
-Wat er gematcht wordt, op het ecosysteem en de naam van de dependency:
+Met welk gepubliceerd package een dependency vergeleken wordt, op zijn ecosysteem en zijn naam (daarna beslist het bewijs hierboven):
 
 | Ecosysteem | Gematcht op |
 |---|---|

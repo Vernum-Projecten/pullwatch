@@ -108,10 +108,13 @@ import Testing
         #expect(paragraph.contains("Pullwatch is not affiliated with"), "NOTICE zegt bij \(asset) niet dat Pullwatch er niet bij hoort")
     }
 
-    /// De logo's met een licentie staan erin met hun licentietekst: Codeberg (CC0) en Forgejo
-    /// (CC BY-SA 4.0, met de naam van de maker in NOTICE).
+    /// De logo's met een licentie staan erin met hun licentietekst: Codeberg (CC0), Forgejo
+    /// (CC BY-SA 4.0, met de naam van de maker in NOTICE), de iconen van Simple Icons (CC0) en het
+    /// Rust-logo daaruit (CC BY-SA 4.0).
     @Test(arguments: [
         ("codeberg-logo", "CC0-1.0", "CC0 1.0 Universal"),
+        ("simple-icons", "CC0-1.0", "CC0 1.0 Universal"),
+        ("rust-logo", "CC-BY-SA-4.0", "Attribution-ShareAlike 4.0 International"),
         ("forgejo-logo", "CC-BY-SA-4.0", "Attribution-ShareAlike 4.0 International"),
     ])
     func `The logos are acknowledged with their licence`(id: String, license: String, title: String) throws {

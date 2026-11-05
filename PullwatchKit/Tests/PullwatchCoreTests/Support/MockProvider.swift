@@ -32,7 +32,21 @@ actor MockProvider: PRProvider {
     /// Per aanroep van `checks(of:)` de dedupKeys die gevraagd werden.
     private(set) var checkRequests: [[String]] = []
 
+    private var unreadQueues: Set<String> = []
+    private var exits = MergeQueueExits()
+    /// Per aanroep van `mergeQueueExits(of:)` de dedupKeys die gevraagd werden.
+    private(set) var exitRequests: [[String]] = []
+
     func set(pullRequests: [PullRequest]) { self.pullRequests = pullRequests }
+    func set(unreadMergeQueues: Set<String>) { unreadQueues = unreadMergeQueues }
+    func set(exits: MergeQueueExits) { self.exits = exits }
+
+    func unreadMergeQueues() async -> Set<String> { unreadQueues }
+
+    func mergeQueueExits(of pullRequests: [PullRequest]) async -> MergeQueueExits {
+        exitRequests.append(pullRequests.map(\.dedupKey))
+        return exits
+    }
     func set(syncedPullRequests: [PullRequest]) { self.syncedPullRequests = syncedPullRequests }
     /// Fout die alleen `pullRequests(updatedSince:limit:)` gooit.
     func set(syncError: ProviderError?) { self.syncError = syncError }

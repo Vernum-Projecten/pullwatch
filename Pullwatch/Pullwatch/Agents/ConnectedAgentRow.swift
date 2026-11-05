@@ -31,20 +31,18 @@ struct ConnectedAgentRow: View {
                     Text("Verbinden…", comment: "Instellingen, Agents: een agent is verbonden maar heeft nog niet gezegd wie hij is")
                         .fontWeight(.medium)
                 }
-                // Elke minuut opnieuw, zodat "2 minuten geleden" klopt.
-                TimelineView(.everyMinute) { _ in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Verbonden \(session.connectedSince.formatted(.relative(presentation: .named)))", comment: "Instellingen, Agents; hoe lang geleden, bv. 5 minuten geleden")
-                        if isWaiting {
-                            Text("Wacht op toestemming")
-                                .foregroundStyle(.orange)
-                        } else if let tool = session.lastTool, let at = session.lastActivity {
-                            Text("Laatste tool: \(tool), \(at.formatted(.relative(presentation: .named)))", comment: "Instellingen, Agents; naam van een MCP-tool en hoe lang geleden")
-                        }
+                // "5 minuten geleden" blijft zelf bij (RelativeDateText.style).
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Verbonden \(.currentDate, format: RelativeDateText.style(for: session.connectedSince))", comment: "Instellingen, Agents; hoe lang geleden, bv. 5 minuten geleden")
+                    if isWaiting {
+                        Text("Wacht op toestemming")
+                            .foregroundStyle(.orange)
+                    } else if let tool = session.lastTool, let at = session.lastActivity {
+                        Text("Laatste tool: \(tool), \(.currentDate, format: RelativeDateText.style(for: at))", comment: "Instellingen, Agents; naam van een MCP-tool en hoe lang geleden")
                     }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
             Button("Loskoppelen", action: disconnect)

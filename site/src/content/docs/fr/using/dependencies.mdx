@@ -59,18 +59,45 @@ Un paquet qu’aucun dépôt ne demande lui-même, et qui n’arrive que par un 
 
 ## Paquets internes
 
-Une dépendance qu’un de vos dépôts suivis publie dans le registre de son propre service (GitHub Packages, un registre GitLab ou un flux Azure Artifacts) est un paquet interne. npmjs.com ou nuget.org ne connaissent pas un `@acme/ui` privé, donc Pullwatch prend sa dernière version dans votre registre, que [Paquets](/fr/using/packages/) liste. La ligne indique **Interne**, avec un lien vers le dépôt qui le publie, et son infobulle dit « Publié par octocat/linguist : la dernière version provient de votre propre registre. ». Les plages, les groupes de mise à jour et ce qui bloque une mise à jour fonctionnent comme pour tout autre paquet.
+Une dépendance qu’un de vos dépôts suivis publie dans le registre de son propre service (GitHub Packages, un registre GitLab ou un flux Azure Artifacts), et que votre dépôt obtient de façon prouvée à cet endroit, est un paquet interne. npmjs.com ou nuget.org ne connaissent pas un `@acme/ui` privé, donc Pullwatch prend sa dernière version dans votre registre, que [Paquets](/fr/using/packages/) liste. La ligne indique **Interne**, avec un lien vers le dépôt qui le publie, et son infobulle dit « Publié par octocat/linguist : la dernière version provient de votre propre registre. ». Quand Pullwatch n’a pas lu la dernière version dans votre registre, l’infobulle le dit avec la raison, par exemple « Publié par octocat/linguist, non vérifié : aucun accès au registre de paquets de ce compte. ». Les plages, les groupes de mise à jour et ce qui bloque une mise à jour fonctionnent comme pour tout autre paquet.
 
-Vos noms privés restent privés. Pullwatch lit d’abord vos registres, avant toute recherche, et laisse chaque nom interne en dehors de toutes les recherches publiques : registry.npmjs.org et les autres registres publics ne le voient jamais, OSV.dev non plus. Quand la lecture de votre registre échoue, Pullwatch garde ce que la vérification précédente a trouvé, pour qu’un mauvais jour n’envoie jamais un nom privé à l’extérieur.
+### Une preuve, pas le nom
+
+Un nom seul ne fait pas d’un paquet le vôtre. Une organisation peut publier un fork corrigé d’un paquet public sous le même nom, comme `Newtonsoft.Json`, et un dépôt qui utilise le paquet public doit garder sa dernière version publique et ses vulnérabilités connues. Pullwatch ne compte donc une dépendance comme interne qu’avec une preuve :
+
+- npm : un nom avec le scope du propriétaire (`@acme/ui` publié par `acme` ; sur GitLab le groupe de premier niveau, sur Azure DevOps aussi l’organisation).
+- Go : le chemin du module, qui nomme son propre hôte et son propriétaire.
+- Tout écosystème : le registre que nomme le lockfile ou le manifeste est le propre registre du compte pour cet écosystème. Pullwatch le lit dans `resolved` de `package-lock.json` et d’un `yarn.lock` classique, `remote:` de `Gemfile.lock`, `dist.url` de `composer.lock`, `--index-url` ou `--extra-index-url` d’un fichier `requirements`, la source d’un paquet dans `poetry.lock` et `uv.lock`, et `source` de `Cargo.lock`. Les registres propres sont `npm.pkg.github.com`, `nuget.pkg.github.com` et `rubygems.pkg.github.com` avec le propriétaire dans le chemin (sur GitHub Enterprise `npm.<hôte>` ou `<hôte>/_registry/npm/`), `/api/v4/…/packages/…` sur le serveur GitLab du compte, et `pkgs.dev.azure.com/<organisation>/…/_packaging/…` pour Azure Artifacts.
+
+`packages.lock.json`, `pnpm-lock.yaml` et le `yarn.lock` de Yarn 2 et suivants ne nomment aucun registre par paquet : un paquet NuGet, et un paquet npm sans le scope du propriétaire installé avec pnpm ou un Yarn récent, n’est donc jamais interne. Quand un dépôt utilise le nom sans preuve, le nom est public pour tous les dépôts. Un paquet public dont un de vos comptes publie aussi le nom le dit dans son infobulle : « Également publié par acme/lib (non utilisé ici) ».
+
+Une dépendance sans preuve est un paquet public : Pullwatch cherche sa dernière version dans le registre public et ses vulnérabilités dans OSV.dev, comme pour tout autre paquet. Quand le compte qui publie un paquet est supprimé ou mis en pause, ou ne liste plus le paquet, la vérification suivante le traite de nouveau comme public.
+
+### Les noms qui restent privés
+
+Pullwatch ne garde un nom privé que s’il peut voir que le paquet est le vôtre. Il laisse alors le nom en dehors de tous les registres publics, donc registry.npmjs.org et les autres ne le voient jamais, et OSV.dev ne le voit que si une vérification précédente a aussi trouvé ce nom dans le registre public (un fork d’un paquet public reçoit ainsi quand même les vulnérabilités connues de ce nom). Pullwatch peut le voir dans ces cas :
+
+- Votre registre liste le paquet et la preuve ci-dessus est là. Pullwatch lit d’abord vos registres, avant toute recherche.
+- Le lockfile nomme un registre qui n’est pas le registre public, et ce registre est le propre registre du compte auquel appartient le dépôt, ou le paquet est un paquet npm avec le scope du propriétaire. Cela vaut quel que soit le résultat de la lecture de votre registre : une première vérification où la lecture a échoué, la source Registres de paquets de vos comptes désactivée, aucun accès au registre (par exemple un compte GitHub sans `gh`), Gitea, Forgejo, Codeberg et Bitbucket (Pullwatch n’y lit aucun registre), et un paquet publié par un dépôt que vous ne suivez pas.
+- Une vérification précédente connaissait le paquet comme interne : quand la lecture de votre registre échoue, Pullwatch garde ce que cette vérification a trouvé.
+
+Là où Pullwatch ne peut pas le voir, le nom peut atteindre le registre public et OSV.dev :
+
+- Le lockfile ne nomme aucun registre pour le paquet : `packages.lock.json`, `pnpm-lock.yaml`, le `yarn.lock` de Yarn 2 et suivants, ou le paquet vient du registre public. Un nom npm avec le scope du propriétaire est alors aussi recherché publiquement, car le propriétaire peut le publier sur npmjs.com.
+- Un dépôt utilise le nom sans preuve.
+- Le lockfile nomme le registre d’un autre de vos comptes que celui du dépôt, et ce registre ne liste pas le paquet.
+- Un module Go que votre registre ne liste pas : son chemin de module part vers proxy.golang.org et OSV.dev.
 
 Quand Pullwatch ne peut pas lire la dernière version, la ligne le dit au lieu de l’afficher comme à jour :
 
-- « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste et n’est pas recherché publiquement.
+- « Non vérifié : la source Registres de paquets de vos comptes est désactivée » : la source est désactivée dans Réglages, **Sources**. Un paquet qui était interne le reste avec la même preuve et n’est pas recherché publiquement, tout comme un paquet que le lockfile prend dans votre propre registre.
 - « Non vérifié : aucun accès au registre de paquets de ce compte » : le compte ne peut pas lire son registre. L’infobulle dit ce qu’il faut accorder ; voir [Les autorisations à accorder](/fr/using/packages/#les-autorisations-à-accorder).
+- « Non vérifié : le registre de paquets de ce compte n'a donné aucune dernière version » : le registre nomme le paquet, mais la lecture de ses versions a échoué, ou il n’en a aucune (par exemple un paquet sans dépôt lié). La dernière version de la vérification précédente reste, s’il y en avait une. Un nom que le registre public connaît aussi y est recherché pour cette vérification et contrôlé par OSV.dev ; un nom que seul votre propre registre connaît n’est envoyé nulle part.
+- « Non vérifié : le lockfile prend ce paquet dans votre propre registre, mais ce registre ne l'a pas listé » : le lockfile prouve que le paquet est le vôtre, mais la lecture du registre a échoué, le service n’a aucun registre que Pullwatch lit, ou vous ne suivez pas le dépôt qui le publie. Le nom n’est envoyé nulle part.
 
 Désactiver un registre public, comme npm, n’a aucun effet sur un paquet interne.
 
-Ce qui est associé, selon l’écosystème de la dépendance et son nom :
+Le paquet publié auquel une dépendance est comparée, selon son écosystème et son nom (la preuve ci-dessus décide ensuite) :
 
 | Écosystème | Associé sur |
 |---|---|

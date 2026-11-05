@@ -57,7 +57,10 @@ enum GetPullRequestTool {
             pullRequest: MCPPullRequest(pr, kind: match.account.kind, item: item, userId: userIds[pr.accountId], checksOff: checksOff, details: true),
             notChecked: checksOff ? [MCPSourceOff(.ciChecks)] : []
         )
-        let state = pr.state == .open && pr.isDraft ? "draft" : (pr.isQueued ? "queued" : pr.state.rawValue)
+        var state = pr.state == .open && pr.isDraft ? "draft" : (pr.isQueued ? "queued" : pr.state.rawValue)
+        if !pr.isDraft, pr.hasLeftQueue {
+            state = pr.leftQueue?.reason.map { "left the queue without merging: \($0)" } ?? "left the queue without merging"
+        }
         return try MCPToolOutput.result(output, summary: "\(pr.reference(match.account.kind)) (\(state)): \(pr.title)")
     }
 }

@@ -58,6 +58,57 @@ import PullwatchTestSupport
         #expect(http.requests.first?.value(forHTTPHeaderField: "Authorization") == "token typed")
     }
 
+    @Test func `Forgejo without a server sends no request and no token`() async throws {
+        let http = MockHTTPClient()
+        var account = Account.fixture(kind: .gitea)
+        account.giteaFlavour = .forgejo
+        let provider = ProviderFactory.make(account, pat: "typed", secrets: InMemorySecretStore(), http: http)
+        await #expect(throws: ProviderError.unusableServer(service: "Forgejo", problem: .missing)) {
+            try await provider.currentUserId()
+        }
+        await #expect(throws: ProviderError.unusableServer(service: "Forgejo", problem: .missing)) {
+            try await provider.openPullRequests()
+        }
+        _ = try? await provider.listRepos()
+        _ = try? await provider.publishedPackages(followedRepos: [])
+        #expect(http.requests.isEmpty)
+    }
+
+    @Test(arguments: [nil, ""])
+    func `Bitbucket without an email sends no request and no token`(email: String?) async throws {
+        let http = MockHTTPClient()
+        http.on("api.bitbucket.org", body: #"{"uuid":"{1}","display_name":"Jane","values":[]}"#)
+        var account = Account.fixture(kind: .bitbucket)
+        account.email = email
+        let secrets = InMemorySecretStore()
+        try secrets.write("ATATT-stored", account: account.id.uuidString)
+        let provider = ProviderFactory.make(account, secrets: secrets, http: http)
+        await #expect(throws: ProviderError.missingEmail) { try await provider.testConnection() }
+        await #expect(throws: ProviderError.missingEmail) { try await provider.openPullRequests() }
+        _ = try? await provider.listRepos()
+        _ = try? await provider.pullRequests(updatedSince: nil, limit: 10)
+        _ = try? await provider.tags(in: ["acme/api"])
+        _ = try? await provider.checkRepository("other/tool")
+        #expect(http.requests.isEmpty)
+    }
+
+    @Test(arguments: [ProviderKind.gitHub, .gitLab, .gitea])
+    func `An http server from the config sends no request and no token`(kind: ProviderKind) async throws {
+        let http = MockHTTPClient()
+        http.on("example.com", body: "{}")
+        http.on("github.com", body: "{}")
+        http.on("gitlab.com", body: "{}")
+        http.on("gitea.com", body: "{}")
+        let json = #"{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","kind":"\#(kind.rawValue)","owners":["acme"],"organization":"acme","authMethod":"pat","repoWatch":{},"newRepoDefault":"prs","includeDrafts":false,"hideOwn":true,"instanceURL":"http://git.example.com"}"#
+        let account = try JSONDecoder().decode(Account.self, from: Data(json.utf8))
+        let provider = ProviderFactory.make(account, pat: "typed", secrets: InMemorySecretStore(), http: http)
+        await #expect(throws: ProviderError.unusableServer(service: account.productName, problem: .invalid("http://git.example.com"))) {
+            try await provider.testConnection()
+        }
+        _ = try? await provider.pullRequests(updatedSince: nil, limit: 10)
+        #expect(http.requests.isEmpty)
+    }
+
     @Test func `Gitea reads its token from the Keychain`() async throws {
         let http = MockHTTPClient()
         http.on("https://codeberg.org/api/v1/user", body: #"{"id":1,"login":"me"}"#)

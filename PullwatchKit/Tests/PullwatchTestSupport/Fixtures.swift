@@ -74,7 +74,9 @@ extension Account {
             repoWatch: repoWatch,
             newRepoDefault: newRepoDefault,
             includeDrafts: includeDrafts,
-            hideOwn: hideOwn
+            hideOwn: hideOwn,
+            // Bitbucket is pas af met het e-mailadres van het Atlassian-account.
+            email: kind == .bitbucket ? "jane@example.com" : nil
         )
     }
 }

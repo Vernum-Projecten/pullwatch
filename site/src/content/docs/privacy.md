@@ -26,7 +26,7 @@ The Sources tab lists every outside service in plain language. Each row says wha
 **Versions**
 
 - The package registries: proxy.golang.org, registry.npmjs.org, repo.packagist.org, api.nuget.org, pypi.org, crates.io and rubygems.org. Package names are sent, also for private repositories.
-- **Package registries of your accounts**: the packages and container images your followed repositories publish to GitHub Packages, the GitLab registries and Azure Artifacts, read once a day with the token of each account and sent nowhere else. In-house package names are never sent to the public registries or OSV.dev. Off: no registry of yours is read, the Packages section is empty, and in-house dependencies say "Not checked: source Package registries of your accounts is off".
+- **Package registries of your accounts**: the packages and container images your followed repositories publish to GitHub Packages, the GitLab registries and Azure Artifacts, read once a day with the token of each account and sent nowhere else. Pullwatch keeps a package name away from the public registries and OSV.dev only when it can tell the package is yours: your registry lists it, or the lockfile gets it from your own registry. Without a registry in the lockfile, the name can reach them; [Which names stay private](/using/dependencies/#which-names-stay-private) lists the cases. Off: no registry of yours is read, the Packages section is empty, and in-house dependencies say "Not checked: source Package registries of your accounts is off".
 - **endoflife.date**: release cycles and end-of-life dates of runtimes and frameworks.
 - **swift.org**: the Swift releases.
 

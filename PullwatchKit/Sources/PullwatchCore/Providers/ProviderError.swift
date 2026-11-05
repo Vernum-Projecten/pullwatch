@@ -22,6 +22,12 @@ public enum ProviderError: Error, Equatable, Sendable {
     /// Op dit adres antwoordt geen server van de verwachte dienst (bv. een webpagina in plaats
     /// van de API). De host en de dienst ("Forgejo").
     case unexpectedServer(host: String, service: String)
+    /// Het account heeft geen bruikbaar adres voor zijn eigen server (`Account.serverProblem`):
+    /// er ging geen verzoek uit. De productnaam ("Forgejo") en wat er schort.
+    case unusableServer(service: String, problem: Account.ServerProblem)
+    /// Een Bitbucket-account zonder het e-mailadres van het Atlassian-account (`Account.lacksEmail`):
+    /// er ging geen verzoek uit.
+    case missingEmail
 
     public var userMessage: String {
         userMessage(bundle: .localizedCore)
@@ -61,6 +67,12 @@ public enum ProviderError: Error, Equatable, Sendable {
             return String(localized: "Het certificaat van \(host) wordt niet vertrouwd; Pullwatch praat alleen met servers met een geldig https-certificaat", bundle: bundle, comment: "Host van de server")
         case .unexpectedServer(let host, let service):
             return String(localized: "Op \(host) draait geen \(service); controleer het adres van de server", bundle: bundle, comment: "Host, dienst (Gitea, Forgejo, Codeberg)")
+        case .unusableServer(let service, .missing):
+            return String(localized: "Het adres van de \(service)-server ontbreekt", bundle: bundle, comment: "Dienst (Forgejo, Gitea, GitLab, GitHub); het account wordt niet opgehaald")
+        case .unusableServer(_, .invalid(let text)):
+            return String(localized: "Het serveradres \(text) is geen geldig https-adres", bundle: bundle, comment: "Het adres zoals het in de instellingen staat; het account wordt niet opgehaald")
+        case .missingEmail:
+            return String(localized: "Het e-mailadres van het Atlassian-account ontbreekt", bundle: bundle, comment: "Bitbucket wil het e-mailadres samen met het API-token; het account wordt niet opgehaald")
         }
     }
 }

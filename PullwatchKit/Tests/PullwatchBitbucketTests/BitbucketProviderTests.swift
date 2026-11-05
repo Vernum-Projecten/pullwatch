@@ -53,7 +53,7 @@ import PullwatchTestSupport
     @Test func `Without an email no request goes out`() async throws {
         let http = MockHTTPClient()
         http.on("\(api)user", body: BitbucketFixtures.user)
-        await #expect(throws: ProviderError.missingToken) { try await makeProvider(http, email: nil).currentUserId() }
+        await #expect(throws: ProviderError.missingEmail) { try await makeProvider(http, email: nil).currentUserId() }
         #expect(http.requests.isEmpty)
     }
 
@@ -86,10 +86,59 @@ import PullwatchTestSupport
         await #expect(throws: ProviderError.unauthorized) { try await makeProvider(http).testConnection() }
     }
 
-    @Test func `A missing scope is unauthorized`() async throws {
+    @Test func `A missing scope names the scope`() async throws {
         let http = MockHTTPClient()
         http.on("\(api)user", status: 403, body: BitbucketFixtures.missingScope)
+        await #expect(throws: ProviderError.missingScope("read:repository:bitbucket")) { try await makeProvider(http).currentUserId() }
+    }
+
+    @Test func `A missing pull request scope names that scope`() async throws {
+        let http = MockHTTPClient()
+        oneRepo(http)
+        http.on("\(api)repositories/atlassian/atlassian-event/pullrequests", status: 403, body: BitbucketFixtures.missingPullRequestScope)
+        await #expect(throws: ProviderError.missingScope("read:pullrequest:bitbucket")) { try await makeProvider(http).openPullRequests() }
+    }
+
+    @Test func `A missing scope on an extra repository names the scope`() async throws {
+        let http = MockHTTPClient()
+        http.on("\(api)repositories/other/tool", status: 403, body: BitbucketFixtures.missingScope)
+        await #expect(throws: ProviderError.missingScope("read:repository:bitbucket")) {
+            try await makeProvider(http, workspaces: [], extraRepos: ["other/tool"]).listRepos()
+        }
+    }
+
+    @Test(arguments: [
+        #"{"type": "error", "error": {"message": "Forbidden"}}"#,
+        #"{"type": "error", "error": {"message": "Access denied", "detail": "You do not have access to this repository."}}"#,
+        #"{"type": "error", "error": {"message": "Forbidden", "detail": {"required": []}}}"#,
+        "",
+    ])
+    func `A 403 without required scopes stays unauthorized`(body: String) async throws {
+        let http = MockHTTPClient()
+        http.on("\(api)user", status: 403, body: body)
         await #expect(throws: ProviderError.unauthorized) { try await makeProvider(http).currentUserId() }
+    }
+
+    @Test func `A 401 with a scope body stays an invalid token`() async throws {
+        let http = MockHTTPClient()
+        http.on("\(api)user", status: 401, body: BitbucketFixtures.missingPullRequestScope)
+        await #expect(throws: ProviderError.unauthorized) { try await makeProvider(http).currentUserId() }
+    }
+
+    @Test(arguments: [
+        ("nl", "Het token mist de scope read:pullrequest:bitbucket; maak een token met de scopes die Pullwatch noemt"),
+        ("en", "The token lacks the scope read:pullrequest:bitbucket; create a token with the scopes Pullwatch lists"),
+    ])
+    func `The missing scope message names the scope`(language: String, expected: String) {
+        #expect(ProviderError.missingScope("read:pullrequest:bitbucket").userMessage(bundle: .core(for: language)) == expected)
+    }
+
+    @Test(arguments: [
+        ("nl", "Token ongeldig of verlopen"),
+        ("en", "Token invalid or expired"),
+    ])
+    func `The invalid token message stays the same`(language: String, expected: String) {
+        #expect(ProviderError.unauthorized.userMessage(bundle: .core(for: language)) == expected)
     }
 
     @Test func `A rate limit waits for Retry-After`() async throws {
@@ -129,6 +178,21 @@ import PullwatchTestSupport
         let http = MockHTTPClient()
         http.on("\(api)repositories/atlassian?", body: BitbucketFixtures.repositories(
             [("atlassian/aui", "2026-11-04T09:29:09+00:00")], next: "https://evil.example.com/2.0/repositories/atlassian?page=2"
+        ))
+        #expect(try await makeProvider(http).listRepos() == ["atlassian/aui"])
+        #expect(http.requests.count == 1)
+    }
+
+    @Test(arguments: [
+        "http://api.bitbucket.org/2.0/repositories/atlassian?page=2",
+        "https://api.bitbucket.org:8443/2.0/repositories/atlassian?page=2",
+        "https://bitbucket.org/2.0/repositories/atlassian?page=2",
+    ])
+    func `A next link with another scheme, port or host is not followed`(next: String) async throws {
+        let http = MockHTTPClient()
+        http.on("page=2", body: BitbucketFixtures.repositories([("atlassian/other", "2026-11-04T09:29:09+00:00")]))
+        http.on("\(api)repositories/atlassian?", body: BitbucketFixtures.repositories(
+            [("atlassian/aui", "2026-11-04T09:29:09+00:00")], next: next
         ))
         #expect(try await makeProvider(http).listRepos() == ["atlassian/aui"])
         #expect(http.requests.count == 1)

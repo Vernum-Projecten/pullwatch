@@ -25,7 +25,8 @@ extension BitbucketProvider {
     }
 
     /// Bladert langs de `next`-links tot er geen meer is, `maxPages` op is of `stop` genoeg
-    /// vindt. Een `next` naar een andere host volgt dit niet: het token gaat alleen naar de API.
+    /// vindt. Een `next` naar een andere host volgt dit niet (`PageLink.follow`): het token gaat
+    /// alleen naar de API.
     func pages<T: Decodable>(
         _ url: URL,
         query: [URLQueryItem],
@@ -43,14 +44,9 @@ extension BitbucketProvider {
             result += page.values
             fetched += 1
             if stop(result) { break }
-            next = page.next.flatMap(URL.init(string:)).flatMap { Self.isAPI($0) && $0 != current ? $0 : nil }
+            next = PageLink.follow(page.next.flatMap(URL.init(string:)), after: current, api: Self.api)
         }
         return result
-    }
-
-    /// Ligt `url` op de API zelf (https, api.bitbucket.org, geen andere poort)?
-    static func isAPI(_ url: URL) -> Bool {
-        url.scheme == api.scheme && url.host() == api.host() && url.port == api.port
     }
 
     /// Zet de query achter `url`; "+" wordt %2B (tijden met een tijdzone, tagnamen als `1.0+build`).
@@ -72,7 +68,8 @@ extension BitbucketProvider {
         "Basic " + Data("\(email):\(token)".utf8).base64EncodedString()
     }
 
-    /// Een GET met Basic auth. 429 met `Retry-After` wordt `rateLimited`. Met `anonymous` zonder
+    /// Een GET met Basic auth. 429 met `Retry-After` wordt `rateLimited`; 403 voor een token zonder
+    /// de juiste scope wordt `missingScope` met de scope die Bitbucket noemt. Met `anonymous` zonder
     /// inloggen, voor een openbare losse repo; is die limiet op, dan gaan er tot de reset geen
     /// verzoeken zonder inloggen meer uit. Met `checked: false` zonder de status te controleren.
     func send(
@@ -84,13 +81,16 @@ extension BitbucketProvider {
         if anonymous, let until = anonymousPausedUntil, until > now() { throw ProviderError.rateLimited(until: until) }
         var request = URLRequest(url: Self.withQuery(url, query))
         if !anonymous {
-            guard let email, !email.isEmpty else { throw ProviderError.missingToken }
+            guard let email, !email.isEmpty else { throw ProviderError.missingEmail }
             let token = try await tokenSource.token()
             request.setValue(Self.basicAuthorization(email: email, token: token), forHTTPHeaderField: "Authorization")
         }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await http.send(request)
         if checked {
+            if response.statusCode == 403, let scope = Self.missingScope(in: data) {
+                throw ProviderError.missingScope(scope)
+            }
             do {
                 try HTTPStatus.check(response, now: now())
             } catch ProviderError.rateLimited(let until) where anonymous {
@@ -99,5 +99,14 @@ extension BitbucketProvider {
             }
         }
         return (data, response)
+    }
+
+    /// De scope uit een 403 van een token zonder die scope: `error.detail.required`, bv.
+    /// `{"type": "error", "error": {"message": "Your credentials lack one or more required privilege
+    /// scopes.", "detail": {"required": ["read:pullrequest:bitbucket"], "granted": [...]}}}`.
+    /// Bij meer scopes de eerste; een 403 zonder die lijst blijft wat hij was.
+    static func missingScope(in data: Data) -> String? {
+        let required = (try? JSONDecoder().decode(ErrorDTO.self, from: data))?.error?.detail?.required ?? []
+        return required.lazy.map { $0.trimmingCharacters(in: .whitespaces) }.first { !$0.isEmpty }
     }
 }

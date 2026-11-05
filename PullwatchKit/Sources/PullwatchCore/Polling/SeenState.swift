@@ -15,7 +15,8 @@ public import Foundation
 /// vingerafdruk is ook al eens met releases opgehaald: pas daarna wordt een nieuwe release gemeld.
 /// `checks` bevat per PR (dedupKey) de laatst opgehaalde checks met de revisie waarbij ze horen,
 /// zodat een PR die niet veranderde en klaar is met zijn checks geen verzoek kost; ook geprunet
-/// met `seen`.
+/// met `seen`. `queued` bevat per open PR (dedupKey) dat de vorige poll hem in de rij zag
+/// (`MergeQueueEntry`), zodat uit de rij gaan ook na een herstart te zien is; ook geprunet met `seen`.
 public struct SeenState: Codable, Equatable, Sendable {
     public var seen: [String: Date] = [:]
     var lastSettings: [String: FilterSettings] = [:]
@@ -24,6 +25,7 @@ public struct SeenState: Codable, Equatable, Sendable {
     public var coAuthors: [String: CoAuthorMark] = [:]
     var tagFingerprints: [String: String] = [:]
     public var checks: [String: CheckMark] = [:]
+    public var queued: [String: QueueMark] = [:]
 
     public init() {}
 
@@ -41,6 +43,8 @@ public struct SeenState: Codable, Equatable, Sendable {
         tagFingerprints = try container.decodeIfPresent([String: String].self, forKey: .tagFingerprints) ?? [:]
         // Ontbreekt in seen.json van vóór de checks.
         checks = try container.decodeIfPresent([String: CheckMark].self, forKey: .checks) ?? [:]
+        // Ontbreekt in seen.json van vóór de melding "uit de rij": geen PR heeft dan een vorige stand.
+        queued = try container.decodeIfPresent([String: QueueMark].self, forKey: .queued) ?? [:]
     }
 
     public func contains(_ key: String) -> Bool {
@@ -57,6 +61,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         tagSeeded = tagSeeded.filter { now.timeIntervalSince($0.value) <= maxAge }
         coAuthors = coAuthors.filter { now.timeIntervalSince($0.value.at) <= maxAge }
         checks = checks.filter { now.timeIntervalSince($0.value.at) <= maxAge }
+        queued = queued.filter { now.timeIntervalSince($0.value.at) <= maxAge }
         dropOrphanFingerprints()
     }
 
@@ -71,6 +76,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         tagSeeded = tagSeeded.filter(isFresh)
         coAuthors = coAuthors.filter { isFresh($0.key, $0.value.at) }
         checks = checks.filter { isFresh($0.key, $0.value.at) }
+        queued = queued.filter { isFresh($0.key, $0.value.at) }
         dropOrphanFingerprints()
     }
 
@@ -80,6 +86,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         tagSeeded = tagSeeded.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         coAuthors = coAuthors.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         checks = checks.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
+        queued = queued.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         dropOrphanFingerprints()
     }
 
@@ -125,6 +132,18 @@ public struct CheckMark: Codable, Equatable, Sendable {
         self.revision = revision
         self.checks = checks
         self.fetchedAt = fetchedAt
+        self.at = at
+    }
+}
+
+/// Een open PR die de vorige poll in de rij zag: uit welke rij, en `at` de laatste keer dat hij
+/// zo gezien is (voor het prunen).
+public struct QueueMark: Codable, Equatable, Sendable {
+    public var kind: MergeQueueEntry.Kind
+    public var at: Date
+
+    public init(kind: MergeQueueEntry.Kind, at: Date) {
+        self.kind = kind
         self.at = at
     }
 }

@@ -126,7 +126,7 @@ Pull Requests aus dem Verlauf, neueste zuerst, mit ihren Checks. Jeder hat eine 
 
 ### get_pull_request
 
-Ein Pull Request: seine `reference`, Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
+Ein Pull Request: seine `reference`, Status, Entwurf, Autor und Co-Autoren, Zahl der Checks, Platz in der Merge-Queue, ob er die Warteschlange ohne Merge verlassen hat (`left_queue`, mit dem Grund, wenn der Dienst einen nennt), gelesen oder nicht, Daten und Link. Argumente: `repo` und `number` (beide erforderlich), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
@@ -207,7 +207,7 @@ Die Pakete und Container-Images, die die Repositories, denen du folgst, in der R
 
 Warum sich ein Paket nicht einfach aktualisieren lässt, pro Installation: der verlangte Bereich, der Schritt (Patch, Minor oder Major), was ihn aufhält und welche Schwachstellen ein Update behebt. Argumente: `repo` und `package` (beide erforderlich), `ecosystem` (nur wenn der Name mehrdeutig ist), `account_id`. Auch ein Paket, das nur über ein anderes Paket hereinkommt (jedes Paket aus einer Lockfile), wird erklärt: `via` nennt die Kette, und die Erklärung sagt, was das Beheben einer Schwachstelle verlangt, nur die Lockfile oder zuerst ein neueres Elternpaket.
 
-Für ein hauseigenes Paket fügen dieses Tool und `get_repository_report` beide `in_house` hinzu: `source` (das veröffentlichende Repository oder das Projekt in Azure DevOps), `repository`, `owner`, `url` (die Seite des Repositorys), `registry_url` (das Paket in deiner eigenen Registry), `status` und `reason`. Mit `status` `checked` kommt die neueste Version aus deiner eigenen Registry. Mit `source_off` oder `needs_permission` wurde sie nicht gelesen: `update` ist `not_checked`, `not_checked` nennt die Quelle oder die fehlende Berechtigung, und `reason` sagt, was du freigeben musst. Hauseigene Namen werden nie an eine öffentliche Registry oder OSV.dev gesendet.
+Für ein hauseigenes Paket fügen dieses Tool und `get_repository_report` beide `in_house` hinzu: `source` (das veröffentlichende Repository oder das Projekt in Azure DevOps), `repository`, `owner`, `url` (die Seite des Repositorys), `registry_url` (das Paket in deiner eigenen Registry), `status` und `reason`. Mit `status` `checked` kommt die neueste Version aus deiner eigenen Registry. Mit `source_off`, `needs_permission`, `read_failed` (deine Registry lieferte keine neueste Version) oder `unconfirmed` (die Lockfile holt das Paket aus deiner eigenen Registry, aber diese Registry nannte es nicht) wurde sie nicht gelesen: `update` ist `not_checked`, `not_checked` nennt die Quelle oder die fehlende Berechtigung, und `reason` sagt, was du freigeben musst. Pullwatch hält einen Namen nur privat, wenn es erkennen kann, dass das Paket deins ist; [Welche Namen privat bleiben](/de/using/dependencies/#welche-namen-privat-bleiben) nennt die Fälle. Ein solcher Name geht nie an eine öffentliche Registry und erreicht OSV.dev nur, wenn eine frühere Prüfung ihn auch in der öffentlichen Registry gefunden hat. Wo Pullwatch es nicht erkennen kann, zum Beispiel wenn die Lockfile keine Registry nennt, kann der Name beide erreichen.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

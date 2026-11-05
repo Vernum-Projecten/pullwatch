@@ -46,7 +46,7 @@ private struct PublishedPackageHeaderSection: View {
                         .font(.headline)
                         .textSelection(.enabled)
                 } icon: {
-                    Image(systemName: package.type.symbol).foregroundStyle(.secondary)
+                    PublishedPackageTypeIcon(type: package.type).foregroundStyle(.secondary)
                 }
                 package.type.text.foregroundStyle(.secondary)
             }
@@ -132,7 +132,7 @@ private struct PublishedPackageVersionsSection: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(PublishedVersionLabel.accessibility(version))
                     if let date = version.publishedAt {
-                        Text(date, format: .relative(presentation: .named))
+                        RelativeDateText(date: date)
                     }
                 }
             }

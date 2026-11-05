@@ -42,6 +42,19 @@ well. An update therefore carries three signatures: Sparkle's EdDSA
 signature over the `.zip`, the Developer ID signature and Apple's
 notarisation, stapled to the app. Sparkle refuses an update without them.
 
+The app's executable ships without symbols. The Release configuration of
+the `Pullwatch` target strips it (`DEPLOYMENT_POSTPROCESSING`,
+`STRIP_INSTALLED_PRODUCT`, `STRIP_STYLE = all`) and links it without
+exported symbols (`LD_EXPORT_SYMBOLS = NO`, which passes
+`-no_exported_symbols`), as `pullwatch-mcp` is stripped too; Debug builds
+and the test host keep everything. The symbols live on in
+`build/Build/Products/Release/Pullwatch.app.dSYM`, which Xcode writes before
+it strips and which never goes into the `.dmg` or `.zip`. `release.yml`
+uploads it as the workflow artifact `dsym`; download it from the run and
+keep it with the release (its UUIDs match the binary, `dwarfdump --uuid`)
+to symbolicate a crash report. CI's package job fails when the Release binary still has a
+local symbol table or a dSYM ends up in either file.
+
 ## How the updater is set up
 
 The setup follows Sparkle's documentation

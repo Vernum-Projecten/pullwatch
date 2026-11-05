@@ -65,16 +65,24 @@ public struct PackageMetadata: Codable, Hashable, Sendable {
     /// Gezet als een gevolgde repository dit package zelf publiceert: dan komen `latest` en
     /// `versions` uit dat eigen register en is het publieke register niet gevraagd.
     public var inHouse: InHousePackage?
+    /// Een account publiceert een package met dezelfde naam, maar geen install van dit package
+    /// komt aantoonbaar uit dat register (`InHouseEvidence`): het is publiek gecontroleerd, en de
+    /// app zegt "Ook gepubliceerd door …, hier niet gebruikt". Nooit samen met `inHouse`.
+    public var alsoPublishedBy: InHousePackage?
 
-    public init(latest: String?, versions: [String: VersionMetadata], isComplete: Bool = true, inHouse: InHousePackage? = nil) {
+    public init(
+        latest: String?, versions: [String: VersionMetadata], isComplete: Bool = true, inHouse: InHousePackage? = nil,
+        alsoPublishedBy: InHousePackage? = nil
+    ) {
         self.latest = latest
         self.versions = versions
         self.isComplete = isComplete
         self.inHouse = inHouse
+        self.alsoPublishedBy = alsoPublishedBy
     }
 
     private enum CodingKeys: String, CodingKey {
-        case latest, versions, isComplete, inHouse
+        case latest, versions, isComplete, inHouse, alsoPublishedBy
     }
 
     /// Een rapport van vóór de eigen packages heeft geen `inHouse`; een onleesbare wordt nil.
@@ -84,6 +92,7 @@ public struct PackageMetadata: Codable, Hashable, Sendable {
         versions = try c.decodeIfPresent([String: VersionMetadata].self, forKey: .versions) ?? [:]
         isComplete = try c.decodeIfPresent(Bool.self, forKey: .isComplete) ?? true
         inHouse = (try? c.decodeIfPresent(InHousePackage.self, forKey: .inHouse)) ?? nil
+        alsoPublishedBy = (try? c.decodeIfPresent(InHousePackage.self, forKey: .alsoPublishedBy)) ?? nil
     }
 
     /// De versies die een update kunnen zijn, oplopend: stabiel, niet ingetrokken en leesbaar.

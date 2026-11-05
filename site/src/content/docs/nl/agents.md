@@ -126,7 +126,7 @@ Pull requests uit de geschiedenis, nieuwste eerst, met hun checks. Elke heeft ee
 
 ### get_pull_request
 
-Eén pull request: de `reference`, staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
+Eén pull request: de `reference`, staat, draft, auteur en co-auteurs, aantallen checks, plaats in de merge queue, of hij uit de rij ging zonder te mergen (`left_queue`, met de reden als de dienst die geeft), gelezen of niet, datums en link. Argumenten: `repo` en `number` (allebei verplicht), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}
@@ -207,7 +207,7 @@ De packages en container-images die je gevolgde repositories publiceren in het r
 
 Waarom één package niet zomaar bij te werken is, per installatie: het gevraagde bereik, de stap (patch, minor of major), wat hem tegenhoudt en welke kwetsbaarheden een update oplost. Argumenten: `repo` en `package` (allebei verplicht), `ecosystem` (alleen als de naam dubbelzinnig is), `account_id`. Ook een package dat alleen via een ander package binnenkomt (elk package uit een lockfile) krijgt uitleg: `via` noemt de keten, en de uitleg zegt wat het oplossen van een kwetsbaarheid vraagt, alleen de lockfile of eerst een nieuwere ouder.
 
-Voor een in-house package voegen deze tool en `get_repository_report` `in_house` toe: `source` (de repository die het publiceert, of het Azure DevOps-project), `repository`, `owner`, `url` (de pagina van de repository), `registry_url` (het package in je eigen register), `status` en `reason`. Met `status` `checked` komt de nieuwste versie uit je eigen register. Met `source_off` of `needs_permission` is het niet gelezen: `update` is `not_checked`, `not_checked` noemt de bron of het ontbrekende recht, en `reason` zegt wat je moet toestaan. In-house namen gaan nooit naar een openbaar register of OSV.dev.
+Voor een in-house package voegen deze tool en `get_repository_report` `in_house` toe: `source` (de repository die het publiceert, of het Azure DevOps-project), `repository`, `owner`, `url` (de pagina van de repository), `registry_url` (het package in je eigen register), `status` en `reason`. Met `status` `checked` komt de nieuwste versie uit je eigen register. Met `source_off`, `needs_permission`, `read_failed` (je register gaf geen nieuwste versie) of `unconfirmed` (de lockfile haalt het package uit je eigen register, maar dat register noemde het niet) is het niet gelezen: `update` is `not_checked`, `not_checked` noemt de bron of het ontbrekende recht, en `reason` zegt wat je moet toestaan. Pullwatch houdt een naam alleen privé als het kan zien dat het package van jou is; [Welke namen privé blijven](/nl/using/dependencies/#welke-namen-privé-blijven) noemt de gevallen. Zo'n naam gaat nooit naar een openbaar register, en komt alleen bij OSV.dev als een eerdere check hem ook in het openbare register vond. Waar Pullwatch het niet kan zien, bijvoorbeeld als de lockfile geen register noemt, kan de naam bij allebei komen.
 
 ```jsonc
 // explain_update {"repo":"acme/web","package":"express"}

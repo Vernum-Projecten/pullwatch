@@ -27,6 +27,8 @@ struct NotificationsSettingsView: View {
                 kindToggle(.merged, "Gemergede pull requests", isOn: Bindable(app).notificationSettings.merged)
                 kindToggle(.checksFailed, "Mislukte checks van je eigen pull requests", isOn: Bindable(app).notificationSettings.checksFailed)
                     .help("Een melding als de checks (CI) van een open pull request van jou mislukken, ook als je eigen PR's verborgen zijn")
+                kindToggle(.leftQueue, "Pull requests die uit de rij gaan zonder te mergen", isOn: Bindable(app).notificationSettings.leftQueue)
+                    .help("Een melding als een open pull request uit de merge queue of merge train gaat, of auto-merge of auto-complete uit gaat, zonder dat hij mergede")
                 kindToggle(.release, "Nieuwe releases", isOn: Bindable(app).notificationSettings.releases)
                 kindToggle(.tag, "Nieuwe tags zonder release", isOn: Bindable(app).notificationSettings.tags)
             } header: {

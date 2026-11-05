@@ -59,18 +59,45 @@ A package that no repository asks for itself, and that only comes in through ano
 
 ## In-house packages
 
-A dependency that one of your followed repositories publishes to the registry of its own service (GitHub Packages, a GitLab registry or an Azure Artifacts feed) is an in-house package. npmjs.com or nuget.org do not know a private `@acme/ui`, so Pullwatch takes its latest version from your registry, which [Packages](/using/packages/) lists. The row says **In-house**, with a link to the repository that publishes it, and its tooltip says "Published by octocat/linguist: the latest version comes from your own registry." Ranges, the update groups and what blocks an update work as for any other package.
+A dependency that one of your followed repositories publishes to the registry of its own service (GitHub Packages, a GitLab registry or an Azure Artifacts feed), and that your repository provably gets from there, is an in-house package. npmjs.com or nuget.org do not know a private `@acme/ui`, so Pullwatch takes its latest version from your registry, which [Packages](/using/packages/) lists. The row says **In-house**, with a link to the repository that publishes it, and its tooltip says "Published by octocat/linguist: the latest version comes from your own registry." When Pullwatch did not read the latest version from your registry, the tooltip says so with the reason, for example "Published by octocat/linguist, not checked: no access to this account's package registry." Ranges, the update groups and what blocks an update work as for any other package.
 
-Your private names stay private. Pullwatch reads your registries first, before it looks anything up, and leaves every in-house name out of every public lookup: registry.npmjs.org and the other public registries never see it, and neither does OSV.dev. When reading your registry fails, Pullwatch keeps what the check before found, so a bad day never sends a private name out.
+### Evidence, not the name
+
+A name alone does not make a package yours. An organisation can publish a patched fork of a public package under the same name, such as `Newtonsoft.Json`, and a repository that uses the public package must keep its public latest version and its known vulnerabilities. So Pullwatch counts a dependency as in-house only with evidence:
+
+- npm: a name with the owner's scope (`@acme/ui` published by `acme`; on GitLab the top-level group, on Azure DevOps also the organization).
+- Go: the module path, which names its own host and owner.
+- Every ecosystem: the registry the lockfile or manifest names is the account's own registry for that ecosystem. Pullwatch reads it from `resolved` in `package-lock.json` and a classic `yarn.lock`, `remote:` in `Gemfile.lock`, `dist.url` in `composer.lock`, `--index-url` or `--extra-index-url` in a `requirements` file, the source of a package in `poetry.lock` and `uv.lock`, and `source` in `Cargo.lock`. Own registries are `npm.pkg.github.com`, `nuget.pkg.github.com` and `rubygems.pkg.github.com` with the owner in the path (on GitHub Enterprise `npm.<host>` or `<host>/_registry/npm/`), `/api/v4/…/packages/…` on the GitLab server of the account, and `pkgs.dev.azure.com/<organization>/…/_packaging/…` for Azure Artifacts.
+
+`packages.lock.json`, `pnpm-lock.yaml` and the `yarn.lock` of Yarn 2 and later name no registry per package, so a NuGet package, and an npm package without the owner's scope installed with pnpm or a newer Yarn, is never in-house. When one repository uses the name without evidence, the name is public for every repository. A public package whose name one of your accounts also publishes says so in its tooltip: "Also published by acme/lib (not used here)."
+
+A dependency without evidence is a public package: Pullwatch looks up its latest version in the public registry and its vulnerabilities in OSV.dev, as for any other package. When the account that publishes a package is removed or paused, or no longer lists the package, the next check treats it as public again.
+
+### Which names stay private
+
+Pullwatch keeps a name private only when it can tell the package is yours. It then leaves the name out of every public registry, so registry.npmjs.org and the others never see it, and OSV.dev sees it only when an earlier check found that name in the public registry too (a fork of a public package still gets the known vulnerabilities of that name). Pullwatch can tell in these cases:
+
+- Your registry lists the package and the evidence above holds. Pullwatch reads your registries first, before it looks anything up.
+- The lockfile names a registry that is not the public one, and that registry is the own registry of the account the repository belongs to, or the package is an npm package with the owner's scope. This holds whatever reading your registry did: a first check where reading failed, the source Package registries of your accounts off, no permission to read the registry (for example a GitHub account without `gh`), Gitea, Forgejo, Codeberg and Bitbucket (Pullwatch reads no registry there), and a package published by a repository you do not follow.
+- An earlier check knew the package as in-house: when reading your registry fails, Pullwatch keeps what that check found.
+
+Where Pullwatch cannot tell, the name can reach the public registry and OSV.dev:
+
+- The lockfile names no registry for the package: `packages.lock.json`, `pnpm-lock.yaml`, the `yarn.lock` of Yarn 2 and later, or the package came from the public registry. An npm name with the owner's scope is then looked up publicly too, because the owner may publish it on npmjs.com.
+- One repository uses the name without evidence.
+- The lockfile names the registry of another of your accounts than the one the repository belongs to, and that registry does not list the package.
+- A Go module that your registry does not list: its module path goes to proxy.golang.org and OSV.dev.
 
 When Pullwatch cannot read the latest version, the row says so instead of showing it as current:
 
-- "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before stays in-house and is not looked up publicly.
+- "Not checked: source Package registries of your accounts is off": the source is off under Settings, **Sources**. A package that was in-house before, with the same evidence, stays in-house and is not looked up publicly, and so does a package the lockfile gets from your own registry.
 - "Not checked: no access to this account's package registry": the account may not read its registry. The tooltip says what to grant; see [What to grant](/using/packages/#what-to-grant).
+- "Not checked: this account's package registry gave no latest version": the registry lists the package, but reading its versions failed, or it has none (for example a package without a linked repository). The latest version of the previous check stays when there was one. A name the public registry also knows is looked up there and checked by OSV.dev for this check; a name only your own registry knows is never sent anywhere.
+- "Not checked: the lockfile gets this package from your own registry, but that registry did not list it": the lockfile proves the package is yours, but reading the registry failed, the service has no registry Pullwatch reads, or the repository that publishes it is not followed. The name is not sent anywhere.
 
 Switching off a public registry, such as npm, does not affect an in-house package.
 
-What is matched, by the dependency's ecosystem and its name:
+Which published package a dependency is compared with, by its ecosystem and its name (the evidence above then decides):
 
 | Ecosystem | Matched on |
 |---|---|

@@ -14,6 +14,10 @@ package final class MockHTTPClient: HTTPClient {
         let body: String
         /// Alleen voor verzoeken met (`true`) of zonder (`false`) `Authorization`; nil: allebei.
         var authorized: Bool? = nil
+        /// Geen antwoord maar deze fout, zoals `URLSessionHTTPClient` hem geeft (een time-out).
+        var error: (any Error)? = nil
+        /// Alleen voor verzoeken waarvan de body dit bevat (een GraphQL-vraag); nil: elk verzoek.
+        var bodyContains: String? = nil
     }
 
     private struct State {
@@ -37,6 +41,28 @@ package final class MockHTTPClient: HTTPClient {
         }
     }
 
+    /// Als `on`, maar alleen voor verzoeken waarvan de body `bodyContains` bevat: zo krijgen
+    /// verschillende GraphQL-vragen naar hetzelfde adres elk hun eigen antwoord.
+    package func on(_ substring: String, bodyContains: String, status: Int = 200, body: String) {
+        state.withLock {
+            $0.routes.append(Route(substring: substring, status: status, headers: [:], body: body, bodyContains: bodyContains))
+        }
+    }
+
+    /// Vergeet alle routes en reeksen (niet de opgenomen verzoeken), voor een volgende poll met
+    /// andere antwoorden.
+    package func removeAllRoutes() {
+        state.withLock {
+            $0.routes = []
+            $0.sequences = [:]
+        }
+    }
+
+    /// Geen antwoord voor deze route maar `error`, zoals `ProviderError.timeout(command:)`.
+    package func fail(_ substring: String, with error: any Error) {
+        state.withLock { $0.routes.append(Route(substring: substring, status: 0, headers: [:], body: "", error: error)) }
+    }
+
     /// Antwoorden die na elkaar komen voor dezelfde route; het laatste blijft daarna gelden.
     package func onSequence(_ substring: String, bodies: [String]) {
         state.withLock { $0.sequences[substring, default: []].append(contentsOf: bodies) }
@@ -51,11 +77,14 @@ package final class MockHTTPClient: HTTPClient {
                 return Route(substring: key, status: 200, headers: [:], body: body)
             }
             let authorized = request.value(forHTTPHeaderField: "Authorization") != nil
+            let body = request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? ""
             return state.routes.first { route in
                 url.absoluteString.contains(route.substring) && (route.authorized.map { $0 == authorized } ?? true)
+                    && (route.bodyContains.map { body.contains($0) } ?? true)
             }
         }
         guard let route else { throw ProviderError.network("geen mock-route voor \(url.absoluteString)") }
+        if let error = route.error { throw error }
         let response = HTTPURLResponse(url: url, statusCode: route.status, httpVersion: nil, headerFields: route.headers)!
         return (Data(route.body.utf8), response)
     }

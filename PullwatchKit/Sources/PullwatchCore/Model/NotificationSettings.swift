@@ -6,6 +6,8 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
     case pullRequest, merged, release, tag, vulnerability, securityAlert, packageUpdate
     /// De checks van een eigen open PR mislukten.
     case checksFailed
+    /// Een open PR ging uit de rij (merge queue, merge train, auto-merge, auto-complete) zonder te mergen.
+    case leftQueue
     /// Een nieuwere Pullwatch.
     case appUpdate
     /// Een account waarvan het token niet meer werkt.
@@ -19,7 +21,7 @@ public enum NotificationKind: String, CaseIterable, Codable, Sendable, Identifia
 
     /// De soorten met een eigen schakelaar, in de volgorde van de instellingen.
     static let switchable: [NotificationKind] = [
-        .pullRequest, .merged, .checksFailed, .release, .tag, .vulnerability, .securityAlert, .packageUpdate, .publishedPackage,
+        .pullRequest, .merged, .checksFailed, .leftQueue, .release, .tag, .vulnerability, .securityAlert, .packageUpdate, .publishedPackage,
     ]
 }
 
@@ -75,6 +77,8 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
     public var merged: Bool
     /// Standaard uit: mislukte checks van je eigen PR's.
     public var checksFailed: Bool
+    /// Standaard aan: een open PR die uit de rij ging zonder te mergen vraagt om actie.
+    public var leftQueue: Bool
     public var releases: Bool
     public var tags: Bool
     public var vulnerabilities: Bool
@@ -92,7 +96,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
     public var menuBarDot: Bool
 
     public init(
-        pullRequests: Bool = true, merged: Bool = true, checksFailed: Bool = false, releases: Bool = true, tags: Bool = true,
+        pullRequests: Bool = true, merged: Bool = true, checksFailed: Bool = false, leftQueue: Bool = true, releases: Bool = true, tags: Bool = true,
         vulnerabilities: Bool = true, securityAlerts: Bool = false, packageUpdates: Bool = true,
         onlyUpdatesYouCanTake: Bool = true, publishedPackages: Bool = false, quietHours: QuietHours = QuietHours(),
         dockBadge: Bool = true, menuBarDot: Bool = true
@@ -100,6 +104,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         self.pullRequests = pullRequests
         self.merged = merged
         self.checksFailed = checksFailed
+        self.leftQueue = leftQueue
         self.releases = releases
         self.tags = tags
         self.vulnerabilities = vulnerabilities
@@ -122,6 +127,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
         pullRequests = try value(.pullRequests, defaults.pullRequests)
         merged = try value(.merged, defaults.merged)
         checksFailed = try value(.checksFailed, defaults.checksFailed)
+        leftQueue = try value(.leftQueue, defaults.leftQueue)
         releases = try value(.releases, defaults.releases)
         tags = try value(.tags, defaults.tags)
         vulnerabilities = try value(.vulnerabilities, defaults.vulnerabilities)
@@ -142,6 +148,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .pullRequest: pullRequests
             case .merged: merged
             case .checksFailed: checksFailed
+            case .leftQueue: leftQueue
             case .release: releases
             case .tag: tags
             case .vulnerability: vulnerabilities
@@ -156,6 +163,7 @@ public struct NotificationSettings: Codable, Equatable, Sendable {
             case .pullRequest: pullRequests = newValue
             case .merged: merged = newValue
             case .checksFailed: checksFailed = newValue
+            case .leftQueue: leftQueue = newValue
             case .release: releases = newValue
             case .tag: tags = newValue
             case .vulnerability: vulnerabilities = newValue

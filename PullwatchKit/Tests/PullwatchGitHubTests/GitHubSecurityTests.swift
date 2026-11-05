@@ -131,4 +131,17 @@ import PullwatchTestSupport
     @Test func givesItsTokenForTheAdvisoryDatabase() async {
         #expect(await makeProvider(MockHTTPClient()).advisoryDatabaseToken() == "ghtok")
     }
+
+    @Test func `A next link to another host stops paging the alerts`() async throws {
+        let http = MockHTTPClient()
+        http.on("after=Y3Vyc29y", body: "[\(codeAlert(2))]")
+        http.on("code-scanning/alerts", headers: ["Link": #"<https://evil.example.com/alerts?after=Y3Vyc29y>; rel="next""#], body: "[\(codeAlert(1))]")
+        http.on("secret-scanning/alerts", body: "[]")
+        http.on("security-advisories", body: "[]")
+
+        let scan = try #require(try await makeProvider(http).securityAlerts(in: "acme/web"))
+
+        #expect(scan.alerts.map(\.number) == [1])
+        #expect(!http.requests.contains { $0.url?.host() == "evil.example.com" })
+    }
 }

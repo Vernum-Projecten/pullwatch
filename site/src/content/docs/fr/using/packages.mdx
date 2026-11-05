@@ -13,7 +13,7 @@ import Screenshot from '../../../../components/Screenshot.astro';
 
 Chaque paquet a une seule ligne, regroupée par propriétaire (l’utilisateur, l’organisation ou le groupe, ou pour Azure Artifacts le projet du flux), et non une ligne par version. Les colonnes, chacune triable :
 
-- **Paquet** : le nom, avec un symbole pour son type.
+- **Paquet** : le nom, avec le logo de son écosystème (npm, images de conteneur, Docker, NuGet, Maven, RubyGems, PyPI, Helm, Composer, Conan, Go, Terraform, et Rust pour Cargo), ou un symbole pour un paquet générique ou un Universal Package.
 - **Dépôt** : le dépôt qui le publie, en entier (`octocat/linguist`). Un paquet qui n’est lié à aucun dépôt, comme un paquet d’un flux Azure Artifacts, affiche son propriétaire en gris.
 - **Dernière version** et **Publié** : la version la plus récente et sa date de publication.
 - **Utilisé par** : combien des dépôts que vous suivez en dépendent, d’après la vérification des dépendances. Une image de conteneur ou un chart Helm affiche « - » : la vérification ne les reconnaît pas encore comme des dépendances, le nombre est donc inconnu, jamais zéro.

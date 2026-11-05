@@ -88,6 +88,16 @@ import Testing
             == "Not checked: Pullwatch has no permission to read this account's package registry (Add read:packages.).")
     }
 
+    @Test func `An in-house package only the lockfile names is not checked`() async throws {
+        let output = try await harness(.unconfirmed).output("explain_update", ["repo": "acme/web", "package": "@acme/ui"])
+
+        #expect(output["latest"] == nil)
+        #expect(output["in_house"]?["status"] == "unconfirmed")
+        #expect(output["installs"]?.objects.first?["update"] == "not_checked")
+        #expect(output["not_checked"]?.objects.first?["message"]
+            == "Not checked: the lockfile installs it from this account's own package registry, but that registry did not list it.")
+    }
+
     // MARK: - get_repository_report
 
     @Test func `The report marks an in-house package`() async throws {

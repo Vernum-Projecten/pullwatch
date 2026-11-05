@@ -263,6 +263,56 @@ The MCP Swift SDK brings in, and this product therefore includes:
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 
+This product includes simple-icons-swift
+(https://github.com/Vernum-Projecten/simple-icons-swift, version 16.36.2),
+used to draw the logos of package ecosystems in the Packages section
+(Pullwatch/Pullwatch/Packages/PublishedPackageTypeIcon.swift). Only the icons
+Pullwatch names are compiled into the app. It is licensed under the MIT
+License:
+
+  MIT License
+
+  Copyright (c) 2026 Vernum Projecten B.V.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+The icons in simple-icons-swift come from Simple Icons
+(https://simpleicons.org, https://github.com/simple-icons/simple-icons,
+version 16.36.0), dedicated to the public domain under CC0 1.0 Universal
+(CC0-1.0, https://creativecommons.org/publicdomain/zero/1.0/); the full text
+is in the Acknowledgements of the app. Simple Icons also records a licence and
+brand guidelines per icon where a brand has them. Pullwatch uses the icons
+npm, Open Container Initiative, Docker, NuGet, Apache Maven, RubyGems, PyPI,
+Helm, Composer, Conan, Go, Terraform and Rust, drawn in a single colour at the
+size of a symbol. For most of them Simple Icons records no licence of their
+own. Two have one:
+
+- The Apache Maven logo is licensed under the Apache License, Version 2.0
+  (Apache-2.0, see LICENSE).
+- The Rust logo is by the Rust Foundation and the Rust project, licensed under
+  the Creative Commons Attribution-ShareAlike 4.0 International license
+  (CC-BY-SA-4.0, https://creativecommons.org/licenses/by-sa/4.0/); the full
+  text is in the Acknowledgements of the app. Simple Icons redrew it as a
+  single path, and Pullwatch draws that path in a single colour.
+
+The brands keep their rights; see the trademarks below.
+
 Trademarks
 
 GitHub and the Invertocat are trademarks of GitHub, Inc. Pullwatch shows the
@@ -320,3 +370,13 @@ Azure DevOps is a trademark of the Microsoft group of companies. Pullwatch
 uses only the name, with the SF Symbol cloud.circle.fill; Microsoft permits
 its Azure icons only in architecture diagrams, training materials and
 documentation (https://learn.microsoft.com/azure/architecture/icons/).
+
+The logos of package ecosystems in the Packages section (see Simple Icons
+above) belong to their owners: npm (npm, Inc., a subsidiary of GitHub, Inc.),
+the Open Container Initiative (The Linux Foundation), Docker (Docker, Inc.),
+NuGet (.NET Foundation), Apache Maven (The Apache Software Foundation),
+RubyGems (Ruby Central), PyPI (Python Software Foundation), Helm (Cloud Native
+Computing Foundation), Composer (its authors), Conan (JFrog), Go (Google LLC),
+Terraform (HashiCorp, an IBM company) and Rust (Rust Foundation). Pullwatch
+shows each only to say which kind of package a row is. Pullwatch is not
+affiliated with, endorsed or sponsored by any of them.

@@ -130,7 +130,7 @@ private actor InHouseProvider: PRProvider {
             accountId: account.id, name: "@acme/ui", type: .npm, owner: "acme", repository: "acme/ui",
             versions: [PublishedVersion(version: "2.0.0"), PublishedVersion(version: "1.4.0")]
         )
-        let metadata = VersionChecker.metadata(of: package, repositoryURL: nil)
+        let metadata = try #require(VersionChecker.metadata(of: package, repositoryURL: nil))
         let install = PackageInstall(version: "1.4.0", workspace: "", scope: .transitive, via: ["@acme/app"], source: "package-lock.json", requested: "^1.0.0")
         let repo = RepoVersions(
             accountId: account.id, repo: "acme/web", components: [],
@@ -152,7 +152,7 @@ private actor InHouseProvider: PRProvider {
         let package = PublishedPackage(
             accountId: account.id, name: "ui", type: .npm, owner: "acme", repository: "acme/ui", versions: [PublishedVersion(version: "2.3.0")]
         )
-        return ["npm:@acme/ui": VersionChecker.metadata(of: package, repositoryURL: URL(string: "https://github.com/acme/ui"))]
+        return VersionChecker.metadata(of: package, repositoryURL: URL(string: "https://github.com/acme/ui")).map { ["npm:@acme/ui": $0] } ?? [:]
     }
 
     @Test func `With the source off an in-house package is not checked and never up to date`() async throws {
