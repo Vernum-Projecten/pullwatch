@@ -302,7 +302,7 @@ private struct RecentRow: View {
                                 .font(.caption)
                         }
                     }
-                    Text("\(repoLabel), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
+                    Text("\(repoLabel), \(author), \(.currentDate, format: RelativeDateText.style(for: item.detectedAt))", comment: "Repo, auteur, wanneer gezien")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -326,11 +326,11 @@ private struct RecentRow: View {
     /// De grijze regel voor VoiceOver: het nummer als "pull request 1570".
     private var spokenLine: Text {
         guard case .pullRequest(let pr) = item.entry else {
-            return Text("\(repoLabel), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "Repo, auteur, wanneer gezien")
+            return Text("\(repoLabel), \(author), \(.currentDate, format: RelativeDateText.style(for: item.detectedAt))", comment: "Repo, auteur, wanneer gezien")
         }
         let repo = pr.repo
         let number = String(pr.number)
-        return Text("\(repo), pull request \(number), \(author), \(item.detectedAt, format: .relative(presentation: .named))", comment: "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien")
+        return Text("\(repo), pull request \(number), \(author), \(.currentDate, format: RelativeDateText.style(for: item.detectedAt))", comment: "VoiceOver; korte repo-naam, PR-nummer, auteur, wanneer gezien")
     }
 }
 
@@ -366,7 +366,7 @@ private struct AccountStatusRow: View {
             case .ok(let lastPoll):
                 Image(systemName: "checkmark.circle.fill").font(.caption).foregroundStyle(.green)
                     .accessibilityLabel(Text("Bijgewerkt"))
-                Text(lastPoll, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.secondary)
+                RelativeDateText(date: lastPoll).font(.caption).foregroundStyle(.secondary)
             case .failed(let error, _):
                 Text(error.userMessage).font(.caption).foregroundStyle(.red).lineLimit(2)
             }

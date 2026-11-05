@@ -126,6 +126,8 @@ struct PublishedPackageVersionCell: View {
         }
         let lines = [prerelease, latestNote].compactMap { $0 }
         guard lines.isEmpty else { return Text(verbatim: lines.joined(separator: "\n")) }
+        // Een tooltip verschijnt pas als de muis op de cel staat, en dan tekent de cel opnieuw: de
+        // datum klopt dus op het moment dat je hem leest, zonder RelativeDateText.
         return showsDateInHelp
             ? publishedAt.map { Text("Gepubliceerd \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
             : Text(verbatim: "")
@@ -150,7 +152,7 @@ struct PublishedPackageDateCell: View {
 
     var body: some View {
         if let publishedAt {
-            Text(publishedAt, format: .relative(presentation: .named))
+            RelativeDateText(date: publishedAt)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }

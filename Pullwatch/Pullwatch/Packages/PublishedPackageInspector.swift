@@ -132,7 +132,7 @@ private struct PublishedPackageVersionsSection: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(PublishedVersionLabel.accessibility(version))
                     if let date = version.publishedAt {
-                        Text(date, format: .relative(presentation: .named))
+                        RelativeDateText(date: date)
                     }
                 }
             }

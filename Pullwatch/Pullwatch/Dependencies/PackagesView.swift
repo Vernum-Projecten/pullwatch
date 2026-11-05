@@ -89,7 +89,7 @@ struct PackagesView: View {
             if showsSince {
                 TableColumn("Sinds") { node in
                     if case .package(let row) = node, row.summary.state == .updateAvailable, let since = row.summary.since {
-                        Text(since, format: .relative(presentation: .named))
+                        RelativeDateText(date: since)
                             .foregroundStyle(.secondary)
                             .help(Text("Sinds wanneer deze versie de nieuwste is"))
                     }
@@ -230,6 +230,7 @@ private struct PackageVersionCell: View {
         case .package(let row):
             Text(verbatim: row.summary.latest ?? "").monospacedDigit()
                 .foregroundStyle(row.summary.state == .updateAvailable ? .green : .secondary)
+                // De tooltip komt pas als de muis op de cel staat, en dan tekent de cel opnieuw.
                 .help(showsSince && row.summary.state == .updateAvailable
                       ? row.summary.since.map { Text("Nieuwste sinds \($0.formatted(.relative(presentation: .named)))", comment: "Relatieve datum") } ?? Text(verbatim: "")
                       : Text(verbatim: ""))

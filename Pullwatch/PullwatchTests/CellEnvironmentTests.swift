@@ -104,6 +104,30 @@ import Testing
         #expect(draws(Form { PackagesCLIRow(isOn: .constant(false), status: status, login: login, host: "github.example.com") }))
     }
 
+    @Test func `RelativeDateText draws without a model in the environment`() {
+        #expect(draws(RelativeDateText(date: Self.item.detectedAt)))
+        #expect(draws(Text("Gepubliceerd \(.currentDate, format: RelativeDateText.style(for: Self.item.detectedAt))", comment: "Relatieve datum")))
+    }
+
+    /// De tekst van een relatieve datum hangt af van het moment waarop hij getekend wordt (#238):
+    /// 59 seconden na de datum zegt hij iets anders dan 61 seconden erna, en een dag later zegt hij
+    /// "gisteren", zoals `.relative(presentation: .named)`.
+    @Test(arguments: [
+        ("nl", "59 seconden geleden", "1 minuut geleden", "gisteren"),
+        ("en", "59 seconds ago", "1 minute ago", "yesterday"),
+        ("de", "vor 59 Sekunden", "vor 1 Minute", "gestern"),
+        ("fr", "il y a 59 secondes", "il y a 1 minute", "hier"),
+    ])
+    func `RelativeDateText follows the time it is drawn at`(code: String, early: String, later: String, dayLater: String) throws {
+        let date = Self.item.detectedAt
+        let locale = Locale(identifier: code)
+        let nextDay = try #require(Calendar.current.date(byAdding: .day, value: 1, to: date))
+
+        #expect(RelativeDateText.text(for: date, at: date.addingTimeInterval(59), locale: locale) == early)
+        #expect(RelativeDateText.text(for: date, at: date.addingTimeInterval(61), locale: locale) == later)
+        #expect(RelativeDateText.text(for: date, at: nextDay, locale: locale) == dayLater)
+    }
+
     @Test func `AcknowledgementRow draws without a model in the environment`() {
         let component = Acknowledgement(
             id: "sparkle", name: "Sparkle", version: "2.10.1", license: "MIT AND BSD-2-Clause AND Zlib",

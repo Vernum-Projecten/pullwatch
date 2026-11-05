@@ -159,7 +159,7 @@ struct HistoryView: View {
             }
             .width(min: 100, ideal: 190)
             TableColumn("Wanneer", value: \.detectedAt) { item in
-                Text(item.detectedAt, format: .relative(presentation: .named))
+                RelativeDateText(date: item.detectedAt)
                     .help(item.detectedAt.formatted(date: .complete, time: .standard))
             }
             .width(min: 110, ideal: 150)
