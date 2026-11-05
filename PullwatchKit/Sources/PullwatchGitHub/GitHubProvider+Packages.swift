@@ -163,7 +163,7 @@ extension GitHubProvider {
             logRequest(url, type: nil, response: response, data: data, count: items.count)
             guard try Self.checkPackagesAccess(response) else { return [] }
             try HTTPStatus.check(response, now: now())
-            return Array(items.map(\.version).prefix(PublishedPackage.recentVersionLimit))
+            return PublishedPackage.recentVersions(items.map(\.version), version: \.version)
         } catch let refused as PackagesAccess {
             throw refused
         } catch {

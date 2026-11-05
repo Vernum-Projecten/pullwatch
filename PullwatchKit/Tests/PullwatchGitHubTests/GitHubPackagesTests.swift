@@ -162,6 +162,24 @@ import PullwatchTestSupport
         #expect(found.latestVersion == "1.20.0")
     }
 
+    @Test func `The stable release stays behind many newer pre-releases`() async throws {
+        let http = MockHTTPClient()
+        organization(http)
+        let betas = (1...12).reversed().map { version("3.0.0-beta.\($0)", type: "npm", at: "2026-10-\(10 + $0)T10:00:00Z") }
+        let versions = betas + [version("2.9.0", type: "npm", at: "2026-09-01T10:00:00Z")]
+        http.on("packages/npm/web/versions", body: "[\(versions.joined(separator: ","))]")
+        http.on("orgs/acme/packages?package_type=npm&", body: "[\(package("web", type: "npm", repo: "acme/web"))]")
+        http.on("orgs/acme/packages?package_type=", body: "[]")
+
+        let found = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(found.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(found.versions.first?.version == "3.0.0-beta.12")
+        #expect(found.versions.last?.version == "2.9.0")
+        #expect(found.releasedVersion == "2.9.0")
+        #expect(found.newestPrerelease == "3.0.0-beta.12")
+    }
+
     // MARK: - Versies van een image
 
     /// Een pagina van een image zoals ferroehr op ghcr.io: per push naar main een image met

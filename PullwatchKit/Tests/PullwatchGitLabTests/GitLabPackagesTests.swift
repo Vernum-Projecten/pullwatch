@@ -110,6 +110,23 @@ import PullwatchTestSupport
         #expect(urls(http).contains("\(api)groups/acme/packages?order_by=created_at&sort=desc&per_page=100&page=1"))
     }
 
+    @Test func `The stable release stays behind many newer pre-releases`() async throws {
+        let http = MockHTTPClient()
+        group(http)
+        http.on("groups/acme/registry/repositories", body: "[]")
+        let betas = (1...12).reversed().map { row("@acme/ui", version: "3.0.0-beta.\($0)", id: 100 + $0, created: "2026-10-\(10 + $0)T10:00:00.000Z") }
+        let rows = betas + [row("@acme/ui", version: "2.9.0", id: 1, created: "2026-09-01T10:00:00.000Z")]
+        http.on("groups/acme/packages", body: "[\(rows.joined(separator: ","))]")
+
+        let ui = try #require(try await makeProvider(http).publishedPackages(followedRepos: ["acme/web"]).packages.first)
+
+        #expect(ui.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(ui.versions.first?.version == "3.0.0-beta.12")
+        #expect(ui.versions.last?.version == "2.9.0")
+        #expect(ui.releasedVersion == "2.9.0")
+        #expect(ui.newestPrerelease == "3.0.0-beta.12")
+    }
+
     @Test func `Follows X-Next-Page through the packages of a group`() async throws {
         let http = MockHTTPClient()
         group(http)

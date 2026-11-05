@@ -37,6 +37,35 @@ import PullwatchTestSupport
         #expect(found.versions.first?.version == "1.0.0")
     }
 
+    // MARK: - Recente versies (#229)
+
+    @Test func `The stable release stays behind many newer pre-releases`() {
+        let betas = (1...12).reversed().map { PublishedVersion(version: "3.0.0-beta.\($0)") }
+        let found = package(versions: betas + [PublishedVersion(version: "2.9.0"), PublishedVersion(version: "2.8.0")])
+
+        #expect(found.versions.count == PublishedPackage.recentVersionLimit)
+        #expect(found.versions.first?.version == "3.0.0-beta.12")
+        #expect(found.versions.last?.version == "2.9.0", "de hoogste stabiele, niet de nieuwste stabiele die er niet bij past")
+        #expect(found.latestVersion == "3.0.0-beta.12")
+        #expect(found.releasedVersion == "2.9.0")
+        #expect(found.newestPrerelease == "3.0.0-beta.12")
+    }
+
+    @Test func `A stable release among the recent versions changes nothing`() {
+        let items = ["2.0.0-rc.1", "1.9.0"] + (0..<12).map { "1.\(8 - $0 / 2).\($0 % 2)" }
+        #expect(PublishedPackage.recentVersions(items) { $0 } == Array(items.prefix(PublishedPackage.recentVersionLimit)))
+    }
+
+    @Test func `Without a stable release only the first versions are kept`() {
+        let items = (1...12).reversed().map { "3.0.0-beta.\($0)" } + ["main"]
+        #expect(PublishedPackage.recentVersions(items) { $0 } == Array(items.prefix(PublishedPackage.recentVersionLimit)))
+    }
+
+    @Test func `The highest stable release wins, not the newest`() {
+        let items = (1...10).reversed().map { "3.0.0-beta.\($0)" } + ["2.8.1", "2.9.0"]
+        #expect(PublishedPackage.recentVersions(items) { $0 }.last == "2.9.0")
+    }
+
     @Test(arguments: [
         PublishedPackages.packages([]), .needsPermission(reason: "read:packages ontbreekt"), .notSupported,
         .failed(message: "Geen netwerk"),

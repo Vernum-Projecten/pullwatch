@@ -6,8 +6,9 @@ public import Foundation
 ///
 /// - Nieuwste versie: de hoogste stabiele versietag over alle gelezen images, op versievolgorde
 ///   (niet op datum), met de datum van zijn image; zonder stabiele versie de hoogste pre-release.
-/// - Recente versies: de nieuwste images met een versietag, hooguit `recentVersionLimit`, elk met
-///   zijn hoogste versietag, en `isLatestTag` op de image die ook `latest` draagt.
+/// - Recente versies: de nieuwste images met een versietag, hooguit `recentVersionLimit` en altijd
+///   met de hoogste stabiele (`PublishedPackage.recentVersions`), elk met zijn hoogste versietag, en
+///   `isLatestTag` op de image die ook `latest` draagt.
 /// - Geen versietag: de nieuwste zwevende tag (`main`), als `.floatingTag`; geen enkele tag:
 ///   `.untagged`.
 public struct ContainerVersions: Hashable, Sendable {
@@ -41,7 +42,7 @@ public struct ContainerVersions: Hashable, Sendable {
     /// - Parameter images: nieuwste eerst, zoals het register ze geeft.
     public init(images: [Image]) {
         let tagged = images.compactMap { image in image.versionTag.map { (image: image, tag: $0) } }
-        versions = tagged.prefix(PublishedPackage.recentVersionLimit).map { item in
+        versions = PublishedPackage.recentVersions(tagged, version: \.tag.name).map { item in
             PublishedVersion(
                 version: item.tag.name, publishedAt: item.image.publishedAt, webURL: item.image.webURL,
                 isLatestTag: item.image.carriesLatest
