@@ -44,8 +44,9 @@ notarisation, stapled to the app. Sparkle refuses an update without them.
 
 The app's executable ships without symbols. The Release configuration of
 the `Pullwatch` target strips it (`DEPLOYMENT_POSTPROCESSING`,
-`STRIP_INSTALLED_PRODUCT`, `STRIP_STYLE = all`) and links it with
-`-no_exported_symbols`, as `pullwatch-mcp` is stripped too; Debug builds
+`STRIP_INSTALLED_PRODUCT`, `STRIP_STYLE = all`) and links it without
+exported symbols (`LD_EXPORT_SYMBOLS = NO`, which passes
+`-no_exported_symbols`), as `pullwatch-mcp` is stripped too; Debug builds
 and the test host keep everything. The symbols live on in
 `build/Build/Products/Release/Pullwatch.app.dSYM`, which Xcode writes before
 it strips and which never goes into the `.dmg` or `.zip`. `release.yml`
