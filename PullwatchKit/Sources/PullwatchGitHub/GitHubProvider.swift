@@ -37,6 +37,9 @@ public actor GitHubProvider: PRProvider {
     /// De PR's (dedupKey) die bij de vorige vraag in de merge queue stonden, voor als een
     /// volgende vraag mislukt: dan blijven ze staan in plaats van even uit de rij te vallen.
     var knownMergeQueues: [String: MergeQueueEntry] = [:]
+    /// De open PR's (dedupKey) waarvan de laatste vraag niet zei of ze in de rij staan
+    /// (`PRProvider.unreadMergeQueues`).
+    var mergeQueueUnread: Set<String> = []
     /// Hoe het account inlogt: bepaalt welk recht er ontbreekt als GitHub iets weigert (een recht
     /// van de GitHub App, of een scope van het token).
     let authMethod: AuthMethod

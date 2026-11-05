@@ -196,6 +196,26 @@ public struct History: Codable, Equatable, Sendable {
             guard case .pullRequest(var pr) = items[index].entry, pr.state == .open,
                   let found = mergeQueues[pr.dedupKey], pr.mergeQueue != found else { continue }
             pr.mergeQueue = found
+            // Weer in de rij: het vorige uit de rij gaan telt niet meer.
+            if found != nil { pr.leftQueue = nil }
+            items[index].entry = .pullRequest(pr)
+            changed = true
+        }
+        return changed
+    }
+
+    /// Zet bij de PR's in de geschiedenis dat ze uit de rij gingen zonder te mergen
+    /// (`PullRequest.leftQueue`, per dedupKey), zonder volgorde of gelezen-status te veranderen;
+    /// voegt niets toe. Geeft `true` als er iets veranderde.
+    @discardableResult
+    public mutating func update(leftQueue: [PullRequest]) -> Bool {
+        let exits = Dictionary(leftQueue.compactMap { pr in pr.leftQueue.map { (pr.dedupKey, $0) } }, uniquingKeysWith: { _, last in last })
+        guard !exits.isEmpty else { return false }
+        var changed = false
+        for index in items.indices {
+            guard case .pullRequest(var pr) = items[index].entry, let exit = exits[pr.dedupKey], pr.leftQueue != exit else { continue }
+            pr.leftQueue = exit
+            pr.mergeQueue = nil
             items[index].entry = .pullRequest(pr)
             changed = true
         }

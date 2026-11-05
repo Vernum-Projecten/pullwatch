@@ -176,6 +176,7 @@ final class PollingModel {
             tags: result.newTags,
             completed: result.completedPullRequests,
             failedChecks: result.failedChecks,
+            leftQueue: result.leftQueue,
             settings: config.notifications,
             accounts: config.accounts
         )

@@ -41,6 +41,9 @@ public struct PullRequest: Codable, Hashable, Sendable {
     /// auto-complete); nil als hij er niet in staat of de dienst het niet weet. Telt alleen
     /// zolang de PR open is.
     public var mergeQueue: MergeQueueEntry?
+    /// Of de PR uit de rij ging zonder te mergen, wanneer en waarom (`MergeQueueExit`); weer in
+    /// de rij komen wist het. Telt alleen zolang de PR open is en niet in de rij staat.
+    public var leftQueue: MergeQueueExit?
 
     public init(
         accountId: UUID,
@@ -58,7 +61,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
         coAuthors: [Person] = [],
         revision: String? = nil,
         checks: PRChecks? = nil,
-        mergeQueue: MergeQueueEntry? = nil
+        mergeQueue: MergeQueueEntry? = nil,
+        leftQueue: MergeQueueExit? = nil
     ) {
         self.accountId = accountId
         self.repo = repo
@@ -76,11 +80,12 @@ public struct PullRequest: Codable, Hashable, Sendable {
         self.revision = revision
         self.checks = checks
         self.mergeQueue = mergeQueue
+        self.leftQueue = leftQueue
     }
 
     private enum CodingKeys: String, CodingKey {
         case accountId, repo, number, title, authorId, authorName, isDraft, createdAt, webURL, state, closedAt, coAuthors, revision, checks
-        case mergeQueue, authorAvatarURL
+        case mergeQueue, authorAvatarURL, leftQueue
     }
 
     /// Oude JSON heeft geen `state`/`closedAt`: dan is de PR open. Zonder `coAuthors` (van vóór de
@@ -106,7 +111,12 @@ public struct PullRequest: Codable, Hashable, Sendable {
         checks = try c.decodeIfPresent(PRChecks.self, forKey: .checks)
         // Ontbreekt in JSON van vóór de wachtrij.
         mergeQueue = try c.decodeIfPresent(MergeQueueEntry.self, forKey: .mergeQueue)
+        // Ontbreekt in JSON van vóór de melding "uit de rij".
+        leftQueue = try c.decodeIfPresent(MergeQueueExit.self, forKey: .leftQueue)
     }
+
+    /// Open, niet in de rij, en eerder uit de rij gegaan zonder te mergen.
+    public var hasLeftQueue: Bool { state == .open && mergeQueue == nil && leftQueue != nil }
 
     /// Open en in de rij om vanzelf te mergen. Een draft kan niet mergen en telt dus niet.
     public var isQueued: Bool { state == .open && !isDraft && mergeQueue != nil }

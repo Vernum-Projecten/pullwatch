@@ -36,6 +36,16 @@ struct NotificationSamples {
         )
     }
 
+    /// Een PR die uit de merge queue ging, met de reden van GitHub.
+    private var leftQueue: PullRequest {
+        PullRequest(
+            accountId: Self.accountId, repo: Self.repo, number: 44, title: "Move the settings to a sheet",
+            authorId: "hubot", authorName: "hubot", isDraft: false, createdAt: Date(timeIntervalSince1970: 1_790_200_000),
+            webURL: Self.web.appending(path: "pull/44"),
+            leftQueue: MergeQueueExit(kind: .mergeQueue, at: Date(timeIntervalSince1970: 1_790_300_000), reason: "The merge commit failed its checks")
+        )
+    }
+
     private var release: Tag {
         Tag(
             accountId: Self.accountId, repo: Self.repo, name: "v1.2.0", authorName: "mona",
@@ -99,6 +109,7 @@ struct NotificationSamples {
         case .pullRequest: builder.content(for: .pullRequest(pullRequest))
         case .merged: builder.content(for: .merged(merged))
         case .checksFailed: builder.content(for: .checksFailed(checksFailed))
+        case .leftQueue: builder.content(for: .leftQueue(leftQueue))
         case .release: builder.content(for: .tag(release))
         case .tag: builder.content(for: .tag(tag))
         case .vulnerability: builder.vulnerability(vulnerability)

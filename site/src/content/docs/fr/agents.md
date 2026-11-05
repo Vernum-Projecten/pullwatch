@@ -126,7 +126,7 @@ Les pull requests de l’historique, les plus récentes d’abord, avec leurs ch
 
 ### get_pull_request
 
-Une pull request : sa `reference`, état, brouillon, auteur et coauteurs, nombre de checks, place dans la file de fusion, lue ou non, dates et lien. Arguments : `repo` et `number` (obligatoires), `account_id`.
+Une pull request : sa `reference`, état, brouillon, auteur et coauteurs, nombre de checks, place dans la file de fusion, si elle a quitté la file sans être fusionnée (`left_queue`, avec la raison quand le service la donne), lue ou non, dates et lien. Arguments : `repo` et `number` (obligatoires), `account_id`.
 
 ```jsonc
 // get_pull_request {"repo":"acme/web","number":3}

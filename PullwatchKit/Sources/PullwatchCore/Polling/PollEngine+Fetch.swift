@@ -23,6 +23,7 @@ extension PollEngine {
                 userId = try await provider.currentUserId()
             }
             let pullRequests = try await provider.openPullRequests()
+            let unreadMergeQueues = await provider.unreadMergeQueues()
             var tags = TagOutcome(repos: tagRepos.account.tagRepos)
             if fetchTags {
                 tags = try await Self.fetchTags(provider, tagRepos)
@@ -44,6 +45,7 @@ extension PollEngine {
             return .success(Fetched(
                 userId: userId,
                 pullRequests: pullRequests,
+                unreadMergeQueues: unreadMergeQueues,
                 tags: tags.fetch?.tags,
                 tagRepos: tags.repos,
                 backfillTags: tags.backfill,

@@ -73,6 +73,27 @@ import Testing
         #expect(queued["merge_queue"] == ["kind": "merge_queue", "position": 1, "enqueued_at": "2026-11-03T10:00:00Z"])
     }
 
+    @Test func `A pull request that left the queue says so and why`() async throws {
+        let output = try await harness.output("get_pull_request", ["repo": "acme/web", "number": 6])
+
+        let pr = try #require(output["pull_request"])
+        #expect(pr["has_left_queue"] == true)
+        #expect(pr["is_queued"] == false)
+        #expect(pr["left_queue"] == [
+            "kind": "merge_queue", "at": "2026-11-03T10:00:00Z", "reason": "The merge commit failed its checks",
+        ])
+        let wire = try await harness.wire("get_pull_request", ["repo": "acme/web", "number": 6])
+        #expect(wire.contains("left the queue without merging: The merge commit failed its checks"))
+    }
+
+    @Test func `A pull request that never left a queue has no left_queue`() async throws {
+        let output = try await harness.output("get_pull_request", ["repo": "acme/web", "number": 3])
+
+        let pr = try #require(output["pull_request"])
+        #expect(pr["has_left_queue"] == false)
+        #expect(pr["left_queue"] == nil)
+    }
+
     @Test func `Pages through the list with limit and cursor`() async throws {
         let first = try await harness.output("list_pull_requests", ["state": "all", "limit": 3])
         #expect(numbers(first) == [1, 2, 3])

@@ -42,6 +42,9 @@ public actor PollEngine {
     struct Fetched {
         let userId: String
         let pullRequests: [PullRequest]
+        /// Open PR's (dedupKeys) waarvan niet te lezen was of ze in de rij staan
+        /// (`PRProvider.unreadMergeQueues`).
+        let unreadMergeQueues: Set<String>
         /// `nil` als tags deze cyclus niet aan de beurt waren of het ophalen mislukte.
         let tags: [Tag]?
         /// De repo's waarvan de tags opgehaald zijn; bij tags volgen als standaard uit de lijst
@@ -263,7 +266,22 @@ public actor PollEngine {
                     let checks = handleChecks(fetched, includeOwn: checksForOwnPullRequests, at: t)
                     result.checks.merge(checks.all) { _, new in new }
                     result.failedChecks += checks.failed
-                    for pr in fetched.pullRequests { result.mergeQueues[pr.dedupKey] = .some(pr.mergeQueue) }
+                    // Een PR waarvan de rij niet te lezen was houdt in de geschiedenis wat hij had.
+                    for pr in fetched.pullRequests where !fetched.unreadMergeQueues.contains(pr.dedupKey) {
+                        result.mergeQueues[pr.dedupKey] = .some(pr.mergeQueue)
+                    }
+                    var left = handleQueues(job.account, fetched, at: t)
+                    if !left.isEmpty {
+                        let exits = await job.provider.mergeQueueExits(of: left)
+                        left = left.compactMap { pr in
+                            guard !exits.notLeft.contains(pr.dedupKey) else { return nil }
+                            let reason = exits.reasons[pr.dedupKey]
+                            var pr = pr
+                            pr.leftQueue?.reason = reason
+                            return pr
+                        }
+                        result.leftQueue += left
+                    }
                     let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
                     result.newTags += fresh.tags
@@ -300,6 +318,7 @@ public actor PollEngine {
         result.syncedTags.sort { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
         result.failedChecks.sort { $0.createdAt < $1.createdAt }
+        result.leftQueue.sort { $0.createdAt < $1.createdAt }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
         return result
     }
@@ -363,6 +382,38 @@ public actor PollEngine {
             state.checks[pr.dedupKey]?.at = t
         }
         return (all, failed)
+    }
+
+    /// Onthoudt welke open PR's in de rij staan en geeft de PR's die sinds de vorige poll uit de
+    /// rij gingen zonder te mergen: de vorige poll zag hem in de rij, nu is hij open, geen draft
+    /// en niet in de rij, en de lijst toont hem (`PRFilter`). Een PR die niet meer in de open
+    /// lijst staat is gemerged of gesloten: die meldt nooit (dat doet de melding Gemerged) en zijn
+    /// stand gaat weg. Een PR waarvan de rij niet te lezen was (`unreadMergeQueues`) houdt zijn
+    /// vorige stand. Zonder vorige stand (nieuw, of de eerste poll na een update) meldt niets.
+    private func handleQueues(_ account: Account, _ fetched: Fetched, at t: Date) -> [PullRequest] {
+        let prefix = "\(account.id.uuidString):"
+        let open = Set(fetched.pullRequests.map(\.dedupKey))
+        state.queued = state.queued.filter { !$0.key.hasPrefix(prefix) || open.contains($0.key) }
+        var left: [PullRequest] = []
+        for pr in fetched.pullRequests {
+            let key = pr.dedupKey
+            if fetched.unreadMergeQueues.contains(key) {
+                state.queued[key]?.at = t
+                continue
+            }
+            let previous = state.queued[key]
+            if pr.state == .open, !pr.isDraft, let entry = pr.mergeQueue {
+                state.queued[key] = QueueMark(kind: entry.kind, at: t)
+                continue
+            }
+            state.queued[key] = nil
+            guard let previous, pr.state == .open, !pr.isDraft else { continue }
+            var shown = withDetails(pr)
+            guard PRFilter.passes(shown, settings: account.filterSettings, currentUserId: fetched.userId) else { continue }
+            shown.leftQueue = MergeQueueExit(kind: previous.kind, at: t)
+            left.append(shown)
+        }
+        return left
     }
 
     private func handleSuccess(

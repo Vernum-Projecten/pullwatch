@@ -117,8 +117,10 @@ struct PRDetailQuery: Encodable {
         let checks: Bool
         /// Of de PR in de merge queue staat en op welke plek (`GitHubProvider+MergeQueue`).
         var mergeQueue = false
+        /// Waarom de PR net uit deze rij ging, met zijn stand nu (`GitHubProvider.mergeQueueExits`).
+        var queueExit: MergeQueueEntry.Kind?
 
-        var withoutChecks: Wanted { Wanted(pr: pr, coAuthors: coAuthors, checks: false, mergeQueue: mergeQueue) }
+        var withoutChecks: Wanted { Wanted(pr: pr, coAuthors: coAuthors, checks: false, mergeQueue: mergeQueue, queueExit: queueExit) }
     }
 
     enum Variable: Encodable {
@@ -152,7 +154,16 @@ struct PRDetailQuery: Encodable {
                     """)
             }
             if item.mergeQueue {
-                selections.append("isInMergeQueue mergeQueueEntry { state position enqueuedAt }")
+                // `state` en `isDraft` zijn verser dan de zoek-API: een PR die net gemerged is staat
+                // daar soms nog open. `autoMergeRequest`: auto-merge zonder merge queue.
+                selections.append("state isDraft isInMergeQueue mergeQueueEntry { state position enqueuedAt } autoMergeRequest { enabledAt }")
+            }
+            if let kind = item.queueExit {
+                let type = kind == .autoMerge ? "AUTO_MERGE_DISABLED_EVENT" : "REMOVED_FROM_MERGE_QUEUE_EVENT"
+                selections.append("""
+                    state isInMergeQueue autoMergeRequest { enabledAt } queueExit: timelineItems(last: 1, itemTypes: [\(type)]) { \
+                    nodes { ... on RemovedFromMergeQueueEvent { reason } ... on AutoMergeDisabledEvent { reason } } }
+                    """)
             }
             if selections.isEmpty { selections.append("number") }
             fields.append("""
@@ -175,8 +186,13 @@ struct PRDetailQuery: Encodable {
         struct PullRequestNode: Decodable {
             let commits: Commits?
             let headCommit: HeadCommits?
+            let state: String?
+            let isDraft: Bool?
             let isInMergeQueue: Bool?
             let mergeQueueEntry: MergeQueueEntryNode?
+            let autoMergeRequest: AutoMergeRequestNode?
+            /// De laatste `RemovedFromMergeQueueEvent` of `AutoMergeDisabledEvent`.
+            let queueExit: QueueExitEvents?
 
             /// De telling over alle check-runs en commit-statussen van de laatste commit; zonder
             /// checks (`statusCheckRollup` is dan `null`) een lege telling.
@@ -198,6 +214,11 @@ struct PRDetailQuery: Encodable {
             let position: Int?
             let enqueuedAt: String?
         }
+        /// `AutoMergeRequest`: auto-merge staat aan, sinds `enabledAt`.
+        struct AutoMergeRequestNode: Decodable { let enabledAt: String? }
+        struct QueueExitEvents: Decodable { let nodes: [QueueExitEvent?]? }
+        /// `RemovedFromMergeQueueEvent.reason` of `AutoMergeDisabledEvent.reason`: tekst van GitHub.
+        struct QueueExitEvent: Decodable { let reason: String? }
         struct Commits: Decodable { let nodes: [CommitNode] }
         struct CommitNode: Decodable { let commit: Commit }
         struct Commit: Decodable { let authors: Authors }

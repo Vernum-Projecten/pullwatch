@@ -39,6 +39,10 @@ public struct PollResult: Equatable, Sendable {
     /// (`PullRequest.mergeQueue`), per dedupKey; `nil` als waarde: niet (meer) in de rij. Om de
     /// geschiedenis bij te werken, niet voor meldingen: in de rij komen meldt niets.
     public var mergeQueues: [String: MergeQueueEntry?] = [:]
+    /// Open PR's die sinds de vorige poll uit de rij gingen zonder te mergen, met
+    /// `PullRequest.leftQueue` (en de reden als de dienst die gaf), gesorteerd op `createdAt`.
+    /// Voor de melding "Uit de rij" en de geschiedenis.
+    public var leftQueue: [PullRequest] = []
 }
 
 /// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account
