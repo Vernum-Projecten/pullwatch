@@ -150,6 +150,13 @@ jobs:
           name: dist
           path: dist/
           if-no-files-found: error
+      # The symbols of the stripped app (#230), for symbolicating a crash
+      # report; not a file of the release itself.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dsym
+          path: build/Build/Products/Release/Pullwatch.app.dSYM/
+          if-no-files-found: error
       - name: remove the keychain
         if: always()
         run: security delete-keychain "$RUNNER_TEMP/release.keychain-db" 2>/dev/null || true

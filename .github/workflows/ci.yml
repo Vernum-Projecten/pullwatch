@@ -145,6 +145,32 @@ jobs:
               [[ " $archs " == *" $arch "* ]] || { echo "$binary has no $arch slice" >&2; exit 1; }
             done
           done
+      # The Release app ships without its symbol table (#230): the dSYM next
+      # to the app keeps them for crash reports, and stays out of the files.
+      - name: the app binary is stripped and the dSYM stays out
+        run: |
+          products=build/Build/Products/Release
+          binary="$products/Pullwatch.app/Contents/MacOS/Pullwatch"
+          echo "$binary: $(stat -f %z "$binary") bytes"
+          for arch in arm64 x86_64; do
+            locals="$(nm -a -arch "$arch" "$binary" | awk 'NF == 3 && $2 ~ /^[tdbs]$/' | wc -l | tr -d ' ')"
+            exported="$(nm -gU -arch "$arch" "$binary" | wc -l | tr -d ' ')"
+            echo "$arch: $locals local symbols, $exported exported symbols"
+            [ "$locals" -le 10 ] || { echo "the $arch slice still has a local symbol table" >&2; exit 1; }
+          done
+          test -d "$products/Pullwatch.app.dSYM" || { echo "no Pullwatch.app.dSYM" >&2; exit 1; }
+          if unzip -l dist/Pullwatch-*.zip | grep -F ".dSYM"; then
+            echo "a dSYM is in the zip" >&2
+            exit 1
+          fi
+          mount="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" dist/Pullwatch-*.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          if find "$mount" -name '*.dSYM' | grep .; then
+            echo "a dSYM is in the disk image" >&2
+            exit 1
+          fi
+          ls -l dist/
       # The helper an agent starts (pullwatch-mcp, #142) ships in both files,
       # with hardened runtime and its own identifier.
       - name: the helper is in the disk image and the zip
