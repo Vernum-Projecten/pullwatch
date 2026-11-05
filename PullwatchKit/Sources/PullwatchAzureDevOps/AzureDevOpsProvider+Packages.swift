@@ -14,6 +14,10 @@ private let logger = Log(category: "Packages")
 /// de feed uit een upstream (npmjs.com, nuget.org) bewaarde, is niet van jou en valt weg. Alleen
 /// in de dagelijkse versiecheck.
 ///
+/// Azure noemt de hoogste versie `isLatest`, ook een pre-release. Is die versie een pre-release,
+/// dan volgen de versies van dat package (`…/Packages/{id}/versions`), zodat de hoogste stabiele
+/// release de nieuwste versie is en de pre-release alleen genoemd wordt, zoals bij een image (#219).
+///
 /// Een PAT leest dit met het recht Packaging (Read); het token van `az` kan het als het account de
 /// feeds mag lezen. Een 401 of 403 is daarom `.needsPermission`, nooit een mislukte check; een 404
 /// (geen Azure Artifacts, of een feed die weg is) is leeg.
@@ -112,30 +116,95 @@ extension AzureDevOpsProvider {
             logFeedsRequest(url, response: response, data: data, count: page.count)
             guard try Self.feedsAccess(response) else { break }
             try HTTPStatus.check(response, now: now())
-            result += page.compactMap { package(from: $0, feed: feed) }
+            for dto in page {
+                if let package = try await package(from: dto, feed: feed) { result.append(package) }
+            }
             if page.count < pageSize { break }
             skip += pageSize
         }
         return result
     }
 
-    private func package(from dto: FeedPackageDTO, feed: FeedDTO) -> PublishedPackage? {
-        let versions = dto.versions ?? []
-        guard let latest = versions.first(where: { $0.isLatest == true }) ?? versions.first,
+    private func package(from dto: FeedPackageDTO, feed: FeedDTO) async throws -> PublishedPackage? {
+        let listed = dto.versions ?? []
+        guard let latest = listed.first(where: { $0.isLatest == true }) ?? listed.first,
               latest.isDeleted != true,
               // Bewaard uit een upstream (npmjs.com, nuget.org, een andere feed): niet van jou.
               latest.directUpstreamSourceId == nil else { return nil }
         let type = Self.packageType(protocolType: dto.protocolType)
-        var page = baseURL
-        if let project = feed.project?.name { page = page.appending(path: project) }
-        // De pagina van de versie in Azure Artifacts; een "/" in de naam (npm-scope) wordt %2F.
-        page = page.appending(path: "_artifacts/feed").appending(component: feed.name).appending(component: dto.protocolType)
-            .appending(component: dto.name).appending(path: "overview").appending(component: latest.version)
+        var base = baseURL
+        if let project = feed.project?.name { base = base.appending(path: project) }
+        // De pagina van een versie in Azure Artifacts; een "/" in de naam (npm-scope) wordt %2F.
+        let page = { (version: String) in
+            base.appending(path: "_artifacts/feed").appending(component: feed.name).appending(component: dto.protocolType)
+                .appending(component: dto.name).appending(path: "overview").appending(component: version)
+        }
+        // Azure noemt de hoogste versie `isLatest`, ook als dat een pre-release is (#219). Dan de
+        // versies van het package, zodat de hoogste stabiele release de nieuwste versie is en de
+        // pre-release alleen genoemd wordt (`releasedVersion`, `newestPrerelease`), zoals bij een
+        // image. Zonder stabiele versie blijft de pre-release de nieuwste versie.
+        var versions = [latest]
+        var readFailed = false
+        if Version(latest.version)?.isPrerelease == true, let id = dto.id {
+            if let all = try await allVersions(of: id, in: feed) {
+                versions = Self.recentVersions(all, latest: latest)
+            } else {
+                readFailed = true
+            }
+        }
+        let published = versions.map { version in
+            PublishedVersion(version: version.version, publishedAt: version.publishDate.flatMap(DateParsing.parse), webURL: page(version.version))
+        }
+        // De pagina van het package is die van de versie die als nieuwste telt: de hoogste
+        // stabiele (de versies staan hoogste eerst), anders `latest`.
+        let shown = versions.first { Version($0.version)?.isPrerelease == false }?.version ?? latest.version
         return PublishedPackage(
             accountId: accountId, name: dto.name, type: type, owner: feed.project?.name ?? organization, repository: nil,
-            webURL: page,
-            versions: [PublishedVersion(version: latest.version, publishedAt: latest.publishDate.flatMap(DateParsing.parse), webURL: page)]
+            webURL: page(shown), versions: published, versionsReadFailed: readFailed
         )
+    }
+
+    /// Alle versies van één package in een feed (Artifact Details - Get Package Versions). Leeg bij
+    /// een 404; nil als het lezen mislukte (een 5xx, een time-out, een antwoord dat niet te lezen
+    /// is), een mislukking van dit package, gelogd (#215). Een recht dat ontbreekt gaat door.
+    private func allVersions(of packageId: String, in feed: FeedDTO) async throws -> [FeedPackageDTO.Version]? {
+        var base = feedsBaseURL
+        if let project = feed.project?.name { base = base.appending(path: project) }
+        let url = base.appending(path: "_apis/packaging/Feeds").appending(path: feed.id).appending(path: "Packages")
+            .appending(path: packageId).appending(path: "versions")
+        do {
+            let (data, response) = try await send(url, apiVersion: "7.1", query: [
+                URLQueryItem(name: "includeUrls", value: "false"),
+                URLQueryItem(name: "isDeleted", value: "false"),
+            ])
+            let versions = (200..<300).contains(response.statusCode) && response.statusCode != 203
+                ? try JSONDecoding.decode(ValueList<FeedPackageDTO.Version>.self, from: data).value : []
+            logFeedsRequest(url, response: response, data: data, count: versions.count)
+            guard try Self.feedsAccess(response) else { return [] }
+            try HTTPStatus.check(response, now: now())
+            return versions
+        } catch FeedsDenied.needsPermission {
+            throw FeedsDenied.needsPermission
+        } catch {
+            let message = (error as? ProviderError)?.userMessage ?? error.localizedDescription
+            logger.error("\(packagesLogPrefix): \(url.path(percentEncoded: true)) versies niet te lezen: \(message)")
+            return nil
+        }
+    }
+
+    /// De recente versies van eigen makelij, hoogste eerst, hooguit `recentVersionLimit`, met
+    /// `latest` erbij en altijd de hoogste stabiele release, ook achter veel pre-releases.
+    static func recentVersions(_ all: [FeedPackageDTO.Version], latest: FeedPackageDTO.Version) -> [FeedPackageDTO.Version] {
+        var seen: Set<String> = []
+        let own = ([latest] + all.filter { $0.isDeleted != true && $0.directUpstreamSourceId == nil })
+            .filter { seen.insert($0.version).inserted }
+            .compactMap { item in Version(item.version).map { (item: item, version: $0) } }
+            .sorted { $0.version > $1.version }
+        var recent = Array(own.prefix(PublishedPackage.recentVersionLimit))
+        if let stable = own.first(where: { !$0.version.isPrerelease }), !recent.contains(where: { $0.item.version == stable.item.version }) {
+            recent[recent.count - 1] = stable
+        }
+        return recent.isEmpty ? [latest] : recent.map(\.item)
     }
 
     /// false: niets te lezen (404). Gooit `needsPermission` bij 401 en bij een 403 die geen rate
@@ -202,6 +271,7 @@ struct FeedPackageDTO: Decodable {
         let directUpstreamSourceId: String?
     }
 
+    let id: String?
     let name: String
     let protocolType: String
     let versions: [Version]?
