@@ -120,6 +120,25 @@ private struct Harness {
         #expect(result.quietPullRequests.isEmpty)
     }
 
+    /// Met "Draft-PR's tonen" uit komt een draft nergens; klaar voor review meldt hij als nieuwe PR.
+    @Test func `A hidden draft arrives once it is ready for review`() async {
+        let account = Account.fixture(showDrafts: false)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        let hidden = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(hidden.newPullRequests.isEmpty)
+        #expect(hidden.quietPullRequests.isEmpty)
+
+        let ready = PullRequest.fixture(accountId: account.id, number: 1, isDraft: false)
+        await h.provider(account).set(pullRequests: [ready])
+        h.clock.advance(120)
+        #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).newPullRequests == [ready])
+    }
+
     @Test func draftBecomingReadyForReviewNotifies() async {
         let account = Account.fixture(includeDrafts: false)
         let h = Harness(accounts: [account])

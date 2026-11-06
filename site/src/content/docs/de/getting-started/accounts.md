@@ -68,7 +68,7 @@ Jedes Konto listet seine Repositories. Hake pro Repository an, was du möchtest:
 - **Tags**: neue Tags und bei GitHub, GitLab, Codeberg, Forgejo und Gitea die Releases dazu. Tags sind standardmäßig aus.
 - **Gemergt**: Pull Requests, die gemergt werden.
 
-Neben jedem Haken ist eine Glocke. Schalte sie aus, um ein Repository ohne Mitteilungen im Menü und im Verlauf zu behalten. Die Glocke in der Kopfzeile schaltet alle sichtbaren Repositories auf einmal. Entwurfs-Pull-Requests stehen immer im Menü und im Verlauf, mit dem Entwurfssymbol. Pro Konto kannst du dir außerdem einen neuen Entwurf mitteilen lassen (**Bei Entwurfs-PRs mitteilen**; ist das aus, meldet sich ein Entwurf, sobald er bereit zum Review ist), deine eigenen ausblenden und das ganze Konto eine Weile ausschalten.
+Neben jedem Haken ist eine Glocke. Schalte sie aus, um ein Repository ohne Mitteilungen im Menü und im Verlauf zu behalten. Die Glocke in der Kopfzeile schaltet alle sichtbaren Repositories auf einmal. Entwurfs-Pull-Requests stehen mit dem Entwurfssymbol im Menü und im Verlauf, wie auf GitHub. Pro Konto schaltest du das mit **Entwurfs-PRs anzeigen** aus: Entwürfe erscheinen dann nirgends, und ein Pull Request kommt an, sobald er bereit zum Review ist. Mit **Bei Entwurfs-PRs mitteilen** gibt ein neuer Entwurf auch eine Mitteilung. Du kannst außerdem deine eigenen Pull Requests ausblenden und das ganze Konto eine Weile ausschalten.
 
 ## Repositories außerhalb deines Kontos
 

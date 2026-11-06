@@ -6668,6 +6668,34 @@
         }
       }
     },
+    "Draft-PR's tonen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurfs-PRs anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show draft PRs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les PR brouillons"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft-PR's tonen"
+          }
+        }
+      }
+    },
     "Draft-merge requests melden": {
       "localizations": {
         "de": {
@@ -6696,30 +6724,30 @@
         }
       }
     },
-    "Drafts staan altijd in het menu en de geschiedenis; melden geeft ook een melding bij een nieuwe draft. Verbergen geldt overal.": {
+    "Draft-merge requests tonen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwürfe stehen immer im Menü und im Verlauf; mitteilen schickt auch eine Mitteilung bei einem neuen Entwurf. Ausblenden gilt überall."
+            "value": "Entwurfs-Merge-Requests anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Drafts always appear in the menu and the history; notifying also sends a notification for a new draft. Hiding applies everywhere."
+            "value": "Show draft merge requests"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les brouillons figurent toujours dans le menu et l’historique ; notifier envoie aussi une notification pour un nouveau brouillon. Masquer s’applique partout."
+            "value": "Afficher les merge requests en brouillon"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Drafts staan altijd in het menu en de geschiedenis; melden geeft ook een melding bij een nieuwe draft. Verbergen geldt overal."
+            "value": "Draft-merge requests tonen"
           }
         }
       }
@@ -22294,6 +22322,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sans tag"
+          }
+        }
+      }
+    },
+    "Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Anzeigen erscheinen Entwürfe nirgends, und ein Entwurf kommt an, sobald er bereit zum Review ist. Ausblenden gilt überall."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without showing, drafts appear nowhere and a draft arrives once it is ready for review. Hiding applies everywhere."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans affichage, les brouillons n’apparaissent nulle part et un brouillon arrive dès qu’il est prêt pour la revue. Masquer s’applique partout."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal."
           }
         }
       }
