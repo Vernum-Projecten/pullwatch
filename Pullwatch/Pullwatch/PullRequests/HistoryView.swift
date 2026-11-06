@@ -103,7 +103,7 @@ struct HistoryView: View {
             // Een PR in de rij heeft zijn plek erachter (`#2`), zoals het nummer: de kolom is
             // dan breder, alleen als er zo'n PR in de lijst staat.
             TableColumn(Text(verbatim: ""), value: \.glyphSortKey) { item in
-                HStack(spacing: 4) {
+                HStack(spacing: 2) {
                     item.entry.glyph.image
                         .foregroundStyle(item.entry.glyphColor)
                         .help(Text(item.entry.glyphLabel))
@@ -114,7 +114,7 @@ struct HistoryView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: hasQueuePositions ? .leading : .center)
             }
-            .width(hasQueuePositions ? 50 : 24)
+            .width(hasQueuePositions ? 38 : 24)
             // De checks (CI) naast de status, ook als GitHub: een icoon in de kleur van de stand
             // en "4/8". Alleen bij PR's, en niet als de bron CI-checks uit staat; zonder checks een lege cel.
             if kind == .pullRequest, accounts.config.isEnabled(.ciChecks) {
