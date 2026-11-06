@@ -165,6 +165,23 @@ import Testing
         #expect(HistoryEntry.pullRequest(pr(.open, draft: true)).glyph == PRStatus.draft.glyph)
     }
 
+    /// De plek (`#2`) staat achter het icoon alleen bij een PR die echt in de rij staat en
+    /// waarvan de dienst de plek geeft; niet bij auto-merge, een draft of zonder plek.
+    @Test(arguments: [
+        (MergeQueueEntry(kind: .mergeQueue, position: 2), false, 2),
+        (MergeQueueEntry(kind: .mergeTrain, position: 1), false, 1),
+        (MergeQueueEntry(kind: .mergeQueue), false, nil),
+        (MergeQueueEntry(kind: .autoMerge, position: 3), false, nil),
+        (MergeQueueEntry(kind: .mergeQueue, position: 2), true, nil),
+    ] as [(MergeQueueEntry, Bool, Int?)])
+    func `Only a queued pull request shows its position`(entry: MergeQueueEntry, isDraft: Bool, position: Int?) {
+        let pr = PullRequest(
+            accountId: UUID(), repo: "r", number: 1, title: "t", authorId: "a", authorName: "a",
+            isDraft: isDraft, createdAt: .now, webURL: URL(string: "https://example.com")!, mergeQueue: entry
+        )
+        #expect(HistoryEntry.pullRequest(pr).queuePosition == position)
+    }
+
     /// Een open PR in de rij om vanzelf te mergen is Queued, met de Octicon git-merge-queue en
     /// zijn plek in de tooltip; een draft blijft een draft en een gemergde PR gemerged.
     @Test func `A pull request in the merge queue is queued`() {

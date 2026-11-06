@@ -37,6 +37,10 @@ import Testing
         #expect(draws(PullRequestRow(item: Self.item, kind: .gitHub, showsChecks: showsChecks)))
     }
 
+    @Test func `QueuePositionText draws without a model in the environment`() {
+        #expect(draws(QueuePositionText(position: 2)))
+    }
+
     @Test(arguments: ProviderKind.allCases)
     func `RepoReferenceLabel draws without a model in the environment`(kind: ProviderKind) {
         #expect(draws(RepoReferenceLabel(entry: Self.item.entry, kind: kind)))

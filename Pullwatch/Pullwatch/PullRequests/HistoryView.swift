@@ -45,6 +45,11 @@ struct HistoryView: View {
         Query(text: searchText, tokens: tokens, sortOrder: sortOrder, tagFilter: kind == .tag ? tagFilter : .all)
     }
 
+    /// Of een rij een plek in de rij toont; dan krijgt de icoonkolom ruimte voor `#2`.
+    private var hasQueuePositions: Bool {
+        rows.contains { $0.entry.queuePosition != nil }
+    }
+
     private func recompute() {
         let authors = Set(tokens.compactMap { if case .author(let name) = $0 { name } else { nil } })
         let repos = tokens.compactMap { if case .repo(let repo) = $0 { repo } else { nil } }
@@ -95,14 +100,21 @@ struct HistoryView: View {
             // Zoals de PR-lijst van GitHub: alleen een icoon, zonder tekst. De vorm verschilt per
             // soort en status, dus de betekenis hangt niet aan de kleur; tooltip en VoiceOver
             // zeggen het in woorden.
+            // Een PR in de rij heeft zijn plek erachter (`#2`), zoals het nummer: de kolom is
+            // dan breder, alleen als er zo'n PR in de lijst staat.
             TableColumn(Text(verbatim: ""), value: \.glyphSortKey) { item in
-                item.entry.glyph.image
-                    .foregroundStyle(item.entry.glyphColor)
-                    .frame(maxWidth: .infinity)
-                    .help(Text(item.entry.glyphLabel))
-                    .accessibilityLabel(Text(item.entry.glyphLabel))
+                HStack(spacing: 4) {
+                    item.entry.glyph.image
+                        .foregroundStyle(item.entry.glyphColor)
+                        .help(Text(item.entry.glyphLabel))
+                        .accessibilityLabel(Text(item.entry.glyphLabel))
+                    if let position = item.entry.queuePosition {
+                        QueuePositionText(position: position)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: hasQueuePositions ? .leading : .center)
             }
-            .width(24)
+            .width(hasQueuePositions ? 50 : 24)
             // De checks (CI) naast de status, ook als GitHub: een icoon in de kleur van de stand
             // en "4/8". Alleen bij PR's, en niet als de bron CI-checks uit staat; zonder checks een lege cel.
             if kind == .pullRequest, accounts.config.isEnabled(.ciChecks) {

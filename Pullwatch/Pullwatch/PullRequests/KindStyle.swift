@@ -197,6 +197,13 @@ nonisolated extension HistoryEntry {
         }
     }
 
+    /// De plek in de merge queue of merge train, alleen als de PR echt in de rij staat en de
+    /// dienst de plek geeft (GitHub, GitLab); nil voor al het andere.
+    var queuePosition: Int? {
+        guard prStatus == .queued, case .pullRequest(let pr) = self else { return nil }
+        return pr.mergeQueue?.position
+    }
+
     /// Het icoon van dit item: dat van zijn PR-status, of het tag-symbool.
     var glyph: Glyph { prStatus?.glyph ?? kind.glyph }
 
@@ -207,7 +214,7 @@ nonisolated extension HistoryEntry {
     /// het VoiceOver-label waar het icoon zonder tekst staat. In de rij met de plek erbij, als
     /// de dienst die geeft ("Pull request, in de wachtrij, plek 2").
     var glyphLabel: LocalizedStringResource {
-        if prStatus == .queued, case .pullRequest(let pr) = self, let position = pr.mergeQueue?.position {
+        if let position = queuePosition {
             return "Pull request, in de wachtrij, plek \(position)"
         }
         return prStatus?.spokenName ?? kind.pillText
