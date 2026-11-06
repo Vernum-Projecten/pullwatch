@@ -93,6 +93,33 @@ private struct Harness {
         #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).newPullRequests.isEmpty)
     }
 
+    /// Met "Draft-PR's melden" uit komt een nieuwe draft gelezen in de lijst, zonder melding.
+    @Test func `A new draft is listed quietly while drafts do not notify`() async {
+        let account = Account.fixture(includeDrafts: false)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        let result = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(result.newPullRequests.isEmpty)
+        #expect(result.quietPullRequests == [draft])
+    }
+
+    @Test func `A new draft notifies while drafts notify`() async {
+        let account = Account.fixture(includeDrafts: true)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        let result = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(result.newPullRequests == [draft])
+        #expect(result.quietPullRequests.isEmpty)
+    }
+
     @Test func draftBecomingReadyForReviewNotifies() async {
         let account = Account.fixture(includeDrafts: false)
         let h = Harness(accounts: [account])

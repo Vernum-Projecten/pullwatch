@@ -68,7 +68,7 @@ Elk account toont zijn repositories. Vink per repository aan wat je wilt:
 - **Tags**: nieuwe tags, en op GitHub, GitLab, Codeberg, Forgejo en Gitea de releases die erbij gemaakt zijn. Tags staan standaard uit.
 - **Gemerged**: pull requests die gemerged worden.
 
-Naast elk vinkje staat een bel. Zet die uit om een repository in het menu en de geschiedenis te houden zonder meldingen. De bel in de kop zet alle zichtbare repositories in één keer om. Per account kun je ook draft-pull requests meenemen, je eigen pull requests verbergen, en het hele account een tijdje uitzetten.
+Naast elk vinkje staat een bel. Zet die uit om een repository in het menu en de geschiedenis te houden zonder meldingen. De bel in de kop zet alle zichtbare repositories in één keer om. Draft-pull requests staan altijd in het menu en de geschiedenis, met het draft-icoon. Per account kun je ook een melding krijgen bij een nieuwe draft (**Draft-PR's melden**; staat dat uit, dan meldt een draft zodra hij klaar is voor review), je eigen pull requests verbergen, en het hele account een tijdje uitzetten.
 
 ## Repositories buiten je account
 

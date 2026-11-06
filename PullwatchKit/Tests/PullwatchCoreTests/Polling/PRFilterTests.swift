@@ -20,10 +20,16 @@ import PullwatchTestSupport
         #expect(PRFilter.follows(repo: "proj/myrepo", settings: s))
     }
 
-    @Test func draftsHiddenUnlessIncluded() {
+    /// Zoals GitHub staan drafts altijd in de lijst; "Draft-PR's melden" beslist alleen over de melding.
+    @Test func `Drafts are always listed and only notify when included`() {
         let draft = PullRequest.fixture(isDraft: true)
-        #expect(!PRFilter.passes(draft, settings: Account.fixture().filterSettings, currentUserId: "me"))
-        #expect(PRFilter.passes(draft, settings: Account.fixture(includeDrafts: true).filterSettings, currentUserId: "me"))
+        let off = Account.fixture().filterSettings
+        let on = Account.fixture(includeDrafts: true).filterSettings
+        #expect(PRFilter.passes(draft, settings: off, currentUserId: "me"))
+        #expect(PRFilter.passes(draft, settings: on, currentUserId: "me"))
+        #expect(!PRFilter.notifies(draft, settings: off))
+        #expect(PRFilter.notifies(draft, settings: on))
+        #expect(PRFilter.notifies(.fixture(), settings: off), "een PR die klaar is meldt altijd")
     }
 
     @Test func ownPullRequestsHiddenWhenHideOwn() {

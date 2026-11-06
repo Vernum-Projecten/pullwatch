@@ -1,0 +1,2 @@
+- Draft pull requests now always appear in the PR list, the repository pages, the menu and the statistics, with the draft icon, as on GitHub. The account switch is now **Notify about draft PRs** and only decides whether a new draft gives a notification; with it off, a draft notifies once it is ready for review, as before.
+- A pull request that changes between draft and ready for review now changes its icon too; the history kept the state it first saw.

@@ -409,16 +409,16 @@ struct AccountEditor: View {
             Section {
                 // GitLab noemt ze merge requests, dus hier ook.
                 if draft.kind == .gitLab {
-                    Toggle("Draft-merge requests meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Draft-merge requests melden", isOn: $draft.includeDrafts)
                     Toggle("Eigen merge requests verbergen", isOn: $draft.hideOwn)
                 } else {
-                    Toggle("Draft-PR's meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Draft-PR's melden", isOn: $draft.includeDrafts)
                     Toggle("Eigen PR's verbergen", isOn: $draft.hideOwn)
                 }
             } header: {
                 Text(draft.kind == .gitLab ? "Welke merge requests tellen mee" : "Welke PR's tellen mee")
             } footer: {
-                Text("Geldt overal: in het menu, de geschiedenis en de meldingen.")
+                Text("Drafts staan altijd in het menu en de geschiedenis; melden geeft ook een melding bij een nieuwe draft. Verbergen geldt overal.")
             }
 
             if draft.isComplete {

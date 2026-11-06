@@ -6640,52 +6640,86 @@
         }
       }
     },
-    "Draft-PR's meenemen": {
+    "Draft-PR's melden": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwurfs-PRs einbeziehen"
+            "value": "Bei Entwurfs-PRs mitteilen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Include draft PRs"
+            "value": "Notify about draft PRs"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inclure les PR brouillons"
+            "value": "Notifier les PR brouillons"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draft-PR's meenemen"
+            "value": "Draft-PR's melden"
           }
         }
       }
     },
-    "Draft-merge requests meenemen": {
+    "Draft-merge requests melden": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwurfs-Merge-Requests einbeziehen"
+            "value": "Bei Entwurfs-Merge-Requests mitteilen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Include draft merge requests"
+            "value": "Notify about draft merge requests"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inclure les merge requests en brouillon"
+            "value": "Notifier les merge requests en brouillon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft-merge requests melden"
+          }
+        }
+      }
+    },
+    "Drafts staan altijd in het menu en de geschiedenis; melden geeft ook een melding bij een nieuwe draft. Verbergen geldt overal.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwürfe stehen immer im Menü und im Verlauf; mitteilen schickt auch eine Mitteilung bei einem neuen Entwurf. Ausblenden gilt überall."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drafts always appear in the menu and the history; notifying also sends a notification for a new draft. Hiding applies everywhere."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les brouillons figurent toujours dans le menu et l’historique ; notifier envoie aussi une notification pour un nouveau brouillon. Masquer s’applique partout."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drafts staan altijd in het menu en de geschiedenis; melden geeft ook een melding bij een nieuwe draft. Verbergen geldt overal."
           }
         }
       }
@@ -8562,28 +8596,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copié"
-          }
-        }
-      }
-    },
-    "Geldt overal: in het menu, de geschiedenis en de meldingen.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gilt überall: im Menü, im Verlauf und in den Mitteilungen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Applies everywhere: in the menu, the history and notifications."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "S’applique partout : dans le menu, l’historique et les notifications."
           }
         }
       }

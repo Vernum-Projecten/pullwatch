@@ -22,7 +22,8 @@ public struct PullRequest: Codable, Hashable, Sendable {
     /// `github-actions[bot]`; GitLab `avatar_url`). Nil bij Azure DevOps, waar de foto een token
     /// nodig heeft, en in geschiedenis van vóór dit veld tot de PR opnieuw opgehaald is.
     public var authorAvatarURL: URL?
-    public let isDraft: Bool
+    /// Draft of klaar voor review; de geschiedenis werkt het bij (`History.merge(synced:)`).
+    public var isDraft: Bool
     public let createdAt: Date
     public let webURL: URL
     public var state: PRState

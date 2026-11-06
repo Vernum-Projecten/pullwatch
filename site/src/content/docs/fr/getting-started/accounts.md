@@ -68,7 +68,7 @@ Chaque compte liste ses dépôts. Pour chaque dépôt, cochez ce que vous voulez
 - **Tags** : les nouveaux tags et, sur GitHub, GitLab, Codeberg, Forgejo et Gitea, les versions publiées qui leur sont associées. Les tags sont désactivés par défaut.
 - **Fusionnée** : les pull requests qui sont fusionnées.
 
-À côté de chaque case se trouve une cloche. Désactivez-la pour garder un dépôt dans le menu et l’historique sans notifications. La cloche de l’en-tête bascule d’un coup tous les dépôts visibles. Pour chaque compte, vous pouvez aussi inclure les pull requests en brouillon, masquer les vôtres, et désactiver tout le compte pour un temps.
+À côté de chaque case se trouve une cloche. Désactivez-la pour garder un dépôt dans le menu et l’historique sans notifications. La cloche de l’en-tête bascule d’un coup tous les dépôts visibles. Les pull requests en brouillon figurent toujours dans le menu et l’historique, avec l’icône de brouillon. Pour chaque compte, vous pouvez aussi être notifié d’un nouveau brouillon (**Notifier les PR brouillons** ; s’il est désactivé, un brouillon vous notifie dès qu’il est prêt pour la revue), masquer les vôtres, et désactiver tout le compte pour un temps.
 
 ## Dépôts hors de votre compte
 
