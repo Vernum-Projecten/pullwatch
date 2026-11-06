@@ -118,8 +118,10 @@ public struct PullRequest: Codable, Hashable, Sendable {
     /// Open, niet in de rij, en eerder uit de rij gegaan zonder te mergen.
     public var hasLeftQueue: Bool { state == .open && mergeQueue == nil && leftQueue != nil }
 
-    /// Open en in de rij om vanzelf te mergen. Een draft kan niet mergen en telt dus niet.
-    public var isQueued: Bool { state == .open && !isDraft && mergeQueue != nil }
+    /// Open en echt in een merge queue of merge train, zoals GitHub de PR dan toont. Auto-merge
+    /// en auto-complete tellen niet: die PR is nog gewoon open. Een draft kan niet mergen en telt
+    /// dus ook niet.
+    public var isQueued: Bool { state == .open && !isDraft && mergeQueue?.kind.isQueue == true }
 
     /// De auteur en daarna de co-auteurs, zoals ze in lijsten en statistieken heten.
     var contributorNames: [String] { [authorName] + coAuthors.map(\.handle) }
