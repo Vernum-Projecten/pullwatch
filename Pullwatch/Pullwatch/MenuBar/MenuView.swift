@@ -287,10 +287,6 @@ private struct RecentRow: View {
                     .frame(width: 14)
                     .help(Text(item.entry.glyphLabel))
                     .accessibilityLabel(Text(item.entry.glyphLabel))
-                // De plek in de merge queue, ingetogen naast het icoon.
-                if let position = item.entry.queuePosition {
-                    QueuePositionText(position: position)
-                }
                 VStack(alignment: .leading, spacing: 2) {
                     if let release = item.entry.releaseTitle {
                         // De titel van de release, met de tagnaam erachter.

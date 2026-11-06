@@ -16628,35 +16628,6 @@
         }
       }
     },
-    "Pull request %@ in de wachtrij, plek %lld: %@": {
-      "comment": "VoiceOver; nummer, plek in de merge queue en titel van een PR in de rij",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull Request %1$@ in der Warteschlange, Position %2$lld: %3$@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull request %1$@, queued, position %2$lld: %3$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull request %1$@ en file d’attente, position %2$lld : %3$@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull request %1$@ in de wachtrij, plek %2$lld: %3$@"
-          }
-        }
-      }
-    },
     "Pull request %@ in de wachtrij: %@": {
       "localizations": {
         "de": {

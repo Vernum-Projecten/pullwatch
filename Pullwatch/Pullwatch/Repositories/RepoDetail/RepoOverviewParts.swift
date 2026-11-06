@@ -154,10 +154,6 @@ struct PullRequestRow: View {
                     .foregroundStyle(item.entry.glyphColor)
                     .frame(width: 16)
                     .help(Text(item.entry.glyphLabel))
-                // De plek in de merge queue, ingetogen naast het icoon.
-                if let position = item.entry.queuePosition {
-                    QueuePositionText(position: position)
-                }
                 if case .pullRequest(let pr) = item.entry, let kind {
                     Text(verbatim: pr.numberText(kind))
                         .foregroundStyle(.secondary)
@@ -187,12 +183,6 @@ struct PullRequestRow: View {
     private var spokenTitle: Text {
         guard case .pullRequest(let pr) = item.entry, let status = item.entry.prStatus else {
             return Text(verbatim: item.entry.title)
-        }
-        if let position = item.entry.queuePosition {
-            return Text(
-                "Pull request \(String(pr.number)) in de wachtrij, plek \(position): \(pr.title)",
-                comment: "VoiceOver; nummer, plek in de merge queue en titel van een PR in de rij"
-            )
         }
         return Text(status.spokenSentence(number: pr.number, title: pr.title))
     }

@@ -1,1 +1,1 @@
-- A pull request in a merge queue (GitHub) or merge train (GitLab) shows its place after the status icon, such as `#2`, in the same quiet style as its number: in the PR list, the menu and a repository's Overview.
+- A pull request in a merge queue (GitHub) or merge train (GitLab) shows its place after the status icon, such as `#2`, in the same quiet style as its number, in the PR list.
