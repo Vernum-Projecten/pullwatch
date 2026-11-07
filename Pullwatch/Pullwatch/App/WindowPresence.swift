@@ -12,6 +12,8 @@ final class WindowPresence {
         didSet { updateActivationPolicy() }
     }
 
+    @ObservationIgnored private var badgeTask: Task<Void, Never>?
+
     func opened(_ window: String) { openWindows.insert(window) }
     func closed(_ window: String) { openWindows.remove(window) }
 
@@ -19,7 +21,30 @@ final class WindowPresence {
         let policy: NSApplication.ActivationPolicy = openWindows.isEmpty ? .accessory : .regular
         guard NSApp.activationPolicy() != policy else { return }
         NSApp.setActivationPolicy(policy)
-        if policy == .regular { NSApp.activate() }
+        if policy == .regular {
+            NSApp.activate()
+            redrawDockBadge()
+        }
+    }
+
+    /// Het Dock maakt een nieuwe tegel als de app `.regular` wordt, en tekent er de badge niet op
+    /// die AppKit al had (gezet bij het starten of zonder venster, `HistoryModel.updateDockBadge`).
+    /// Meteen na de wissel opnieuw zetten is te vroeg; een tiende seconde later staat hij erop
+    /// (nagegaan met een losse app in het Dock).
+    private func redrawDockBadge() {
+        badgeTask?.cancel()
+        badgeTask = Task {
+            do {
+                try await Task.sleep(for: .milliseconds(100))
+            } catch {
+                return
+            }
+            guard NSApp.activationPolicy() == .regular else { return }
+            let tile = NSApp.dockTile
+            let label = tile.badgeLabel
+            tile.badgeLabel = nil
+            tile.badgeLabel = label
+        }
     }
 }
 
