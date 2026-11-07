@@ -85,8 +85,9 @@ final class HistoryModel {
         }
     }
 
-    /// Het aantal ongelezen op het Dock-icoon. Pullwatch staat alleen in het Dock zolang er een
-    /// venster open is; zonder venster is er dus ook geen badge.
+    /// Het aantal ongelezen PR's en tags op het Dock-icoon. Pullwatch staat alleen in het Dock
+    /// zolang er een venster open is; AppKit bewaart de badge zolang, en `WindowPresence` zet hem
+    /// opnieuw op de tegel als het icoon verschijnt.
     func updateDockBadge() {
         guard !AppModel.isTestHost else { return }
         let label = accounts.config.notifications.dockBadge && unreadCount > 0 ? "\(unreadCount)" : nil
