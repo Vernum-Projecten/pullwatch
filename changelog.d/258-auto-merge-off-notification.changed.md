@@ -1,1 +1,0 @@
-- The notification for a pull request that will no longer merge by itself shows the amber arrow only when it left a merge queue or merge train; when auto-merge or auto-complete was turned off it shows the arrow in the colour of open, as the lists show that pull request. Its setting is now called **Pull requests that stop merging by themselves**.

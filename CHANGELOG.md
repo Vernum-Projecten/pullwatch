@@ -9,6 +9,25 @@ release wait as fragments in `changelog.d/` until the cut writes them here.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-08
+
+### Thank you again, Ruben
+
+This release was built by **Ruben Talstra** (@rubentalstra) in [Vernum-Projecten/pullwatch](https://github.com/Vernum-Projecten/pullwatch) once more: drafts back in the lists with their own switches, queued only in a real merge queue, shorter repository names under a filter and the Dock badge that shows again. Thank you!
+
+### Changed
+
+- Under the filter of one organization, user or project in the sidebar, the Repository column of the pull request and tag lists shows the repository without that name in front (`specifications #12` instead of `openEHR/specifications #12`). The tooltip still gives the full reference (#245).
+- The notification for a pull request that will no longer merge by itself shows the amber arrow only when it left a merge queue or merge train; when auto-merge or auto-complete was turned off it shows the arrow in the colour of open, as the lists show that pull request. Its setting is now called **Pull requests that stop merging by themselves** (#258).
+
+### Fixed
+
+- A pull request shows as queued only while it is really in a merge queue (GitHub, Bitbucket Cloud) or merge train (GitLab), as GitHub shows it. With only auto-merge (GitHub, GitLab) or auto-complete (Azure DevOps) on, it stays open until it enters the queue. Agents see the same in the `queued` state (#242).
+- Draft pull requests now appear in the PR list, the repository pages, the menu and the statistics, with the draft icon, as on GitHub. Each account has two switches: **Show draft PRs** (on by default) hides drafts everywhere when off, and a pull request then arrives once it is ready for review; **Notify about draft PRs** (off by default) also notifies about a new draft (#247).
+- A pull request that changes between draft and ready for review now changes its icon too; the history kept the state it first saw (#247).
+- The red badge with the number of unread pull requests and tags shows on the Dock icon again when a Pullwatch window opens. Before, it stayed empty until the count changed (#251).
+- Turning **Show draft PRs** off now also removes the drafts already listed, and **Notify about draft PRs** turns off with it. A pull request that changes between draft and ready for review changes its icon at the next poll, also when you were notified about it, and turning draft notifications on or off no longer reloads the whole history (#254).
+
 ## [0.9.0] - 2026-11-05
 
 ### Thank you again, Ruben
@@ -460,7 +479,8 @@ before this changelog existed. The fork starts from this version.
 - The repository overview is calculated once instead of on every screen
   update.
 
-[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/alessandro823/pullwatch/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/alessandro823/pullwatch/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/alessandro823/pullwatch/compare/v0.6.0...v0.7.0

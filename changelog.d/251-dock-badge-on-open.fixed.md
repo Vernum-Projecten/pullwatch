@@ -1,1 +1,0 @@
-- The red badge with the number of unread pull requests and tags shows on the Dock icon again when a Pullwatch window opens. Before, it stayed empty until the count changed.
