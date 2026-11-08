@@ -107,6 +107,61 @@ private struct Harness {
         #expect(result.quietPullRequests == [draft])
     }
 
+    /// Een stille draft staat na de eerste keer al in de geschiedenis; de volgende polls geven hem
+    /// niet opnieuw door, wel of hij nog een draft is.
+    @Test func `A quiet draft is passed on once`() async {
+        let account = Account.fixture(includeDrafts: false)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).quietPullRequests == [draft])
+
+        let other = PullRequest.fixture(accountId: account.id, number: 2, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft, other])
+        h.clock.advance(120)
+        let next = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(next.quietPullRequests == [other])
+        #expect(next.drafts == [draft.dedupKey: true, other.dedupKey: true])
+    }
+
+    /// Een gemelde draft wordt als gezien gemarkeerd en komt dus niet opnieuw door; de draft-stand
+    /// van elke open PR wel, ook als hij klaar is voor review of terug naar draft gaat.
+    @Test func `Every open pull request reports whether it is a draft`() async {
+        let account = Account.fixture(includeDrafts: true)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).newPullRequests == [draft])
+
+        let ready = PullRequest.fixture(accountId: account.id, number: 1, isDraft: false)
+        await h.provider(account).set(pullRequests: [ready])
+        h.clock.advance(120)
+        let readied = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(readied.newPullRequests.isEmpty)
+        #expect(readied.drafts == [ready.dedupKey: false])
+
+        await h.provider(account).set(pullRequests: [draft])
+        h.clock.advance(120)
+        #expect(await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear).drafts == [draft.dedupKey: true])
+    }
+
+    /// Ook een verborgen draft geeft zijn stand door: zo gaat een PR die terug naar draft gaat uit
+    /// de geschiedenis van een account dat drafts verbergt.
+    @Test func `A hidden draft still reports that it is a draft`() async {
+        let account = Account.fixture(showDrafts: false)
+        let h = Harness(accounts: [account])
+        let draft = PullRequest.fixture(accountId: account.id, number: 1, isDraft: true)
+        await h.provider(account).set(pullRequests: [draft])
+        let result = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(result.drafts == [draft.dedupKey: true])
+    }
+
     @Test func `A new draft notifies while drafts notify`() async {
         let account = Account.fixture(includeDrafts: true)
         let h = Harness(accounts: [account])
@@ -683,6 +738,19 @@ private struct Harness {
     }
 
     @Test func settingsChangeTriggersFullResync() async {
+        var account = Account.fixture(showDrafts: true)
+        let h = Harness(accounts: [account])
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        account.showDrafts = false
+        h.clock.advance(900)
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        #expect(await h.provider(account).syncCount == 2)
+        #expect(await h.provider(account).lastSyncSince == Date??.some(h.clock.now - 365 * day))
+    }
+
+    /// "Draft-PR's melden" verandert alleen de meldingen, niet wat een sync oplevert.
+    @Test func `Turning draft notifications on or off does not resync`() async {
         var account = Account.fixture(includeDrafts: false)
         let h = Harness(accounts: [account])
         _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
@@ -691,7 +759,7 @@ private struct Harness {
         h.clock.advance(900)
         _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
         #expect(await h.provider(account).syncCount == 2)
-        #expect(await h.provider(account).lastSyncSince == Date??.some(h.clock.now - 365 * day))
+        #expect(await h.provider(account).lastSyncSince == Date??.some(h.clock.now - 900 - PollEngine.syncOverlap))
     }
 
     @Test func retentionChangeTriggersFullResync() async {

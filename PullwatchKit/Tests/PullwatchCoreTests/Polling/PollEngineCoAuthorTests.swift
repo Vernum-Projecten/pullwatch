@@ -142,6 +142,27 @@ import PullwatchTestSupport
         #expect(requests.first?.first == prs.last?.dedupKey)
     }
 
+    /// Nieuwe drafts houden de co-auteurs en checks van oudere PR's die klaar zijn voor review niet op.
+    @Test func `Pull requests ready for review go before newer drafts`() async {
+        let account = Account.fixture()
+        let provider = MockProvider()
+        let clock = TestClock()
+        let engine = engine(provider, clock: clock)
+        let ready = (1...5).map {
+            PullRequest.fixture(accountId: account.id, number: $0, createdAt: Date(timeIntervalSince1970: Double($0) * 1000), revision: "r")
+        }
+        let drafts = (6...(PollEngine.coAuthorLimit + 5)).map {
+            PullRequest.fixture(accountId: account.id, number: $0, isDraft: true, createdAt: Date(timeIntervalSince1970: Double($0) * 1000), revision: "r")
+        }
+        await provider.set(pullRequests: ready + drafts)
+
+        _ = await engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        let first = await provider.coAuthorRequests.first ?? []
+        #expect(first.count == PollEngine.coAuthorLimit)
+        #expect(Array(first.prefix(5)) == ready.reversed().map(\.dedupKey))
+    }
+
     @Test func storedCoAuthorsSurviveARestart() async throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
