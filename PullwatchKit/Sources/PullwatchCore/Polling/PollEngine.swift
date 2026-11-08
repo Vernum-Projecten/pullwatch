@@ -106,6 +106,10 @@ public actor PollEngine {
     private var schedules: [UUID: Schedule] = [:]
     private var statuses: [UUID: AccountState] = [:]
     private var inFlight: Set<UUID> = []
+    /// Per account de stille drafts die de vorige poll doorgaf (`PollResult.quietPullRequests`):
+    /// die staan al in de geschiedenis, dus alleen een nieuwe gaat door. Niet bewaard: na een
+    /// herstart gaan ze één keer opnieuw door, wat niets verandert.
+    private var quietDrafts: [UUID: Set<String>] = [:]
     /// Account waarvan de eerste sync (volledige backfill) nu loopt; geldt over overlappende poll()-aanroepen heen.
     private var firstSyncAccount: UUID?
     /// Sync-markeringen van vóór "Opnieuw ophalen", per account dat nog niet opnieuw gesynct is;
@@ -269,6 +273,9 @@ public actor PollEngine {
                     // Een PR waarvan de rij niet te lezen was houdt in de geschiedenis wat hij had.
                     for pr in fetched.pullRequests where !fetched.unreadMergeQueues.contains(pr.dedupKey) {
                         result.mergeQueues[pr.dedupKey] = .some(pr.mergeQueue)
+                    }
+                    for pr in fetched.pullRequests where pr.state == .open {
+                        result.drafts[pr.dedupKey] = pr.isDraft
                     }
                     var left = handleQueues(job.account, fetched, at: t)
                     if !left.isEmpty {
@@ -436,12 +443,16 @@ public actor PollEngine {
 
         var fresh: [PullRequest] = []
         var quiet: [PullRequest] = []
+        let listedQuiet = quietDrafts[account.id] ?? []
+        var nowQuiet: Set<String> = []
         for pr in fetched.pullRequests.map(withDetails)
         where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
             // Een draft zonder melding komt gelezen in de lijst en wordt niet als gezien
-            // gemarkeerd: is hij later klaar voor review, dan meldt hij als nieuwe PR.
+            // gemarkeerd: is hij later klaar voor review, dan meldt hij als nieuwe PR. Alleen een
+            // nieuwe gaat door; of een bekende nog een draft is volgt via `PollResult.drafts`.
             guard PRFilter.notifies(pr, settings: settings) else {
-                quiet.append(pr)
+                nowQuiet.insert(pr.dedupKey)
+                if !listedQuiet.contains(pr.dedupKey) { quiet.append(pr) }
                 continue
             }
             // Alleen melden als de PR onder de vorige settings ook gemeld zou zijn; anders meldt
@@ -454,6 +465,7 @@ public actor PollEngine {
             state.mark(pr.dedupKey, at: t)
         }
 
+        quietDrafts[account.id] = nowQuiet
         state.lastSettings[key] = settings
         userIds[account.id] = fetched.userId
         let previousSchedule = schedules[account.id] ?? Schedule()

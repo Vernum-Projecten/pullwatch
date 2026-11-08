@@ -83,13 +83,13 @@ public struct FilterSettings: Codable, Hashable, Sendable {
     }
 
     /// Of een geschiedenis-sync onder `other` dezelfde PR's oplevert: zelfde bron, zelfde
-    /// PR-vinkjes per repo (hoofdletterongevoelig) en standaard, drafts tonen en melden, eigen PR's, en dezelfde
-    /// losse repo's (een net toegevoegde heeft zijn geschiedenis nog niet). Tag-vinkjes tellen niet mee.
+    /// PR-vinkjes per repo (hoofdletterongevoelig) en standaard, drafts tonen, eigen PR's, en
+    /// dezelfde losse repo's (een net toegevoegde heeft zijn geschiedenis nog niet). Tag-vinkjes
+    /// en drafts melden (`includeDrafts`) tellen niet mee: die veranderen alleen de meldingen.
     func sameSyncScope(as other: FilterSettings) -> Bool {
         sameSource(as: other)
             && newRepoDefault == other.newRepoDefault
             && showDrafts == other.showDrafts
-            && includeDrafts == other.includeDrafts
             && hideOwn == other.hideOwn
             && prOverrides == other.prOverrides
             && extraRepos == other.extraRepos

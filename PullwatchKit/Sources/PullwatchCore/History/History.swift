@@ -206,6 +206,39 @@ public struct History: Codable, Equatable, Sendable {
         return changed
     }
 
+    /// Zet bij de open PR's in de geschiedenis of ze een draft zijn (per dedupKey), zonder volgorde
+    /// of gelezen-status te veranderen. Zo volgt ook een gemelde PR die klaar is voor review, of
+    /// terug naar draft gaat, bij elke poll en niet pas bij de volgende sync. Geeft `true` als er
+    /// iets veranderde.
+    @discardableResult
+    public mutating func update(drafts: [String: Bool]) -> Bool {
+        guard !drafts.isEmpty else { return false }
+        var changed = false
+        for index in items.indices {
+            guard case .pullRequest(var pr) = items[index].entry, pr.state == .open,
+                  let isDraft = drafts[pr.dedupKey], pr.isDraft != isDraft else { continue }
+            pr.isDraft = isDraft
+            items[index].entry = .pullRequest(pr)
+            changed = true
+        }
+        return changed
+    }
+
+    /// Haalt de open drafts weg van accounts die drafts verbergen ("Draft-PR's tonen" uit):
+    /// verborgen drafts staan nergens, ook niet als ze er van vóór de schakelaar al stonden. Een
+    /// draft die klaar is voor review komt daarna als nieuwe PR binnen. Geeft `true` als er iets
+    /// verwijderd is.
+    @discardableResult
+    public mutating func removeDrafts(ofAccounts accounts: Set<UUID>) -> Bool {
+        guard !accounts.isEmpty else { return false }
+        let before = items.count
+        items.removeAll { item in
+            guard case .pullRequest(let pr) = item.entry else { return false }
+            return pr.state == .open && pr.isDraft && accounts.contains(pr.accountId)
+        }
+        return items.count != before
+    }
+
     /// Zet bij de PR's in de geschiedenis dat ze uit de rij gingen zonder te mergen
     /// (`PullRequest.leftQueue`, per dedupKey), zonder volgorde of gelezen-status te veranderen;
     /// voegt niets toe. Geeft `true` als er iets veranderde.

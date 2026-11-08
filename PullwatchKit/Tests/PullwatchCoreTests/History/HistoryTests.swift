@@ -347,3 +347,67 @@ struct HistoryInitialTests {
         #expect(!result.needsSave)
     }
 }
+
+/// De draft-stand van open PR's in de geschiedenis, en drafts weg bij een account dat ze verbergt.
+@Suite struct HistoryDraftTests {
+    let t0 = Date.testStart
+    let hiding = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+
+    private func isDraft(_ history: History, _ pr: PullRequest) -> Bool? {
+        history.items.lazy.compactMap { item -> Bool? in
+            guard case .pullRequest(let stored) = item.entry, stored.dedupKey == pr.dedupKey else { return nil }
+            return stored.isDraft
+        }.first
+    }
+
+    @Test func `A pull request ready for review stops being a draft without moving or being read`() {
+        var history = History()
+        let draft = PullRequest.fixture(number: 1, isDraft: true)
+        let other = PullRequest.fixture(number: 2)
+        history.add(pullRequests: [draft, other], tags: [], at: t0)
+        let order = history.items.map(\.id)
+
+        let changed1 = history.update(drafts: [draft.dedupKey: false])
+        #expect(changed1)
+        #expect(isDraft(history, draft) == false)
+        #expect(history.items.map(\.id) == order)
+        #expect(history.unreadCount == 2)
+        let changed2 = history.update(drafts: [draft.dedupKey: false])
+        #expect(!changed2, "al zo: niets veranderd")
+
+        let changed3 = history.update(drafts: [draft.dedupKey: true])
+        #expect(changed3)
+        #expect(isDraft(history, draft) == true)
+    }
+
+    @Test func `A closed pull request keeps its draft state`() {
+        var history = History()
+        let closed = PullRequest.fixture(number: 1, isDraft: true, state: .closed, closedAt: t0)
+        history.merge(synced: [closed])
+        let changed4 = history.update(drafts: [closed.dedupKey: false])
+        #expect(!changed4)
+        #expect(isDraft(history, closed) == true)
+    }
+
+    @Test func `Hiding drafts removes the open drafts of that account only`() {
+        var history = History()
+        let hiddenDraft = PullRequest.fixture(accountId: hiding, number: 1, isDraft: true)
+        let hiddenReady = PullRequest.fixture(accountId: hiding, number: 2)
+        let hiddenClosed = PullRequest.fixture(accountId: hiding, number: 3, isDraft: true, state: .closed, closedAt: t0)
+        let shownDraft = PullRequest.fixture(number: 4, isDraft: true)
+        history.add(pullRequests: [hiddenDraft, hiddenReady, shownDraft], tags: [.fixture(name: "v1")], at: t0)
+        history.merge(synced: [hiddenClosed])
+
+        let changed5 = history.removeDrafts(ofAccounts: [hiding])
+        #expect(changed5)
+        #expect(isDraft(history, hiddenDraft) == nil)
+        #expect(isDraft(history, hiddenReady) == false)
+        #expect(isDraft(history, hiddenClosed) == true)
+        #expect(isDraft(history, shownDraft) == true)
+        #expect(history.items.contains { $0.entry.kind == .tag })
+        let changed6 = history.removeDrafts(ofAccounts: [hiding])
+        #expect(!changed6, "al weg: niets veranderd")
+        let changed7 = history.removeDrafts(ofAccounts: [])
+        #expect(!changed7)
+    }
+}

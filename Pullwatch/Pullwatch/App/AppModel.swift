@@ -249,13 +249,16 @@ final class AppModel {
     @discardableResult
     func saveAccount(_ account: Account, pat: String?) -> Bool {
         guard accounts.saveAccount(account, pat: pat) else { return false }
+        historyModel.removeHiddenDrafts()
         polling.scheduleRefresh()
         return true
     }
 
     /// Een wijziging aan een bestaand account, meteen bewaard (Instellingen hebben geen Opslaan).
     func updateAccount(_ account: Account) {
-        if accounts.updateAccount(account) { polling.scheduleRefresh() }
+        guard accounts.updateAccount(account) else { return }
+        historyModel.removeHiddenDrafts()
+        polling.scheduleRefresh()
     }
 
     /// Voegt een gecontroleerde losse repo toe aan een bewaard account en volgt er de PR's van.
