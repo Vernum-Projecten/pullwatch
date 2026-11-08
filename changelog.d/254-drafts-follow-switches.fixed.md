@@ -1,0 +1,1 @@
+- Turning **Show draft PRs** off now also removes the drafts already listed, and **Notify about draft PRs** turns off with it. A pull request that changes between draft and ready for review changes its icon at the next poll, also when you were notified about it, and turning draft notifications on or off no longer reloads the whole history.

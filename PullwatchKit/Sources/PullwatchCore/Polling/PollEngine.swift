@@ -106,6 +106,10 @@ public actor PollEngine {
     private var schedules: [UUID: Schedule] = [:]
     private var statuses: [UUID: AccountState] = [:]
     private var inFlight: Set<UUID> = []
+    /// Per account de stille drafts die de vorige poll doorgaf (`PollResult.quietPullRequests`):
+    /// die staan al in de geschiedenis, dus alleen een nieuwe gaat door. Niet bewaard: na een
+    /// herstart gaan ze één keer opnieuw door, wat niets verandert.
+    private var quietDrafts: [UUID: Set<String>] = [:]
     /// Account waarvan de eerste sync (volledige backfill) nu loopt; geldt over overlappende poll()-aanroepen heen.
     private var firstSyncAccount: UUID?
     /// Sync-markeringen van vóór "Opnieuw ophalen", per account dat nog niet opnieuw gesynct is;
@@ -270,6 +274,9 @@ public actor PollEngine {
                     for pr in fetched.pullRequests where !fetched.unreadMergeQueues.contains(pr.dedupKey) {
                         result.mergeQueues[pr.dedupKey] = .some(pr.mergeQueue)
                     }
+                    for pr in fetched.pullRequests where pr.state == .open {
+                        result.drafts[pr.dedupKey] = pr.isDraft
+                    }
                     var left = handleQueues(job.account, fetched, at: t)
                     if !left.isEmpty {
                         let exits = await job.provider.mergeQueueExits(of: left)
@@ -284,6 +291,7 @@ public actor PollEngine {
                     }
                     let fresh = handleSuccess(job.account, fetched, retention: retention, at: t, interval: interval)
                     result.newPullRequests += fresh.pullRequests
+                    result.quietPullRequests += fresh.quiet
                     result.newTags += fresh.tags
                     result.updatedTags += fresh.updated
                     result.syncedTags += fresh.backfill
@@ -422,7 +430,7 @@ public actor PollEngine {
         retention: HistoryRetention,
         at t: Date,
         interval: TimeInterval
-    ) -> (pullRequests: [PullRequest], tags: [Tag], updated: [Tag], backfill: [Tag]) {
+    ) -> (pullRequests: [PullRequest], quiet: [PullRequest], tags: [Tag], updated: [Tag], backfill: [Tag]) {
         let settings = account.filterSettings
         let key = account.id.uuidString
         let previous = state.lastSettings[key].flatMap { $0.sameSource(as: settings) ? $0 : nil }
@@ -434,17 +442,30 @@ public actor PollEngine {
         }
 
         var fresh: [PullRequest] = []
+        var quiet: [PullRequest] = []
+        let listedQuiet = quietDrafts[account.id] ?? []
+        var nowQuiet: Set<String> = []
         for pr in fetched.pullRequests.map(withDetails)
         where PRFilter.passes(pr, settings: settings, currentUserId: fetched.userId) {
-            // Alleen melden als de PR onder de vorige settings ook zichtbaar was; anders is hij
-            // pas zichtbaar door een instellingswijziging of eerste poll → stil seeden.
+            // Een draft zonder melding komt gelezen in de lijst en wordt niet als gezien
+            // gemarkeerd: is hij later klaar voor review, dan meldt hij als nieuwe PR. Alleen een
+            // nieuwe gaat door; of een bekende nog een draft is volgt via `PollResult.drafts`.
+            guard PRFilter.notifies(pr, settings: settings) else {
+                nowQuiet.insert(pr.dedupKey)
+                if !listedQuiet.contains(pr.dedupKey) { quiet.append(pr) }
+                continue
+            }
+            // Alleen melden als de PR onder de vorige settings ook gemeld zou zijn; anders meldt
+            // hij pas door een instellingswijziging of eerste poll → stil seeden.
             if !state.contains(pr.dedupKey), let previous, previous.covers(repo: pr.repo),
-               PRFilter.passes(pr, settings: previous, currentUserId: fetched.userId) {
+               PRFilter.passes(pr, settings: previous, currentUserId: fetched.userId),
+               PRFilter.notifies(pr, settings: previous) {
                 fresh.append(pr)
             }
             state.mark(pr.dedupKey, at: t)
         }
 
+        quietDrafts[account.id] = nowQuiet
         state.lastSettings[key] = settings
         userIds[account.id] = fetched.userId
         let previousSchedule = schedules[account.id] ?? Schedule()
@@ -462,7 +483,7 @@ public actor PollEngine {
         schedules[account.id] = schedule
         statuses[account.id] = .ok(lastPoll: t)
         let tags = handleTags(account, fetched, notBefore: retention.maxAge.map { t - $0 }, at: t)
-        return (fresh, tags.fresh, tags.updated, tags.backfill)
+        return (fresh, quiet, tags.fresh, tags.updated, tags.backfill)
     }
 
     /// Verwerkt de geschiedenis-sync: plant de volgende sync en geeft de gefilterde PR's terug,

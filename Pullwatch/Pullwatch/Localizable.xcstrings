@@ -2512,8 +2512,8 @@
         }
       }
     },
-    "%lld pull requests uit de rij zonder te mergen": {
-      "comment": "Meldingstitel; aantal PR's in één repo die uit de merge queue, merge train, auto-merge of auto-complete gingen zonder te mergen",
+    "%lld pull requests mergen niet meer vanzelf": {
+      "comment": "Meldingstitel; aantal PR's in één repo die uit de merge queue of merge train gingen, of waarvan auto-merge of auto-complete uitging, zonder te mergen",
       "localizations": {
         "de": {
           "variations": {
@@ -2521,13 +2521,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Request hat die Warteschlange ohne Merge verlassen"
+                  "value": "%lld Pull Request merget nicht mehr von selbst"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Requests haben die Warteschlange ohne Merge verlassen"
+                  "value": "%lld Pull Requests mergen nicht mehr von selbst"
                 }
               }
             }
@@ -2539,13 +2539,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Request Left the Queue Without Merging"
+                  "value": "%lld Pull Request No Longer Merges by Itself"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Requests Left the Queue Without Merging"
+                  "value": "%lld Pull Requests No Longer Merge by Themselves"
                 }
               }
             }
@@ -2557,13 +2557,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull request a quitté la file d’attente sans fusion"
+                  "value": "%lld pull request ne fusionne plus d’elle-même"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull requests ont quitté la file d’attente sans fusion"
+                  "value": "%lld pull requests ne fusionnent plus d’elles-mêmes"
                 }
               }
             }
@@ -2575,13 +2575,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull request uit de rij zonder te mergen"
+                  "value": "%lld pull request merget niet meer vanzelf"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull requests uit de rij zonder te mergen"
+                  "value": "%lld pull requests mergen niet meer vanzelf"
                 }
               }
             }
@@ -6640,52 +6640,114 @@
         }
       }
     },
-    "Draft-PR's meenemen": {
+    "Draft-PR's melden": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwurfs-PRs einbeziehen"
+            "value": "Bei Entwurfs-PRs mitteilen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Include draft PRs"
+            "value": "Notify about draft PRs"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inclure les PR brouillons"
+            "value": "Notifier les PR brouillons"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draft-PR's meenemen"
+            "value": "Draft-PR's melden"
           }
         }
       }
     },
-    "Draft-merge requests meenemen": {
+    "Draft-PR's tonen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entwurfs-Merge-Requests einbeziehen"
+            "value": "Entwurfs-PRs anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Include draft merge requests"
+            "value": "Show draft PRs"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inclure les merge requests en brouillon"
+            "value": "Afficher les PR brouillons"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft-PR's tonen"
+          }
+        }
+      }
+    },
+    "Draft-merge requests melden": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Entwurfs-Merge-Requests mitteilen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notify about draft merge requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifier les merge requests en brouillon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft-merge requests melden"
+          }
+        }
+      }
+    },
+    "Draft-merge requests tonen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwurfs-Merge-Requests anzeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show draft merge requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les merge requests en brouillon"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft-merge requests tonen"
           }
         }
       }
@@ -8562,28 +8624,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copié"
-          }
-        }
-      }
-    },
-    "Geldt overal: in het menu, de geschiedenis en de meldingen.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gilt überall: im Menü, im Verlauf und in den Mitteilungen."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Applies everywhere: in the menu, the history and notifications."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "S’applique partout : dans le menu, l’historique et les notifications."
           }
         }
       }
@@ -16898,24 +16938,24 @@
         }
       }
     },
-    "Pull requests die uit de rij gaan zonder te mergen": {
+    "Pull requests die niet meer vanzelf mergen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull Requests, die die Warteschlange ohne Merge verlassen"
+            "value": "Pull Requests, die nicht mehr von selbst mergen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull requests that leave the queue without merging"
+            "value": "Pull requests that stop merging by themselves"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull requests qui quittent la file d’attente sans fusion"
+            "value": "Pull requests qui ne fusionnent plus d’elles-mêmes"
           }
         }
       }
@@ -22282,6 +22322,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sans tag"
+          }
+        }
+      }
+    },
+    "Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Anzeigen erscheinen Entwürfe nirgends, und ein Entwurf kommt an, sobald er bereit zum Review ist. Ausblenden gilt überall."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without showing, drafts appear nowhere and a draft arrives once it is ready for review. Hiding applies everywhere."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans affichage, les brouillons n’apparaissent nulle part et un brouillon arrive dès qu’il est prêt pour la revue. Masquer s’applique partout."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal."
           }
         }
       }

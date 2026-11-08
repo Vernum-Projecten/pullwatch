@@ -10,6 +10,10 @@ public enum AccountState: Equatable, Sendable {
 /// Wat één `PollEngine.poll` opleverde over alle accounts.
 public struct PollResult: Equatable, Sendable {
     public var newPullRequests: [PullRequest] = []
+    /// Open drafts die de lijst toont zonder melding, omdat "Draft-PR's melden" uit staat
+    /// (`PRFilter.notifies`), en alleen als de vorige poll ze nog niet zo doorgaf. Gelezen in de
+    /// geschiedenis, zoals de sync. Niet bedoeld voor meldingen.
+    public var quietPullRequests: [PullRequest] = []
     /// Nieuwe tags, en bekende tags die net een release kregen, gesorteerd op repo en dan naam.
     public var newTags: [Tag] = []
     /// Bekende tags zoals ze nu zijn (auteur, release), om de geschiedenis bij te werken. Alleen van
@@ -39,6 +43,9 @@ public struct PollResult: Equatable, Sendable {
     /// (`PullRequest.mergeQueue`), per dedupKey; `nil` als waarde: niet (meer) in de rij. Om de
     /// geschiedenis bij te werken, niet voor meldingen: in de rij komen meldt niets.
     public var mergeQueues: [String: MergeQueueEntry?] = [:]
+    /// Van elke open PR die deze poll ophaalde of hij een draft is, per dedupKey, ook van drafts
+    /// die verborgen zijn. Om de geschiedenis bij te werken, niet voor meldingen.
+    public var drafts: [String: Bool] = [:]
     /// Open PR's die sinds de vorige poll uit de rij gingen zonder te mergen, met
     /// `PullRequest.leftQueue` (en de reden als de dienst die gaf), gesorteerd op `createdAt`.
     /// Voor de melding "Uit de rij" en de geschiedenis.

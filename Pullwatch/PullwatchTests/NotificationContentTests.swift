@@ -168,7 +168,31 @@ import Testing
         #expect(try builder("nl").content(for: .leftQueue(pr)).title == "Uit de merge queue zonder te mergen")
         #expect(try builder("nl").content(for: .leftQueue(pr)).body == "Add dark mode\nReden: The merge commit failed its checks")
         let summary = try builder().summary(RepositoryKey(accountId: accountId, repo: repo), [.leftQueue(pr), .leftQueue(self.pr(7))])
-        #expect(summary.title == "2 Pull Requests Left the Queue Without Merging")
+        #expect(summary.title == "2 Pull Requests No Longer Merge by Themselves")
+        #expect(try builder("nl").summary(RepositoryKey(accountId: accountId, repo: repo), [.leftQueue(pr), .leftQueue(self.pr(7))]).title
+                == "2 pull requests mergen niet meer vanzelf")
+    }
+
+    /// Een echte rij krijgt het teken van Queued; auto-merge en auto-complete, die de lijsten als
+    /// open tonen, het teken in de kleur van open. Met een echte rij erbij in één melding wint de rij.
+    @Test(arguments: [
+        ([MergeQueueEntry.Kind.mergeQueue], NotificationGlyph.leftQueue),
+        ([.mergeTrain], .leftQueue),
+        ([.autoMerge], .autoMergeOff),
+        ([.autoComplete], .autoMergeOff),
+        ([.autoMerge, .autoComplete], .autoMergeOff),
+        ([.autoMerge, .mergeQueue], .leftQueue),
+    ])
+    func `Only a real queue gets the glyph of Queued`(kinds: [MergeQueueEntry.Kind], glyph: NotificationGlyph) throws {
+        let items = kinds.enumerated().map { index, kind in
+            var pr = pr(40 + index)
+            pr.leftQueue = MergeQueueExit(kind: kind, at: Date(timeIntervalSince1970: 1_790_100_000))
+            return RepositoryItem.leftQueue(pr)
+        }
+        let content = kinds.count == 1
+            ? try builder().content(for: items[0])
+            : try builder().summary(RepositoryKey(accountId: accountId, repo: repo), items)
+        #expect(content.glyph == glyph)
     }
 
     @Test(arguments: [

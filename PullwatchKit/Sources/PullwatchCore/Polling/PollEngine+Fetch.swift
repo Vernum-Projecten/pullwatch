@@ -136,7 +136,8 @@ extension PollEngine {
     /// co-auteurs en de checks op. Co-auteurs: van de zichtbare PR's die nieuw zijn of veranderden
     /// sinds de vorige keer (`PullRequest.revision`), hooguit `coAuthorLimit`. Checks: zie
     /// `checksVisible` en `wantsChecks`, hooguit `checkLimit`. Open PR's eerst, dan de gesyncte,
-    /// elk nieuwste eerst. Een PR die niet veranderde kost geen verzoek. Fouten laten het account
+    /// elk met de PR's die klaar zijn voor review vóór de drafts en dan nieuwste eerst, zodat
+    /// nieuwe drafts de checks van een oudere PR niet ophouden. Een PR die niet veranderde kost geen verzoek. Fouten laten het account
     /// niet falen; die PR's komen bij een volgende poll opnieuw aan de beurt.
     private static func fetchDetails(
         _ provider: any PRProvider,
@@ -147,7 +148,7 @@ extension PollEngine {
         coAuthorRevisions known: [String: String?],
         checks request: CheckRequest
     ) async -> (coAuthors: [String: (revision: String?, people: [Person])], checks: [String: (revision: String?, checks: PRChecks)]) {
-        let candidates = open.sorted { $0.createdAt > $1.createdAt } + synced.sorted { $0.createdAt > $1.createdAt }
+        let candidates = open.sorted(by: readyFirst) + synced.sorted(by: readyFirst)
         var seen: Set<String> = []
         let forCoAuthors = Array(candidates
             .filter { pr in
@@ -189,6 +190,12 @@ extension PollEngine {
             logger.notice("co-auteurs en checks ophalen mislukt: \(error.localizedDescription)")
             return ([:], [:])
         }
+    }
+
+    /// Klaar voor review vóór drafts, daarbinnen nieuwste eerst.
+    private static func readyFirst(_ a: PullRequest, _ b: PullRequest) -> Bool {
+        if a.isDraft != b.isDraft { return !a.isDraft }
+        return a.createdAt > b.createdAt
     }
 
     /// Of de checks van deze PR in Pullwatch te zien zijn of gemeld worden: een open PR die de

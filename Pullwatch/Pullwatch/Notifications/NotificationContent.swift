@@ -22,6 +22,12 @@ nonisolated struct NotificationContent: Equatable, Sendable {
     /// Profielfoto van de auteur, als die er is; anders krijgt de melding het teken van de soort.
     var avatarURL: URL?
     var payload: NotificationPayload
+    /// Een ander teken dan dat van de soort (`NotificationGlyph(kind:)`), zoals bij auto-merge
+    /// die uitging: dat is geen rij, dus niet het teken van Queued.
+    var glyphOverride: NotificationGlyph? = nil
+
+    /// Het teken als er geen profielfoto is; `nil` als de soort er geen heeft.
+    var glyph: NotificationGlyph? { glyphOverride ?? NotificationGlyph(kind: kind) }
 }
 
 /// Wat een klik of knop op de melding nodig heeft, in `userInfo` (alleen tekst en lijsten van

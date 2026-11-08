@@ -408,17 +408,27 @@ struct AccountEditor: View {
 
             Section {
                 // GitLab noemt ze merge requests, dus hier ook.
+                // Melden kan alleen als drafts te zien zijn.
                 if draft.kind == .gitLab {
-                    Toggle("Draft-merge requests meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Draft-merge requests tonen", isOn: $draft.showDrafts)
+                    Toggle("Draft-merge requests melden", isOn: $draft.includeDrafts)
+                        .disabled(!draft.showDrafts)
                     Toggle("Eigen merge requests verbergen", isOn: $draft.hideOwn)
                 } else {
-                    Toggle("Draft-PR's meenemen", isOn: $draft.includeDrafts)
+                    Toggle("Draft-PR's tonen", isOn: $draft.showDrafts)
+                    Toggle("Draft-PR's melden", isOn: $draft.includeDrafts)
+                        .disabled(!draft.showDrafts)
                     Toggle("Eigen PR's verbergen", isOn: $draft.hideOwn)
                 }
             } header: {
                 Text(draft.kind == .gitLab ? "Welke merge requests tellen mee" : "Welke PR's tellen mee")
             } footer: {
-                Text("Geldt overal: in het menu, de geschiedenis en de meldingen.")
+                Text("Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal.")
+            }
+            // Zonder tonen kan een draft niet melden: zet melden dan ook uit, zodat de schakelaar
+            // niet aan staat terwijl hij niets doet.
+            .onChange(of: draft.showDrafts) { _, shown in
+                if !shown { draft.includeDrafts = false }
             }
 
             if draft.isComplete {

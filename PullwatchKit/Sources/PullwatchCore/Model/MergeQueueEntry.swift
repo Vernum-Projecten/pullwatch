@@ -2,7 +2,9 @@ public import Foundation
 
 /// Een open PR die vanzelf gaat mergen zodra hij aan de beurt is: in de merge queue van GitHub,
 /// in een merge train van GitLab, met auto-merge bij GitHub of GitLab ("merge als de pipeline
-/// slaagt"), of met auto-complete bij Azure DevOps. De app toont hem dan als Queued, zoals GitHub (`PRStatus.queued`).
+/// slaagt"), of met auto-complete bij Azure DevOps. Alleen in een echte rij (`Kind.isQueue`)
+/// toont de app hem als Queued, zoals GitHub (`PRStatus.queued`); auto-merge en auto-complete
+/// worden bewaard, maar de PR blijft gewoon open.
 public struct MergeQueueEntry: Codable, Hashable, Sendable {
     /// Hoe de dienst de PR laat wachten.
     public enum Kind: String, Codable, Hashable, Sendable {
@@ -15,6 +17,16 @@ public struct MergeQueueEntry: Codable, Hashable, Sendable {
         case autoMerge
         /// Azure DevOps: auto-complete staat aan (`autoCompleteSetBy`).
         case autoComplete
+
+        /// Of de PR echt in een rij staat (merge queue, merge train), zoals GitHub en GitLab
+        /// alleen dan het merge-queue-icoon tonen. Auto-merge en auto-complete wachten alleen
+        /// op de checks: de PR is dan nog gewoon open.
+        public var isQueue: Bool {
+            switch self {
+            case .mergeQueue, .mergeTrain: true
+            case .autoMerge, .autoComplete: false
+            }
+        }
     }
 
     public var kind: Kind

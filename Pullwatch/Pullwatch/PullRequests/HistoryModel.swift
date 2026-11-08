@@ -54,6 +54,7 @@ final class HistoryModel {
         history = initial.history
         var needsSave = initial.needsSave
         if history.prune(now: Date(), retention: accounts.config.historyRetention) { needsSave = true }
+        if history.removeDrafts(ofAccounts: Self.hidingDrafts(accounts.config)) { needsSave = true }
         if needsSave { save() }
         // In init loopt didSet niet: het menu hier één keer vullen.
         recomputeMenu()
@@ -85,8 +86,9 @@ final class HistoryModel {
         }
     }
 
-    /// Het aantal ongelezen op het Dock-icoon. Pullwatch staat alleen in het Dock zolang er een
-    /// venster open is; zonder venster is er dus ook geen badge.
+    /// Het aantal ongelezen PR's en tags op het Dock-icoon. Pullwatch staat alleen in het Dock
+    /// zolang er een venster open is; AppKit bewaart de badge zolang, en `WindowPresence` zet hem
+    /// opnieuw op de tegel als het icoon verschijnt.
     func updateDockBadge() {
         guard !AppModel.isTestHost else { return }
         let label = accounts.config.notifications.dockBadge && unreadCount > 0 ? "\(unreadCount)" : nil
@@ -175,7 +177,8 @@ final class HistoryModel {
         // Na add: een gemelde PR staat dan al ongelezen in de geschiedenis en blijft dat.
         // PR's van vóór de bewaartermijn niet toevoegen: die zou prune meteen weer verwijderen.
         let cutoff = retention.maxAge.map { now - $0 }
-        if history.merge(synced: result.syncedPullRequests, notBefore: cutoff) { changed = true }
+        // Drafts zonder melding komen er net zo in: gelezen, op hun plek.
+        if history.merge(synced: result.syncedPullRequests + result.quietPullRequests, notBefore: cutoff) { changed = true }
         // Bestaande tags uit de eerste tag-poll van een repo: gelezen, zonder melding.
         if history.merge(syncedTags: result.syncedTags, notBefore: cutoff) { changed = true }
         // Bekende tags krijgen hun auteur en release bij, zonder melding en op hun plek.
@@ -185,8 +188,27 @@ final class HistoryModel {
         // Of open PR's in de rij staan om vanzelf te mergen, op hun plek en zonder melding.
         if history.update(mergeQueues: result.mergeQueues) { changed = true }
         if history.update(leftQueue: result.leftQueue) { changed = true }
+        // Of open PR's een draft zijn, ook gemelde: klaar voor review of terug naar draft.
+        if history.update(drafts: result.drafts) { changed = true }
+        // Na de draft-stand: een PR die terug naar draft ging bij een account dat drafts verbergt.
+        let removedDrafts = history.removeDrafts(ofAccounts: Self.hidingDrafts(accounts.config))
+        if removedDrafts { changed = true }
         if history.prune(now: now, retention: retention) { changed = true }
         if changed { save() }
+        if removedDrafts { removeReadNotifications() }
+    }
+
+    /// Na het bewaren van een account: zet je "Draft-PR's tonen" uit, dan gaan de drafts die er
+    /// al stonden meteen weg, niet pas na de volgende poll.
+    func removeHiddenDrafts() {
+        guard history.removeDrafts(ofAccounts: Self.hidingDrafts(accounts.config)) else { return }
+        save()
+        removeReadNotifications()
+    }
+
+    /// De accounts met "Draft-PR's tonen" uit.
+    private static func hidingDrafts(_ config: AppConfig) -> Set<UUID> {
+        Set(config.accounts.filter { !$0.showDrafts }.map(\.id))
     }
 
     /// Ruimt op wat buiten een (nieuwe) bewaartermijn valt.
