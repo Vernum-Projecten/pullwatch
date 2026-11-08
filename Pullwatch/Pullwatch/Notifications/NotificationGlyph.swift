@@ -5,6 +5,8 @@ import SwiftUI
 /// zoals in de lijsten, of een SF Symbol, in de kleur van de soort.
 nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
     case pullRequest, merged, checksFailed, leftQueue, release, tag, vulnerability, securityAlert, packageUpdate, publishedPackage
+    /// Auto-merge of auto-complete ging uit zonder merge: geen rij, dus niet in de kleur van Queued.
+    case autoMergeOff
 
     init?(kind: NotificationKind) {
         switch kind {
@@ -29,7 +31,7 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .merged: PRStatus.merged.glyph
         case .checksFailed: CheckState.failed.glyph
         // Terug uit de rij: de pijl terug, in de kleur van Queued.
-        case .leftQueue: .system("arrow.uturn.backward.circle.fill")
+        case .leftQueue, .autoMergeOff: .system("arrow.uturn.backward.circle.fill")
         case .release: .system("shippingbox.fill")
         case .tag: ItemKind.tag.glyph
         case .vulnerability: .system("exclamationmark.shield.fill")
@@ -45,6 +47,8 @@ nonisolated enum NotificationGlyph: Hashable, Sendable, CaseIterable {
         case .merged: PRStatus.merged.color
         case .checksFailed: CheckState.failed.color
         case .leftQueue: PRStatus.queued.color
+        // De lijsten tonen zo'n PR als open, dus de kleur van open.
+        case .autoMergeOff: PRStatus.open.color
         case .release, .tag: ItemKind.tag.color
         case .vulnerability: .red
         case .securityAlert: .orange

@@ -34,6 +34,7 @@ struct NotificationContentBuilder {
         let body: [String?]
         let url: URL
         var avatar: URL?
+        var glyph: NotificationGlyph?
         // Bij een PR het nummer achter de repo, met het teken van de dienst van het account.
         let subtitle = switch item {
         case .pullRequest(let pr), .merged(let pr), .checksFailed(let pr), .leftQueue(let pr): account.map { pr.repoAndNumber($0.kind) } ?? key.repo
@@ -59,6 +60,7 @@ struct NotificationContentBuilder {
             body = [pr.title, pr.leftQueue?.reason.map(reasonLine)]
             url = pr.webURL
             avatar = authorAvatar(pr, account: account)
+            glyph = Self.leftQueueGlyph([pr])
         case .tag(let tag):
             title = tagTitle(tag)
             body = [tag.releaseTitle, byline(tag.release?.authorLogin ?? tag.authorName, others: [])]
@@ -78,8 +80,17 @@ struct NotificationContentBuilder {
             payload: NotificationPayload(
                 url: url, historyKeys: [item.historyKey], accountId: key.accountId, repo: key.repo,
                 watchKinds: [item.watchKind]
-            )
+            ),
+            glyphOverride: glyph
         )
+    }
+
+    /// Alleen auto-merge of auto-complete uit (geen echte rij): het teken van open in plaats van
+    /// dat van Queued. Met een echte rij erbij blijft het het teken van de soort.
+    private static func leftQueueGlyph(_ prs: [PullRequest]) -> NotificationGlyph? {
+        let kinds = prs.compactMap(\.leftQueue?.kind)
+        guard !kinds.isEmpty, kinds.allSatisfy({ !$0.isQueue }) else { return nil }
+        return .autoMergeOff
     }
 
     /// Boven de grens per poll: één melding per repository met hoeveel er is en de eerste drie.
@@ -97,7 +108,7 @@ struct NotificationContentBuilder {
         case .checksFailed?:
             String(localized: "Checks van \(count) pull requests mislukt", bundle: bundle, comment: "Meldingstitel; aantal eigen PR's in één repo waarvan de checks mislukten")
         case .leftQueue?:
-            String(localized: "\(count) pull requests uit de rij zonder te mergen", bundle: bundle, comment: "Meldingstitel; aantal PR's in één repo die uit de merge queue, merge train, auto-merge of auto-complete gingen zonder te mergen")
+            String(localized: "\(count) pull requests mergen niet meer vanzelf", bundle: bundle, comment: "Meldingstitel; aantal PR's in één repo die uit de merge queue of merge train gingen, of waarvan auto-merge of auto-complete uitging, zonder te mergen")
         case .release?:
             String(localized: "\(count) nieuwe releases", bundle: bundle, comment: "Meldingstitel; aantal nieuwe releases in één repo")
         case .tag?:
@@ -125,7 +136,10 @@ struct NotificationContentBuilder {
             avatarURL: nil,
             payload: NotificationPayload(
                 historyKeys: items.map(\.historyKey), accountId: key.accountId, repo: key.repo, watchKinds: watchKinds
-            )
+            ),
+            glyphOverride: kinds == [.leftQueue] ? Self.leftQueueGlyph(items.compactMap { item in
+                if case .leftQueue(let pr) = item { pr } else { nil }
+            }) : nil
         )
     }
 
