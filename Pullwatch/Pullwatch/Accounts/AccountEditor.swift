@@ -425,6 +425,11 @@ struct AccountEditor: View {
             } footer: {
                 Text("Zonder tonen staan drafts nergens en komt een draft binnen zodra hij klaar is voor review. Verbergen geldt overal.")
             }
+            // Zonder tonen kan een draft niet melden: zet melden dan ook uit, zodat de schakelaar
+            // niet aan staat terwijl hij niets doet.
+            .onChange(of: draft.showDrafts) { _, shown in
+                if !shown { draft.includeDrafts = false }
+            }
 
             if draft.isComplete {
                 RepoFollowList(
