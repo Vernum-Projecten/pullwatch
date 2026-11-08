@@ -18,14 +18,22 @@ public protocol ProcessRunner: Sendable {
 }
 
 public struct SystemProcessRunner: ProcessRunner {
-    private let timeout: Duration
+    /// Wacht de timeout af; gooit bij annulering. Tests geven hun eigen, zodat de timeout afgaat
+    /// wanneer de test dat zegt in plaats van na een tijd op de klok.
+    typealias Wait = @Sendable () async throws -> Void
+
+    private let wait: Wait
 
     public init(timeout: Duration = .seconds(20)) {
-        self.timeout = timeout
+        self.wait = { try await Task.sleep(for: timeout) }
+    }
+
+    init(wait: @escaping Wait) {
+        self.wait = wait
     }
 
     public func run(_ executable: URL, _ arguments: [String]) async throws -> ProcessOutput {
-        let run = ProcessRun(executable: executable, arguments: arguments, timeout: timeout)
+        let run = ProcessRun(executable: executable, arguments: arguments, wait: wait)
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 run.start(continuation)
@@ -52,12 +60,12 @@ private final class ProcessRun: Sendable {
     private let stderrPipe = Pipe()
     private let executable: URL
     private let arguments: [String]
-    private let timeout: Duration
+    private let wait: SystemProcessRunner.Wait
 
-    init(executable: URL, arguments: [String], timeout: Duration) {
+    init(executable: URL, arguments: [String], wait: @escaping SystemProcessRunner.Wait) {
         self.executable = executable
         self.arguments = arguments
-        self.timeout = timeout
+        self.wait = wait
     }
 
     func start(_ continuation: CheckedContinuation<ProcessOutput, any Error>) {
@@ -112,7 +120,7 @@ private final class ProcessRun: Sendable {
 
             locked.timer = Task { [self] in
                 do {
-                    try await Task.sleep(for: timeout)
+                    try await wait()
                 } catch {
                     return
                 }
