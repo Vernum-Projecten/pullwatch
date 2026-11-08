@@ -165,7 +165,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         if let avatar = content.avatarURL {
             file = await avatars.attachmentFile(for: avatar)
         }
-        if file == nil, let glyph = NotificationGlyph(kind: content.kind) {
+        if file == nil, let glyph = content.glyph {
             file = glyphFile(glyph)
         }
         guard let file else { return nil }

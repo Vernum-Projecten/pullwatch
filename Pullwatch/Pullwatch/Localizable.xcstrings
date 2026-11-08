@@ -2512,8 +2512,8 @@
         }
       }
     },
-    "%lld pull requests uit de rij zonder te mergen": {
-      "comment": "Meldingstitel; aantal PR's in één repo die uit de merge queue, merge train, auto-merge of auto-complete gingen zonder te mergen",
+    "%lld pull requests mergen niet meer vanzelf": {
+      "comment": "Meldingstitel; aantal PR's in één repo die uit de merge queue of merge train gingen, of waarvan auto-merge of auto-complete uitging, zonder te mergen",
       "localizations": {
         "de": {
           "variations": {
@@ -2521,13 +2521,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Request hat die Warteschlange ohne Merge verlassen"
+                  "value": "%lld Pull Request merget nicht mehr von selbst"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Requests haben die Warteschlange ohne Merge verlassen"
+                  "value": "%lld Pull Requests mergen nicht mehr von selbst"
                 }
               }
             }
@@ -2539,13 +2539,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Request Left the Queue Without Merging"
+                  "value": "%lld Pull Request No Longer Merges by Itself"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld Pull Requests Left the Queue Without Merging"
+                  "value": "%lld Pull Requests No Longer Merge by Themselves"
                 }
               }
             }
@@ -2557,13 +2557,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull request a quitté la file d’attente sans fusion"
+                  "value": "%lld pull request ne fusionne plus d’elle-même"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull requests ont quitté la file d’attente sans fusion"
+                  "value": "%lld pull requests ne fusionnent plus d’elles-mêmes"
                 }
               }
             }
@@ -2575,13 +2575,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull request uit de rij zonder te mergen"
+                  "value": "%lld pull request merget niet meer vanzelf"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld pull requests uit de rij zonder te mergen"
+                  "value": "%lld pull requests mergen niet meer vanzelf"
                 }
               }
             }
@@ -16938,24 +16938,24 @@
         }
       }
     },
-    "Pull requests die uit de rij gaan zonder te mergen": {
+    "Pull requests die niet meer vanzelf mergen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull Requests, die die Warteschlange ohne Merge verlassen"
+            "value": "Pull Requests, die nicht mehr von selbst mergen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull requests that leave the queue without merging"
+            "value": "Pull requests that stop merging by themselves"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull requests qui quittent la file d’attente sans fusion"
+            "value": "Pull requests qui ne fusionnent plus d’elles-mêmes"
           }
         }
       }
