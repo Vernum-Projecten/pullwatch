@@ -108,9 +108,16 @@ struct AnnotatedTagDTO: Decodable {
 struct CommitDTO: Decodable {
     struct Person: Decodable {
         let name: String?
+        let email: String?
         let date: String?
     }
     let commitId: String
     let author: Person?
     let committer: Person?
+}
+
+/// `diffs/commits`: hoeveel commits de doel-versie voor of achter ligt op de basis.
+struct CommitDiffsDTO: Decodable {
+    let aheadCount: Int
+    let behindCount: Int
 }
