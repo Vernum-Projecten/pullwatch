@@ -5,6 +5,14 @@ import PullwatchTestSupport
 
 /// Branches volgen per repo: standaard aan met de PR's, zonder eigen melding.
 @Suite struct BranchWatchTests {
+    /// Zoals een vinkje in de accounteditor (en "alle" per eigenaar, dat elke repo zo zet): lezen,
+    /// via `WatchSet[follows:]` wijzigen, terugschrijven.
+    private func follow(_ account: inout Account, _ repo: String, _ on: Bool, _ kind: WatchKind = .pullRequests) {
+        var watch = account.watch(for: repo)
+        watch[follows: kind] = on
+        account.setWatch(watch, for: repo)
+    }
+
     @Test func oldJSONFollowsBranchesWhenItFollowsPRs() throws {
         let set = try JSONDecoder().decode(WatchSet.self, from: Data(#"{"prs":true,"tags":false}"#.utf8))
         #expect(set.branches)
@@ -47,6 +55,61 @@ import PullwatchTestSupport
         var account = Account.fixture(repoWatch: [:])
         account.setWatch(.prs, for: "proj/a")
         #expect(account.repoWatch["proj/a"] == nil)
+        var withoutBranches = WatchSet.prs
+        withoutBranches.branches = false
+        account.setWatch(withoutBranches, for: "proj/a")
+        #expect(account.repoWatch["proj/a"] == withoutBranches)
+    }
+
+    @Test func `Turning PRs on also follows branches`() {
+        var set = WatchSet.none
+        set[follows: .pullRequests] = true
+        #expect(set.prs && set.branches)
+    }
+
+    @Test func `Turning PRs off also stops branches`() {
+        var set = WatchSet.prs
+        set[follows: .pullRequests] = false
+        #expect(!set.prs && !set.branches)
+    }
+
+    @Test func `Turning merged on follows branches with the PRs`() {
+        var set = WatchSet.none
+        set[follows: .merged] = true
+        #expect(set.prs && set.branches)
+    }
+
+    @Test func `Ticking PRs on a repo of a none account follows its branches`() {
+        var account = Account.fixture(repoWatch: [:], newRepoDefault: .none)
+        follow(&account, "proj/a", true)
+        #expect(account.watch(for: "proj/a").branches)
+        #expect(account.branchRepos == ["proj/a"])
+        follow(&account, "proj/a", false)
+        #expect(!account.watch(for: "proj/a").branches)
+        #expect(account.branchRepos.isEmpty)
+    }
+
+    @Test func `Unticking PRs on a repo of a prs account stops its branches`() {
+        var account = Account.fixture(repoWatch: [:], newRepoDefault: .prs)
+        follow(&account, "proj/a", false)
+        #expect(!account.watch(for: "proj/a").branches)
+        follow(&account, "proj/a", true)
+        #expect(account.watch(for: "proj/a") == .prs)
+        #expect(account.repoWatch["proj/a"] == nil)
+    }
+
+    @Test func `Following all PRs of an owner follows all their branches`() {
+        var account = Account.fixture(repoWatch: [:], newRepoDefault: .none)
+        for repo in ["proj/a", "proj/b"] { follow(&account, repo, true) }
+        #expect(account.branchRepos.sorted() == ["proj/a", "proj/b"])
+    }
+
+    @Test func `The branches switch stays its own after PRs`() {
+        var set = WatchSet.prs
+        set[follows: .branches] = false
+        #expect(set.prs && !set.branches)
+        set[follows: .tags] = true
+        #expect(!set.branches)
     }
 
     @Test func branchReposFollowDefaultFromAvailable() {

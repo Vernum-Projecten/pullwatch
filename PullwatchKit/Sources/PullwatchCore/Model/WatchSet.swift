@@ -54,7 +54,8 @@ public struct WatchSet: Codable, Hashable, Sendable {
     static let both = WatchSet(prs: true, tags: true, branches: true)
 
     /// Volgt deze set dit soort? Aanzetten zet ook de melding ervan aan. Gemerged hoort bij de
-    /// PR's: PR's uit zet gemerged uit, gemerged aan zet PR's aan.
+    /// PR's: PR's uit zet gemerged uit, gemerged aan zet PR's aan. Branches lopen mee met de PR's:
+    /// PR's aan of uit zet de branches mee; het vinkje Branches zelf staat daarna los.
     public subscript(follows kind: WatchKind) -> Bool {
         get {
             switch kind {
@@ -68,6 +69,7 @@ public struct WatchSet: Codable, Hashable, Sendable {
             switch kind {
             case .pullRequests:
                 prs = newValue
+                branches = newValue
                 if newValue { notifyPRs = true } else { completed = false }
             case .tags:
                 tags = newValue
@@ -78,7 +80,7 @@ public struct WatchSet: Codable, Hashable, Sendable {
                 completed = newValue
                 if newValue {
                     notifyCompleted = true
-                    if !prs { prs = true; notifyPRs = true }
+                    if !prs { prs = true; branches = true; notifyPRs = true }
                 }
             }
         }
