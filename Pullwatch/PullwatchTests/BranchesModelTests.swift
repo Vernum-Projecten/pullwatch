@@ -48,22 +48,27 @@ import Testing
         #expect(BranchesModel(store: store).log.pushes.map(\.newSha) == ["a"])
     }
 
-    @Test func `Apply does not change the unread count of the history`() throws {
+    /// Pushes staan in branches.json in de datamap, los van de geschiedenis: history.json blijft
+    /// onaangeroerd en het aantal ongelezen verandert niet.
+    @Test func `Pushes go to branches.json and leave the history alone`() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "branches-\(UUID().uuidString)")
-        let key = "PullwatchDataDirectory"
-        let previous = UserDefaults.standard.string(forKey: key)
-        UserDefaults.standard.set(directory.path(percentEncoded: false), forKey: key)
+        let suite = "BranchesModelTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.set(directory.path(percentEncoded: false), forKey: "PullwatchDataDirectory")
         defer {
-            UserDefaults.standard.set(previous, forKey: key)
+            defaults.removePersistentDomain(forName: suite)
             try? FileManager.default.removeItem(at: directory)
         }
-        let services = AppServices()
+        let services = AppServices(defaults: defaults)
         let history = HistoryModel(services: services, accounts: AccountsModel(services: services))
         let before = history.unreadCount
-        let model = BranchesModel(store: nil)
+        let model = BranchesModel(store: services.branchStore)
+
         model.apply([push("a")], retention: .forever, now: now)
 
         #expect(history.unreadCount == before)
-        #expect(model.log.pushes.count == 1)
+        #expect(FileManager.default.fileExists(atPath: directory.appending(path: "branches.json").path(percentEncoded: false)))
+        #expect(!FileManager.default.fileExists(atPath: directory.appending(path: "history.json").path(percentEncoded: false)))
+        #expect(BranchesModel(store: services.branchStore).log.pushes.map(\.newSha) == ["a"])
     }
 }

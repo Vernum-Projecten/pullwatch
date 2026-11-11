@@ -7,20 +7,33 @@ import PullwatchProviders
 /// meldingen en het netwerk. Eén keer gemaakt door `AppModel`, en niet `@Observable`: niets
 /// hierin hoort een view opnieuw te laten tekenen.
 final class AppServices {
-    let configStore = JSONFileStore<AppConfig>(url: AppPaths.file("config.json"))
-    let historyStore = JSONFileStore<History>(url: AppPaths.file("history.json"))
-    let branchStore = JSONFileStore<BranchLog>(url: AppPaths.file("branches.json"))
-    let legacyRecentStore = JSONFileStore<RecentList>(url: AppPaths.file("recent.json"))
-    let versionStore = JSONFileStore<VersionReport>(url: AppPaths.file("versions.json"))
-    let versionHistoryStore = JSONFileStore<VersionHistory>(url: AppPaths.file("version-history.json"))
+    let configStore: JSONFileStore<AppConfig>
+    let historyStore: JSONFileStore<History>
+    let branchStore: JSONFileStore<BranchLog>
+    let legacyRecentStore: JSONFileStore<RecentList>
+    let versionStore: JSONFileStore<VersionReport>
+    let versionHistoryStore: JSONFileStore<VersionHistory>
     let secrets = SecretStores.shared
-    let engine = PollEngine(
-        makeProvider: { ProviderFactory.make($0, http: AppModel.networking) },
-        store: JSONFileStore<SeenState>(url: AppPaths.file("seen.json"))
-    )
+    let engine: PollEngine
     let notifier = Notifier.shared
     /// De Pullwatch GitHub App uit de xcconfig; niet ingesteld = geen "Inloggen met GitHub".
     let gitHubApp = GitHubAppConfig.main
+
+    /// `defaults` bepaalt de datamap (`-PullwatchDataDirectory`, `AppPaths`); een test geeft een
+    /// eigen suite mee, zodat hij de instellingen van de app niet aanraakt.
+    init(defaults: UserDefaults = .standard) {
+        func file(_ name: String) -> URL { AppPaths.file(name, defaults: defaults) }
+        configStore = JSONFileStore(url: file("config.json"))
+        historyStore = JSONFileStore(url: file("history.json"))
+        branchStore = JSONFileStore(url: file("branches.json"))
+        legacyRecentStore = JSONFileStore(url: file("recent.json"))
+        versionStore = JSONFileStore(url: file("versions.json"))
+        versionHistoryStore = JSONFileStore(url: file("version-history.json"))
+        engine = PollEngine(
+            makeProvider: { ProviderFactory.make($0, http: AppModel.networking) },
+            store: JSONFileStore<SeenState>(url: file("seen.json"))
+        )
+    }
 
     var http: any HTTPClient { AppModel.networking }
 
