@@ -107,20 +107,26 @@ private struct BranchesTable: View {
         accounts.first { $0.id == push.accountId }
     }
 
+    // De ideale breedtes passen samen in het hoofdvenster op zijn kleinste maat, zodat geen kolom
+    // buiten beeld valt; een breder venster verdeelt de ruimte naar verhouding.
     var body: some View {
         Table(rows, selection: $selection, sortOrder: $sortOrder) {
             TableColumn("Branch", value: \.branchSortKey) { push in
+                // In het midden afgekapt: het eind van een lange naam zegt het meest
+                // (`dependabot/…/lodash-4.17.21`).
                 Text(verbatim: push.branch)
                     .lineLimit(1)
+                    .truncationMode(.middle)
                     .help(push.branch)
             }
-            .width(min: 120, ideal: 220)
+            .width(min: 100, ideal: 118)
             TableColumn("Repo", value: \.repoSortKey) { push in
                 Text(verbatim: push.repo)
                     .lineLimit(1)
+                    .truncationMode(.middle)
                     .help(push.repo)
             }
-            .width(min: 100, ideal: 180)
+            .width(min: 90, ideal: 130)
             TableColumn("Wie", value: \.authorSortKey) { push in
                 if let name = push.authorName {
                     let account = account(of: push)
@@ -140,16 +146,17 @@ private struct BranchesTable: View {
                     Text("onbekend").foregroundStyle(.secondary)
                 }
             }
-            .width(min: 100, ideal: 170)
+            .width(min: 90, ideal: 95)
             TableColumn("Commits", value: \.commitsSortKey) { push in
                 BranchKindLabel(kind: push.kind, commits: push.commits)
             }
-            .width(min: 70, ideal: 100)
+            // Breed genoeg voor de langste pill ("Nouvelle branche").
+            .width(min: 105, ideal: 105)
             TableColumn("Laatste push", value: \.pushedAt) { push in
                 RelativeDateText(date: push.pushedAt)
                     .help(push.pushedAt.formatted(date: .complete, time: .standard))
             }
-            .width(min: 110, ideal: 150)
+            .width(min: 90, ideal: 112)
         }
         .contextMenu(forSelectionType: BranchPush.ID.self) { ids in
             if let push = push(ids.first) {
