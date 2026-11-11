@@ -63,6 +63,7 @@ enum SnapshotTour {
             // Een geselecteerde rij: het nummer in de kolom Repo volgt de kleuren van de selectie.
             ("pull-requests-selected", { SnapshotCamera.selectRow(1, windowId: WindowID.main.rawValue) }),
             ("tags", { model.router.show(.tags) }),
+            ("branches", { model.router.show(.branches) }),
             ("stats", { model.router.show(.stats) }),
             ("repos", { model.router.show(.repos) }),
             ("versions", { model.router.show(.dependencies) }),
@@ -133,7 +134,7 @@ enum SnapshotTour {
         // van AppKit over een reentrante tabel-delegate (#204) zou dan in stderr staan.
         if UserDefaults.standard.bool(forKey: "PullwatchSnapshotTourInteract") {
             let tables: Set<String> = [
-                "pull-requests", "tags", "repos", "versions", "packages", "history-author-token", "history-group",
+                "pull-requests", "tags", "branches", "repos", "versions", "packages", "history-author-token", "history-group",
                 "repo-check", "repo-packages", "repo-security", "repo-history-token", "repos-again",
             ]
             let main = WindowID.main.rawValue
