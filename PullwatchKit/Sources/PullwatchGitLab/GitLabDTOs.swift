@@ -99,3 +99,25 @@ struct TreeEntryDTO: Decodable {
     let path: String
     let type: String
 }
+
+/// Een branch met zijn laatste commit (`repository/branches`).
+struct BranchDTO: Decodable {
+    struct Commit: Decodable {
+        let id: String
+        let committedDate: String?
+        let authorName: String?
+        let authorEmail: String?
+    }
+
+    let name: String
+    let commit: Commit
+}
+
+/// De commits die `repository/compare` tussen twee punten vindt; alleen het aantal telt.
+struct CompareDTO: Decodable {
+    struct Commit: Decodable {
+        let id: String
+    }
+
+    let commits: [Commit]
+}
