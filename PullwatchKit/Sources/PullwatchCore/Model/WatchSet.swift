@@ -9,6 +9,8 @@ enum FilterMode: String, Codable, Hashable, Sendable, CaseIterable {
 public struct WatchSet: Codable, Hashable, Sendable {
     public var prs: Bool
     public var tags: Bool
+    /// Pushes naar branches van deze repo (sectie Branches). Heeft geen eigen melding.
+    public var branches: Bool
     /// Melding als een PR in deze repo gemerged (completed) wordt.
     public var completed: Bool
     /// Melding bij een nieuwe PR; uit = wel volgen (menu, geschiedenis), geen melding.
@@ -17,11 +19,12 @@ public struct WatchSet: Codable, Hashable, Sendable {
     var notifyCompleted: Bool
 
     public init(
-        prs: Bool, tags: Bool, completed: Bool = false,
+        prs: Bool, tags: Bool, branches: Bool = false, completed: Bool = false,
         notifyPRs: Bool = true, notifyTags: Bool = true, notifyCompleted: Bool = true
     ) {
         self.prs = prs
         self.tags = tags
+        self.branches = branches
         self.completed = completed
         self.notifyPRs = notifyPRs
         self.notifyTags = notifyTags
@@ -29,14 +32,16 @@ public struct WatchSet: Codable, Hashable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case prs, tags, completed, notifyPRs, notifyTags, notifyCompleted
+        case prs, tags, branches, completed, notifyPRs, notifyTags, notifyCompleted
     }
 
-    /// Oude JSON heeft geen `completed` (dan uit) en geen meldingskeuzes (dan aan).
+    /// Oude JSON heeft geen `completed` (dan uit), geen meldingskeuzes (dan aan) en geen
+    /// `branches` (dan zoals `prs`: wie PR's volgde, volgt nu ook de branches).
     public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         prs = try c.decode(Bool.self, forKey: .prs)
         tags = try c.decode(Bool.self, forKey: .tags)
+        branches = try c.decodeIfPresent(Bool.self, forKey: .branches) ?? prs
         completed = try c.decodeIfPresent(Bool.self, forKey: .completed) ?? false
         notifyPRs = try c.decodeIfPresent(Bool.self, forKey: .notifyPRs) ?? true
         notifyTags = try c.decodeIfPresent(Bool.self, forKey: .notifyTags) ?? true
@@ -44,9 +49,9 @@ public struct WatchSet: Codable, Hashable, Sendable {
     }
 
     public static let none = WatchSet(prs: false, tags: false)
-    public static let prs = WatchSet(prs: true, tags: false)
+    public static let prs = WatchSet(prs: true, tags: false, branches: true)
     public static let tags = WatchSet(prs: false, tags: true)
-    static let both = WatchSet(prs: true, tags: true)
+    static let both = WatchSet(prs: true, tags: true, branches: true)
 
     /// Volgt deze set dit soort? Aanzetten zet ook de melding ervan aan. Gemerged hoort bij de
     /// PR's: PR's uit zet gemerged uit, gemerged aan zet PR's aan.
@@ -55,6 +60,7 @@ public struct WatchSet: Codable, Hashable, Sendable {
             switch kind {
             case .pullRequests: prs
             case .tags: tags
+            case .branches: branches
             case .merged: completed
             }
         }
@@ -66,6 +72,8 @@ public struct WatchSet: Codable, Hashable, Sendable {
             case .tags:
                 tags = newValue
                 if newValue { notifyTags = true }
+            case .branches:
+                branches = newValue
             case .merged:
                 completed = newValue
                 if newValue {
@@ -76,12 +84,14 @@ public struct WatchSet: Codable, Hashable, Sendable {
         }
     }
 
-    /// Een melding bij dit soort (alleen zinvol als het gevolgd wordt).
+    /// Een melding bij dit soort (alleen zinvol als het gevolgd wordt). Branches melden niet:
+    /// lezen geeft altijd `false`, zetten doet niets.
     public subscript(notifies kind: WatchKind) -> Bool {
         get {
             switch kind {
             case .pullRequests: notifyPRs
             case .tags: notifyTags
+            case .branches: false
             case .merged: notifyCompleted
             }
         }
@@ -89,15 +99,16 @@ public struct WatchSet: Codable, Hashable, Sendable {
             switch kind {
             case .pullRequests: notifyPRs = newValue
             case .tags: notifyTags = newValue
+            case .branches: break
             case .merged: notifyCompleted = newValue
             }
         }
     }
 }
 
-/// Wat per repo te volgen is: nieuwe PR's, nieuwe tags en gemergde (completed) PR's.
+/// Wat per repo te volgen is: nieuwe PR's, nieuwe tags, pushes naar branches en gemergde (completed) PR's.
 public enum WatchKind: String, CaseIterable, Identifiable, Sendable {
-    case pullRequests, tags, merged
+    case pullRequests, tags, branches, merged
     public var id: Self { self }
 }
 

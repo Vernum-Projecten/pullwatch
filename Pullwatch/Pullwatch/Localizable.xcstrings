@@ -3832,6 +3832,63 @@
         }
       }
     },
+    "Alle branches van %@ volgen": {
+      "comment": "Gebruiker of organisatie",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Branches von %@ folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all branches of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les branches de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle branches van %@ volgen"
+          }
+        }
+      }
+    },
+    "Alle branches van de andere repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Branches der anderen Repositories folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all branches of the other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les branches des autres dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle branches van de andere repositories volgen"
+          }
+        }
+      }
+    },
     "Alle bronnen met hun stand en adres, om in een mail of bericht te plakken.": {
       "localizations": {
         "de": {
@@ -5224,6 +5281,63 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bots verbergen"
+          }
+        }
+      }
+    },
+    "Branches": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        }
+      }
+    },
+    "Branches van %@ volgen": {
+      "comment": "Repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches von %@ folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow branches of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les branches de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches van %@ volgen"
           }
         }
       }
@@ -17534,6 +17648,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aide Pullwatch"
+          }
+        }
+      }
+    },
+    "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes auf Branches im Bereich Branches und im Verlauf, ohne Mitteilung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes to branches in the Branches section and the history, without a notification"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les pushs vers des branches dans la section Branches et l'historique, sans notification"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding"
           }
         }
       }

@@ -29,6 +29,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: "PR's"
         case .tags: "Tags"
+        case .branches: "Branches"
         case .merged: "Gemerged"
         }
     }
@@ -37,6 +38,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: "Nieuwe pull requests in het menu, de geschiedenis en de meldingen"
         case .tags: "Nieuwe tags en releases in het menu, de geschiedenis en de meldingen"
+        case .branches: "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding"
         case .merged: "Een melding en een regel in de geschiedenis als een gevolgde PR gemerged wordt (in Azure DevOps heet dat completed)"
         }
     }
@@ -45,6 +47,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: Text("PR's van \(repo) volgen", comment: "Repo")
         case .tags: Text("Tags van \(repo) volgen", comment: "Repo")
+        case .branches: Text("Branches van \(repo) volgen", comment: "Repo")
         case .merged: Text("Gemergde PR's van \(repo) volgen", comment: "Repo")
         }
     }
@@ -53,6 +56,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: Text("Alle PR's van \(owner) volgen", comment: "Gebruiker of organisatie")
         case .tags: Text("Alle tags van \(owner) volgen", comment: "Gebruiker of organisatie")
+        case .branches: Text("Alle branches van \(owner) volgen", comment: "Gebruiker of organisatie")
         case .merged: Text("Alle gemergde PR's van \(owner) volgen", comment: "Gebruiker of organisatie")
         }
     }
@@ -62,6 +66,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: Text("Alle PR's van de andere repositories volgen")
         case .tags: Text("Alle tags van de andere repositories volgen")
+        case .branches: Text("Alle branches van de andere repositories volgen")
         case .merged: Text("Alle gemergde PR's van de andere repositories volgen")
         }
     }
@@ -70,9 +75,17 @@ extension WatchKind {
         switch self {
         case .pullRequests: "Melding bij nieuwe PR's"
         case .tags: "Melding bij nieuwe tags en releases"
+        // Wordt niet getoond: branches hebben geen meldingsvinkje (`hasNotification`).
+        case .branches: "Branches"
         case .merged: "Melding als een PR gemerged wordt"
         }
     }
+
+    /// Branches melden niet: ze staan alleen in de sectie Branches en de geschiedenis.
+    var hasNotification: Bool { self != .branches }
+
+    /// De soorten met een eigen meldingsvinkje.
+    static let notifying = allCases.filter(\.hasNotification)
 }
 
 extension NewRepoDefault {
@@ -321,7 +334,7 @@ private struct RepoWatchRow: View {
     }
 
     @ViewBuilder private var menu: some View {
-        ForEach(WatchKind.allCases) { kind in
+        ForEach(WatchKind.notifying) { kind in
             Toggle(kind.notifyTitle, isOn: $account[repo, notifies: kind])
                 .disabled(!account[repo, follows: kind])
         }
