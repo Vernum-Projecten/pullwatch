@@ -25,7 +25,8 @@ struct BranchesView: View {
     }
 
     private func recompute() {
-        rows = filter.apply(branches.log.pushes).sorted(using: sortOrder)
+        // De nieuwste push eerst bij gelijke waarden, zodat de volgorde vast ligt.
+        rows = filter.apply(branches.log.pushes).sorted(using: sortOrder + [KeyPathComparator(\BranchPush.pushedAt, order: .reverse)])
         if let selection, !rows.contains(where: { $0.id == selection }) { self.selection = nil }
     }
 
@@ -133,6 +134,8 @@ private struct BranchesTable: View {
                     }
                     .buttonStyle(.plain)
                     .help(Text("Toon alleen pushes van \(name)", comment: "Naam van een persoon"))
+                    .accessibilityLabel(Text(verbatim: name))
+                    .accessibilityHint(Text("Toon alleen pushes van \(name)", comment: "Naam van een persoon"))
                 } else {
                     Text("onbekend").foregroundStyle(.secondary)
                 }
@@ -150,8 +153,8 @@ private struct BranchesTable: View {
         }
         .contextMenu(forSelectionType: BranchPush.ID.self) { ids in
             if let push = push(ids.first) {
-                Button("Openen in browser") { open(push) }
-                Button("Branchnaam kopiëren") { Pasteboard.copy(push.branch) }
+                Button("Open in browser") { open(push) }
+                Button("Kopieer branchnaam") { Pasteboard.copy(push.branch) }
             }
         } primaryAction: { ids in
             if let push = push(ids.first) { open(push) }

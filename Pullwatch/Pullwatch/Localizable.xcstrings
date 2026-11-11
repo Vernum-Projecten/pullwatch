@@ -5531,34 +5531,6 @@
         }
       }
     },
-    "Branchnaam kopiëren": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Branch-Namen kopieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy Branch Name"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier le nom de la branche"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Branchnaam kopiëren"
-          }
-        }
-      }
-    },
     "Bron": {
       "localizations": {
         "de": {
@@ -11739,6 +11711,34 @@
         }
       }
     },
+    "Kopieer branchnaam": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch-Namen kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Branch Name"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le nom de la branche"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieer branchnaam"
+          }
+        }
+      }
+    },
     "Kopieer code": {
       "localizations": {
         "de": {
@@ -15870,34 +15870,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dépôt public auquel votre compte n'a pas accès ; Pullwatch le lit sans jeton, avec la limite plus basse de GitHub"
-          }
-        }
-      }
-    },
-    "Openen in browser": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Im Browser öffnen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open in Browser"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ouvrir dans le navigateur"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Openen in browser"
           }
         }
       }
