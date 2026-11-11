@@ -406,6 +406,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     /// bekend met de lijst van de dienst (`branchRepos(available:)`).
     var followsBranchesByDefault: Bool { newRepoDefault.watchSet.branches }
 
+    /// Volgt dit account ergens branches: standaard, of bij minstens één eigen repo.
+    var followsBranches: Bool { followsBranchesByDefault || !branchRepos.isEmpty }
+
     /// Repo's waarvan de branches gevolgd worden, uit de lijst van de dienst plus de eigen
     /// instellingen; hoofdletterongevoelig ontdubbeld (de schrijfwijze van de dienst wint).
     func branchRepos(available: [String]) -> [String] {

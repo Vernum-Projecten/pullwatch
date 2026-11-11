@@ -29,6 +29,13 @@ public actor PollEngine {
     static let failedCheckRefresh: TimeInterval = 900
     /// Na "geen toestemming" zo lang wachten voor de volgende vraag.
     static let checkPermissionRetry: TimeInterval = 3600
+    /// Branches worden net als tags hooguit eens per kwartier opgehaald, op een eigen ritme.
+    static let branchInterval: TimeInterval = 900
+    /// De eerste branch-poll van een repo geeft een rij voor elke branch die zo kort geleden bewoog.
+    static let branchSeedWindow: TimeInterval = 14 * 86_400
+    /// Maximaal aantal vergelijkingen (aantal commits, force-push) per account per poll, nieuwste
+    /// branch eerst; de rest krijgt `commits: nil`.
+    static let branchCompareLimit = 20
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -37,6 +44,9 @@ public actor PollEngine {
         var nextSyncDue: Date = .distantPast
         var failures = 0
         var rateLimitedUntil: Date?
+        var nextBranchDue: Date = .distantPast
+        /// Rate limit op alleen de branches: de PR's lopen door, de branches wachten tot dan.
+        var branchesRateLimitedUntil: Date?
     }
 
     struct Fetched {
@@ -68,6 +78,8 @@ public actor PollEngine {
         let coAuthors: [String: (revision: String?, people: [Person])]
         /// Net opgehaalde checks per dedupKey, met de revisie waarbij ze horen.
         let checks: [String: (revision: String?, checks: PRChecks)]
+        /// `nil` als branches deze cyclus niet aan de beurt waren.
+        let branches: BranchOutcome?
     }
 
     /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
@@ -100,7 +112,8 @@ public actor PollEngine {
     private let makeProvider: ProviderFactory
     private let store: JSONFileStore<SeenState>?
     private let now: @Sendable () -> Date
-    private var state: SeenState
+    /// Niet `private`: `PollEngine+Branches` werkt de branch-heads bij.
+    var state: SeenState
     private var providers: [UUID: (account: Account, provider: any PRProvider)] = [:]
     private var userIds: [UUID: String] = [:]
     private var schedules: [UUID: Schedule] = [:]
@@ -186,6 +199,7 @@ public actor PollEngine {
             schedule.nextDue = t
             schedule.nextTagDue = t
             schedule.nextSyncDue = t
+            if (schedule.branchesRateLimitedUntil ?? .distantPast) <= t { schedule.nextBranchDue = t }
             schedules[id] = schedule
         }
     }
@@ -210,6 +224,8 @@ public actor PollEngine {
             .map { account in
                 let tagsDue = (schedules[account.id]?.nextTagDue ?? .distantPast) <= t
                 let syncDue = (schedules[account.id]?.nextSyncDue ?? .distantPast) <= t
+                let branchesDue = (schedules[account.id]?.nextBranchDue ?? .distantPast) <= t
+                    && (schedules[account.id]?.branchesRateLimitedUntil ?? .distantPast) <= t
                 var sync = syncDue ? syncRequest(for: account, retention: retention, at: t) : nil
                 if let request = sync, request.isFirst {
                     if firstSyncAccount == nil { firstSyncAccount = account.id } else { sync = nil }
@@ -234,6 +250,13 @@ public actor PollEngine {
                             .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
                     ),
                     fetchTags: tagsDue && (account.followsTagsByDefault || !account.tagRepos.isEmpty),
+                    branchRepos: BranchRepos(
+                        account: account,
+                        known: Dictionary(uniqueKeysWithValues: state.branchHeads
+                            .filter { $0.key.hasPrefix(prefix) }
+                            .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
+                    ),
+                    fetchBranches: branchesDue && account.followsBranches,
                     sync: sync
                 )
             }
@@ -258,6 +281,8 @@ public actor PollEngine {
                         checkRequest: job.checkRequest,
                         tagRepos: job.tagRepos,
                         fetchTags: job.fetchTags,
+                        branchRepos: job.branchRepos,
+                        fetchBranches: job.fetchBranches,
                         sync: job.sync
                     ))
                 }
@@ -296,6 +321,13 @@ public actor PollEngine {
                     result.updatedTags += fresh.updated
                     result.syncedTags += fresh.backfill
                     if fetched.tags != nil { result.tagRepos[id] = fetched.tagRepos }
+                    if let branches = fetched.branches {
+                        result.branchPushes += handleBranches(
+                            job.account, branches, userId: fetched.userId, provider: job.provider, at: t)
+                    } else if !job.account.followsBranches {
+                        // Volgt het account nergens meer branches: vergeten, zodat aanzetten opnieuw seedt.
+                        forgetBranchHeads(of: job.account, except: [])
+                    }
                     let sync = handleSync(job.account, fetched, request: job.sync, retention: retention, at: t)
                     result.syncedPullRequests += sync.pullRequests
                     result.completedPullRequests += sync.completed
@@ -327,6 +359,10 @@ public actor PollEngine {
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
         result.failedChecks.sort { $0.createdAt < $1.createdAt }
         result.leftQueue.sort { $0.createdAt < $1.createdAt }
+        result.branchPushes.sort {
+            if $0.pushedAt != $1.pushedAt { return $0.pushedAt > $1.pushedAt }
+            return ($0.repo.lowercased(), $0.branch) < ($1.repo.lowercased(), $1.branch)
+        }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
         return result
     }
@@ -472,7 +508,9 @@ public actor PollEngine {
         var schedule = Schedule(
             nextDue: t + interval,
             nextTagDue: previousSchedule.nextTagDue,
-            nextSyncDue: previousSchedule.nextSyncDue
+            nextSyncDue: previousSchedule.nextSyncDue,
+            nextBranchDue: previousSchedule.nextBranchDue,
+            branchesRateLimitedUntil: previousSchedule.branchesRateLimitedUntil
         )
         if fetched.tags != nil || fetched.tagError != nil {
             schedule.nextTagDue = t + Self.tagInterval
@@ -628,6 +666,15 @@ public actor PollEngine {
             state.tagSeeded[seededKey] = t
         }
         return (fresh, updated, backfill)
+    }
+
+    /// Plant de volgende branch-poll; bij een rate limit niet vóór `rateLimitedUntil`.
+    func scheduleBranches(of account: Account, at t: Date, rateLimitedUntil: Date?) {
+        var schedule = schedules[account.id] ?? Schedule()
+        let until = rateLimitedUntil.map { min($0, t + Self.maxRateLimitWait) }
+        schedule.branchesRateLimitedUntil = until
+        schedule.nextBranchDue = max(t + Self.branchInterval, until ?? .distantPast)
+        schedules[account.id] = schedule
     }
 
     /// Geeft `true` als het account net naar `.unauthorized` is overgegaan.

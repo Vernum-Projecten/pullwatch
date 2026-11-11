@@ -13,6 +13,8 @@ extension PollEngine {
         checkRequest: CheckRequest,
         tagRepos: TagRepos,
         fetchTags: Bool,
+        branchRepos: BranchRepos,
+        fetchBranches: Bool,
         sync: SyncRequest?
     ) async -> Result<Fetched, ProviderError> {
         do {
@@ -27,6 +29,10 @@ extension PollEngine {
             var tags = TagOutcome(repos: tagRepos.account.tagRepos)
             if fetchTags {
                 tags = try await Self.fetchTags(provider, tagRepos)
+            }
+            var branches: BranchOutcome?
+            if fetchBranches {
+                branches = await Self.fetchBranches(provider, branchRepos, listed: tags.listed)
             }
             var synced: [PullRequest]?
             var syncError: ProviderError?
@@ -59,7 +65,8 @@ extension PollEngine {
                 synced: synced,
                 syncError: syncError,
                 coAuthors: details.coAuthors,
-                checks: details.checks
+                checks: details.checks,
+                branches: branches
             ))
         } catch let error as ProviderError {
             return .failure(error)
@@ -74,6 +81,8 @@ extension PollEngine {
         var repos: [String]
         var backfill: [Tag] = []
         var error: ProviderError?
+        /// De lijst van de dienst (`listRepos()`) als die opgehaald is, voor de branches.
+        var listed: [String]?
     }
 
     /// Haalt de tags op van de eigen tag-repo's, en bij tags als standaard van alle repo's in de
@@ -91,7 +100,9 @@ extension PollEngine {
         var outcome = TagOutcome(repos: account.tagRepos)
         do {
             if account.followsTagsByDefault {
-                outcome.repos = account.tagRepos(available: try await provider.listRepos())
+                let listed = try await provider.listRepos()
+                outcome.listed = listed
+                outcome.repos = account.tagRepos(available: listed)
             }
             var unchanged: [String: String] = [:]
             for repo in outcome.repos {
