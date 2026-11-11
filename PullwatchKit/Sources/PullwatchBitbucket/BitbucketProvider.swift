@@ -246,7 +246,12 @@ public actor BitbucketProvider: PRProvider {
 
     /// Een pagina op bitbucket.org: de repo houdt zijn "/", de rest wordt gecodeerd.
     static func webURL(_ repo: String, _ segments: String...) -> URL? {
-        let path = (repo.split(separator: "/").map(String.init) + segments).map(encode).joined(separator: "/")
+        pageURL(repo, segments.map(encode))
+    }
+
+    /// Als `webURL`, maar met segmenten die al gecodeerd zijn (bv. met een `%0D` erin).
+    static func pageURL(_ repo: String, _ encoded: [String]) -> URL? {
+        let path = (repo.split(separator: "/").map { encode(String($0)) } + encoded).joined(separator: "/")
         return URL(string: web.absoluteString + "/" + path)
     }
 
