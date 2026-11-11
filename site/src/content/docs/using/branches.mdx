@@ -26,7 +26,7 @@ Search by branch, repository or person. The toolbar filters on a repository or a
 
 Pullwatch recognises your own pushes by your account on GitHub, and on Bitbucket and Gitea where the account is linked to the person. Otherwise it compares the name and the e-mail address of the author with yours.
 
-Double-click a row (or choose Open in the context menu) to open the comparison at the service. Pullwatch does not show commits or files itself.
+Double-click a row (or choose **Open in browser** in the context menu) to open the comparison at the service. Pullwatch does not show commits or files itself.
 
 ## No notifications
 
@@ -34,6 +34,6 @@ Pushes never notify you, do not count as unread, and do not show in the menu pan
 
 ## Following branches
 
-Branches follow along with pull requests, per repository. To switch them off for a repository, clear its **Branches** checkbox in the account's list of repositories (Settings, Accounts). When no repository follows branches, the section offers **Follow Branches**.
+Branches follow along with pull requests, per repository: ticking **PRs** for a repository also ticks **Branches**, and clearing **PRs** clears both. To switch off only the branches of a repository, clear its **Branches** checkbox in the account's list of repositories (Settings, Accounts) or under **Follow** on the repository's **Overview**. While the list is still empty, the section has a **Follow Branches** button that opens Settings, Accounts.
 
 Branches are read at most every 15 minutes, separately from pull requests and tags. A rate limit on branches never holds back pull requests or tags: those arrive as usual, and branches wait until the limit is over. Pushes are kept as long as the history (Settings, General, **Keep history**).

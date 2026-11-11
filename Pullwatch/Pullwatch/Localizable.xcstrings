@@ -18093,30 +18093,30 @@
         }
       }
     },
-    "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding": {
+    "Pushes naar branches in de sectie Branches, zonder melding": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pushes auf Branches im Bereich Branches und im Verlauf, ohne Mitteilung"
+            "value": "Pushes auf Branches im Bereich Branches, ohne Mitteilung"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pushes to branches in the Branches section and the history, without a notification"
+            "value": "Pushes to branches in the Branches section, without a notification"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les pushs vers des branches dans la section Branches et l'historique, sans notification"
+            "value": "Les pushs vers des branches dans la section Branches, sans notification"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding"
+            "value": "Pushes naar branches in de sectie Branches, zonder melding"
           }
         }
       }

@@ -66,9 +66,10 @@ Elk account toont zijn repositories. Vink per repository aan wat je wilt:
 
 - **PR's**: nieuwe pull requests (of merge requests).
 - **Tags**: nieuwe tags, en op GitHub, GitLab, Codeberg, Forgejo en Gitea de releases die erbij gemaakt zijn. Tags staan standaard uit.
+- **Branches**: pushes naar de branches van de repository, in het onderdeel Branches. Ze volgen mee met **PR's**: **PR's** aan- of uitvinken doet hetzelfde met **Branches**, en **Branches** kun je daarna los uitzetten.
 - **Gemerged**: pull requests die gemerged worden.
 
-Naast elk vinkje staat een bel. Zet die uit om een repository in het menu en de geschiedenis te houden zonder meldingen. De bel in de kop zet alle zichtbare repositories in één keer om. Draft-pull requests staan in het menu en de geschiedenis met het draft-icoon, zoals op GitHub. Per account zet je dat uit met **Draft-PR's tonen**: drafts staan dan nergens, en een pull request komt binnen zodra hij klaar is voor review. Met **Draft-PR's melden** geeft een nieuwe draft ook een melding. Je kunt ook je eigen pull requests verbergen en het hele account een tijdje uitzetten.
+Naast elk vinkje behalve **Branches** staat een bel; pushes naar branches geven nooit een melding. Zet die uit om een repository in het menu en de geschiedenis te houden zonder meldingen. De bel in de kop zet alle zichtbare repositories in één keer om. Draft-pull requests staan in het menu en de geschiedenis met het draft-icoon, zoals op GitHub. Per account zet je dat uit met **Draft-PR's tonen**: drafts staan dan nergens, en een pull request komt binnen zodra hij klaar is voor review. Met **Draft-PR's melden** geeft een nieuwe draft ook een melding. Je kunt ook je eigen pull requests verbergen en het hele account een tijdje uitzetten.
 
 ## Repositories buiten je account
 

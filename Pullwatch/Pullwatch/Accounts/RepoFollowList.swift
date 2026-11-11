@@ -38,7 +38,7 @@ extension WatchKind {
         switch self {
         case .pullRequests: "Nieuwe pull requests in het menu, de geschiedenis en de meldingen"
         case .tags: "Nieuwe tags en releases in het menu, de geschiedenis en de meldingen"
-        case .branches: "Pushes naar branches in de sectie Branches en de geschiedenis, zonder melding"
+        case .branches: "Pushes naar branches in de sectie Branches, zonder melding"
         case .merged: "Een melding en een regel in de geschiedenis als een gevolgde PR gemerged wordt (in Azure DevOps heet dat completed)"
         }
     }
@@ -81,7 +81,7 @@ extension WatchKind {
         }
     }
 
-    /// Branches melden niet: ze staan alleen in de sectie Branches en de geschiedenis.
+    /// Branches melden niet: ze staan alleen in de sectie Branches.
     var hasNotification: Bool { self != .branches }
 
     /// De soorten met een eigen meldingsvinkje.
@@ -99,7 +99,7 @@ extension NewRepoDefault {
 }
 
 /// De repositories van een account: per eigenaar (of Azure DevOps-project) een sectie met per
-/// repo drie vinkjes (PR's, tags, gemerged) in vaste kolommen, en in de kop per kolom "alle".
+/// repo vier vinkjes (PR's, tags, branches, gemerged) in vaste kolommen, en in de kop per kolom "alle".
 /// Daaronder "Andere repositories": losse repo's die je zelf toevoegt (`Account.extraRepos`).
 /// Meldingen per soort zitten in het contextmenu van een rij en op de repo-pagina. Hoort in
 /// een `Form`.
@@ -270,7 +270,8 @@ private struct OwnerHeader: View {
     }
 }
 
-/// Eén repo: de naam en drie vinkjes. Gemerged kan alleen met PR's aan. Rechtermuisklik (en
+/// Eén repo: de naam en vier vinkjes. Gemerged kan alleen met PR's aan; PR's aan of uit zet de
+/// branches mee. Rechtermuisklik (en
 /// VoiceOver-acties): de meldingen per soort en de pagina van de repo. Een losse repo toont zijn
 /// eigenaar erbij, eventueel hoe hij gelezen wordt, en is weg te halen (menu of Delete).
 private struct RepoWatchRow: View {
