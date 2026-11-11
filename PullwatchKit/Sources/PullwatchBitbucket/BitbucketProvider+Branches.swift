@@ -10,17 +10,27 @@ extension BitbucketProvider {
     /// Zoveel commits telt een vergelijking hooguit per kant.
     static let compareLimit = 100
 
-    /// Per repo alle branches met hun laatste commit, zoals `tags(in:)` repo na repo. Bitbucket
-    /// kent geen goedkopere controle, dus de vingerafdruk (de hash van de gesorteerde
-    /// `naam:sha`-paren) volgt pas na het ophalen; een gelijke geeft `unchangedRepos`. Elke
-    /// gevraagde repo komt in precies één uitkomst: gelezen (een vingerafdruk, ook zonder
-    /// branches), `unavailableRepos` of `unchangedRepos`.
+    /// Per repo alle branches met hun laatste commit, zoals `tags(in:)` repo na repo. De
+    /// vingerafdruk is `u:<updated_on>|<hash>`: `updated_on` van de repo uit de lijst die de
+    /// PR-poll net vroeg (`repoUpdatedOn`) en de hash van de gesorteerde `naam:sha`-paren. Staat
+    /// `updated_on` nog waar hij stond, dan is er niets gepusht en komt de repo zonder verzoek in
+    /// `unchangedRepos`; zo spaart een rustige repo de limiet per uur, die Bitbucket met de PR's
+    /// deelt. Anders (of zonder `updated_on`, bij een losse repo) worden de branches gelezen en
+    /// geeft een gelijke vingerafdruk ook `unchangedRepos`. Elke gevraagde repo komt in precies
+    /// één uitkomst: gelezen (een vingerafdruk, ook zonder branches), `unavailableRepos` of
+    /// `unchangedRepos`.
     public func branches(in repos: [String], unchanged known: [String: String]) async throws -> BranchFetch {
         var fetch = BranchFetch()
         for repo in repos {
+            let updatedOn = repoUpdatedOn[repo.lowercased()]
+            if let updatedOn, !updatedOn.isEmpty, known[repo]?.hasPrefix("u:\(updatedOn)|") == true {
+                fetch.unchangedRepos.append(repo)
+                continue
+            }
             do {
                 let branches = try await branches(of: repo)
-                let fingerprint = Self.branchFingerprint(branches.map { ($0.name, $0.target?.hash ?? "") })
+                let fingerprint = Self.branchFingerprint(
+                    branches.map { ($0.name, $0.target?.hash ?? "") }, updatedOn: updatedOn)
                 if known[repo] == fingerprint {
                     fetch.unchangedRepos.append(repo)
                     continue
@@ -64,11 +74,12 @@ extension BitbucketProvider {
         )
     }
 
-    /// Hash van de op naam gesorteerde `naam:sha`-paren; verandert bij een push, een nieuwe en
-    /// een verwijderde branch.
-    static func branchFingerprint(_ pairs: [(name: String, sha: String)]) -> String {
+    /// `u:<updated_on>|` en de hash van de op naam gesorteerde `naam:sha`-paren; de hash verandert
+    /// bij een push, een nieuwe en een verwijderde branch.
+    static func branchFingerprint(_ pairs: [(name: String, sha: String)], updatedOn: String? = nil) -> String {
         let text = pairs.sorted { $0.name < $1.name }.map { "\($0.name):\($0.sha)" }.joined(separator: "\n")
-        return SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
+        let hash = SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
+        return "u:\(updatedOn ?? "")|\(hash)"
     }
 
     /// Hoeveel commits `to` voor en achter ligt op `from`: twee vragen (`include` en `exclude`),

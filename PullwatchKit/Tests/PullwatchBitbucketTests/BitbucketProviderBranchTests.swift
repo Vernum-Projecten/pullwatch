@@ -107,6 +107,51 @@ import PullwatchTestSupport
         #expect(third.fingerprints["acme/api"] != fingerprint)
     }
 
+    @Test func `A repository whose updated_on did not move is not read again`() async throws {
+        let http = MockHTTPClient()
+        http.on("repositories/acme?", body: BitbucketFixtures.repositories([("acme/api", "2026-11-10T09:00:00+00:00")]))
+        http.on("repositories/acme/api/refs/branches", body: page([branch("main", hash: "aaa")]))
+        let provider = makeProvider(http)
+        _ = try await provider.listRepos()
+        let first = try await provider.branches(in: ["acme/api"], unchanged: [:])
+        let fingerprint = try #require(first.fingerprints["acme/api"])
+
+        // De lijst van de PR-poll ervoor gaf dezelfde updated_on: geen verzoek naar de branches.
+        _ = try await provider.listRepos()
+        let second = try await provider.branches(in: ["acme/api"], unchanged: ["acme/api": fingerprint])
+
+        #expect(second.unchangedRepos == ["acme/api"])
+        #expect(second.heads.isEmpty && second.fingerprints.isEmpty)
+        #expect(urls(http).filter { $0.contains("refs/branches") }.count == 1)
+    }
+
+    @Test func `A repository whose updated_on moved is read again`() async throws {
+        let http = MockHTTPClient()
+        http.onSequence("repositories/acme?", bodies: [
+            BitbucketFixtures.repositories([("acme/api", "2026-11-10T09:00:00+00:00")]),
+            BitbucketFixtures.repositories([("acme/api", "2026-11-10T10:00:00+00:00")]),
+        ])
+        http.on("repositories/acme/api/refs/branches", body: page([branch("main", hash: "aaa")]))
+        let provider = makeProvider(http)
+        _ = try await provider.listRepos()
+        let fingerprint = try #require(try await provider.branches(in: ["acme/api"], unchanged: [:]).fingerprints["acme/api"])
+
+        _ = try await provider.listRepos()
+        let second = try await provider.branches(in: ["acme/api"], unchanged: ["acme/api": fingerprint])
+
+        // Gelezen, met de nieuwe updated_on in de vingerafdruk, ook als de branches gelijk bleven.
+        #expect(second.unchangedRepos.isEmpty)
+        #expect(second.heads.map(\.sha) == ["aaa"])
+        let next = try #require(second.fingerprints["acme/api"])
+        #expect(next != fingerprint)
+        #expect(urls(http).filter { $0.contains("refs/branches") }.count == 2)
+
+        // Daarna niet meer zolang updated_on blijft.
+        _ = try await provider.listRepos()
+        #expect(try await provider.branches(in: ["acme/api"], unchanged: ["acme/api": next]).unchangedRepos == ["acme/api"])
+        #expect(urls(http).filter { $0.contains("refs/branches") }.count == 2)
+    }
+
     @Test func missingOrForbiddenExtraReposAreUnavailable() async throws {
         let http = MockHTTPClient()
         http.on("repositories/acme/gone/", status: 404, body: BitbucketFixtures.noAccess)
