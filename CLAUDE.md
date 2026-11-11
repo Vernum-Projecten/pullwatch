@@ -60,7 +60,7 @@ of each part is in `docs/superpowers/specs/` and its plan in
   `HelpLinks`; `MenuBarTests` checks the order and the key items),
   `Shortcuts` (the focused values the menus read: `browserTarget`,
   `repoTarget`, `readTarget`, `searchFocus`), `SearchShortcut` and
-  `MainView` (sidebar: PRs, Tags, Statistics, Repos, Dependencies, Packages). The Dock
+  `MainView` (sidebar: PRs, Tags, Branches, Statistics, Repos, Dependencies, Packages, ⌘1 to ⌘7). The Dock
   menu (Reload, Check All Repositories) is `AppDelegate.applicationDockMenu`.
   `MenuBar/`: `MenuBarLabel` (the menu-bar icon; it opens the windows the
   model asks for through `AppRouter.windowRequest`) and `MenuView` (the
@@ -92,6 +92,11 @@ of each part is in `docs/superpowers/specs/` and its plan in
   never `SimpleIcon.allCases`, which puts every icon in the app).
   `Security/`: the vulnerability table and its cells, `AdvisoryInspector`.
   `Statistics/`: `StatsView` and its charts.
+  `Branches/`: `BranchesModel` (pushes to branches of followed repositories,
+  kept in `branches.json`, no notifications and not unread), `BranchesView` (the sidebar section: search, repo and person
+  filters, "Alleen anderen"), `BranchFilter` and `BranchKindLabel`; the
+  types and the log (`BranchPush`, `BranchHead`, `BranchLog`) are in `PullwatchCore/Branches/`
+  and each provider reads heads in its `+Branches` file.
   `Notifications/`: `NotificationsModel`, `Notifier`, `NotificationGlyph`,
   the notification content and the Notifications settings.
   `Settings/`: `SettingsView` (the Settings window: Accounts, Notifications,

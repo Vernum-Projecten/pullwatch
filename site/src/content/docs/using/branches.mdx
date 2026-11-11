@@ -1,0 +1,39 @@
+---
+title: Branches
+description: Which branches of your followed repositories received pushes, by whom and when.
+---
+
+import Screenshot from '../../../components/Screenshot.astro';
+
+**Branches** in the sidebar (⌘3) shows pushes to the branches of the repositories you follow, newest first. It answers a question the PRs and Tags lists cannot: who is working on what, before there is a pull request or a tag.
+
+<Screenshot name="branches" alt="The Branches section: pushes to branches of three repositories, each with its branch name, repository, author, the number of new commits and the time of the push." />
+
+## What a row shows
+
+Each row has the branch, the repository, who pushed (with their picture), the commits and when. The Commits column says what happened:
+
+- `+3`: three new commits since Pullwatch last looked.
+- **Force Push**: the branch was rewritten, so its history no longer continues from before.
+- **New Branch**: the branch did not exist yet.
+- No label: the last commit of a branch that moved in the past 14 days. Pullwatch fills the list this way the first time it reads a repository, so the section is not empty on day one.
+
+Pullwatch sees what changed between two reads, not each separate push. Three pushes between two reads are one row with all the new commits.
+
+## Search and filters
+
+Search by branch, repository or person. The toolbar filters on a repository or a person, and clicking a name in the table filters on that person too. **Others Only** hides your own pushes.
+
+Pullwatch recognises your own pushes by your account on GitHub, and on Bitbucket and Gitea where the account is linked to the person. Otherwise it compares the name and the e-mail address of the author with yours.
+
+Double-click a row (or choose Open in the context menu) to open the comparison at the service. Pullwatch does not show commits or files itself.
+
+## No notifications
+
+Pushes never notify you, do not count as unread, and do not show in the menu panel or the Dock badge. This is a list to look at, not a stream to keep up with.
+
+## Following branches
+
+Branches follow along with pull requests, per repository. To switch them off for a repository, clear its **Branches** checkbox in the account's list of repositories (Settings, Accounts). When no repository follows branches, the section offers **Follow Branches**.
+
+Branches are read at most every 15 minutes, separately from pull requests and tags. A rate limit on branches never holds back pull requests or tags: those arrive as usual, and branches wait until the limit is over. Pushes are kept as long as the history (Settings, General, **Keep history**).
