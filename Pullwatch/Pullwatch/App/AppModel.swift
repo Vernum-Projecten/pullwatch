@@ -213,7 +213,7 @@ final class AppModel {
         }
     }
 
-    /// ⌘R: de geopende repo opnieuw checken, in PR's, Tags en Statistieken pollen, anders alles checken.
+    /// ⌘R: de geopende repo opnieuw checken, in PR's, Tags, Branches en Statistieken pollen, anders alles checken.
     func refreshCurrent() {
         if case .repo(let id)? = router.path.last, let summary = overview.repoSummariesById[id] {
             versions.startRefresh(of: summary)
@@ -222,7 +222,7 @@ final class AppModel {
         switch router.mainSection {
         case .repos, .dependencies, .packages:
             versions.startCheck()
-        case .pullRequests, .tags, .stats:
+        case .pullRequests, .tags, .branches, .stats:
             polling.refresh()
         }
     }
