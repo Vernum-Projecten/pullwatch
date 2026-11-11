@@ -262,21 +262,31 @@ extension GitHubProvider {
         query: [URLQueryItem] = [],
         accept: String = "application/vnd.github+json"
     ) async throws -> Data {
+        try await repoResponse(repo, url, query: query, accept: accept).data
+    }
+
+    /// Als `repoData`, met het antwoord erbij (voor de `Link`-header van de volgende pagina).
+    func repoResponse(
+        _ repo: String,
+        _ url: URL,
+        query: [URLQueryItem] = [],
+        accept: String = "application/vnd.github+json"
+    ) async throws -> (data: Data, response: HTTPURLResponse) {
         if readsWithoutToken(repo) {
             return try await anonymousData(url, query: query, accept: accept)
         }
         do {
-            return try await send(url, query: query, accept: accept).data
+            return try await send(url, query: query, accept: accept)
         } catch let error as ProviderError where isExtra(repo) && (error == .unauthorized || error == .server(status: 404)) {
             guard case .anonymous = try await access(for: repo) else { throw error }
             return try await anonymousData(url, query: query, accept: accept)
         }
     }
 
-    private func anonymousData(_ url: URL, query: [URLQueryItem], accept: String) async throws -> Data {
+    private func anonymousData(_ url: URL, query: [URLQueryItem], accept: String) async throws -> (data: Data, response: HTTPURLResponse) {
         if let until = anonymousPausedUntil, until > now() { throw ProviderError.rateLimited(until: until) }
         do {
-            return try await send(url, query: query, accept: accept, anonymous: true).data
+            return try await send(url, query: query, accept: accept, anonymous: true)
         } catch ProviderError.rateLimited(let until) {
             anonymousPausedUntil = until
             throw ProviderError.rateLimited(until: until)

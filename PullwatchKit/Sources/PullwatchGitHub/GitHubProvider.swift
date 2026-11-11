@@ -28,6 +28,9 @@ public actor GitHubProvider: PRProvider {
     /// De server kent een veld uit de GraphQL-vraag voor tags niet (een oudere GitHub Enterprise
     /// Server): tags en releases komen dan via REST.
     var tagsViaREST = false
+    /// Hetzelfde voor de branches: de server kent een veld uit de GraphQL-vraag voor branches
+    /// niet, dan komen ze via REST (zonder datum en auteur).
+    var branchesViaREST = false
     /// De server kent de velden voor de telling van de checks niet (een oudere GitHub Enterprise
     /// Server): dan vraagt Pullwatch ze niet meer en heeft een PR geen checks.
     var checksUnsupported = false
