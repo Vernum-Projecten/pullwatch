@@ -203,4 +203,22 @@ import PullwatchTestSupport
         #expect(fetch.heads[0].webURL.absoluteString == "https://gitlab.com/acme/api/-/tree/feature/%C3%A4%20b%231")
         #expect(fetch.heads[1].webURL.absoluteString == "https://gitlab.com/acme/api/-/tree/fix/a%2Bb%3Fc%25d")
     }
+
+    // MARK: Gebruiker
+
+    @Test func `The identity has the names and every e-mail of the user`() async throws {
+        let http = MockHTTPClient()
+        http.on("\(api)user", body: #"{"id":7,"username":"jjansen","name":"Jan Jansen","email":"jan@example.com","commit_email":"jan@work.example","public_email":"jan@example.com"}"#)
+
+        let identity = try await makeProvider(http).currentUserIdentity()
+
+        #expect(identity == UserIdentity(names: ["Jan Jansen", "jjansen"], emails: ["jan@example.com", "jan@work.example"]))
+    }
+
+    @Test func `An identity without e-mail fields has only the names`() async throws {
+        let http = MockHTTPClient()
+        http.on("\(api)user", body: #"{"id":7,"username":"jjansen","name":"Jan Jansen","public_email":""}"#)
+
+        #expect(try await makeProvider(http).currentUserIdentity() == UserIdentity(names: ["Jan Jansen", "jjansen"], emails: []))
+    }
 }

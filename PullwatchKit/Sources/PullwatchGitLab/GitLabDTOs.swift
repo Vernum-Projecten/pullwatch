@@ -5,6 +5,12 @@ import Foundation
 struct UserDTO: Decodable {
     let id: Int?
     let username: String
+    let name: String?
+    /// De e-mailadressen staan alleen bij `/user` (de gebruiker zelf): dat van het account, dat
+    /// voor commits en het openbare.
+    let email: String?
+    let commitEmail: String?
+    let publicEmail: String?
 }
 
 struct GroupDTO: Decodable {

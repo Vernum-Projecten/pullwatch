@@ -432,4 +432,43 @@ import PullwatchTestSupport
 
         #expect(tick.branchPushes.first?.pushedAt == h.clock.now)
     }
+
+    @Test func `Own pushes match the name or e-mail the service knows`() async {
+        let h = Harness()
+        await h.provider.set(identity: UserIdentity(names: ["Ada Lovelace"], emails: ["ada@work.example"]))
+        let now = h.clock.now
+        await h.set([
+            head("by-mail", "1", at: now - day, authorId: nil, authorName: "A. L.", email: "ADA@work.example"),
+            head("by-name", "2", at: now - day, authorId: nil, authorName: "ada lovelace", email: "ada@home.example"),
+            head("other", "3", at: now - day, authorId: nil, authorName: "Grace", email: "grace@work.example"),
+        ])
+
+        let tick = await h.poll(account)
+
+        let own = Dictionary(uniqueKeysWithValues: tick.branchPushes.map { ($0.branch, $0.isOwn) })
+        #expect(own == ["by-mail": true, "by-name": true, "other": false])
+        #expect(await h.provider.identityCalls == 1)
+    }
+
+    @Test func `The identity is asked once and again only after a failure`() async {
+        let h = Harness()
+        await h.provider.set(identityError: .network("kapot"))
+        await h.set([head("main", "1", at: h.clock.now - day, authorId: nil, authorName: "Ada", email: nil)])
+
+        // Een mislukte vraag laat de branches gewoon doorgaan, zonder eigen rijen.
+        let failed = await h.poll(account)
+        #expect(failed.branchPushes.map(\.isOwn) == [false])
+        #expect(await h.provider.identityCalls == 1)
+
+        await h.provider.set(identityError: nil)
+        await h.provider.set(identity: UserIdentity(names: ["Ada"], emails: []))
+        await h.set([head("main", "2", at: h.clock.now + PollEngine.branchInterval, authorId: nil, authorName: "Ada", email: nil)])
+        let next = await h.nextBranchPoll(account)
+        #expect(next.branchPushes.map(\.isOwn) == [true])
+        #expect(await h.provider.identityCalls == 2)
+
+        _ = await h.nextBranchPoll(account)
+        _ = await h.nextBranchPoll(account)
+        #expect(await h.provider.identityCalls == 2)
+    }
 }

@@ -121,6 +121,10 @@ public actor PollEngine {
     /// Per account de lijst van de dienst uit de laatste tag-poll, met het moment; de branch-poll
     /// gebruikt hem opnieuw zolang hij vers is (`pollBranches`).
     var listedRepos: [UUID: (repos: [String], at: Date)] = [:]
+    /// Per account de namen en e-mailadressen van de gebruiker (`PRProvider.currentUserIdentity`),
+    /// eenmaal gevraagd; ook `nil` als antwoord wordt onthouden. Na een mislukte vraag ontbreekt
+    /// de sleutel, zodat de volgende branch-poll het opnieuw vraagt.
+    var identities: [UUID: UserIdentity?] = [:]
     /// Accounts waarvan de branches nu opgehaald worden; een overlappende `pollBranches` slaat ze over.
     var branchesInFlight: Set<UUID> = []
     private var schedules: [UUID: Schedule] = [:]
@@ -367,6 +371,7 @@ public actor PollEngine {
         let provider = makeProvider(account)
         providers[account.id] = (account, provider)
         userIds[account.id] = nil
+        identities[account.id] = nil
         return provider
     }
 
@@ -374,6 +379,7 @@ public actor PollEngine {
         providers = providers.filter { ids.contains($0.key) }
         userIds = userIds.filter { ids.contains($0.key) }
         listedRepos = listedRepos.filter { ids.contains($0.key) }
+        identities = identities.filter { ids.contains($0.key) }
         schedules = schedules.filter { ids.contains($0.key) }
         statuses = statuses.filter { ids.contains($0.key) }
         let keys = Set(ids.map(\.uuidString))

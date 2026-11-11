@@ -165,4 +165,29 @@ import PullwatchTestSupport
             == "https://dev.azure.com/acme/My%20Project/_git/api/branchCompare?baseVersion=GCaaa&targetVersion=GCbbb")
         #expect(provider.compareURL(in: "noslash", from: "a", to: "b") == nil)
     }
+
+    // MARK: Gebruiker
+
+    @Test func `The identity has the display names and the account e-mail`() async throws {
+        let http = MockHTTPClient()
+        http.on("connectionData", body: #"{"authenticatedUser":{"id":"me-guid","providerDisplayName":"Jan Jansen","customDisplayName":"Jan","properties":{"Account":{"$type":"System.String","$value":"jan@example.com"}}}}"#)
+
+        let identity = try await makeProvider(http).currentUserIdentity()
+
+        #expect(identity == UserIdentity(names: ["Jan Jansen", "Jan"], emails: ["jan@example.com"]))
+    }
+
+    @Test func `An identity without properties has only the name`() async throws {
+        let http = MockHTTPClient()
+        http.on("connectionData", body: #"{"authenticatedUser":{"id":"me-guid","providerDisplayName":"Jan Jansen"}}"#)
+
+        #expect(try await makeProvider(http).currentUserIdentity() == UserIdentity(names: ["Jan Jansen"], emails: []))
+    }
+
+    @Test func `An account name that is no e-mail address is no e-mail`() async throws {
+        let http = MockHTTPClient()
+        http.on("connectionData", body: #"{"authenticatedUser":{"id":"me-guid","providerDisplayName":"Jan","properties":{"Account":{"$value":"CONTOSO\\jan"}}}}"#)
+
+        #expect(try await makeProvider(http).currentUserIdentity() == UserIdentity(names: ["Jan"], emails: []))
+    }
 }

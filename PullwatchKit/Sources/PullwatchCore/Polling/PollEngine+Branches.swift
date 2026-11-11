@@ -31,21 +31,27 @@ extension PollEngine {
             let listed = listedRepos[account.id].flatMap { t.timeIntervalSince($0.at) <= Self.branchInterval ? $0.repos : nil }
             jobs.append((account, job.provider, job.userId, BranchRepos(account: account, known: known), listed))
         }
+        let knownIdentities = identities
         guard !jobs.isEmpty else { return [] }
         // Markeer vóór de eerste suspensie, zodat een overlappende ronde deze accounts overslaat.
         for job in jobs { branchesInFlight.insert(job.account.id) }
         let jobsById = Dictionary(uniqueKeysWithValues: jobs.map { ($0.account.id, $0) })
 
         var pushes: [BranchPush] = []
-        await withTaskGroup(of: (UUID, BranchOutcome).self) { group in
+        await withTaskGroup(of: (UUID, BranchOutcome, UserIdentity??).self) { group in
             for job in jobs {
+                let known = knownIdentities[job.account.id]
                 group.addTask {
-                    (job.account.id, await Self.fetchBranches(job.provider, job.repos, listed: job.listed))
+                    let outcome = await Self.fetchBranches(job.provider, job.repos, listed: job.listed)
+                    let identity = known != nil ? known : await Self.fetchIdentity(job.provider)
+                    return (job.account.id, outcome, identity)
                 }
             }
-            for await (id, outcome) in group {
+            for await (id, outcome, identity) in group {
                 guard let job = jobsById[id] else { continue }
-                pushes += handleBranches(job.account, outcome, userId: job.userId, provider: job.provider, at: t)
+                if let identity { identities[id] = identity }
+                pushes += handleBranches(
+                    job.account, outcome, userId: job.userId, identity: identity ?? nil, provider: job.provider, at: t)
                 branchesInFlight.remove(id)
             }
         }
@@ -82,6 +88,17 @@ extension PollEngine {
     }
 
     // MARK: - Ophalen
+
+    /// De namen en e-mailadressen van de gebruiker. `.some(nil)`: de dienst kent ze niet; `nil`:
+    /// de vraag mislukte (de branches gaan dan door zonder, de volgende ronde vraagt opnieuw).
+    static func fetchIdentity(_ provider: any PRProvider) async -> UserIdentity?? {
+        do {
+            return .some(try await provider.currentUserIdentity())
+        } catch {
+            logger.notice("gebruiker ophalen voor eigen pushes mislukt: \(error.localizedDescription)")
+            return nil
+        }
+    }
 
     /// Haalt de branches op van de gevolgde repo's, en bij branches als standaard van alle repo's
     /// in de lijst van de dienst (`listed` als de tag-fetch van deze poll die al ophaalde). Een
@@ -163,6 +180,7 @@ extension PollEngine {
         _ account: Account,
         _ outcome: BranchOutcome,
         userId: String,
+        identity: UserIdentity? = nil,
         provider: any PRProvider,
         at t: Date
     ) -> [BranchPush] {
@@ -193,7 +211,7 @@ extension PollEngine {
             return BranchPush(
                 accountId: account.id, repo: head.repo, branch: head.name, oldSha: old, newSha: head.sha,
                 commits: commits, kind: kind, authorName: head.authorName, authorAvatarURL: head.authorAvatarURL,
-                isOwn: Self.isOwn(head, userId: userId, account: account), pushedAt: date,
+                isOwn: Self.isOwn(head, userId: userId, account: account, identity: identity), pushedAt: date,
                 webURL: compare ?? head.webURL)
         }
 
@@ -248,8 +266,9 @@ extension PollEngine {
     }
 
     /// Is deze branch-head van de gebruiker zelf: op account-id (`userId`), anders op het
-    /// e-mailadres of de login van het account. Alles hoofdletterongevoelig.
-    static func isOwn(_ head: BranchHead, userId: String, account: Account) -> Bool {
+    /// e-mailadres of de login van het account, of op een naam of e-mailadres dat de dienst van
+    /// de gebruiker gaf (`identity`, bij Azure DevOps en GitLab). Alles hoofdletterongevoelig.
+    static func isOwn(_ head: BranchHead, userId: String, account: Account, identity: UserIdentity? = nil) -> Bool {
         func same(_ a: String?, _ b: String?) -> Bool {
             guard let a, let b, !a.isEmpty else { return false }
             return a.caseInsensitiveCompare(b) == .orderedSame
@@ -258,5 +277,7 @@ extension PollEngine {
             || same(head.authorEmail, account.email)
             || same(head.authorId, account.login)
             || same(head.authorName, account.login)
+            || (identity?.emails ?? []).contains { same(head.authorEmail, $0) }
+            || (identity?.names ?? []).contains { same(head.authorName, $0) }
     }
 }

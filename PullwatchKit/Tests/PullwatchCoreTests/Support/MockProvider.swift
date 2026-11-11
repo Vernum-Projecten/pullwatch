@@ -27,6 +27,10 @@ actor MockProvider: PRProvider {
     private var branchFetch = BranchFetch()
     private var comparisons: [String: BranchComparison] = [:]
     private var branchError: ProviderError?
+    private var identity: UserIdentity?
+    private var identityError: ProviderError?
+    /// Aantal aanroepen van `currentUserIdentity()`.
+    private(set) var identityCalls = 0
     private(set) var branchCalls = 0
     /// Laatste aan `branches(in:unchanged:)` doorgegeven repo's en vingerafdrukken.
     private(set) var lastBranchRepos: [String] = []
@@ -82,6 +86,9 @@ actor MockProvider: PRProvider {
     /// Fout die alleen `branches(in:unchanged:)` gooit.
     func set(branchError: ProviderError?) { self.branchError = branchError }
     func set(compareErrors: [String: ProviderError]) { self.compareErrors = compareErrors }
+    /// Wat `currentUserIdentity()` geeft, of de fout die het gooit.
+    func set(identity: UserIdentity?) { self.identity = identity }
+    func set(identityError: ProviderError?) { self.identityError = identityError }
 
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
@@ -92,6 +99,12 @@ actor MockProvider: PRProvider {
     func currentUserId() async throws -> String {
         if let error { throw error }
         return userId
+    }
+
+    func currentUserIdentity() async throws -> UserIdentity? {
+        identityCalls += 1
+        if let identityError { throw identityError }
+        return identity
     }
 
     func testConnection() async throws -> String {

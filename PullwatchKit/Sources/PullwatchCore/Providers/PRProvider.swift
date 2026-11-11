@@ -81,9 +81,14 @@ public protocol PRProvider: Sendable {
     func compare(in repo: String, from: String, to: String) async throws -> BranchComparison?
     /// De vergelijking van twee commits bij de dienst. Standaard nil (de app opent dan de branch).
     func compareURL(in repo: String, from: String, to: String) -> URL?
+    /// Namen en e-mailadressen van de ingelogde gebruiker, voor de eigen pushes bij een dienst
+    /// waar een commit niet aan een account gekoppeld is. Standaard nil (niet bekend).
+    func currentUserIdentity() async throws -> UserIdentity?
 }
 
 extension PRProvider {
+    public func currentUserIdentity() async throws -> UserIdentity? { nil }
+
     public func branches(in repos: [String], unchanged: [String: String]) async throws -> BranchFetch {
         BranchFetch(heads: [], unavailableRepos: repos)
     }

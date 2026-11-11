@@ -18,6 +18,24 @@ struct ConnectionData: Decodable {
     struct User: Decodable {
         let id: String
         let providerDisplayName: String?
+        let customDisplayName: String?
+        let properties: Properties?
+    }
+
+    /// Van de eigenschappen alleen `Account`: het e-mailadres (of de UPN) waarmee de gebruiker inlogt.
+    struct Properties: Decodable {
+        struct Value: Decodable {
+            let value: String?
+            private enum CodingKeys: String, CodingKey { case value = "$value" }
+        }
+        let account: Value?
+        private enum CodingKeys: String, CodingKey { case account = "Account" }
+
+        init(from decoder: any Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            // Een onverwachte vorm kost alleen het e-mailadres, niet de hele gebruiker.
+            account = try? c.decodeIfPresent(Value.self, forKey: .account)
+        }
     }
     let authenticatedUser: User
 }
