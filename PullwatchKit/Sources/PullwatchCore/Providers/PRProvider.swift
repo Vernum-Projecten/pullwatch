@@ -73,9 +73,25 @@ public protocol PRProvider: Sendable {
     /// Alleen voor die paar PR's, nooit voor de hele lijst. Een fout geeft een leeg antwoord: de
     /// melding komt dan zonder reden. De standaard: geen reden.
     func mergeQueueExits(of pullRequests: [PullRequest]) async -> MergeQueueExits
+    /// Alle branches van deze repo's met hun laatste commit; `BranchHead.repo` is exact de
+    /// doorgegeven repo-string. Een repo met de vingerafdruk uit `unchanged` komt zonder heads
+    /// terug in `unchangedRepos`. Standaard: elke repo in `unavailableRepos` (dienst zonder branches).
+    func branches(in repos: [String], unchanged: [String: String]) async throws -> BranchFetch
+    /// Hoeveel commits `to` voor ligt op `from` en andersom. nil: niet te bepalen. Standaard nil.
+    func compare(in repo: String, from: String, to: String) async throws -> BranchComparison?
+    /// De vergelijking van twee commits bij de dienst. Standaard nil (de app opent dan de branch).
+    func compareURL(in repo: String, from: String, to: String) -> URL?
 }
 
 extension PRProvider {
+    public func branches(in repos: [String], unchanged: [String: String]) async throws -> BranchFetch {
+        BranchFetch(heads: [], unavailableRepos: repos)
+    }
+
+    public func compare(in repo: String, from: String, to: String) async throws -> BranchComparison? { nil }
+
+    public func compareURL(in repo: String, from: String, to: String) -> URL? { nil }
+
     public func tags(in repos: [String], unchanged: [String: String]) async throws -> TagFetch {
         try await tags(in: repos)
     }

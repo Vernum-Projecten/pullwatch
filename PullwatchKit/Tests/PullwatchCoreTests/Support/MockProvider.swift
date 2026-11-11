@@ -24,6 +24,10 @@ actor MockProvider: PRProvider {
     /// Laatste aan `tags(in:unchanged:)` doorgegeven vingerafdrukken.
     private(set) var lastUnchanged: [String: String] = [:]
     private(set) var invalidateCount = 0
+    private var branchFetch = BranchFetch()
+    private var comparisons: [String: BranchComparison] = [:]
+    private var branchError: ProviderError?
+    private(set) var branchCalls = 0
     private var coAuthorList: [String: [Person]] = [:]
     private var coAuthorError: ProviderError?
     /// Per aanroep van `coAuthors(of:)` de dedupKeys die gevraagd werden.
@@ -63,6 +67,13 @@ actor MockProvider: PRProvider {
     /// Wat `checks(of:)` geeft, per dedupKey.
     func set(checks: [String: PRChecks]) { checkList = checks }
     func set(userId: String) { self.userId = userId }
+    /// Wat `branches(in:unchanged:)` geeft.
+    func set(branchFetch: BranchFetch) { self.branchFetch = branchFetch }
+    /// Vergelijkingen voor `compare(in:from:to:)`, met sleutel `"\(from)...\(to)"`.
+    func set(comparisons: [String: BranchComparison]) { self.comparisons = comparisons }
+    /// Fout die alleen `branches(in:unchanged:)` gooit.
+    func set(branchError: ProviderError?) { self.branchError = branchError }
+
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
     func set(fingerprints: [String: String]) { self.fingerprints = fingerprints }
@@ -120,6 +131,16 @@ actor MockProvider: PRProvider {
         fetch.fingerprints = Dictionary(available.compactMap { repo in fingerprints[repo.lowercased()].map { (repo, $0) } },
                                         uniquingKeysWith: { first, _ in first })
         return fetch
+    }
+
+    func branches(in repos: [String], unchanged: [String: String]) async throws -> BranchFetch {
+        branchCalls += 1
+        if let branchError { throw branchError }
+        return branchFetch
+    }
+
+    func compare(in repo: String, from: String, to: String) async throws -> BranchComparison? {
+        comparisons["\(from)...\(to)"]
     }
 
     func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
