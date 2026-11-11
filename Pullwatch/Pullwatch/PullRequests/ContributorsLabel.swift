@@ -58,28 +58,3 @@ struct ContributorsLabel: View {
         person.login.map { Account.authorAvatarURL(person.avatarURL, login: $0, kind: kind, size: 40, web: web) } ?? person.avatarURL
     }
 }
-
-/// Een kleine ronde foto met een rand in de achtergrondkleur, zodat de foto's in een stapel
-/// los van elkaar te zien zijn. Zonder foto het persoonssymbool.
-private struct PersonAvatar: View {
-    let url: URL?
-    var size: CGFloat = 16
-
-    var body: some View {
-        AsyncImage(url: url) { phase in
-            if let image = phase.image {
-                image.resizable().scaledToFill()
-            } else {
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(width: size, height: size)
-        .background(.background, in: .circle)
-        .clipShape(.circle)
-        .overlay { Circle().strokeBorder(.background, lineWidth: 1.5) }
-        .accessibilityHidden(true)
-    }
-}

@@ -8,7 +8,6 @@ struct BranchesView: View {
     /// Het symbool van het onderdeel in de zijbalk en de lege staat.
     static let symbol = "arrow.triangle.branch"
 
-    @Environment(AccountsModel.self) private var accounts
     @Environment(BranchesModel.self) private var branches
     @Environment(AppRouter.self) private var router
 
@@ -45,7 +44,7 @@ struct BranchesView: View {
 
     var body: some View {
         BranchesTable(
-            rows: rows, accounts: accounts.config.accounts, selection: $selection, sortOrder: $sortOrder,
+            rows: rows, selection: $selection, sortOrder: $sortOrder,
             open: { push in branches.open(push) },
             filterAuthor: { name in filter.author = name }
         )
@@ -93,7 +92,6 @@ struct BranchesView: View {
 /// De tabel; een klik op een naam filtert op die persoon.
 private struct BranchesTable: View {
     let rows: [BranchPush]
-    let accounts: [Account]
     @Binding var selection: BranchPush.ID?
     @Binding var sortOrder: [KeyPathComparator<BranchPush>]
     let open: (BranchPush) -> Void
@@ -101,10 +99,6 @@ private struct BranchesTable: View {
 
     private func push(_ id: BranchPush.ID?) -> BranchPush? {
         id.flatMap { id in rows.first { $0.id == id } }
-    }
-
-    private func account(of push: BranchPush) -> Account? {
-        accounts.first { $0.id == push.accountId }
     }
 
     // De ideale breedtes passen samen in het hoofdvenster op zijn kleinste maat, zodat geen kolom
@@ -129,14 +123,10 @@ private struct BranchesTable: View {
             .width(min: 90, ideal: 130)
             TableColumn("Wie", value: \.authorSortKey) { push in
                 if let name = push.authorName {
-                    let account = account(of: push)
                     Button {
                         filterAuthor(name)
                     } label: {
-                        ContributorsLabel(
-                            author: name, coAuthors: [], kind: account?.kind ?? .gitHub,
-                            web: account?.effectiveInstanceURL, avatarURL: push.authorAvatarURL
-                        )
+                        BranchAuthorLabel(name: name, avatarURL: push.authorAvatarURL)
                     }
                     .buttonStyle(.plain)
                     .help(Text("Toon alleen pushes van \(name)", comment: "Naam van een persoon"))
