@@ -77,7 +77,8 @@ import PullwatchTestSupport
         let h = Harness()
         await h.set([head("main", "1", at: h.clock.now - 30 * day)])
         #expect(await h.poll(account).branchPushes.isEmpty)
-        await h.set([head("main", "2", at: h.clock.now)])
+        // De commit is van het moment van de volgende branch-poll.
+        await h.set([head("main", "2", at: h.clock.now + PollEngine.branchInterval)])
         await h.provider.set(comparisons: ["1...2": BranchComparison(ahead: 4, behind: 0)])
 
         let result = await h.nextBranchPoll(account)
@@ -377,5 +378,58 @@ import PullwatchTestSupport
 
         #expect(await h.engine.pollBranches(accounts: [account]).isEmpty)
         #expect(await h.provider.branchCalls == 1)
+    }
+
+    @Test func `A push seen after a long gap keeps its commit date`() async {
+        let h = Harness()
+        let seededAt = h.clock.now
+        await h.set([head("main", "1", at: seededAt - 30 * day)])
+        _ = await h.poll(account)
+        // De Mac sliep drie dagen; de commit is van de dag na de vorige keer lezen.
+        h.clock.advance(3 * day)
+        await h.set([head("main", "2", at: seededAt + day), head("feature/n", "n1", at: seededAt + 2 * day)])
+
+        let tick = await h.poll(account)
+
+        let pushedAt = Dictionary(uniqueKeysWithValues: tick.branchPushes.map { ($0.branch, $0.pushedAt) })
+        #expect(pushedAt == ["main": seededAt + day, "feature/n": seededAt + 2 * day])
+    }
+
+    @Test func `A commit dated before the previous read counts from that read`() async {
+        let h = Harness()
+        await h.set([head("main", "1", at: h.clock.now - 30 * day)])
+        _ = await h.poll(account)
+        let readAt = h.clock.now
+        // Een oude commit die nu pas gepusht werd (of een rebase met de oude datum).
+        await h.set([head("main", "2", at: readAt - 5 * day), head("feature/o", "o1", at: readAt - 9 * day)])
+
+        let tick = await h.nextBranchPoll(account)
+
+        #expect(tick.branchPushes.count == 2)
+        #expect(tick.branchPushes.allSatisfy { $0.pushedAt == readAt })
+    }
+
+    @Test func `A future commit date counts as now for a push`() async {
+        let h = Harness()
+        await h.set([head("main", "1", at: h.clock.now - 30 * day)])
+        _ = await h.poll(account)
+        await h.provider.set(comparisons: ["1...2": BranchComparison(ahead: 2, behind: 1)])
+        await h.set([head("main", "2", at: h.clock.now + 7 * day)])
+
+        let tick = await h.nextBranchPoll(account)
+
+        #expect(tick.branchPushes.map(\.kind) == [.forcePush])
+        #expect(tick.branchPushes.first?.pushedAt == h.clock.now)
+    }
+
+    @Test func `A push without a commit date is dated by the poll`() async {
+        let h = Harness()
+        await h.set([head("main", "1", at: nil)])
+        _ = await h.poll(account)
+        await h.set([head("main", "2", at: nil)])
+
+        let tick = await h.nextBranchPoll(account)
+
+        #expect(tick.branchPushes.first?.pushedAt == h.clock.now)
     }
 }

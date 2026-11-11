@@ -156,8 +156,8 @@ extension PollEngine {
     /// bekend is seedt: elke branch die de afgelopen `branchSeedWindow` bewoog wordt een
     /// `.recent`-rij (een datum in de toekomst telt als nu), de rest wordt alleen onthouden. Een
     /// bekende repo geeft per veranderde head een `.push` of `.forcePush` en per nieuwe branch een
-    /// `.newBranch`; een verdwenen branch geeft niets. Een onbereikbare repo houdt zijn heads en
-    /// geeft niets; een repo die niet meer gevolgd wordt vergeet ze, zodat aanzetten opnieuw seedt.
+    /// `.newBranch`, met als tijd `pushDate`; een verdwenen branch geeft niets. Een onbereikbare
+    /// repo houdt zijn heads en geeft niets; een repo die niet meer gevolgd wordt vergeet ze, zodat aanzetten opnieuw seedt.
     /// Bij een fout verandert er niets, en na een rate limit wachten de branches tot die voorbij is.
     func handleBranches(
         _ account: Account,
@@ -210,16 +210,17 @@ extension PollEngine {
             for head in headsByRepo[repo] ?? [] where heads[head.name] == nil {
                 heads[head.name] = head.sha
                 if let known {
+                    let date = Self.pushDate(of: head, previousRead: known.seenAt, now: t)
                     guard let old = known.heads[head.name] else {
-                        pushes.append(row(head, old: nil, commits: nil, kind: .newBranch, at: t))
+                        pushes.append(row(head, old: nil, commits: nil, kind: .newBranch, at: date))
                         continue
                     }
                     guard old != head.sha else { continue }
                     let comparison = outcome.comparisons[Self.branchKey(head.repo, head.name)]
                     if let comparison, comparison.behind > 0 {
-                        pushes.append(row(head, old: old, commits: nil, kind: .forcePush, at: t))
+                        pushes.append(row(head, old: old, commits: nil, kind: .forcePush, at: date))
                     } else {
-                        pushes.append(row(head, old: old, commits: comparison?.ahead, kind: .push, at: t))
+                        pushes.append(row(head, old: old, commits: comparison?.ahead, kind: .push, at: date))
                     }
                 } else if let date = head.committedAt, date >= t - Self.branchSeedWindow {
                     pushes.append(row(head, old: nil, commits: nil, kind: .recent, at: min(date, t)))
@@ -228,6 +229,14 @@ extension PollEngine {
             state.branchHeads[key] = BranchHeads(heads: heads, fingerprint: fingerprints[repo], seenAt: t)
         }
         return pushes
+    }
+
+    /// Wanneer een push gebeurde die deze poll zag: de datum van de nieuwste commit, maar niet
+    /// vóór de vorige keer dat de repo gelezen werd (toen was de push er nog niet) en niet na nu.
+    /// Zo houdt een push die pas na een slaapstand gezien wordt zijn eigen tijd. Zonder datum: nu.
+    static func pushDate(of head: BranchHead, previousRead: Date, now t: Date) -> Date {
+        guard let committedAt = head.committedAt else { return t }
+        return min(max(committedAt, previousRead), t)
     }
 
     /// Vergeet de onthouden heads van de repo's (lowercased) van dit account die niet in `kept` staan.
