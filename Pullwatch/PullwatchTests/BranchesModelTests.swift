@@ -15,15 +15,9 @@ import Testing
         )
     }
 
-    private func result(_ pushes: [BranchPush]) -> PollResult {
-        var result = PollResult()
-        result.branchPushes = pushes
-        return result
-    }
-
     @Test func `Apply adds the pushes of a poll`() {
         let model = BranchesModel(store: nil)
-        model.apply(result([push("a"), push("b", age: 10)]), retention: .forever, now: now)
+        model.apply([push("a"), push("b", age: 10)], retention: .forever, now: now)
 
         #expect(model.log.pushes.map(\.newSha) == ["a", "b"])
     }
@@ -31,7 +25,7 @@ import Testing
     @Test func `Apply prunes pushes older than the retention`() {
         let model = BranchesModel(store: nil)
         let old = push("old", age: 70 * 86_400)
-        model.apply(result([push("new"), old]), retention: .twoMonths, now: now)
+        model.apply([push("new"), old], retention: .twoMonths, now: now)
 
         #expect(model.log.pushes.map(\.newSha) == ["new"])
     }
@@ -39,7 +33,7 @@ import Testing
     @Test func `Removing an account keeps the other accounts`() {
         let other = UUID()
         let model = BranchesModel(store: nil)
-        model.apply(result([push("a"), push("b", account: other)]), retention: .forever, now: now)
+        model.apply([push("a"), push("b", account: other)], retention: .forever, now: now)
         model.removeAccount(account)
 
         #expect(model.log.pushes.map(\.newSha) == ["b"])
@@ -49,7 +43,7 @@ import Testing
         let url = FileManager.default.temporaryDirectory.appending(path: "branches-\(UUID().uuidString).json")
         defer { try? FileManager.default.removeItem(at: url) }
         let store = JSONFileStore<BranchLog>(url: url)
-        BranchesModel(store: store).apply(result([push("a")]), retention: .forever, now: now)
+        BranchesModel(store: store).apply([push("a")], retention: .forever, now: now)
 
         #expect(BranchesModel(store: store).log.pushes.map(\.newSha) == ["a"])
     }
@@ -67,7 +61,7 @@ import Testing
         let history = HistoryModel(services: services, accounts: AccountsModel(services: services))
         let before = history.unreadCount
         let model = BranchesModel(store: nil)
-        model.apply(result([push("a")]), retention: .forever, now: now)
+        model.apply([push("a")], retention: .forever, now: now)
 
         #expect(history.unreadCount == before)
         #expect(model.log.pushes.count == 1)

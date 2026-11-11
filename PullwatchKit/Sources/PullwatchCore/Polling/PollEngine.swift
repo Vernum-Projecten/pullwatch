@@ -78,8 +78,9 @@ public actor PollEngine {
         let coAuthors: [String: (revision: String?, people: [Person])]
         /// Net opgehaalde checks per dedupKey, met de revisie waarbij ze horen.
         let checks: [String: (revision: String?, checks: PRChecks)]
-        /// `nil` als branches deze cyclus niet aan de beurt waren.
-        let branches: BranchOutcome?
+        /// De lijst van de dienst (`listRepos()`) als de tags die deze poll ophaalden; de
+        /// branch-poll die erna komt gebruikt hem opnieuw (`pollBranches`).
+        let listedRepos: [String]?
     }
 
     /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
@@ -111,11 +112,17 @@ public actor PollEngine {
 
     private let makeProvider: ProviderFactory
     private let store: JSONFileStore<SeenState>?
-    private let now: @Sendable () -> Date
+    /// Niet `private`: `PollEngine+Branches` leest de tijd.
+    let now: @Sendable () -> Date
     /// Niet `private`: `PollEngine+Branches` werkt de branch-heads bij.
     var state: SeenState
     private var providers: [UUID: (account: Account, provider: any PRProvider)] = [:]
     private var userIds: [UUID: String] = [:]
+    /// Per account de lijst van de dienst uit de laatste tag-poll, met het moment; de branch-poll
+    /// gebruikt hem opnieuw zolang hij vers is (`pollBranches`).
+    var listedRepos: [UUID: (repos: [String], at: Date)] = [:]
+    /// Accounts waarvan de branches nu opgehaald worden; een overlappende `pollBranches` slaat ze over.
+    var branchesInFlight: Set<UUID> = []
     private var schedules: [UUID: Schedule] = [:]
     private var statuses: [UUID: AccountState] = [:]
     private var inFlight: Set<UUID> = []
@@ -224,8 +231,6 @@ public actor PollEngine {
             .map { account in
                 let tagsDue = (schedules[account.id]?.nextTagDue ?? .distantPast) <= t
                 let syncDue = (schedules[account.id]?.nextSyncDue ?? .distantPast) <= t
-                let branchesDue = (schedules[account.id]?.nextBranchDue ?? .distantPast) <= t
-                    && (schedules[account.id]?.branchesRateLimitedUntil ?? .distantPast) <= t
                 var sync = syncDue ? syncRequest(for: account, retention: retention, at: t) : nil
                 if let request = sync, request.isFirst {
                     if firstSyncAccount == nil { firstSyncAccount = account.id } else { sync = nil }
@@ -250,13 +255,6 @@ public actor PollEngine {
                             .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
                     ),
                     fetchTags: tagsDue && (account.followsTagsByDefault || !account.tagRepos.isEmpty),
-                    branchRepos: BranchRepos(
-                        account: account,
-                        known: Dictionary(uniqueKeysWithValues: state.branchHeads
-                            .filter { $0.key.hasPrefix(prefix) }
-                            .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
-                    ),
-                    fetchBranches: branchesDue && account.followsBranches,
                     sync: sync
                 )
             }
@@ -281,8 +279,6 @@ public actor PollEngine {
                         checkRequest: job.checkRequest,
                         tagRepos: job.tagRepos,
                         fetchTags: job.fetchTags,
-                        branchRepos: job.branchRepos,
-                        fetchBranches: job.fetchBranches,
                         sync: job.sync
                     ))
                 }
@@ -321,13 +317,7 @@ public actor PollEngine {
                     result.updatedTags += fresh.updated
                     result.syncedTags += fresh.backfill
                     if fetched.tags != nil { result.tagRepos[id] = fetched.tagRepos }
-                    if let branches = fetched.branches {
-                        result.branchPushes += handleBranches(
-                            job.account, branches, userId: fetched.userId, provider: job.provider, at: t)
-                    } else if !job.account.followsBranches {
-                        // Volgt het account nergens meer branches: vergeten, zodat aanzetten opnieuw seedt.
-                        forgetBranchHeads(of: job.account, except: [])
-                    }
+                    if let listed = fetched.listedRepos { listedRepos[id] = (listed, t) }
                     let sync = handleSync(job.account, fetched, request: job.sync, retention: retention, at: t)
                     result.syncedPullRequests += sync.pullRequests
                     result.completedPullRequests += sync.completed
@@ -346,11 +336,7 @@ public actor PollEngine {
 
         // Alleen accounts die nu slaagden prunen: een langdurig falend account mag zijn seen niet kwijtraken.
         state.prune(now: t, onlyKeyPrefixes: succeeded.map { "\($0.uuidString):" })
-        do {
-            try store?.save(state)
-        } catch {
-            logger.error("seen-state opslaan mislukt: \(error.localizedDescription)")
-        }
+        saveState()
 
         result.newPullRequests.sort { $0.createdAt < $1.createdAt }
         result.newTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
@@ -359,10 +345,6 @@ public actor PollEngine {
         result.completedPullRequests.sort { ($0.closedAt ?? .distantPast) < ($1.closedAt ?? .distantPast) }
         result.failedChecks.sort { $0.createdAt < $1.createdAt }
         result.leftQueue.sort { $0.createdAt < $1.createdAt }
-        result.branchPushes.sort {
-            if $0.pushedAt != $1.pushedAt { return $0.pushedAt > $1.pushedAt }
-            return ($0.repo.lowercased(), $0.branch) < ($1.repo.lowercased(), $1.branch)
-        }
         result.statuses = Dictionary(uniqueKeysWithValues: accounts.map { ($0.id, statuses[$0.id] ?? .idle) })
         return result
     }
@@ -391,6 +373,7 @@ public actor PollEngine {
     private func forget(except ids: Set<UUID>) {
         providers = providers.filter { ids.contains($0.key) }
         userIds = userIds.filter { ids.contains($0.key) }
+        listedRepos = listedRepos.filter { ids.contains($0.key) }
         schedules = schedules.filter { ids.contains($0.key) }
         statuses = statuses.filter { ids.contains($0.key) }
         let keys = Set(ids.map(\.uuidString))
@@ -666,6 +649,32 @@ public actor PollEngine {
             state.tagSeeded[seededKey] = t
         }
         return (fresh, updated, backfill)
+    }
+
+    /// Wat `pollBranches` van een account nodig heeft: de provider en de gebruiker uit de laatste
+    /// geslaagde poll, als de branches nu aan de beurt zijn. `nil` als het account nog nooit
+    /// slaagde, nu faalt of zijn PR's op een rate limit wachten, of als de branches nog niet aan
+    /// de beurt zijn of op hun eigen rate limit wachten.
+    func branchJob(for account: Account, at t: Date) -> (provider: any PRProvider, userId: String)? {
+        guard case .ok = statuses[account.id], userIds[account.id] != nil else { return nil }
+        let schedule = schedules[account.id] ?? Schedule()
+        guard (schedule.rateLimitedUntil ?? .distantPast) <= t,
+              schedule.nextBranchDue <= t,
+              (schedule.branchesRateLimitedUntil ?? .distantPast) <= t
+        else { return nil }
+        let provider = provider(for: account)
+        // Een nieuwe provider (het account veranderde) vergeet de gebruiker; de volgende poll weet hem weer.
+        guard let userId = userIds[account.id] else { return nil }
+        return (provider, userId)
+    }
+
+    /// Bewaart de seen-state (ook de branch-heads).
+    func saveState() {
+        do {
+            try store?.save(state)
+        } catch {
+            logger.error("seen-state opslaan mislukt: \(error.localizedDescription)")
+        }
     }
 
     /// Plant de volgende branch-poll; bij een rate limit niet vóór `rateLimitedUntil`.

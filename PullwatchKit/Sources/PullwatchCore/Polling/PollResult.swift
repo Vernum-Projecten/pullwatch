@@ -9,8 +9,6 @@ public enum AccountState: Equatable, Sendable {
 
 /// Wat één `PollEngine.poll` opleverde over alle accounts.
 public struct PollResult: Equatable, Sendable {
-    public init() {}
-
     public var newPullRequests: [PullRequest] = []
     /// Open drafts die de lijst toont zonder melding, omdat "Draft-PR's melden" uit staat
     /// (`PRFilter.notifies`), en alleen als de vorige poll ze nog niet zo doorgaf. Gelezen in de
@@ -52,10 +50,6 @@ public struct PollResult: Equatable, Sendable {
     /// `PullRequest.leftQueue` (en de reden als de dienst die gaf), gesorteerd op `createdAt`.
     /// Voor de melding "Uit de rij" en de geschiedenis.
     public var leftQueue: [PullRequest] = []
-    /// Pushes naar branches van gevolgde repo's, nieuwste eerst (`pushedAt`). De eerste
-    /// branch-poll van een repo geeft `.recent`-rijen voor wat de afgelopen 14 dagen bewoog.
-    /// Voor de sectie Branches; heeft geen melding.
-    public var branchPushes: [BranchPush] = []
 }
 
 /// Voortgang van één `PollEngine.poll`: hoeveel accounts klaar zijn van hoeveel, en welk account

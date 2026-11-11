@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import PullwatchCore
 
-/// Het ophalen van PR's en tags: één poll (`tick`) met zijn voortgang en de status per account,
+/// Het ophalen van PR's en tags: één poll (`tick`, met daarna de branches) met zijn voortgang en de status per account,
 /// "Opnieuw ophalen" van de geschiedenis, en de eerste sync van nieuwe accounts. Wat een poll
 /// vond gaat naar de geschiedenis, de meldingen en de versiecheck.
 @Observable
@@ -172,7 +172,6 @@ final class PollingModel {
         }
 
         history.apply(result, retention: config.historyRetention, now: Date())
-        branches.apply(result, retention: config.historyRetention, now: Date())
         let builder = notifications.builder
         let plans = NotificationPlanner.plan(
             pullRequests: result.newPullRequests,
@@ -190,6 +189,9 @@ final class PollingModel {
         })
         await updateRefetchProgress()
         versions.startNewRepoVersionCheckIfNeeded(after: result)
+        // Pas na de PR's en tags: een trage of mislukte branch-poll houdt die nooit op.
+        let pushes = await engine.pollBranches(accounts: accounts)
+        branches.apply(pushes, retention: config.historyRetention, now: Date())
     }
 
     private func updateRefetchProgress() async {

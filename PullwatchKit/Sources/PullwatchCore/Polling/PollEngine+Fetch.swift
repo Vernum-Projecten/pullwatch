@@ -13,8 +13,6 @@ extension PollEngine {
         checkRequest: CheckRequest,
         tagRepos: TagRepos,
         fetchTags: Bool,
-        branchRepos: BranchRepos,
-        fetchBranches: Bool,
         sync: SyncRequest?
     ) async -> Result<Fetched, ProviderError> {
         do {
@@ -29,10 +27,6 @@ extension PollEngine {
             var tags = TagOutcome(repos: tagRepos.account.tagRepos)
             if fetchTags {
                 tags = try await Self.fetchTags(provider, tagRepos)
-            }
-            var branches: BranchOutcome?
-            if fetchBranches {
-                branches = await Self.fetchBranches(provider, branchRepos, listed: tags.listed)
             }
             var synced: [PullRequest]?
             var syncError: ProviderError?
@@ -66,7 +60,7 @@ extension PollEngine {
                 syncError: syncError,
                 coAuthors: details.coAuthors,
                 checks: details.checks,
-                branches: branches
+                listedRepos: tags.listed
             ))
         } catch let error as ProviderError {
             return .failure(error)

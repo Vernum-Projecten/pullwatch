@@ -24,10 +24,10 @@ final class BranchesModel {
         log = initial
     }
 
-    /// Voegt de pushes van een poll toe, snoeit op de bewaartermijn en bewaart het resultaat.
-    func apply(_ result: PollResult, retention: HistoryRetention, now: Date) {
+    /// Voegt de pushes van een branch-poll toe, snoeit op de bewaartermijn en bewaart het resultaat.
+    func apply(_ pushes: [BranchPush], retention: HistoryRetention, now: Date) {
         var updated = log
-        updated.add(result.branchPushes)
+        updated.add(pushes)
         updated.prune(now: now, retention: retention)
         guard updated != log else { return }
         log = updated

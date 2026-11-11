@@ -3,9 +3,59 @@ import os
 
 private let logger = Log(category: "engine")
 
-/// Pushes naar branches: ophalen bij de provider (`fetchBranches`) en verwerken tegen de
+/// Pushes naar branches, op een eigen ronde (`pollBranches`) na de poll van PR's en tags, zodat
+/// branches de PR's en tags nooit ophouden: ophalen bij de provider (`fetchBranches`) en verwerken tegen de
 /// onthouden heads (`handleBranches`).
 extension PollEngine {
+    // MARK: - Ronde
+
+    /// Haalt de branches op van de accounts die aan de beurt zijn (eens per `branchInterval`, niet
+    /// tijdens een rate limit) en geeft de pushes, nieuwste eerst. Alleen voor accounts waarvan
+    /// de laatste poll slaagde: de gebruiker daaruit bepaalt welke pushes van jezelf zijn, en de
+    /// lijst van de dienst uit de tag-poll van net wordt hergebruikt. De app roept dit aan nadat
+    /// ze de uitkomst van `poll` verwerkte; een trage of mislukte branch-poll houdt die dus niet op.
+    public func pollBranches(accounts: [Account]) async -> [BranchPush] {
+        let t = now()
+        var jobs: [(account: Account, provider: any PRProvider, userId: String, repos: BranchRepos, listed: [String]?)] = []
+        for account in accounts where !branchesInFlight.contains(account.id) {
+            guard account.followsBranches else {
+                // Volgt het account nergens meer branches: vergeten, zodat aanzetten opnieuw seedt.
+                forgetBranchHeads(of: account, except: [])
+                continue
+            }
+            guard let job = branchJob(for: account, at: t) else { continue }
+            let prefix = "\(account.id.uuidString):"
+            let known = Dictionary(uniqueKeysWithValues: state.branchHeads
+                .filter { $0.key.hasPrefix(prefix) }
+                .map { (String($0.key.dropFirst(prefix.count)), $0.value) })
+            let listed = listedRepos[account.id].flatMap { t.timeIntervalSince($0.at) <= Self.branchInterval ? $0.repos : nil }
+            jobs.append((account, job.provider, job.userId, BranchRepos(account: account, known: known), listed))
+        }
+        guard !jobs.isEmpty else { return [] }
+        // Markeer vóór de eerste suspensie, zodat een overlappende ronde deze accounts overslaat.
+        for job in jobs { branchesInFlight.insert(job.account.id) }
+        let jobsById = Dictionary(uniqueKeysWithValues: jobs.map { ($0.account.id, $0) })
+
+        var pushes: [BranchPush] = []
+        await withTaskGroup(of: (UUID, BranchOutcome).self) { group in
+            for job in jobs {
+                group.addTask {
+                    (job.account.id, await Self.fetchBranches(job.provider, job.repos, listed: job.listed))
+                }
+            }
+            for await (id, outcome) in group {
+                guard let job = jobsById[id] else { continue }
+                pushes += handleBranches(job.account, outcome, userId: job.userId, provider: job.provider, at: t)
+                branchesInFlight.remove(id)
+            }
+        }
+        saveState()
+        return pushes.sorted {
+            if $0.pushedAt != $1.pushedAt { return $0.pushedAt > $1.pushedAt }
+            return ($0.repo.lowercased(), $0.branch) < ($1.repo.lowercased(), $1.branch)
+        }
+    }
+
     /// Waar een poll de branches van ophaalt: het account (eigen instellingen, standaard) en de
     /// onthouden heads per repo, met sleutels zonder accountprefix, lowercased.
     struct BranchRepos: Sendable {

@@ -16,12 +16,14 @@ import PullwatchTestSupport
             engine = PollEngine(makeProvider: { _ in provider }, store: nil, now: { clock.now })
         }
 
-        func poll(_ account: Account) async -> PollResult {
-            await engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        /// Eén ronde zoals de app hem doet: eerst `poll`, dan `pollBranches`.
+        func poll(_ account: Account) async -> Tick {
+            let result = await engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+            return Tick(result: result, branchPushes: await engine.pollBranches(accounts: [account]))
         }
 
         /// Naar de volgende branch-poll.
-        func nextBranchPoll(_ account: Account) async -> PollResult {
+        func nextBranchPoll(_ account: Account) async -> Tick {
             clock.advance(PollEngine.branchInterval)
             return await poll(account)
         }
@@ -30,6 +32,14 @@ import PullwatchTestSupport
             await provider.set(branchFetch: BranchFetch(
                 heads: heads, unavailableRepos: unavailable, fingerprints: fingerprints, unchangedRepos: unchanged))
         }
+    }
+
+    /// De uitkomst van een ronde: die van `poll` en de pushes van `pollBranches`.
+    private struct Tick {
+        let result: PollResult
+        let branchPushes: [BranchPush]
+        var statuses: [UUID: AccountState] { result.statuses }
+        var newPullRequests: [PullRequest] { result.newPullRequests }
     }
 
     let account = Account.fixture(repoWatch: ["proj/a": .prs])
@@ -328,5 +338,44 @@ import PullwatchTestSupport
         let counted = Set(result.branchPushes.filter { $0.commits != nil }.map(\.branch))
         #expect(counted == Set(names.prefix(20)))
         #expect(result.branchPushes.allSatisfy { $0.kind == .push })
+    }
+
+    @Test func `The PR poll never waits for branches`() async {
+        let h = Harness()
+        // De eerste poll neemt bestaande PR's stil op; een PR erna is nieuw.
+        _ = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+        let pr = PullRequest.fixture(accountId: account.id, repo: "proj/a")
+        await h.provider.set(pullRequests: [pr])
+        await h.provider.set(branchError: .network("kapot"))
+        await h.set([head("main", "1", at: h.clock.now)])
+        h.clock.advance(PollEngine.branchInterval)
+
+        let result = await h.engine.poll(accounts: [account], interval: 120, retention: .oneYear)
+
+        #expect(await h.provider.branchCalls == 0)
+        #expect(result.newPullRequests.map(\.dedupKey) == [pr.dedupKey])
+        #expect(result.statuses[account.id] == .ok(lastPoll: h.clock.now))
+        #expect(await h.engine.pollBranches(accounts: [account]).isEmpty)
+        #expect(await h.provider.branchCalls == 1)
+    }
+
+    @Test func `No branches for an account whose poll failed`() async {
+        let h = Harness()
+        await h.provider.set(error: .network("kapot"))
+        await h.set([head("main", "1", at: h.clock.now)])
+
+        let tick = await h.poll(account)
+
+        #expect(tick.branchPushes.isEmpty)
+        #expect(await h.provider.branchCalls == 0)
+    }
+
+    @Test func `A second branch round in the same interval fetches nothing`() async {
+        let h = Harness()
+        await h.set([head("main", "1", at: h.clock.now)])
+        #expect(await h.poll(account).branchPushes.map(\.kind) == [.recent])
+
+        #expect(await h.engine.pollBranches(accounts: [account]).isEmpty)
+        #expect(await h.provider.branchCalls == 1)
     }
 }
