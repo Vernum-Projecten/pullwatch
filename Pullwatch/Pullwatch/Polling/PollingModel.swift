@@ -38,16 +38,18 @@ final class PollingModel {
     @ObservationIgnored private let services: AppServices
     @ObservationIgnored private let accounts: AccountsModel
     @ObservationIgnored private let history: HistoryModel
+    @ObservationIgnored private let branches: BranchesModel
     @ObservationIgnored private let versions: VersionsModel
     @ObservationIgnored private let notifications: NotificationsModel
 
     init(
         services: AppServices, accounts: AccountsModel, history: HistoryModel,
-        versions: VersionsModel, notifications: NotificationsModel
+        branches: BranchesModel, versions: VersionsModel, notifications: NotificationsModel
     ) {
         self.services = services
         self.accounts = accounts
         self.history = history
+        self.branches = branches
         self.versions = versions
         self.notifications = notifications
     }
@@ -170,6 +172,7 @@ final class PollingModel {
         }
 
         history.apply(result, retention: config.historyRetention, now: Date())
+        branches.apply(result, retention: config.historyRetention, now: Date())
         let builder = notifications.builder
         let plans = NotificationPlanner.plan(
             pullRequests: result.newPullRequests,

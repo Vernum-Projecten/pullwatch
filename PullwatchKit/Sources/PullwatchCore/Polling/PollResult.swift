@@ -9,6 +9,8 @@ public enum AccountState: Equatable, Sendable {
 
 /// Wat één `PollEngine.poll` opleverde over alle accounts.
 public struct PollResult: Equatable, Sendable {
+    public init() {}
+
     public var newPullRequests: [PullRequest] = []
     /// Open drafts die de lijst toont zonder melding, omdat "Draft-PR's melden" uit staat
     /// (`PRFilter.notifies`), en alleen als de vorige poll ze nog niet zo doorgaf. Gelezen in de

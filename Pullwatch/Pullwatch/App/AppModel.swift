@@ -16,6 +16,7 @@ final class AppModel {
     @ObservationIgnored let services: AppServices
     @ObservationIgnored let accounts: AccountsModel
     @ObservationIgnored let historyModel: HistoryModel
+    @ObservationIgnored let branchesModel: BranchesModel
     @ObservationIgnored let notifications: NotificationsModel
     @ObservationIgnored let versions: VersionsModel
     @ObservationIgnored let overview: OverviewModel
@@ -40,17 +41,20 @@ final class AppModel {
         let services = AppServices()
         let accounts = AccountsModel(services: services)
         let history = HistoryModel(services: services, accounts: accounts)
+        let branches = BranchesModel(store: services.branchStore)
         let notifications = NotificationsModel(services: services, accounts: accounts)
         let versions = VersionsModel(services: services, accounts: accounts, notifications: notifications)
         let overview = OverviewModel(accounts: accounts, history: history, versions: versions)
         self.services = services
         self.accounts = accounts
         historyModel = history
+        branchesModel = branches
         self.notifications = notifications
         self.versions = versions
         self.overview = overview
         let polling = PollingModel(
-            services: services, accounts: accounts, history: history, versions: versions, notifications: notifications
+            services: services, accounts: accounts, history: history, branches: branches, versions: versions,
+            notifications: notifications
         )
         self.polling = polling
         updates = UpdatesModel(services: services, accounts: accounts, notifications: notifications)
@@ -271,6 +275,7 @@ final class AppModel {
     func removeAccount(_ id: UUID) {
         accounts.removeAccount(id)
         historyModel.removeAccount(id)
+        branchesModel.removeAccount(id)
         polling.removeStatus(of: id)
     }
 
@@ -328,6 +333,7 @@ final class AppModel {
         set {
             accounts.edit { $0.historyRetention = newValue }
             historyModel.prune(retention: newValue)
+            branchesModel.prune(retention: newValue)
         }
     }
 

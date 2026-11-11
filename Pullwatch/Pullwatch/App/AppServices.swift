@@ -9,6 +9,7 @@ import PullwatchProviders
 final class AppServices {
     let configStore = JSONFileStore<AppConfig>(url: AppPaths.file("config.json"))
     let historyStore = JSONFileStore<History>(url: AppPaths.file("history.json"))
+    let branchStore = JSONFileStore<BranchLog>(url: AppPaths.file("branches.json"))
     let legacyRecentStore = JSONFileStore<RecentList>(url: AppPaths.file("recent.json"))
     let versionStore = JSONFileStore<VersionReport>(url: AppPaths.file("versions.json"))
     let versionHistoryStore = JSONFileStore<VersionHistory>(url: AppPaths.file("version-history.json"))
