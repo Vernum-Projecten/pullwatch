@@ -91,6 +91,8 @@ enum SnapshotTour {
                 model.router.repoTab = .overview
                 model.router.showRepo(id: repo.id)
             }))
+            // Het eind van het overzicht: Volgen (PR's, tags, branches, gemerged) met de meldingen.
+            steps.append(("repo-detail-follow", { SnapshotCamera.scroll(windowId: WindowID.main.rawValue, pages: 20) }))
             // De controle: runtimes en kwetsbaarheden, en een gekozen advies in het inspectievenster.
             steps.append(("repo-check", { model.router.repoSelectionRequest = RepoSelectionRequest(tab: .check) }))
             if let advisory = repo.versions?.vulnerabilityRows(gitHub: repo.advisories).max(by: { $0.severity < $1.severity }) {
