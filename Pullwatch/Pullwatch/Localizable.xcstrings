@@ -1640,6 +1640,83 @@
         }
       }
     },
+    "%lld nieuwe commits": {
+      "comment": "Aantal commits in een push",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neuer Commit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld neue Commits"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new commit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new commits"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveau commit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nouveaux commits"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe commit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld nieuwe commits"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld nieuwe kwetsbaarheden": {
       "comment": "Meldingstitel; aantal nieuwe kwetsbaarheden in één repo",
       "localizations": {
@@ -3832,6 +3909,63 @@
         }
       }
     },
+    "Alle branches van %@ volgen": {
+      "comment": "Gebruiker of organisatie",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Branches von %@ folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all branches of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les branches de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle branches van %@ volgen"
+          }
+        }
+      }
+    },
+    "Alle branches van de andere repositories volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Branches der anderen Repositories folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow all branches of the other repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre toutes les branches des autres dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle branches van de andere repositories volgen"
+          }
+        }
+      }
+    },
     "Alle bronnen met hun stand en adres, om in een mail of bericht te plakken.": {
       "localizations": {
         "de": {
@@ -3951,6 +4085,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle projecten"
+          }
+        }
+      }
+    },
+    "Alle repo's": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Repositorys"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Repositories"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les dépôts"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle repo's"
           }
         }
       }
@@ -4090,6 +4252,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tous les tags, seulement les versions publiées ou seulement les tags sans version publiée"
+          }
+        }
+      }
+    },
+    "Alleen anderen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur andere"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Others Only"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seulement les autres"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen anderen"
           }
         }
       }
@@ -5228,6 +5418,119 @@
         }
       }
     },
+    "Branch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branche"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch"
+          }
+        }
+      }
+    },
+    "Branches": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches"
+          }
+        }
+      }
+    },
+    "Branches van %@ volgen": {
+      "comment": "Repo",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches von %@ folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow branches of %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les branches de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches van %@ volgen"
+          }
+        }
+      }
+    },
+    "Branches volgen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches folgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow Branches"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre les branches"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branches volgen"
+          }
+        }
+      }
+    },
     "Bron": {
       "localizations": {
         "de": {
@@ -5819,6 +6122,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ajouter un compte Codeberg sur codeberg.org"
+          }
+        }
+      }
+    },
+    "Commits": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commits"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commits"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commits"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commits"
           }
         }
       }
@@ -7748,6 +8079,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Filtrer le tableau"
+          }
+        }
+      }
+    },
+    "Force-push": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force-Push"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force Push"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force push"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force-push"
           }
         }
       }
@@ -10087,6 +10446,34 @@
         }
       }
     },
+    "Iedereen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout le monde"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iedereen"
+          }
+        }
+      }
+    },
     "In %@": {
       "comment": "Kolomkop: zit het ook in deze tag\nWorkspace, bv. packages/web",
       "localizations": {
@@ -11324,6 +11711,34 @@
         }
       }
     },
+    "Kopieer branchnaam": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch-Namen kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Branch Name"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le nom de la branche"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieer branchnaam"
+          }
+        }
+      }
+    },
     "Kopieer code": {
       "localizations": {
         "de": {
@@ -11780,6 +12195,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Faible"
+          }
+        }
+      }
+    },
+    "Laatste push": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Push"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Push"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier push"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laatste push"
           }
         }
       }
@@ -13337,6 +13780,34 @@
         }
       }
     },
+    "Nieuwe branch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Branch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Branch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle branche"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe branch"
+          }
+        }
+      }
+    },
     "Nieuwe concept-merge request": {
       "comment": "Meldingstitel; GitLab",
       "localizations": {
@@ -14142,6 +14613,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aucun agent autorisé"
+          }
+        }
+      }
+    },
+    "Nog geen branches": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Branches"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Branches Yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore de branches"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen branches"
           }
         }
       }
@@ -16464,6 +16963,34 @@
         }
       }
     },
+    "Persoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Person"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Person"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personne"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Persoon"
+          }
+        }
+      }
+    },
     "Plak hem op github.com/login/device en keur Pullwatch goed. Pullwatch wacht hier tot dat gebeurd is.": {
       "localizations": {
         "de": {
@@ -17450,6 +17977,34 @@
         }
       }
     },
+    "Pullwatch toont hier pushes naar branches van repositories die je volgt.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch zeigt hier Pushes auf Branches der Repositorys, denen du folgst."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch shows pushes to branches of the repositories you follow here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch affiche ici les pushs vers les branches des dépôts que vous suivez."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch toont hier pushes naar branches van repositories die je volgt."
+          }
+        }
+      }
+    },
     "Pullwatch ziet alleen repositories waar de app geïnstalleerd is: op je eigen account, of op een organisatie (daar installeert een eigenaar hem, of keurt je verzoek goed).": {
       "localizations": {
         "de": {
@@ -17534,6 +18089,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aide Pullwatch"
+          }
+        }
+      }
+    },
+    "Pushes naar branches in de sectie Branches, zonder melding": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes auf Branches im Bereich Branches, ohne Mitteilung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes to branches in the Branches section, without a notification"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les pushs vers des branches dans la section Branches, sans notification"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pushes naar branches in de sectie Branches, zonder melding"
           }
         }
       }
@@ -19389,6 +19972,91 @@
         }
       }
     },
+    "Toon alleen pushes naar één repo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Pushes auf ein Repository zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only pushes to one repository"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher seulement les pushs vers un dépôt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon alleen pushes naar één repo"
+          }
+        }
+      }
+    },
+    "Toon alleen pushes van %@": {
+      "comment": "Naam van een persoon",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Pushes von %@ zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only pushes by %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher seulement les pushs de %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon alleen pushes van %@"
+          }
+        }
+      }
+    },
+    "Toon alleen pushes van één persoon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Pushes von einer Person zeigen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only pushes by one person"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher seulement les pushs d’une personne"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon alleen pushes van één persoon"
+          }
+        }
+      }
+    },
     "Toon alles": {
       "localizations": {
         "de": {
@@ -20121,6 +20789,34 @@
           "stringUnit": {
             "state": "new",
             "value": "Vastgehouden op %1$@ door %2$@, dat %3$@ vraagt. Werk eerst %4$@ bij naar %5$@."
+          }
+        }
+      }
+    },
+    "Verberg je eigen pushes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigene Pushes ausblenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide your own pushes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer vos propres pushs"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verberg je eigen pushes"
           }
         }
       }
@@ -21750,6 +22446,34 @@
         }
       }
     },
+    "Wie": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qui"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie"
+          }
+        }
+      }
+    },
     "Wis filters": {
       "localizations": {
         "de": {
@@ -22054,6 +22778,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rechercher par CVE, paquet ou version…"
+          }
+        }
+      }
+    },
+    "Zoek op branch, repo of persoon…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Branch, Repository oder Person suchen…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by branch, repository or person…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher par branche, dépôt ou personne…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek op branch, repo of persoon…"
           }
         }
       }

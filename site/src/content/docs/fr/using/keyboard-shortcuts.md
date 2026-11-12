@@ -45,10 +45,11 @@ La barre des menus suit l’ordre d’Apple : Pullwatch, Fichier, Édition, Pré
 | ⌘[ | Retour depuis la page d’un dépôt |
 | ⌘1 | PR |
 | ⌘2 | Tags et versions publiées |
-| ⌘3 | Statistiques |
-| ⌘4 | Dépôts |
-| ⌘5 | Dépendances |
-| ⌘6 | Paquets |
+| ⌘3 | Branches |
+| ⌘4 | Statistiques |
+| ⌘5 | Dépôts |
+| ⌘6 | Dépendances |
+| ⌘7 | Paquets |
 | ⌘↓ | Page du dépôt : la page du dépôt sélectionné |
 
 ## Élément

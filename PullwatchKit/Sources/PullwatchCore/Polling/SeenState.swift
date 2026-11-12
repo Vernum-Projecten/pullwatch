@@ -26,6 +26,9 @@ public struct SeenState: Codable, Equatable, Sendable {
     var tagFingerprints: [String: String] = [:]
     public var checks: [String: CheckMark] = [:]
     public var queued: [String: QueueMark] = [:]
+    /// Per gevolgde repo (`"{accountId}:{repo.lowercased()}"`) de branches met hun laatste commit
+    /// van de vorige poll, zodat een push ook na een herstart te zien is; geprunet op `seenAt`.
+    public var branchHeads: [String: BranchHeads] = [:]
 
     public init() {}
 
@@ -45,6 +48,8 @@ public struct SeenState: Codable, Equatable, Sendable {
         checks = try container.decodeIfPresent([String: CheckMark].self, forKey: .checks) ?? [:]
         // Ontbreekt in seen.json van vóór de melding "uit de rij": geen PR heeft dan een vorige stand.
         queued = try container.decodeIfPresent([String: QueueMark].self, forKey: .queued) ?? [:]
+        // Ontbreekt in seen.json van vóór branches.
+        branchHeads = try container.decodeIfPresent([String: BranchHeads].self, forKey: .branchHeads) ?? [:]
     }
 
     public func contains(_ key: String) -> Bool {
@@ -62,6 +67,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         coAuthors = coAuthors.filter { now.timeIntervalSince($0.value.at) <= maxAge }
         checks = checks.filter { now.timeIntervalSince($0.value.at) <= maxAge }
         queued = queued.filter { now.timeIntervalSince($0.value.at) <= maxAge }
+        branchHeads = branchHeads.filter { now.timeIntervalSince($0.value.seenAt) <= maxAge }
         dropOrphanFingerprints()
     }
 
@@ -77,6 +83,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         coAuthors = coAuthors.filter { isFresh($0.key, $0.value.at) }
         checks = checks.filter { isFresh($0.key, $0.value.at) }
         queued = queued.filter { isFresh($0.key, $0.value.at) }
+        branchHeads = branchHeads.filter { isFresh($0.key, $0.value.seenAt) }
         dropOrphanFingerprints()
     }
 
@@ -87,6 +94,7 @@ public struct SeenState: Codable, Equatable, Sendable {
         coAuthors = coAuthors.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         checks = checks.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         queued = queued.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
+        branchHeads = branchHeads.filter { key, _ in keyPrefixes.contains(where: { key.hasPrefix($0) }) }
         dropOrphanFingerprints()
     }
 
@@ -103,6 +111,20 @@ public struct SeenState: Codable, Equatable, Sendable {
         for key in seen.keys where key.hasPrefix(prefix) {
             seen[key] = date
         }
+    }
+}
+
+/// De branches van één repo met hun laatste commit (branchnaam naar sha), de vingerafdruk van de
+/// branchlijst en `seenAt`, de laatste keer dat de repo gelezen is (voor het prunen).
+public struct BranchHeads: Codable, Equatable, Sendable {
+    public var heads: [String: String]
+    public var fingerprint: String?
+    public var seenAt: Date
+
+    public init(heads: [String: String], fingerprint: String?, seenAt: Date) {
+        self.heads = heads
+        self.fingerprint = fingerprint
+        self.seenAt = seenAt
     }
 }
 

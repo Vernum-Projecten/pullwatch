@@ -68,13 +68,15 @@ import Testing
         #expect(!reference.isAlternate, "Kopieer verwijzing staat er altijd, niet alleen met ⌥")
     }
 
-    @Test func `The Go menu lists every section in sidebar order, Packages on Command-6`() throws {
+    @Test func `The Go menu lists every section in sidebar order, Packages on Command-7`() throws {
         let go = try #require(menus[safe: 4])
         let sections = MainSection.allCases.compactMap { section in
             go.item(key: section.shortcut.character.description, modifiers: [.command])
         }
         #expect(sections.map(\.title) == MainSection.allCases.map { String(localized: $0.title) })
-        #expect(go.item(key: "6", modifiers: [.command])?.title == String(localized: MainSection.packages.title))
+        #expect(sections.count == MainSection.allCases.count)
+        #expect(go.item(key: "3", modifiers: [.command])?.title == String(localized: MainSection.branches.title))
+        #expect(go.item(key: "7", modifiers: [.command])?.title == String(localized: MainSection.packages.title))
     }
 
     @Test func `The Window menu brings back the main window`() throws {

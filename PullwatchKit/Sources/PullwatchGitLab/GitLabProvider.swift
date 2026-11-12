@@ -68,6 +68,16 @@ public actor GitLabProvider: PRProvider {
         try await currentUser().username
     }
 
+    /// De naam, de gebruikersnaam en de e-mailadressen van de gebruiker (`/user`), voor de eigen
+    /// pushes: een commit in GitLab hangt niet aan een account.
+    public func currentUserIdentity() async throws -> UserIdentity? {
+        let user = try await currentUser()
+        return UserIdentity(
+            names: [user.name, user.username].compactMap { $0 },
+            emails: [user.email, user.commitEmail, user.publicEmail].compactMap { $0 }
+        )
+    }
+
     /// Controleert het token (`/user`) en of elke eigenaar te vinden is; geeft de gebruikersnaam.
     public func testConnection() async throws -> String {
         let user = try await currentUser()

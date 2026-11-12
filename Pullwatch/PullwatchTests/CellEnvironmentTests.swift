@@ -46,6 +46,16 @@ import Testing
         #expect(draws(RepoReferenceLabel(entry: Self.item.entry, kind: .gitHub, showsOwner: false)))
     }
 
+    @Test(arguments: [BranchPush.Kind.push, .forcePush, .newBranch, .recent])
+    func `BranchKindLabel draws without a model in the environment`(kind: BranchPush.Kind) {
+        #expect(draws(BranchKindLabel(kind: kind, commits: 4)))
+    }
+
+    @Test(arguments: [URL(string: "https://avatars.example.com/u/1"), nil])
+    func `BranchAuthorLabel draws without a model in the environment`(avatarURL: URL?) {
+        #expect(draws(BranchAuthorLabel(name: "Jan Jansen", avatarURL: avatarURL)))
+    }
+
     /// Het In-house-teken staat in de cellen van Afhankelijkheden en van het tabblad Packages, met
     /// en zonder link (een Azure-project zonder repository en zonder pagina).
     @Test(arguments: [

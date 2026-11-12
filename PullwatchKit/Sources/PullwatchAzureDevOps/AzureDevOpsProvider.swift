@@ -45,6 +45,18 @@ public actor AzureDevOpsProvider: PRProvider {
         try await authenticatedUser().id
     }
 
+    /// De weergavenamen en het e-mailadres van het account waarmee de gebruiker inlogt
+    /// (`properties.Account`, alleen als dat een e-mailadres is), voor de eigen pushes: een
+    /// commit in Azure DevOps hangt niet aan de GUID van een gebruiker.
+    public func currentUserIdentity() async throws -> UserIdentity? {
+        let user = try await authenticatedUser()
+        let account = user.properties?.account?.value
+        return UserIdentity(
+            names: [user.providerDisplayName, user.customDisplayName].compactMap { $0 },
+            emails: [account].compactMap { $0 }.filter { $0.contains("@") }
+        )
+    }
+
     public func testConnection() async throws -> String {
         let user = try await authenticatedUser()
         // connectionData is niet organisatie-gebonden; een org-endpoint bewijst pas toegang.

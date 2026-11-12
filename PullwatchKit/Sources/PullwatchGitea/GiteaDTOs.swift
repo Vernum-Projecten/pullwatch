@@ -136,3 +136,25 @@ struct TreeDTO: Decodable {
 struct ErrorDTO: Decodable {
     let message: String?
 }
+
+struct BranchDTO: Decodable {
+    struct Commit: Decodable {
+        struct Person: Decodable {
+            let name: String?
+            let email: String?
+            /// De gebruikersnaam op de server, als de commit aan een account te koppelen is.
+            let username: String?
+        }
+
+        let id: String
+        let timestamp: String?
+        let author: Person?
+    }
+
+    let name: String
+    let commit: Commit?
+}
+
+struct CompareDTO: Decodable {
+    let totalCommits: Int
+}

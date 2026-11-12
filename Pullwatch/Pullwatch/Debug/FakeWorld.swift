@@ -1,10 +1,11 @@
 #if DEBUG
+import CryptoKit
 import Foundation
 import PullwatchCore
 import Synchronization
 
 /// De nagespeelde inhoud achter `-PullwatchFakeData`: drie repo's van octocat met PR's van
-/// een paar auteurs, tags, en bestanden waarin een oude Node, een package met een nieuwe versie
+/// een paar auteurs, tags, branches, en bestanden waarin een oude Node, een package met een nieuwe versie
 /// en een bekende kwetsbaarheid zitten. GitHubs adviezen hebben CVSS en CWE's; hello-world heeft
 /// open meldingen van code scanning, linguist een eigen advies, en secret scanning mag de app
 /// nergens lezen (zoals bij de test-app zonder dat recht).
@@ -86,6 +87,43 @@ nonisolated enum FakeWorld {
             FakeTag(name: "v9.3.2", daysAgo: 40, committer: "Jan de Vries", committerLogin: false),
         ],
     ]
+
+    /// Een branch met zijn laatste commit: wie (een login of, met `authorLogin` uit, een naam uit
+    /// git) en hoe lang geleden.
+    struct FakeBranch {
+        let name: String
+        let author: String
+        let daysAgo: Double
+        var authorLogin = true
+    }
+
+    // Per repo een paar branches die de afgelopen 14 dagen bewogen (rijen in Branches na het
+    // seeden) en één oudere die alleen onthouden wordt. Dezelfde mensen als bij de PR's en tags.
+    static let branches: [String: [FakeBranch]] = [
+        "hello-world": [
+            FakeBranch(name: "main", author: "hubot", daysAgo: 3.5),
+            FakeBranch(name: "dependabot/npm_and_yarn/lodash-4.17.21", author: "dependabot[bot]", daysAgo: 0.2),
+            FakeBranch(name: "feature/dark-theme", author: "jdoe", daysAgo: 0.4),
+            FakeBranch(name: "dutch-greeting", author: "mona", daysAgo: 1),
+            FakeBranch(name: "experiment/second-greeting", author: "jdoe", daysAgo: 40),
+        ],
+        "spoon-knife": [
+            FakeBranch(name: "main", author: "jdoe", daysAgo: 6),
+            FakeBranch(name: "update-express", author: "hubot", daysAgo: 0.5),
+            FakeBranch(name: "replace-fork-icon", author: "amelie", daysAgo: 2),
+        ],
+        "linguist": [
+            FakeBranch(name: "main", author: "hubot", daysAgo: 20),
+            FakeBranch(name: "gleam-support", author: "mona", daysAgo: 1.5),
+            FakeBranch(name: "swift-macros", author: "amelie", daysAgo: 2),
+            FakeBranch(name: "fix/header-heuristics", author: "Jan de Vries", daysAgo: 9, authorLogin: false),
+        ],
+    ]
+
+    /// Een vaste sha per branch, zodat een volgende start dezelfde heads ziet en niets als push meldt.
+    static func sha(repo: String, branch: String) -> String {
+        Insecure.SHA1.hash(data: Data("\(repo)/\(branch)".utf8)).map { String(format: "%02x", $0) }.joined()
+    }
 
     static let files: [String: [String: String]] = [
         // Een monorepo op Node 16: de root en packages/web, lodash direct (4.17.20, binnen bereik bij
@@ -259,7 +297,11 @@ nonisolated enum FakeWorld {
         if path.hasPrefix("/advisories/") { return advisory(ghsaId: url.lastPathComponent) }
         if path == "/graphql" {
             let isCoAuthorQuery = request.httpBody.map { String(decoding: $0, as: UTF8.self).contains("pullRequest(number") } ?? false
-            return isCoAuthorQuery ? coAuthorCommits(body: request.httpBody) : tagsAndReleases(body: request.httpBody)
+            if isCoAuthorQuery { return coAuthorCommits(body: request.httpBody) }
+            // De vraag zelf, zonder de escapes van JSON (`refs\/heads\/`).
+            struct Query: Decodable { let query: String }
+            let query = request.httpBody.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.query ?? ""
+            return query.contains(#"refPrefix: "refs/heads/""#) ? branchesAndHeads(body: request.httpBody) : tagsAndReleases(body: request.httpBody)
         }
         let parts = url.pathComponents
         if let extra = extraRepoResponse(parts) { return extra }
@@ -279,6 +321,9 @@ nonisolated enum FakeWorld {
             return #"{"message":"Resource not accessible by integration"}"#
         case "security-advisories":
             return repo == "linguist" ? ownAdvisories : "[]"
+        case "compare":
+            // Alleen na een tweede poll met andere heads; dan twee nieuwe commits, geen force-push.
+            return #"{"ahead_by":2,"behind_by":0}"#
         default:
             return nil
         }
@@ -307,6 +352,9 @@ nonisolated enum FakeWorld {
                 + #""author":{"login":"wolandscat","avatar_url":"https://github.com/wolandscat.png?size=40"}}]"#
         case "git":
             return #"{"tree":[{"path":"README.md","type":"blob"}]}"#
+        case "branches":
+            // REST geeft alleen naam en sha, zonder datum: er komt geen rij bij het seeden.
+            return #"[{"name":"master","commit":{"sha":"\#(sha(repo: extraRepo, branch: "master"))"}}]"#
         default:
             return nil
         }
@@ -421,6 +469,36 @@ nonisolated enum FakeWorld {
             }
             fields.append(#""r\#(index)":{"refs":{"totalCount":\#(refs.count),"nodes":["# + refs.joined(separator: ",") + "]},"
                 + #""releases":{"totalCount":\#(releases.count),"nodes":["# + releases.joined(separator: ",") + "]}}")
+        }
+        return #"{"data":{"# + fields.joined(separator: ",") + "}}"
+    }
+
+    /// De GraphQL-vraag naar branches (`GitHubProvider.branches`): per alias (`r0`, `r1`, …) de
+    /// branches van die repo uit `branches`, met hun laatste commit en auteur. Eén pagina, ook
+    /// voor de kleine vraag naar de vingerafdruk (die leest alleen naam en sha). Alleen repo's
+    /// van octocat bestaan; de rest is `null`, zoals bij GitHub.
+    static func branchesAndHeads(body: Data?) -> String {
+        struct Query: Decodable { let variables: [String: String] }
+        let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
+        var fields: [String] = []
+        for index in 0... {
+            guard let owner = variables["o\(index)"], let name = variables["n\(index)"] else { break }
+            guard owner == FakeGitHub.login, let list = branches[name] else {
+                fields.append(#""r\#(index)":null"#)
+                continue
+            }
+            let nodes = list.map { branch -> String in
+                // Zoals GitHub: een bot heeft zijn foto onder `/in/<app-id>` (zie `search(query:)`).
+                let avatar = branch.author == "dependabot[bot]"
+                    ? "https://avatars.githubusercontent.com/in/29110?v=4" : "https://github.com/\(branch.author).png?size=40"
+                let user = branch.authorLogin ? #"{"login":"\#(branch.author)","avatarUrl":"\#(avatar)"}"# : "null"
+                let email = branch.author.lowercased().replacingOccurrences(of: " ", with: ".") + "@example.com"
+                let author = #"{"name":"\#(branch.author)","email":"\#(email)","user":\#(user)}"#
+                return #"{"name":"\#(branch.name)","target":{"oid":"\#(sha(repo: name, branch: branch.name))","#
+                    + #""committedDate":"\#(iso(branch.daysAgo))","author":\#(author)}}"#
+            }
+            fields.append(#""r\#(index)":{"refs":{"totalCount":\#(nodes.count),"pageInfo":{"hasNextPage":false,"endCursor":null},"#
+                + #""nodes":["# + nodes.joined(separator: ",") + "]}}")
         }
         return #"{"data":{"# + fields.joined(separator: ",") + "}}"
     }

@@ -1,0 +1,39 @@
+---
+title: Branches
+description: Quelles branches de vos dépôts suivis ont reçu des pushs, de qui et quand.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Branches** dans la barre latérale (⌘3) montre les pushs vers les branches des dépôts que vous suivez, du plus récent au plus ancien. La section répond à une question que les listes PRs et Tags ne couvrent pas : qui travaille sur quoi, avant qu'il y ait une pull request ou un tag.
+
+<Screenshot name="branches" alt="La section Branches : pushs vers des branches de trois dépôts, chacun avec le nom de la branche, le dépôt, l'auteur, le nombre de nouveaux commits et l'heure du push." />
+
+## Ce que montre une ligne
+
+Chaque ligne a la branche, le dépôt, qui a poussé (avec sa photo), les commits et quand. La colonne Commits dit ce qui s'est passé :
+
+- `+3` : trois nouveaux commits depuis la dernière lecture de Pullwatch.
+- **Force push** : la branche a été réécrite, son historique ne prolonge donc plus l'ancien.
+- **Nouvelle branche** : la branche n'existait pas encore.
+- Sans étiquette : le dernier commit d'une branche qui a bougé ces 14 derniers jours. Pullwatch remplit ainsi la liste à la première lecture d'un dépôt, pour que la section ne commence pas vide.
+
+Pullwatch voit ce qui a changé entre deux lectures, pas chaque push séparément. Trois pushs entre deux lectures font une seule ligne avec tous les nouveaux commits.
+
+## Recherche et filtres
+
+Cherchez par branche, dépôt ou personne. La barre d'outils filtre sur un dépôt ou une personne, et un clic sur un nom dans le tableau filtre aussi sur cette personne. **Seulement les autres** masque vos propres pushs.
+
+Pullwatch reconnaît vos propres pushs à votre compte sur GitHub, et sur Bitbucket et Gitea là où le compte est lié à la personne. Sinon il compare le nom et l'adresse e-mail de l'auteur aux vôtres.
+
+Double-cliquez sur une ligne (ou choisissez **Ouvrir dans le navigateur** dans le menu contextuel) pour ouvrir la comparaison sur le service. Pullwatch n'affiche lui-même ni commits ni fichiers.
+
+## Pas de notifications
+
+Un push ne déclenche jamais de notification, ne compte pas comme non lu et n'apparaît ni dans le panneau du menu ni sur le badge du Dock. C'est une liste à consulter, pas un flux à suivre.
+
+## Suivre les branches
+
+Les branches sont suivies avec les pull requests, dépôt par dépôt : cocher **PR** pour un dépôt coche aussi **Branches**, et décocher **PR** décoche les deux. Pour désactiver seulement les branches d'un dépôt, décochez **Branches** dans la liste des dépôts du compte (Réglages, Comptes) ou sous **Suivre** dans l'**Aperçu** du dépôt. Tant que la liste est vide, la section a un bouton **Suivre les branches** qui ouvre Réglages, Comptes.
+
+Les branches sont lues toutes les 15 minutes au plus, séparément des pull requests et des tags. Une limite de débit sur les branches ne retient jamais les pull requests ni les tags : ils arrivent comme d'habitude, et les branches attendent la fin de la limite. Les pushs sont conservés aussi longtemps que l'historique (Réglages, Général, **Conserver l'historique**).

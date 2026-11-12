@@ -70,6 +70,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'using/menu' },
 						{ slug: 'using/pull-requests-and-tags' },
+						{ slug: 'using/branches' },
 						{ slug: 'using/repositories' },
 						{ slug: 'using/dependencies' },
 						{ slug: 'using/packages' },

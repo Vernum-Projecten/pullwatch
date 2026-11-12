@@ -45,10 +45,11 @@ The menu bar follows Apple's order: Pullwatch, File, Edit, View, Go, Item, Repos
 | ⌘[ | Back from a repository page |
 | ⌘1 | PRs |
 | ⌘2 | Tags and Releases |
-| ⌘3 | Statistics |
-| ⌘4 | Repositories |
-| ⌘5 | Dependencies |
-| ⌘6 | Packages |
+| ⌘3 | Branches |
+| ⌘4 | Statistics |
+| ⌘5 | Repositories |
+| ⌘6 | Dependencies |
+| ⌘7 | Packages |
 | ⌘↓ | The selected repository's page |
 
 ## Item

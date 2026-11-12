@@ -126,3 +126,9 @@ struct ErrorDTO: Decodable {
 
     let error: Body?
 }
+
+/// Een branch uit `refs/branches`: zijn naam en de laatste commit.
+struct BranchDTO: Decodable {
+    let name: String
+    let target: TagDTO.Target?
+}

@@ -96,4 +96,31 @@ import PullwatchTestSupport
         let data = try JSONEncoder().encode(state)
         #expect(try JSONDecoder().decode(SeenState.self, from: data) == state)
     }
+
+    @Test func legacySeenJsonWithoutBranchHeadsLoads() throws {
+        let json = Data(#"{"seen":{},"lastSettings":{}}"#.utf8)
+        let state = try JSONDecoder().decode(SeenState.self, from: json)
+        #expect(state.branchHeads.isEmpty)
+    }
+
+    @Test func branchHeadsRoundTripAndPrune() throws {
+        var state = SeenState()
+        state.branchHeads["a:p/r"] = BranchHeads(heads: ["main": "abc"], fingerprint: "f", seenAt: t0)
+        state.branchHeads["a:p/new"] = BranchHeads(heads: ["main": "def"], fingerprint: nil, seenAt: t0 + 30 * day)
+        let data = try JSONEncoder().encode(state)
+        #expect(try JSONDecoder().decode(SeenState.self, from: data) == state)
+        state.prune(now: t0 + 31 * day)
+        #expect(state.branchHeads.keys.sorted() == ["a:p/new"])
+    }
+
+    @Test func prefixScopedPruneAndRetainCoverBranchHeads() {
+        var state = SeenState()
+        state.branchHeads["a:x"] = BranchHeads(heads: [:], fingerprint: nil, seenAt: t0)
+        state.branchHeads["b:x"] = BranchHeads(heads: [:], fingerprint: nil, seenAt: t0)
+        state.prune(now: t0 + 31 * day, onlyKeyPrefixes: ["a:"])
+        #expect(state.branchHeads.keys.sorted() == ["b:x"])
+        state.branchHeads["a:y"] = BranchHeads(heads: [:], fingerprint: nil, seenAt: t0)
+        state.retain(onlyKeyPrefixes: ["a:"])
+        #expect(state.branchHeads.keys.sorted() == ["a:y"])
+    }
 }

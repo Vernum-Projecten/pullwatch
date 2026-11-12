@@ -24,6 +24,22 @@ actor MockProvider: PRProvider {
     /// Laatste aan `tags(in:unchanged:)` doorgegeven vingerafdrukken.
     private(set) var lastUnchanged: [String: String] = [:]
     private(set) var invalidateCount = 0
+    private var branchFetch = BranchFetch()
+    private var comparisons: [String: BranchComparison] = [:]
+    private var branchError: ProviderError?
+    private var identity: UserIdentity?
+    private var identityError: ProviderError?
+    /// Aantal aanroepen van `currentUserIdentity()`.
+    private(set) var identityCalls = 0
+    private(set) var branchCalls = 0
+    /// Laatste aan `branches(in:unchanged:)` doorgegeven repo's en vingerafdrukken.
+    private(set) var lastBranchRepos: [String] = []
+    private(set) var lastBranchUnchanged: [String: String] = [:]
+    /// Aantal aanroepen van `compare(in:from:to:)`.
+    private(set) var compareCalls = 0
+    /// Fouten per vergelijking, met sleutel `"\(from)...\(to)"`.
+    private var compareErrors: [String: ProviderError] = [:]
+    private(set) var listRepoCalls = 0
     private var coAuthorList: [String: [Person]] = [:]
     private var coAuthorError: ProviderError?
     /// Per aanroep van `coAuthors(of:)` de dedupKeys die gevraagd werden.
@@ -63,6 +79,17 @@ actor MockProvider: PRProvider {
     /// Wat `checks(of:)` geeft, per dedupKey.
     func set(checks: [String: PRChecks]) { checkList = checks }
     func set(userId: String) { self.userId = userId }
+    /// Wat `branches(in:unchanged:)` geeft.
+    func set(branchFetch: BranchFetch) { self.branchFetch = branchFetch }
+    /// Vergelijkingen voor `compare(in:from:to:)`, met sleutel `"\(from)...\(to)"`.
+    func set(comparisons: [String: BranchComparison]) { self.comparisons = comparisons }
+    /// Fout die alleen `branches(in:unchanged:)` gooit.
+    func set(branchError: ProviderError?) { self.branchError = branchError }
+    func set(compareErrors: [String: ProviderError]) { self.compareErrors = compareErrors }
+    /// Wat `currentUserIdentity()` geeft, of de fout die het gooit.
+    func set(identity: UserIdentity?) { self.identity = identity }
+    func set(identityError: ProviderError?) { self.identityError = identityError }
+
     /// Fout die alleen `tags(in:)` gooit.
     func set(tagError: ProviderError?) { self.tagError = tagError }
     func set(fingerprints: [String: String]) { self.fingerprints = fingerprints }
@@ -74,12 +101,19 @@ actor MockProvider: PRProvider {
         return userId
     }
 
+    func currentUserIdentity() async throws -> UserIdentity? {
+        identityCalls += 1
+        if let identityError { throw identityError }
+        return identity
+    }
+
     func testConnection() async throws -> String {
         if let error { throw error }
         return userId
     }
 
     func listRepos() async throws -> [String] {
+        listRepoCalls += 1
         if let error { throw error }
         return repos
     }
@@ -120,6 +154,24 @@ actor MockProvider: PRProvider {
         fetch.fingerprints = Dictionary(available.compactMap { repo in fingerprints[repo.lowercased()].map { (repo, $0) } },
                                         uniquingKeysWith: { first, _ in first })
         return fetch
+    }
+
+    func branches(in repos: [String], unchanged: [String: String]) async throws -> BranchFetch {
+        branchCalls += 1
+        lastBranchRepos = repos
+        lastBranchUnchanged = unchanged
+        if let branchError { throw branchError }
+        return branchFetch
+    }
+
+    func compare(in repo: String, from: String, to: String) async throws -> BranchComparison? {
+        compareCalls += 1
+        if let error = compareErrors["\(from)...\(to)"] { throw error }
+        return comparisons["\(from)...\(to)"]
+    }
+
+    nonisolated func compareURL(in repo: String, from: String, to: String) -> URL? {
+        URL(string: "https://example.com/\(repo)/compare/\(from)...\(to)")
     }
 
     func datedTags(in repo: String, limit: Int) async throws -> [Tag] {
