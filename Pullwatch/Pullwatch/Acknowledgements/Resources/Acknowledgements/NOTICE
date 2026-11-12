@@ -230,7 +230,7 @@ MIT License:
 
 The MCP Swift SDK brings in, and this product therefore includes:
 
-- SwiftLog (https://github.com/apple/swift-log, version 1.16.2), Copyright
+- SwiftLog (https://github.com/apple/swift-log, version 1.17.0), Copyright
   2018, 2019 The SwiftLog Project, licensed under the Apache License,
   Version 2.0 (see LICENSE). It contains a derivation of the lock
   implementation and various scripts from SwiftNIO

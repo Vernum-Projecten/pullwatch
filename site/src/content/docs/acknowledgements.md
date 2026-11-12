@@ -9,7 +9,7 @@ Pullwatch is free and open source under the [Apache License 2.0](https://github.
 |---|---|---|---|
 | [Sparkle](https://sparkle-project.org) | 2.10.1 | MIT, with BSD (bsdiff, bspatch, SUSignatureVerifier), MIT (sais-lite) and zlib (Ed25519) for the code it embeds | Installing updates |
 | [MCP Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) | 0.12.1 | Apache 2.0 and MIT (the project is moving from MIT to Apache 2.0) | The connection for coding agents, in the app and in `pullwatch-mcp` |
-| [SwiftLog](https://github.com/apple/swift-log) | 1.16.2 | Apache 2.0 | Logging inside the MCP Swift SDK |
+| [SwiftLog](https://github.com/apple/swift-log) | 1.17.0 | Apache 2.0 | Logging inside the MCP Swift SDK |
 | [Swift System](https://github.com/apple/swift-system) | 1.8.1 | Apache 2.0 with the Runtime Library Exception | System calls inside the MCP Swift SDK |
 | [EventSource](https://github.com/mattt/eventsource) | 1.6.0 | MIT | Server-sent events inside the MCP Swift SDK |
 | [GitHub Octicons](https://github.com/primer/octicons) | 19.41.0 | MIT | The pull request and check symbols, the menu bar icon and the glyph of the app icon |
