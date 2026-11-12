@@ -43,6 +43,18 @@ import Testing
         #expect(output["sync"] == ["state": "syncing", "work": "versions", "done": 2, "total": 5])
     }
 
+    @Test func `Status lists the repositories an account's token cannot read`() async throws {
+        var harness = harness
+        harness.source.unreachable = [FakeDataSource.gitHubId: UnreachableRepos(tags: ["acme/api"], branches: ["acme/api", "acme/web"])]
+
+        let result = try await harness.call("get_status")
+        let output = try await harness.output("get_status")
+
+        #expect(output["accounts"]?.objects.first?["unreachable_repositories"] == ["acme/api", "acme/web"])
+        #expect(output["accounts"]?.objects.last?["unreachable_repositories"] == nil)
+        #expect(ToolHarness.texts(result).joined().contains("2 repositories the token cannot read"))
+    }
+
     // MARK: - get_agent_brief
 
     @Test(arguments: GetAgentBriefSection.allCases)

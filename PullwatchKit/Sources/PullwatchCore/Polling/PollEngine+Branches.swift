@@ -21,6 +21,7 @@ extension PollEngine {
             guard account.followsBranches else {
                 // Volgt het account nergens meer branches: vergeten, zodat aanzetten opnieuw seedt.
                 forgetBranchHeads(of: account, except: [])
+                unreachable[account.id]?.branches = []
                 continue
             }
             guard let job = branchJob(for: account, at: t) else { continue }
@@ -202,6 +203,8 @@ extension PollEngine {
         let fingerprints = Dictionary(
             fetch.fingerprints.map { ($0.key.lowercased(), $0.value) }, uniquingKeysWith: { first, _ in first })
         let headsByRepo = Dictionary(grouping: fetch.heads) { $0.repo.lowercased() }
+        unreachable[account.id, default: UnreachableRepos()].branches =
+            UnreachableRepos.names(of: outcome.repos, in: unavailable)
         if !unavailable.isEmpty {
             logger.warning("branches overgeslagen voor \(account.displayName): \(unavailable.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }

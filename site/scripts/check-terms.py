@@ -52,16 +52,19 @@ macos = {
 emphasis = {
     'en': {'runtimes', 'tokens', 'click a row', 'right-click a row', 'the menu bar icon', 'where pullwatch lives',
            'settings, history and check results', 'a self-managed server', 'signed in with gh, az or glab',
-           'github cli'},
+           'github cli', 'signed in with gh', 'a personal access token'},
     'nl': {'runtimes', 'klik op een rij', 'klik met de rechtermuisknop op een rij', 'het icoon in de menubalk',
            'waar pullwatch staat', 'instellingen, geschiedenis en uitkomsten van checks', 'een eigen server',
-           'ingelogd met gh, az of glab', 'github cli'},
+           'ingelogd met gh, az of glab', 'github cli',
+           'ingelogd met gh', 'een personal access token'},
     'de': {'runtimes', 'klicke auf eine zeile', 'klicke mit der rechten maustaste auf eine zeile',
            'das symbol in der menüleiste', 'wo pullwatch zu finden ist', 'einstellungen, verlauf und prüfergebnisse',
-           'ein selbst verwalteter server', 'angemeldet mit gh, az oder glab', 'github cli'},
+           'ein selbst verwalteter server', 'angemeldet mit gh, az oder glab', 'github cli',
+           'mit gh angemeldet', 'ein personal access token'},
     'fr': {'les runtimes', 'les jetons', 'les paquets', 'cliquez sur une ligne', 'cliquez avec le bouton droit sur une ligne',
            "l'icône de la barre des menus", "les réglages, l'historique et les résultats des vérifications",
-           'un serveur autogéré', 'connecté avec gh, az ou glab', 'github cli'},
+           'un serveur autogéré', 'connecté avec gh, az ou glab', 'github cli',
+           'connecté avec gh', "un jeton d'accès personnel"},
 }
 looks_like_code = re.compile(r'[/_$=<>{}\[\]~:]|^-|\.(json|md|swift|sh|dmg|zip|yml|lock|toml|xml|plist|txt|log|app)\b|^[a-z0-9.@-]+( |$)|^\S+$|^⌘|^⇧|^⌥')
 

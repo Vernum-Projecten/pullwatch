@@ -18,6 +18,9 @@ final class PollingModel {
     private(set) var hasPolledOnce = false
     /// Laatste poll waarin minstens één account slaagde.
     private(set) var lastSuccessfulPoll: Date?
+    /// Per account de gevolgde repo's die het token niet kan lezen, uit de laatste tag- en
+    /// branch-poll (`PollEngine.unreachableRepos()`); hun tags en branches worden niet bijgewerkt.
+    private(set) var unreachableRepos: [UUID: UnreachableRepos] = [:]
 
     struct RefetchProgress: Equatable {
         let startedAt: Date
@@ -90,6 +93,7 @@ final class PollingModel {
     /// Een weggehaald account heeft geen status meer.
     func removeStatus(of id: UUID) {
         statuses[id] = nil
+        unreachableRepos[id] = nil
     }
 
     // MARK: - Pollen
@@ -192,6 +196,7 @@ final class PollingModel {
         // Pas na de PR's en tags: een trage of mislukte branch-poll houdt die nooit op.
         let pushes = await engine.pollBranches(accounts: accounts)
         branches.apply(pushes, retention: config.historyRetention, now: Date())
+        unreachableRepos = await engine.unreachableRepos()
     }
 
     private func updateRefetchProgress() async {

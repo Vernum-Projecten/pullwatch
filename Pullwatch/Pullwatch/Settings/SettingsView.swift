@@ -47,6 +47,7 @@ private struct AccountsSettingsView: View {
     @Environment(AppModel.self) private var app
     @Environment(AccountsModel.self) private var accounts
     @Environment(AppRouter.self) private var router
+    @Environment(PollingModel.self) private var polling
     @State private var selection: UUID?
     /// Een nieuw account in het toevoeg-venster; staat pas in de config na Toevoegen.
     @State private var draft: Account?
@@ -59,7 +60,9 @@ private struct AccountsSettingsView: View {
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
-                AccountList(accounts: accounts.config.accounts, selection: $selection) {
+                AccountList(
+                    accounts: accounts.config.accounts, unreachable: polling.unreachableRepos, selection: $selection
+                ) {
                     if selection != nil { confirmsRemoval = true }
                 }
                 Divider()
@@ -92,6 +95,11 @@ private struct AccountsSettingsView: View {
                 draft = nil
                 if saved { selection = account.id }
             }
+        }
+        .onChange(of: router.settingsAccount, initial: true) { _, id in
+            guard let id else { return }
+            router.settingsAccount = nil
+            selection = id
         }
         .onChange(of: router.addsAccount, initial: true) { _, adds in
             guard adds else { return }
@@ -133,6 +141,8 @@ private struct AccountsSettingsView: View {
 /// de gekozen kaart heeft een blauwe rand. Delete verwijdert het gekozen account.
 private struct AccountList: View {
     let accounts: [Account]
+    /// Per account de gevolgde repo's die het token niet kan lezen (`PollingModel.unreachableRepos`).
+    let unreachable: [UUID: UnreachableRepos]
     @Binding var selection: UUID?
     let delete: () -> Void
 
@@ -140,7 +150,10 @@ private struct AccountList: View {
         ScrollView {
             LazyVStack(spacing: 8) {
                 ForEach(accounts) { account in
-                    AccountCard(account: account, isSelected: selection == account.id) {
+                    AccountCard(
+                        account: account, unreachableCount: unreachable[account.id]?.repos.count ?? 0,
+                        isSelected: selection == account.id
+                    ) {
                         selection = account.id
                     }
                 }
@@ -154,6 +167,8 @@ private struct AccountList: View {
 
 private struct AccountCard: View {
     let account: Account
+    /// Hoeveel gevolgde repo's het token niet kan lezen.
+    let unreachableCount: Int
     let isSelected: Bool
     let select: () -> Void
 
@@ -182,6 +197,17 @@ private struct AccountCard: View {
                 if let problem = account.setupProblemMessage {
                     Label {
                         Text(verbatim: problem).font(.caption).fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                    }
+                    .padding(.leading, 36)
+                }
+                // Repo's die het token niet kan lezen: hun tags en branches komen niet binnen.
+                if unreachableCount > 0 {
+                    Label {
+                        Text("\(unreachableCount) repositories niet te lezen", comment: "Gevolgde repo's die het token van dit account niet kan lezen")
+                            .font(.caption)
+                            .fixedSize(horizontal: false, vertical: true)
                     } icon: {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
                     }

@@ -72,6 +72,17 @@ import Testing
         #expect(app["not_checked"] == [["source": "pyPI", "message": "Not checked: source PyPI is off."]])
     }
 
+    @Test func `A repository the token cannot read is marked unreachable`() async throws {
+        var harness = harness
+        harness.source.unreachable = [FakeDataSource.gitHubId: UnreachableRepos(tags: ["ACME/API"])]
+
+        let output = try await harness.output("list_repositories")
+
+        let repos = output["repositories"]?.objects ?? []
+        #expect(repos.first { $0["repository"] == "acme/api" }?["unreachable"] == true)
+        #expect(repos.first { $0["repository"] == "acme/web" }?["unreachable"] == nil)
+    }
+
     @Test func `Vulnerability counts are absent while OSV is off`() async throws {
         var harness = harness
         harness.source.disabled = [.osv]

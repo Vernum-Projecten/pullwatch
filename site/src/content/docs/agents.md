@@ -101,7 +101,7 @@ The examples below come from Pullwatch's test data. The answers are shortened.
 
 ### get_status
 
-Accounts (id, service, name and host), how their last poll went, what is syncing, when the version check ran, which sources are off, and the unread counts. No arguments.
+Accounts (id, service, name and host), how their last poll went, what is syncing, when the version check ran, which sources are off, and the unread counts. An account lists the followed repositories its token can't read in `unreachable_repositories`: their tags and branches are not updated. No arguments.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Tags and releases, newest first. Arguments: `repo`, `account_id`, `unread`, `lim
 
 ### list_repositories
 
-The repositories you follow, worst first, with their health (`problem`, `behind`, `ok` or `unknown`) and counts: open pull requests, latest tag, vulnerabilities by severity, serious security alerts, open secrets, outdated runtimes and package updates. Arguments: `account_id`, `health`, `limit`, `cursor`.
+The repositories you follow, worst first, with their health (`problem`, `behind`, `ok` or `unknown`) and counts: open pull requests, latest tag, vulnerabilities by severity, serious security alerts, open secrets, outdated runtimes and package updates. `unreachable` is `true` when the account's token can't read the repository, so its latest tag may be old. Arguments: `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}

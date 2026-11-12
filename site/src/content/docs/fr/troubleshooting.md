@@ -25,6 +25,15 @@ Le panneau du menu affiche chaque compte avec l’état de sa dernière interrog
 - Pour GitLab, vérifiez les groupes ou les utilisateurs indiqués dans le compte. Un groupe inclut ses sous-groupes.
 - Pour un dépôt isolé hors de vos comptes, ajoutez-le sous **Autres dépôts**.
 
+## Les tags ou branches d’un dépôt n’arrivent plus
+
+Le jeton du compte ne peut pas lire ce dépôt : il est introuvable, ou le jeton n’y a pas accès. Réglages, Comptes affiche leur nombre sur le compte, et le compte liste les dépôts sous **Illisible avec ce jeton**. La page du dépôt et la colonne Dernier tag de Dépôts les signalent aussi.
+
+- **Connecté avec `gh`** : sans choix sous **Compte GitHub**, le jeton vient du compte actif dans `gh`. Après `gh auth switch` vers un identifiant sans accès, les dépôts privés d’une organisation deviennent illisibles. Choisissez l’identifiant qui peut les lire.
+- **Un jeton d’accès personnel** : donnez-lui accès à ces dépôts, ou cessez de les suivre.
+
+Une fois l’accès rétabli, les tags et branches manqués arrivent à l’interrogation suivante.
+
 ## Une partie de la page du dépôt indique Autorisation requise
 
 Le jeton ou la GitHub App n’a peut-être pas le droit de lire cette partie, comme les checks, l’analyse du code ou l’analyse des secrets. Le lien à côté mène à l’autorisation. Tout le reste continue de fonctionner. Voir [Autorisations des jetons](/fr/getting-started/permissions/).

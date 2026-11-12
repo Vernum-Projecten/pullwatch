@@ -2743,6 +2743,83 @@
         }
       }
     },
+    "%lld repositories niet te lezen": {
+      "comment": "Gevolgde repo's die het token van dit account niet kan lezen",
+      "localizations": {
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld repository niet te lezen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld repositories niet te lezen"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld repository can’t be read"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld repositories can’t be read"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Repository nicht lesbar"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Repositories nicht lesbar"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dépôt illisible"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dépôts illisibles"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld updates": {
       "comment": "Meldingstitel; aantal nieuwe PR's, releases en tags samen in één repo",
       "localizations": {
@@ -3165,6 +3242,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Account"
+          }
+        }
+      }
+    },
+    "Account openen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Account"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir le compte"
           }
         }
       }
@@ -8405,6 +8504,28 @@
         }
       }
     },
+    "Geef het token toegang tot deze repositories, of volg ze niet meer.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give the token access to these repositories, or stop following them."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib dem Token Zugriff auf diese Repositories oder folge ihnen nicht mehr."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Donnez au jeton l’accès à ces dépôts, ou cessez de les suivre."
+          }
+        }
+      }
+    },
     "Geen": {
       "localizations": {
         "de": {
@@ -10332,6 +10453,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Le symbole de la colonne de la release indique si une vulnérabilité est aussi dans ce tag"
+          }
+        }
+      }
+    },
+    "Het token komt van het actieve account in gh. Kies bij GitHub-account de login die deze repositories kan lezen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The token comes from the active account in gh. Under GitHub account, choose the login that can read these repositories."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Token stammt vom aktiven Konto in gh. Wähle unter GitHub-Konto das Login, das diese Repositories lesen kann."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le jeton vient du compte actif dans gh. Sous Compte GitHub, choisissez l’identifiant qui peut lire ces dépôts."
           }
         }
       }
@@ -13547,6 +13690,28 @@
         }
       }
     },
+    "Niet gevonden of geen toegang. Nieuwe tags en branches komen niet binnen tot de toegang terug is.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not found or no access. New tags and branches won’t come in until access is back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gefunden oder kein Zugriff. Neue Tags und Branches kommen erst wieder an, wenn der Zugriff zurück ist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introuvable ou accès refusé. Les nouveaux tags et branches n’arrivent plus tant que l’accès n’est pas rétabli."
+          }
+        }
+      }
+    },
     "Niet te checken": {
       "localizations": {
         "de": {
@@ -13571,6 +13736,73 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niet te checken"
+          }
+        }
+      }
+    },
+    "Niet te lezen met dit token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t Be Read with This Token"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit diesem Token nicht lesbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illisible avec ce jeton"
+          }
+        }
+      }
+    },
+    "Niet te lezen met het token van %@": {
+      "comment": "De naam van het account, zoals ‘cadasto op GitHub’",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t be read with the token of %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit dem Token von %@ nicht lesbar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illisible avec le jeton de %@"
+          }
+        }
+      }
+    },
+    "Niet te lezen met het token van dit account: nieuwe tags komen niet binnen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t be read with this account’s token: new tags won’t come in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit dem Token dieses Kontos nicht lesbar: Neue Tags kommen nicht an."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illisible avec le jeton de ce compte : les nouveaux tags n’arrivent plus."
           }
         }
       }
@@ -17819,6 +18051,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Configurer Pullwatch…"
+          }
+        }
+      }
+    },
+    "Pullwatch kan deze gevolgde repositories niet lezen: niet gevonden of geen toegang. Hun tags en branches komen niet binnen tot de toegang terug is.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch can’t read these followed repositories: not found or no access. Their tags and branches won’t come in until access is back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch kann diese gefolgten Repositories nicht lesen: nicht gefunden oder kein Zugriff. Ihre Tags und Branches kommen erst wieder an, wenn der Zugriff zurück ist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pullwatch ne peut pas lire ces dépôts suivis : introuvables ou accès refusé. Leurs tags et branches n’arrivent plus tant que l’accès n’est pas rétabli."
           }
         }
       }

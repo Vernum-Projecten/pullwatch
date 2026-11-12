@@ -101,7 +101,7 @@ Die Beispiele unten stammen aus den Testdaten von Pullwatch. Die Antworten sind 
 
 ### get_status
 
-Die Konten (ID, Dienst, Name und Host), wie ihre letzte Abfrage lief, was gerade synchronisiert wird, wann die Versionsprüfung war, welche Quellen aus sind, und die Zahl der ungelesenen Einträge. Keine Argumente.
+Die Konten (ID, Dienst, Name und Host), wie ihre letzte Abfrage lief, was gerade synchronisiert wird, wann die Versionsprüfung war, welche Quellen aus sind, und die Zahl der ungelesenen Einträge. Ein Konto nennt in `unreachable_repositories` die gefolgten Repositories, die sein Token nicht lesen kann: Ihre Tags und Branches werden nicht aktualisiert. Keine Argumente.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Tags und Releases, neueste zuerst. Argumente: `repo`, `account_id`, `unread`, `l
 
 ### list_repositories
 
-Die Repositories, denen du folgst, schlechteste zuerst, mit ihrem Zustand (`problem`, `behind`, `ok` oder `unknown`) und Zahlen: offene Pull Requests, neuester Tag, Schwachstellen nach Schweregrad, ernste Sicherheitswarnungen, offene Secrets, veraltete Runtimes und Paket-Updates. Argumente: `account_id`, `health`, `limit`, `cursor`.
+Die Repositories, denen du folgst, schlechteste zuerst, mit ihrem Zustand (`problem`, `behind`, `ok` oder `unknown`) und Zahlen: offene Pull Requests, neuester Tag, Schwachstellen nach Schweregrad, ernste Sicherheitswarnungen, offene Secrets, veraltete Runtimes und Paket-Updates. `unreachable` ist `true`, wenn das Token des Kontos das Repository nicht lesen kann; der neueste Tag kann dann alt sein. Argumente: `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}
