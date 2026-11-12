@@ -82,9 +82,9 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
         kind == .gitHub && instanceURL != nil && instanceURL != kind.defaultInstanceURL
     }
 
-    /// Volgt dit account iets: een repo met PR's, tags of gemerged, of nieuwe repo's.
+    /// Volgt dit account iets: een repo met PR's, tags, branches of gemerged, of nieuwe repo's.
     public var followsAnything: Bool {
-        newRepoDefault != .none || repoWatch.values.contains { $0.prs || $0.tags || $0.completed }
+        newRepoDefault != .none || repoWatch.values.contains { $0.prs || $0.tags || $0.branches || $0.completed }
     }
 
     /// Is dit een zelf toegevoegde repo (hoofdletterongevoelig)?
@@ -393,5 +393,26 @@ public struct Account: Codable, Identifiable, Hashable, Sendable {
     func tagRepos(available: [String]) -> [String] {
         Account.mergedRepoNames(available: available, configured: Array(repoWatch.keys))
             .filter { watch(for: $0).tags }
+    }
+
+    /// Repo's waarvan de branches gevolgd worden, gesorteerd en hoofdletterongevoelig ontdubbeld
+    /// (de eerste schrijfwijze in sorteervolgorde wint).
+    var branchRepos: [String] {
+        var seen: Set<String> = []
+        return repoWatch.filter { $0.value.branches }.keys.sorted().filter { seen.insert($0.lowercased()).inserted }
+    }
+
+    /// Volgen repo's zonder eigen instelling ook hun branches? Dan zijn de branch-repo's pas
+    /// bekend met de lijst van de dienst (`branchRepos(available:)`).
+    var followsBranchesByDefault: Bool { newRepoDefault.watchSet.branches }
+
+    /// Volgt dit account ergens branches: standaard, of bij minstens één eigen repo.
+    var followsBranches: Bool { followsBranchesByDefault || !branchRepos.isEmpty }
+
+    /// Repo's waarvan de branches gevolgd worden, uit de lijst van de dienst plus de eigen
+    /// instellingen; hoofdletterongevoelig ontdubbeld (de schrijfwijze van de dienst wint).
+    func branchRepos(available: [String]) -> [String] {
+        Account.mergedRepoNames(available: available, configured: Array(repoWatch.keys))
+            .filter { watch(for: $0).branches }
     }
 }

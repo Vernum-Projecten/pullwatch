@@ -76,8 +76,8 @@ nonisolated final class FakeGitHub: HTTPClient {
             case "/graphql":
                 body = #"{"data":{}}"#
             default:
-                // Tags, bomen, bestanden: leeg, zodat polls en checks gewoon doorlopen.
-                body = path.hasSuffix("/tags") ? "[]" : #"{"tree":[]}"#
+                // Tags, branches, bomen, bestanden: leeg, zodat polls en checks gewoon doorlopen.
+                body = path.hasSuffix("/tags") || path.hasSuffix("/branches") ? "[]" : #"{"tree":[]}"#
             }
         }
         let status = Self.hasData ? FakeWorld.status(of: request) : 200

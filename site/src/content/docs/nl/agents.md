@@ -5,7 +5,7 @@ description: Laat een coding agent zoals Claude Code, Codex, Cursor of VS Code P
 
 Pullwatch heeft een lokale [Model Context Protocol](https://modelcontextprotocol.io)-server, zodat een coding agent op je Mac kan vragen wat Pullwatch weet: "welke van mijn pull requests hebben falende checks?", "wat is kritiek in `acme/web`?", "waarom kan ik `express` niet bijwerken?", "wie zit nog op een oude `@acme/ui`?". De agent gebruikt wat Pullwatch al met je accounts heeft opgehaald, dus hij heeft geen eigen token nodig.
 
-Agents lezen alleen. Ze zien alleen de repositories die je volgt, krijgen nooit een token en kunnen niets veranderen op GitHub, Azure DevOps of GitLab. Er wordt niets gedeeld tot je het aanzet.
+Agents lezen alleen. Ze zien alleen de repositories die je volgt, krijgen nooit een token en kunnen niets veranderen op GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo of Gitea. Er wordt niets gedeeld tot je het aanzet.
 
 ## Aanzetten
 
@@ -101,7 +101,7 @@ De voorbeelden hieronder komen uit de testgegevens van Pullwatch. De antwoorden 
 
 ### get_status
 
-De accounts (id, dienst, naam en host), hoe hun laatste poll ging, wat er bijgewerkt wordt, wanneer de versiecheck was, welke bronnen uit staan, en het aantal ongelezen. Geen argumenten.
+De accounts (id, dienst, naam en host), hoe hun laatste poll ging, wat er bijgewerkt wordt, wanneer de versiecheck was, welke bronnen uit staan, en het aantal ongelezen. Een account noemt in `unreachable_repositories` de gevolgde repositories die zijn token niet kan lezen: hun tags en branches worden niet bijgewerkt. Geen argumenten.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Tags en releases, nieuwste eerst. Argumenten: `repo`, `account_id`, `unread`, `l
 
 ### list_repositories
 
-De repositories die je volgt, slechtste eerst, met hun staat (`problem`, `behind`, `ok` of `unknown`) en aantallen: open pull requests, nieuwste tag, kwetsbaarheden per ernst, ernstige beveiligingsmeldingen, open secrets, verouderde runtimes en package-updates. Argumenten: `account_id`, `health`, `limit`, `cursor`.
+De repositories die je volgt, slechtste eerst, met hun staat (`problem`, `behind`, `ok` of `unknown`) en aantallen: open pull requests, nieuwste tag, kwetsbaarheden per ernst, ernstige beveiligingsmeldingen, open secrets, verouderde runtimes en package-updates. `unreachable` is `true` als het token van het account de repository niet kan lezen; de nieuwste tag kan dan oud zijn. Argumenten: `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}
@@ -233,7 +233,7 @@ Dezelfde opdracht in Markdown die **Kopieer voor een AI-agent** op het klembord 
 - Tokens, sleutelhangeronderdelen en de waarden van secrets die secret scanning vond, komen nooit bij een agent; secret scanning is alleen een aantal. Accounts verschijnen als naam en host. Een serveradres met een token erin verliest dat deel, en co-auteurs verschijnen zonder hun e-mailadres. Geen tool kan om een wachtwoord of token vragen, want Pullwatch geeft de tools er geen.
 - Een repository die je niet volgt, bestaat niet voor een agent. Een vraag erover krijgt "Repository … is not followed in Pullwatch."
 - Heb je een bron uitgezet onder Instellingen, **Bronnen**, dan zegt het antwoord "Not checked: source … is off." voor wat die bron zou hebben beantwoord. Het wordt nooit als actueel of vrij van kwetsbaarheden gemeld. Zie [Privacy en bronnen](/nl/privacy/).
-- De tools lezen alleen. Acties zoals markeren als gelezen komen misschien later, achter een aparte schakelaar die standaard uit staat, en ook die schrijven nooit naar GitHub, Azure DevOps of GitLab.
+- De tools lezen alleen. Acties zoals markeren als gelezen komen misschien later, achter een aparte schakelaar die standaard uit staat, en ook die schrijven nooit naar GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo of Gitea.
 
 ## Privacy
 

@@ -29,6 +29,13 @@ public actor PollEngine {
     static let failedCheckRefresh: TimeInterval = 900
     /// Na "geen toestemming" zo lang wachten voor de volgende vraag.
     static let checkPermissionRetry: TimeInterval = 3600
+    /// Branches worden net als tags hooguit eens per kwartier opgehaald, op een eigen ritme.
+    static let branchInterval: TimeInterval = 900
+    /// De eerste branch-poll van een repo geeft een rij voor elke branch die zo kort geleden bewoog.
+    static let branchSeedWindow: TimeInterval = 14 * 86_400
+    /// Maximaal aantal vergelijkingen (aantal commits, force-push) per account per poll, nieuwste
+    /// branch eerst; de rest krijgt `commits: nil`.
+    static let branchCompareLimit = 20
 
     private struct Schedule {
         var nextDue: Date = .distantPast
@@ -37,6 +44,9 @@ public actor PollEngine {
         var nextSyncDue: Date = .distantPast
         var failures = 0
         var rateLimitedUntil: Date?
+        var nextBranchDue: Date = .distantPast
+        /// Rate limit op alleen de branches: de PR's lopen door, de branches wachten tot dan.
+        var branchesRateLimitedUntil: Date?
     }
 
     struct Fetched {
@@ -68,6 +78,9 @@ public actor PollEngine {
         let coAuthors: [String: (revision: String?, people: [Person])]
         /// Net opgehaalde checks per dedupKey, met de revisie waarbij ze horen.
         let checks: [String: (revision: String?, checks: PRChecks)]
+        /// De lijst van de dienst (`listRepos()`) als de tags die deze poll ophaalden; de
+        /// branch-poll die erna komt gebruikt hem opnieuw (`pollBranches`).
+        let listedRepos: [String]?
     }
 
     /// Welke checks een poll vraagt: ook van de eigen PR's als `hideOwn` aan staat (voor de
@@ -99,10 +112,24 @@ public actor PollEngine {
 
     private let makeProvider: ProviderFactory
     private let store: JSONFileStore<SeenState>?
-    private let now: @Sendable () -> Date
-    private var state: SeenState
+    /// Niet `private`: `PollEngine+Branches` leest de tijd.
+    let now: @Sendable () -> Date
+    /// Niet `private`: `PollEngine+Branches` werkt de branch-heads bij.
+    var state: SeenState
     private var providers: [UUID: (account: Account, provider: any PRProvider)] = [:]
     private var userIds: [UUID: String] = [:]
+    /// Per account de lijst van de dienst uit de laatste tag-poll, met het moment; de branch-poll
+    /// gebruikt hem opnieuw zolang hij vers is (`pollBranches`).
+    var listedRepos: [UUID: (repos: [String], at: Date)] = [:]
+    /// Per account de namen en e-mailadressen van de gebruiker (`PRProvider.currentUserIdentity`),
+    /// eenmaal gevraagd; ook `nil` als antwoord wordt onthouden. Na een mislukte vraag ontbreekt
+    /// de sleutel, zodat de volgende branch-poll het opnieuw vraagt.
+    var identities: [UUID: UserIdentity?] = [:]
+    /// Accounts waarvan de branches nu opgehaald worden; een overlappende `pollBranches` slaat ze over.
+    var branchesInFlight: Set<UUID> = []
+    /// Per account de gevolgde repo's die het token niet kan lezen (`unreachableRepos()`). Niet
+    /// bewaard: de eerste tag- en branch-poll na een start vult het weer.
+    var unreachable: [UUID: UnreachableRepos] = [:]
     private var schedules: [UUID: Schedule] = [:]
     private var statuses: [UUID: AccountState] = [:]
     private var inFlight: Set<UUID> = []
@@ -163,6 +190,12 @@ public actor PollEngine {
         userIds
     }
 
+    /// Per account de gevolgde repo's die het token niet kan lezen, uit de laatste tag- en
+    /// branch-poll die lukte; een account zonder onbereikbare repo's staat er niet in.
+    public func unreachableRepos() -> [UUID: UnreachableRepos] {
+        unreachable.filter { !$0.value.isEmpty }
+    }
+
     /// Tijdstip van de laatste geslaagde sync per account (alleen accounts met een sync).
     public func lastHistorySync(for ids: [UUID]) -> [UUID: Date] {
         var result: [UUID: Date] = [:]
@@ -186,6 +219,7 @@ public actor PollEngine {
             schedule.nextDue = t
             schedule.nextTagDue = t
             schedule.nextSyncDue = t
+            if (schedule.branchesRateLimitedUntil ?? .distantPast) <= t { schedule.nextBranchDue = t }
             schedules[id] = schedule
         }
     }
@@ -296,6 +330,7 @@ public actor PollEngine {
                     result.updatedTags += fresh.updated
                     result.syncedTags += fresh.backfill
                     if fetched.tags != nil { result.tagRepos[id] = fetched.tagRepos }
+                    if let listed = fetched.listedRepos { listedRepos[id] = (listed, t) }
                     let sync = handleSync(job.account, fetched, request: job.sync, retention: retention, at: t)
                     result.syncedPullRequests += sync.pullRequests
                     result.completedPullRequests += sync.completed
@@ -314,11 +349,7 @@ public actor PollEngine {
 
         // Alleen accounts die nu slaagden prunen: een langdurig falend account mag zijn seen niet kwijtraken.
         state.prune(now: t, onlyKeyPrefixes: succeeded.map { "\($0.uuidString):" })
-        do {
-            try store?.save(state)
-        } catch {
-            logger.error("seen-state opslaan mislukt: \(error.localizedDescription)")
-        }
+        saveState()
 
         result.newPullRequests.sort { $0.createdAt < $1.createdAt }
         result.newTags.sort { ($0.repo, $0.name) < ($1.repo, $1.name) }
@@ -349,12 +380,16 @@ public actor PollEngine {
         let provider = makeProvider(account)
         providers[account.id] = (account, provider)
         userIds[account.id] = nil
+        identities[account.id] = nil
         return provider
     }
 
     private func forget(except ids: Set<UUID>) {
         providers = providers.filter { ids.contains($0.key) }
         userIds = userIds.filter { ids.contains($0.key) }
+        listedRepos = listedRepos.filter { ids.contains($0.key) }
+        identities = identities.filter { ids.contains($0.key) }
+        unreachable = unreachable.filter { ids.contains($0.key) }
         schedules = schedules.filter { ids.contains($0.key) }
         statuses = statuses.filter { ids.contains($0.key) }
         let keys = Set(ids.map(\.uuidString))
@@ -472,7 +507,9 @@ public actor PollEngine {
         var schedule = Schedule(
             nextDue: t + interval,
             nextTagDue: previousSchedule.nextTagDue,
-            nextSyncDue: previousSchedule.nextSyncDue
+            nextSyncDue: previousSchedule.nextSyncDue,
+            nextBranchDue: previousSchedule.nextBranchDue,
+            branchesRateLimitedUntil: previousSchedule.branchesRateLimitedUntil
         )
         if fetched.tags != nil || fetched.tagError != nil {
             schedule.nextTagDue = t + Self.tagInterval
@@ -574,6 +611,8 @@ public actor PollEngine {
         notBefore: Date?,
         at t: Date
     ) -> (fresh: [Tag], updated: [Tag], backfill: [Tag]) {
+        // Volgt het account nergens meer tags: dan is ook geen repo meer onbereikbaar voor tags.
+        if !account.followsTagsByDefault, account.tagRepos.isEmpty { unreachable[account.id]?.tags = [] }
         // Mislukte tag-fetch: tag-state ongemoeid laten tot de volgende tag-poll.
         guard fetched.tagError == nil else { return ([], [], []) }
         let prefix = "\(account.id.uuidString):"
@@ -585,6 +624,8 @@ public actor PollEngine {
         guard let tags = fetched.tags else { return ([], [], []) }
         let tagsByRepo = Dictionary(grouping: tags) { $0.repo.lowercased() }
         let datedByRepo = Dictionary(grouping: fetched.backfillTags) { $0.repo.lowercased() }
+        unreachable[account.id, default: UnreachableRepos()].tags =
+            UnreachableRepos.names(of: fetched.tagRepos, in: fetched.unavailableTagRepos)
         if !fetched.unavailableTagRepos.isEmpty {
             logger.warning("tags overgeslagen voor \(account.displayName): \(fetched.unavailableTagRepos.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }
@@ -628,6 +669,41 @@ public actor PollEngine {
             state.tagSeeded[seededKey] = t
         }
         return (fresh, updated, backfill)
+    }
+
+    /// Wat `pollBranches` van een account nodig heeft: de provider en de gebruiker uit de laatste
+    /// geslaagde poll, als de branches nu aan de beurt zijn. `nil` als het account nog nooit
+    /// slaagde, nu faalt of zijn PR's op een rate limit wachten, of als de branches nog niet aan
+    /// de beurt zijn of op hun eigen rate limit wachten.
+    func branchJob(for account: Account, at t: Date) -> (provider: any PRProvider, userId: String)? {
+        guard case .ok = statuses[account.id], userIds[account.id] != nil else { return nil }
+        let schedule = schedules[account.id] ?? Schedule()
+        guard (schedule.rateLimitedUntil ?? .distantPast) <= t,
+              schedule.nextBranchDue <= t,
+              (schedule.branchesRateLimitedUntil ?? .distantPast) <= t
+        else { return nil }
+        let provider = provider(for: account)
+        // Een nieuwe provider (het account veranderde) vergeet de gebruiker; de volgende poll weet hem weer.
+        guard let userId = userIds[account.id] else { return nil }
+        return (provider, userId)
+    }
+
+    /// Bewaart de seen-state (ook de branch-heads).
+    func saveState() {
+        do {
+            try store?.save(state)
+        } catch {
+            logger.error("seen-state opslaan mislukt: \(error.localizedDescription)")
+        }
+    }
+
+    /// Plant de volgende branch-poll; bij een rate limit niet vóór `rateLimitedUntil`.
+    func scheduleBranches(of account: Account, at t: Date, rateLimitedUntil: Date?) {
+        var schedule = schedules[account.id] ?? Schedule()
+        let until = rateLimitedUntil.map { min($0, t + Self.maxRateLimitWait) }
+        schedule.branchesRateLimitedUntil = until
+        schedule.nextBranchDue = max(t + Self.branchInterval, until ?? .distantPast)
+        schedules[account.id] = schedule
     }
 
     /// Geeft `true` als het account net naar `.unauthorized` is overgegaan.

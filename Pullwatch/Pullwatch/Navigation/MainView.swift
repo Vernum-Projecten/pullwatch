@@ -47,7 +47,7 @@ struct MainView: View {
     }
 }
 
-/// De zijbalk: PR's, Tags en Statistieken onder Geschiedenis, Repo's, Afhankelijkheden en
+/// De zijbalk: PR's, Tags, Branches en Statistieken onder Geschiedenis, Repo's, Afhankelijkheden en
 /// Packages onder Controle,
 /// met per onderdeel de projecten om op te filteren.
 struct SidebarView: View {
@@ -63,6 +63,7 @@ struct SidebarView: View {
             Section("Geschiedenis") {
                 SidebarSectionRow(section: .pullRequests, content: content, isExpanded: $pullRequestsExpanded)
                 SidebarSectionRow(section: .tags, content: content, isExpanded: $tagsExpanded)
+                SidebarSectionRow(section: .branches, content: content, isExpanded: .constant(false))
                 SidebarSectionRow(section: .stats, content: content, isExpanded: .constant(false))
             }
             Section("Controle") {
@@ -139,6 +140,7 @@ private struct SectionRoot: View {
             switch section {
             case .pullRequests: HistoryView(kind: .pullRequest, initialTokens: historyTokens)
             case .tags: HistoryView(kind: .tag, initialTokens: historyTokens)
+            case .branches: BranchesView()
             case .stats: StatsView()
             case .repos: ReposView()
             case .dependencies: PackagesView()

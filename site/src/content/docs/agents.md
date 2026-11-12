@@ -5,7 +5,7 @@ description: Let a coding agent such as Claude Code, Codex, Cursor or VS Code as
 
 Pullwatch has a local [Model Context Protocol](https://modelcontextprotocol.io) server, so a coding agent on your Mac can ask it what it knows: "which of my pull requests have failing checks?", "what is critical in `acme/web`?", "why can't I update `express`?", "who is still on an old `@acme/ui`?". The agent uses what Pullwatch already fetched with your accounts, so it needs no token of its own.
 
-Agents only read. They see only the repositories you follow, they never get a token, and they cannot change anything on GitHub, Azure DevOps or GitLab. Nothing is shared until you turn it on.
+Agents only read. They see only the repositories you follow, they never get a token, and they cannot change anything on GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo or Gitea. Nothing is shared until you turn it on.
 
 ## Turn it on
 
@@ -101,7 +101,7 @@ The examples below come from Pullwatch's test data. The answers are shortened.
 
 ### get_status
 
-Accounts (id, service, name and host), how their last poll went, what is syncing, when the version check ran, which sources are off, and the unread counts. No arguments.
+Accounts (id, service, name and host), how their last poll went, what is syncing, when the version check ran, which sources are off, and the unread counts. An account lists the followed repositories its token can't read in `unreachable_repositories`: their tags and branches are not updated. No arguments.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Tags and releases, newest first. Arguments: `repo`, `account_id`, `unread`, `lim
 
 ### list_repositories
 
-The repositories you follow, worst first, with their health (`problem`, `behind`, `ok` or `unknown`) and counts: open pull requests, latest tag, vulnerabilities by severity, serious security alerts, open secrets, outdated runtimes and package updates. Arguments: `account_id`, `health`, `limit`, `cursor`.
+The repositories you follow, worst first, with their health (`problem`, `behind`, `ok` or `unknown`) and counts: open pull requests, latest tag, vulnerabilities by severity, serious security alerts, open secrets, outdated runtimes and package updates. `unreachable` is `true` when the account's token can't read the repository, so its latest tag may be old. Arguments: `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}
@@ -233,7 +233,7 @@ The same Markdown brief that **Copy for an AI Agent** puts on the clipboard for 
 - Tokens, Keychain items and the values of secrets found by secret scanning never reach an agent; secret scanning is only a count. Accounts appear as name and host. A server address with a token in it loses that part, and co-authors appear without their e-mail address. No tool can ask for a credential, because Pullwatch does not give the tools one.
 - A repository you do not follow does not exist for an agent. Asking about one gives "Repository … is not followed in Pullwatch."
 - When you switched a source off under Settings, **Sources**, the answer says "Not checked: source … is off." for what it would have answered. It is never reported as current or free of vulnerabilities. See [Privacy and sources](/privacy/).
-- The tools only read. Actions such as marking as read may come later, behind a separate switch that is off by default, and even those will never write to GitHub, Azure DevOps or GitLab.
+- The tools only read. Actions such as marking as read may come later, behind a separate switch that is off by default, and even those will never write to GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo or Gitea.
 
 ## Privacy
 

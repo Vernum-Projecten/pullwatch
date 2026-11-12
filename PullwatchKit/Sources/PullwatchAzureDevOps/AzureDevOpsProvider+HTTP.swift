@@ -32,6 +32,8 @@ extension AzureDevOpsProvider {
     ) async throws -> (Data, HTTPURLResponse) {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         components.queryItems = query + [URLQueryItem(name: "api-version", value: apiVersion)]
+        // URLComponents laat "+" staan, maar een server leest dat als spatie (vervolgtokens hebben er soms een).
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
         var request = URLRequest(url: components.url!)
         if let body {
             request.httpMethod = "POST"

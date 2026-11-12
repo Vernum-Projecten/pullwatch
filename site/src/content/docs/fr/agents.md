@@ -5,7 +5,7 @@ description: "Laissez un agent de code comme Claude Code, Codex, Cursor ou VS Co
 
 Pullwatch dispose d’un serveur [Model Context Protocol](https://modelcontextprotocol.io) local : un agent de code sur votre Mac peut lui demander ce qu’il sait. « Lesquelles de mes pull requests ont des checks en échec ? », « Qu’y a-t-il de critique dans `acme/web` ? », « Pourquoi ne puis-je pas mettre à jour `express` ? », « Qui est encore sur un ancien `@acme/ui` ? ». L’agent utilise ce que Pullwatch a déjà récupéré avec vos comptes, il n’a donc besoin d’aucun jeton.
 
-Les agents ne font que lire. Ils ne voient que les dépôts que vous suivez, ne reçoivent jamais de jeton et ne peuvent rien modifier sur GitHub, Azure DevOps ou GitLab. Rien n’est partagé tant que vous ne l’activez pas.
+Les agents ne font que lire. Ils ne voient que les dépôts que vous suivez, ne reçoivent jamais de jeton et ne peuvent rien modifier sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo ou Gitea. Rien n’est partagé tant que vous ne l’activez pas.
 
 ## L’activer
 
@@ -101,7 +101,7 @@ Les exemples ci-dessous viennent des données de test de Pullwatch. Les réponse
 
 ### get_status
 
-Les comptes (id, service, nom et hôte), le résultat de leur dernière interrogation, ce qui se synchronise, la date de la vérification des versions, les sources désactivées et le nombre d’éléments non lus. Aucun argument.
+Les comptes (id, service, nom et hôte), le résultat de leur dernière interrogation, ce qui se synchronise, la date de la vérification des versions, les sources désactivées et le nombre d’éléments non lus. Un compte liste dans `unreachable_repositories` les dépôts suivis que son jeton ne peut pas lire : leurs tags et branches ne sont plus mis à jour. Aucun argument.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Les tags et les releases, les plus récents d’abord. Arguments : `repo`, `acco
 
 ### list_repositories
 
-Les dépôts que vous suivez, les pires d’abord, avec leur état (`problem`, `behind`, `ok` ou `unknown`) et leurs chiffres : pull requests ouvertes, dernier tag, vulnérabilités par gravité, alertes de sécurité graves, secrets ouverts, runtimes en retard et mises à jour de paquets. Arguments : `account_id`, `health`, `limit`, `cursor`.
+Les dépôts que vous suivez, les pires d’abord, avec leur état (`problem`, `behind`, `ok` ou `unknown`) et leurs chiffres : pull requests ouvertes, dernier tag, vulnérabilités par gravité, alertes de sécurité graves, secrets ouverts, runtimes en retard et mises à jour de paquets. `unreachable` vaut `true` quand le jeton du compte ne peut pas lire le dépôt ; le dernier tag peut alors être ancien. Arguments : `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}
@@ -233,7 +233,7 @@ La même consigne en Markdown que **Copier pour un agent IA** place dans le pres
 - Les jetons, les éléments du trousseau et les valeurs des secrets trouvés par le secret scanning n’atteignent jamais un agent ; le secret scanning n’est qu’un nombre. Les comptes apparaissent avec leur nom et leur hôte. Une adresse de serveur contenant un jeton perd cette partie, et les coauteurs apparaissent sans leur adresse e-mail. Aucun outil ne peut demander d’identifiants, car Pullwatch n’en donne aucun aux outils.
 - Un dépôt que vous ne suivez pas n’existe pas pour un agent. Une question à son sujet reçoit « Repository … is not followed in Pullwatch. »
 - Si vous avez désactivé une source dans Réglages, **Sources**, la réponse indique « Not checked: source … is off. » pour ce que cette source aurait fourni. Ce n’est jamais présenté comme à jour ou sans vulnérabilité. Voir [Confidentialité et sources](/fr/privacy/).
-- Les outils ne font que lire. Des actions comme marquer comme lu viendront peut-être plus tard, derrière un interrupteur à part, désactivé par défaut, et même celles-ci n’écriront jamais sur GitHub, Azure DevOps ou GitLab.
+- Les outils ne font que lire. Des actions comme marquer comme lu viendront peut-être plus tard, derrière un interrupteur à part, désactivé par défaut, et même celles-ci n’écriront jamais sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo ou Gitea.
 
 ## Confidentialité
 

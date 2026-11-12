@@ -9,6 +9,7 @@ struct RepoOverviewTab: View {
     @Environment(HistoryModel.self) private var historyModel
     @Environment(VersionsModel.self) private var versions
     @Environment(AppRouter.self) private var router
+    @Environment(PollingModel.self) private var polling
     let summary: RepoSummary
     let account: Account?
 
@@ -22,6 +23,9 @@ struct RepoOverviewTab: View {
 
     var body: some View {
         Form {
+            if let account, polling.unreachableRepos[account.id]?.contains(summary.repo) == true {
+                RepoUnreachableSection(accountName: account.displayName) { router.showAccount(account.id) }
+            }
             RepoOverviewSection(
                 health: summary.health,
                 accountName: account?.displayName,

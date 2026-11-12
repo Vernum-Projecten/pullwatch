@@ -188,7 +188,7 @@ struct PullRequestRow: View {
     }
 }
 
-/// Volgen (PR's, tags, gemerged) en per soort de melding, direct opgeslagen; met dezelfde regels
+/// Volgen (PR's, tags, branches, gemerged) en per soort de melding, direct opgeslagen; met dezelfde regels
 /// als de lijst in Instellingen (gemerged hoort bij de PR's).
 struct RepoWatchSection: View {
     @Binding var watch: WatchSet
@@ -196,7 +196,10 @@ struct RepoWatchSection: View {
     var body: some View {
         Section {
             ForEach(WatchKind.allCases) { kind in
-                WatchRow(title: kind.columnTitle, follow: $watch[follows: kind], notify: $watch[notifies: kind])
+                WatchRow(
+                    title: kind.columnTitle, follow: $watch[follows: kind], notify: $watch[notifies: kind],
+                    hasNotification: kind.hasNotification
+                )
                     .disabled(kind == .merged && !watch.prs)
                     .help(kind.help)
             }
@@ -213,13 +216,17 @@ struct WatchRow: View {
     let title: LocalizedStringKey
     @Binding var follow: Bool
     @Binding var notify: Bool
+    /// Branches melden niet: dan alleen het vinkje om te volgen.
+    var hasNotification = true
 
     var body: some View {
         LabeledContent {
             HStack(spacing: 16) {
                 Toggle("Volgen", isOn: $follow)
-                Toggle("Melding", isOn: $notify)
-                    .disabled(!follow)
+                if hasNotification {
+                    Toggle("Melding", isOn: $notify)
+                        .disabled(!follow)
+                }
             }
             .toggleStyle(.checkbox)
         } label: {

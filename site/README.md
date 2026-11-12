@@ -46,10 +46,27 @@ CI builds and checks both.
    In a component, build a link with `import.meta.env.BASE_URL`.
 5. Add the same page in Dutch, German and French under
    `src/content/docs/nl/`, `de/` and `fr/` (see [Languages](#languages)).
+6. Add its slug to `order` in `src/llms.ts`, at the same place as in the
+   sidebar, so `llms.txt` and `llms-full.txt` list it.
 
 Write as the other pages do: English, short sentences, the names the app
 shows (**Settings**, **Sources**), and only what the code does. No em dashes,
 no middle dots.
+
+## Search engines and AI assistants
+
+- `robots.txt` (`src/pages/robots.txt.ts`) lets every crawler in and names
+  the sitemap that Starlight writes.
+- `llms.txt` and `llms-full.txt` (`src/pages/`, with `src/llms.ts`) give AI
+  assistants what Pullwatch is, a link per English page, and every English
+  page as Markdown in one file (<https://llmstxt.org/>).
+- `src/structuredData.ts`, Starlight route middleware, adds schema.org
+  JSON-LD: a `SoftwareApplication` on each landing page (version from
+  `Pullwatch/App.xcconfig`) and a `FAQPage` from the `##` questions of each
+  FAQ page.
+- Each landing page sets its own `<title>`, `og:title` and `og:type` in its
+  front matter `head`; every other page gets `<title>` and the description
+  from its front matter.
 
 ## Screenshots
 

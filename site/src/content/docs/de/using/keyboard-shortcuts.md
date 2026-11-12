@@ -45,10 +45,11 @@ Die Menüleiste folgt der Reihenfolge von Apple: Pullwatch, Ablage, Bearbeiten, 
 | ⌘[ | Zurück von der Seite eines Repositorys |
 | ⌘1 | PRs |
 | ⌘2 | Tags und Releases |
-| ⌘3 | Statistiken |
-| ⌘4 | Repositories |
-| ⌘5 | Abhängigkeiten |
-| ⌘6 | Pakete |
+| ⌘3 | Branches |
+| ⌘4 | Statistiken |
+| ⌘5 | Repositories |
+| ⌘6 | Abhängigkeiten |
+| ⌘7 | Pakete |
 | ⌘↓ | Repository-Seite: die Seite des ausgewählten Repositorys |
 
 ## Objekt

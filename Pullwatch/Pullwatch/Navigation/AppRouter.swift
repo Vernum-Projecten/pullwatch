@@ -64,6 +64,9 @@ final class AppRouter {
     /// Of de accounts in Instellingen de keuze voor een nieuw account moeten tonen (Nieuw account…
     /// in het menu Archief); die zet dit weer op false.
     var addsAccount = false
+    /// Het account dat de accounts in Instellingen moeten kiezen (`showAccount(_:)`); die zetten
+    /// dit weer op nil.
+    var settingsAccount: UUID?
     /// Het tabblad van Instellingen; het venster bindt zijn tabbladen hieraan. Het blijft staan
     /// waar de persoon het liet, tot iets om een tabblad vraagt (`showSettings(_:)`).
     var settingsTab: SettingsTab = AppRouter.initialSettingsTab
@@ -82,6 +85,12 @@ final class AppRouter {
     func showSettings(_ tab: SettingsTab) {
         settingsTab = tab
         show(.settings)
+    }
+
+    /// Opent Instellingen op Accounts met dit account gekozen.
+    func showAccount(_ id: UUID) {
+        settingsAccount = id
+        showSettings(.accounts)
     }
 
     /// Het tabblad waarmee Instellingen de eerste keer opent.

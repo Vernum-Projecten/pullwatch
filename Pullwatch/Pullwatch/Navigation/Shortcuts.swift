@@ -39,7 +39,7 @@ extension FocusedValues {
 }
 
 extension MainSection {
-    /// ⌘1 tot ⌘6, in de volgorde van de zijbalk.
+    /// ⌘1 tot ⌘7, in de volgorde van de zijbalk.
     var shortcut: KeyEquivalent {
         let index = Self.allCases.firstIndex(of: self) ?? 0
         return KeyEquivalent(Character(String(index + 1)))

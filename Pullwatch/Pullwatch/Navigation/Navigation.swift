@@ -1,11 +1,14 @@
 import PullwatchCore
 import SwiftUI
 
-/// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk en van ⌘1 tot ⌘6.
+/// Onderdelen van het hoofdvenster, in de volgorde van de zijbalk en van ⌘1 tot ⌘7.
 enum MainSection: String, CaseIterable, Identifiable {
     // `dependencies` heette vroeger Versies; de rawValue blijft "versions", zodat een bewaard
     // laatste onderdeel en meldingen (`userInfo["section"]`) blijven werken.
-    case pullRequests, tags, stats, repos
+    case pullRequests, tags
+    /// Pushes naar branches van gevolgde repo's; los van de geschiedenis, zonder teller.
+    case branches
+    case stats, repos
     case dependencies = "versions"
     /// Wat de gevolgde repo's zelf publiceren (npm, images, NuGet); niet wat ze gebruiken.
     case packages
@@ -16,6 +19,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         switch self {
         case .pullRequests: "PR's"
         case .tags: "Tags en releases"
+        case .branches: "Branches"
         case .stats: "Statistieken"
         case .repos: "Repo's"
         case .dependencies: "Afhankelijkheden"
@@ -27,6 +31,7 @@ enum MainSection: String, CaseIterable, Identifiable {
         switch self {
         case .pullRequests: ItemKind.pullRequest.glyph
         case .tags: ItemKind.tag.glyph
+        case .branches: .system(BranchesView.symbol)
         case .stats: .system("chart.bar")
         case .repos: .system("folder")
         case .dependencies: .system("shippingbox")
@@ -127,7 +132,7 @@ struct SidebarContent: Equatable {
         case .pullRequests: pullRequestGroups
         case .tags: tagGroups
         case .repos: repoGroups
-        case .stats, .dependencies, .packages: []
+        case .branches, .stats, .dependencies, .packages: []
         }
     }
 

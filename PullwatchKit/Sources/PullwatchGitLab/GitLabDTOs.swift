@@ -5,6 +5,12 @@ import Foundation
 struct UserDTO: Decodable {
     let id: Int?
     let username: String
+    let name: String?
+    /// De e-mailadressen staan alleen bij `/user` (de gebruiker zelf): dat van het account, dat
+    /// voor commits en het openbare.
+    let email: String?
+    let commitEmail: String?
+    let publicEmail: String?
 }
 
 struct GroupDTO: Decodable {
@@ -98,4 +104,26 @@ struct CommitDTO: Decodable {
 struct TreeEntryDTO: Decodable {
     let path: String
     let type: String
+}
+
+/// Een branch met zijn laatste commit (`repository/branches`).
+struct BranchDTO: Decodable {
+    struct Commit: Decodable {
+        let id: String
+        let committedDate: String?
+        let authorName: String?
+        let authorEmail: String?
+    }
+
+    let name: String
+    let commit: Commit
+}
+
+/// De commits die `repository/compare` tussen twee punten vindt; alleen het aantal telt.
+struct CompareDTO: Decodable {
+    struct Commit: Decodable {
+        let id: String
+    }
+
+    let commits: [Commit]
 }

@@ -45,10 +45,11 @@ De menubalk volgt de volgorde van Apple: Pullwatch, Archief, Wijzig, Weergave, G
 | ⌘[ | Terug vanaf de pagina van een repository |
 | ⌘1 | PR's |
 | ⌘2 | Tags en releases |
-| ⌘3 | Statistieken |
-| ⌘4 | Repo's |
-| ⌘5 | Afhankelijkheden |
-| ⌘6 | Packages |
+| ⌘3 | Branches |
+| ⌘4 | Statistieken |
+| ⌘5 | Repo's |
+| ⌘6 | Afhankelijkheden |
+| ⌘7 | Packages |
 | ⌘↓ | Repositorypagina: de pagina van de gekozen repository |
 
 ## Onderdeel

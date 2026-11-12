@@ -4,7 +4,7 @@
 	"pw.privacy.keychain.title": "Tokens bleiben in deinem Schlüsselbund",
 	"pw.privacy.keychain.text": "Personal Access Tokens und die Anmeldung bei GitHub liegen im Schlüsselbund von macOS. Einstellungen und Verlauf sind einfache Dateien in deinem Library-Ordner.",
 	"pw.privacy.server.title": "Kein Server dazwischen",
-	"pw.privacy.server.text": "Pullwatch spricht direkt mit deinen Servern von GitHub, Azure DevOps und GitLab. Es hat kein eigenes Konto, keinen eigenen Server und keine Analysedienste.",
+	"pw.privacy.server.text": "Pullwatch spricht direkt mit den Servern deiner Konten auf GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo und Gitea. Es hat kein eigenes Konto, keinen eigenen Server und keine Analysedienste.",
 	"pw.privacy.sources.title": "Jede Verbindung aufgelistet",
 	"pw.privacy.sources.text": "Unter Einstellungen, Quellen steht jeder externe Dienst mit der Adresse, die Pullwatch aufruft. Schalte eine Datenquelle aus, und Pullwatch sagt, was es nicht prüfen konnte.",
 	"pw.privacy.more": "Mehr über Datenschutz und Quellen",

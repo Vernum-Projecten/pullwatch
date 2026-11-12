@@ -1,0 +1,39 @@
+---
+title: Branches
+description: Welke branches van je gevolgde repositories pushes kregen, van wie en wanneer.
+---
+
+import Screenshot from '../../../../components/Screenshot.astro';
+
+**Branches** in de zijbalk (⌘3) toont pushes naar de branches van de repositories die je volgt, nieuwste eerst. Het beantwoordt een vraag die de lijsten PR's en Tags niet kunnen beantwoorden: wie werkt waaraan, voordat er een pull request of tag is.
+
+<Screenshot name="branches" alt="Het onderdeel Branches: pushes naar branches van drie repositories, elk met branchnaam, repo, auteur, het aantal nieuwe commits en het tijdstip van de push." />
+
+## Wat een rij toont
+
+Elke rij heeft de branch, de repo, wie er pushte (met foto), de commits en wanneer. De kolom Commits zegt wat er gebeurde:
+
+- `+3`: drie nieuwe commits sinds Pullwatch voor het laatst keek.
+- **Force-push**: de branch is herschreven, dus de geschiedenis sluit niet meer aan op die van eerder.
+- **Nieuwe branch**: de branch bestond nog niet.
+- Geen label: de laatste commit van een branch die de afgelopen 14 dagen bewoog. Zo vult Pullwatch de lijst de eerste keer dat het een repository leest, zodat het onderdeel niet leeg begint.
+
+Pullwatch ziet wat er tussen twee keer lezen veranderde, niet elke losse push. Drie pushes tussen twee keer lezen zijn één rij met alle nieuwe commits.
+
+## Zoeken en filters
+
+Zoek op branch, repo of persoon. De knoppenbalk filtert op een repo of een persoon, en een klik op een naam in de tabel filtert ook op die persoon. **Alleen anderen** verbergt je eigen pushes.
+
+Pullwatch herkent je eigen pushes aan je account op GitHub, en op Bitbucket en Gitea waar het account aan de persoon gekoppeld is. Anders vergelijkt het de naam en het e-mailadres van de auteur met de jouwe.
+
+Dubbelklik op een rij (of kies **Open in browser** in het contextmenu) om de vergelijking bij de dienst te openen. Pullwatch toont zelf geen commits of bestanden.
+
+## Geen meldingen
+
+Pushes geven nooit een melding, tellen niet mee als ongelezen en staan niet in het menupaneel of op de Dock-badge. Dit is een lijst om in te kijken, geen stroom om bij te houden.
+
+## Branches volgen
+
+Branches volgen mee met pull requests, per repository: vink je **PR's** aan voor een repository, dan staat **Branches** ook aan, en haal je het vinkje bij **PR's** weg, dan gaan ze allebei uit. Wil je alleen de branches van een repository uitzetten, haal dan het vinkje bij **Branches** weg in de lijst met repositories van het account (Instellingen, Accounts) of onder **Volgen** op het **Overzicht** van de repository. Zolang de lijst nog leeg is, heeft het onderdeel een knop **Branches volgen** die Instellingen, Accounts opent.
+
+Branches worden hooguit elke 15 minuten gelezen, los van pull requests en tags. Een rate limit op branches houdt pull requests of tags nooit tegen: die komen zoals altijd binnen, en branches wachten tot de limiet voorbij is. Pushes blijven bewaard zo lang als de geschiedenis (Instellingen, Algemeen, **Geschiedenis bewaren**).

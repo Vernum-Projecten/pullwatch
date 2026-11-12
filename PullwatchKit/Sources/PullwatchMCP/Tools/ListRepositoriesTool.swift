@@ -31,6 +31,8 @@ enum ListRepositoriesTool {
         let outdatedRuntimes: Int?
         let packageUpdates: Int
         let notChecked: [MCPSourceOff]
+        /// `true` als het token de repo niet kan lezen; ontbreekt anders.
+        let unreachable: Bool?
     }
 
     struct Output: Encodable {
@@ -51,7 +53,8 @@ enum ListRepositoriesTool {
                 known vulnerabilities by severity, serious code scanning or Advanced Security alerts, open secrets (a count, \
                 never the secret), outdated runtimes and packages with a newer version. health is problem (vulnerabilities, \
                 end of life or serious alerts), behind (outdated runtimes or packages), ok, or unknown (not checked yet, the \
-                check failed, or a source was off; never read unknown as clean). Use it first to see what needs attention \
+                check failed, or a source was off; never read unknown as clean). unreachable means the account's token \
+                cannot read the repository, so its tags and branches are not updated. Use it first to see what needs attention \
                 and which repositories you can ask about. Filters: account_id, health. Paged with limit and cursor.
                 """,
             input: .object(
@@ -82,6 +85,9 @@ enum ListRepositoriesTool {
                             "outdated_runtimes": .integer("Runtimes and frameworks that are behind or end of life."),
                             "package_updates": .integer("Packages with a newer version."),
                             "not_checked": .array(of: MCPSourceOff.schema),
+                            "unreachable": .boolean(
+                                "True when the account's token cannot read the repository (not found or no access): its tags and branches are not updated, so latest_tag may be old."
+                            ),
                         ],
                         required: ["repository", "account_id", "health", "checked", "open_pull_requests", "package_updates", "not_checked"]
                     )),
@@ -101,10 +107,16 @@ enum ListRepositoriesTool {
         let accountIds = Set(try MCPFollowedRepos.accounts(accounts, matching: arguments.string("account_id")).map(\.id))
         let health = arguments.string("health")
         let report = await source.versionReport()
+        let unreachable = await source.unreachableRepos()
 
         let repositories = followed.followedSummaries
             .filter { accountIds.contains($0.accountId) && (health == nil || healthText($0.health) == health) }
-            .map { summary in repository(summary, account: accounts.first { $0.id == summary.accountId }) }
+            .map { summary in
+                repository(
+                    summary, account: accounts.first { $0.id == summary.accountId },
+                    isUnreachable: unreachable[summary.accountId]?.contains(summary.repo) == true
+                )
+            }
         let page = paging.page(repositories)
         let problems = repositories.filter { $0.health == "problem" }.count
         let unknown = repositories.filter { $0.health == "unknown" }.count
@@ -122,7 +134,7 @@ enum ListRepositoriesTool {
         }
     }
 
-    private static func repository(_ summary: RepoSummary, account: Account?) -> Repository {
+    private static func repository(_ summary: RepoSummary, account: Account?, isUnreachable: Bool) -> Repository {
         let versions = summary.versions
         var counts: SeverityCounts?
         if let versions, versions.error == nil, !versions.isUnchecked(.osv), versions.vulnerabilityError == nil {
@@ -149,7 +161,8 @@ enum ListRepositoriesTool {
             openSecrets: checked ? versions?.security?.secretCount : nil,
             outdatedRuntimes: checked ? versions?.outdatedComponents.count : nil,
             packageUpdates: summary.packageUpdates.count,
-            notChecked: versions.map { MCPSourceOff.skipped($0) } ?? []
+            notChecked: versions.map { MCPSourceOff.skipped($0) } ?? [],
+            unreachable: isUnreachable ? true : nil
         )
     }
 }

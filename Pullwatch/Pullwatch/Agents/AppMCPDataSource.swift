@@ -25,6 +25,8 @@ final class AppMCPDataSource: MCPDataSource {
         var activityStats: @MainActor (StatsPeriod, ActivityFilter) -> ActivityStats
         /// `PollingModel.statuses`.
         var accountStates: @MainActor () -> [UUID: AccountState]
+        /// `PollingModel.unreachableRepos`.
+        var unreachableRepos: @MainActor () -> [UUID: UnreachableRepos]
         /// `PollingModel.lastSuccessfulPoll`.
         var lastSuccessfulPoll: @MainActor () -> Date?
         /// `AppModel.syncStatus`.
@@ -51,6 +53,7 @@ final class AppMCPDataSource: MCPDataSource {
             updateContext: { versions.updateContext(for: $0) },
             activityStats: { history.activityStats(period: $0, filter: $1) },
             accountStates: { polling.statuses },
+            unreachableRepos: { polling.unreachableRepos },
             lastSuccessfulPoll: { polling.lastSuccessfulPoll },
             syncStatus: syncStatus
         ))
@@ -67,6 +70,7 @@ final class AppMCPDataSource: MCPDataSource {
     func updateContext(for repo: RepoVersions) async -> UpdateContext { await reads.updateContext(repo) }
     func activityStats(period: StatsPeriod, filter: ActivityFilter) async -> ActivityStats { await reads.activityStats(period, filter) }
     func accountStates() async -> [UUID: AccountState] { await reads.accountStates() }
+    func unreachableRepos() async -> [UUID: UnreachableRepos] { await reads.unreachableRepos() }
     func lastSuccessfulPoll() async -> Date? { await reads.lastSuccessfulPoll() }
     func syncStatus() async -> SyncStatus { await reads.syncStatus() }
 }

@@ -17,7 +17,7 @@ extension GiteaProvider {
         endpoint(segments)
     }
 
-    func endpoint(_ segments: [String]) -> URL {
+    nonisolated func endpoint(_ segments: [String]) -> URL {
         URL(string: instanceURL.absoluteString + "/api/v1/" + segments.map(Self.encode).joined(separator: "/"))!
     }
 
@@ -27,7 +27,7 @@ extension GiteaProvider {
     }
 
     /// Een pagina op de server: `<server>/<eigenaar>/<repo>/<segment>…`.
-    func webURL(_ repo: String, _ segments: String...) -> URL? {
+    nonisolated func webURL(_ repo: String, _ segments: String...) -> URL? {
         let parts = repo.split(separator: "/").map(String.init) + segments
         return URL(string: instanceURL.absoluteString + "/" + parts.map(Self.encode).joined(separator: "/"))
     }

@@ -35,8 +35,14 @@ import Testing
     @Test func `Packages comes right after Dependencies, with the next shortcut`() throws {
         let index = try #require(MainSection.allCases.firstIndex(of: .packages))
         #expect(MainSection.allCases[index - 1] == .dependencies)
-        #expect(MainSection.packages.shortcut == "6")
+        #expect(MainSection.packages.shortcut == "7")
         #expect(MainSection(rawValue: "packages") == .packages)
+    }
+
+    @Test func `The sections follow the sidebar, Branches right after Tags`() {
+        #expect(MainSection.allCases == [.pullRequests, .tags, .branches, .stats, .repos, .dependencies, .packages])
+        #expect(MainSection.branches.shortcut == "3")
+        #expect(MainSection(rawValue: "branches") == .branches)
     }
 
     @Test func `The Overview line opens Packages filtered on the repository`() {

@@ -10,6 +10,7 @@ extension View {
         environment(app)
             .environment(app.accounts)
             .environment(app.historyModel)
+            .environment(app.branchesModel)
             .environment(app.notifications)
             .environment(app.versions)
             .environment(app.overview)

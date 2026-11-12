@@ -32,6 +32,9 @@ public actor BitbucketProvider: PRProvider {
 
     /// Per repo (lowercased) de open pull requests, met `updated_on` van de repo toen.
     private var openCache: [String: (updatedOn: String?, at: Date, pullRequests: [PullRequest])] = [:]
+    /// Per repo (lowercased) `updated_on` uit de laatste lijst van een workspace, voor de branches:
+    /// zolang die niet verschuift, is er niets gepusht (`branches(in:unchanged:)`).
+    var repoUpdatedOn: [String: String] = [:]
     /// Losse repo's (`Account.extraRepos`) buiten de gevolgde workspaces.
     let extraRepos: [String]
     /// Hoe elke losse repo te lezen is, per naam lowercased; zie `access(for:)`.
@@ -103,14 +106,18 @@ public actor BitbucketProvider: PRProvider {
     }
 
     /// Alle repo's die dit account in de workspace mag zien, recentst bijgewerkt eerst. Een
-    /// onbekende workspace geeft `noAccess`.
+    /// onbekende workspace geeft `noAccess`. Onthoudt `updated_on` per repo (`repoUpdatedOn`).
     func repositories(of workspace: String) async throws -> [RepositoryDTO] {
         do {
-            return try await pages(endpoint("repositories", workspace), query: [
+            let repos: [RepositoryDTO] = try await pages(endpoint("repositories", workspace), query: [
                 URLQueryItem(name: "pagelen", value: String(pageSize)),
                 URLQueryItem(name: "sort", value: "-updated_on"),
                 URLQueryItem(name: "fields", value: "next,values.full_name,values.updated_on"),
             ], maxPages: maxPages)
+            for repo in repos {
+                repoUpdatedOn[repo.fullName.lowercased()] = repo.updatedOn
+            }
+            return repos
         } catch ProviderError.server(status: 404) {
             throw ProviderError.noAccess(workspace)
         }
@@ -246,7 +253,12 @@ public actor BitbucketProvider: PRProvider {
 
     /// Een pagina op bitbucket.org: de repo houdt zijn "/", de rest wordt gecodeerd.
     static func webURL(_ repo: String, _ segments: String...) -> URL? {
-        let path = (repo.split(separator: "/").map(String.init) + segments).map(encode).joined(separator: "/")
+        pageURL(repo, segments.map(encode))
+    }
+
+    /// Als `webURL`, maar met segmenten die al gecodeerd zijn (bv. met een `%0D` erin).
+    static func pageURL(_ repo: String, _ encoded: [String]) -> URL? {
+        let path = (repo.split(separator: "/").map { encode(String($0)) } + encoded).joined(separator: "/")
         return URL(string: web.absoluteString + "/" + path)
     }
 

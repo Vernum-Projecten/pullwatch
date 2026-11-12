@@ -38,6 +38,9 @@ known vulnerabilities. It speaks English, Dutch, German and French.
   queue or merge train.
 - **Tags and releases**: new tags and the releases of GitHub, GitLab,
   Codeberg, Forgejo and Gitea, per repository, with who made them.
+- **Branches**: pushes to the branches of the repositories you follow, by
+  whom and when, before there is a pull request or a tag; a list to look
+  at, without notifications.
 - **History and statistics**: every pull request and tag in a searchable
   list, and charts of opened and merged pull requests per author and
   repository.
@@ -87,8 +90,9 @@ More in [Install and first launch](https://pullwatch.net/getting-started/install
 1. Open Pullwatch. A welcome window points out its menu bar icon.
 2. Add an account: **Sign In with GitHub**, a personal access token, or the
    `gh`, `az` or `glab` command-line tool.
-3. Choose per repository what to follow: **PRs**, **Tags** and
-   **Completed** (merged pull requests), each with its own bell.
+3. Choose per repository what to follow: **PRs**, **Tags**, **Branches**
+   (which follow along with **PRs**) and **Merged** (merged pull requests),
+   each with its own bell except **Branches**.
 4. Allow notifications. Pullwatch then polls in the background.
 
 The [documentation](https://pullwatch.net/getting-started/install/) covers

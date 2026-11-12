@@ -37,6 +37,10 @@ public protocol MCPDataSource: Sendable {
     /// Hoe de laatste poll per account ging (`PollingModel.statuses`).
     func accountStates() async -> [UUID: AccountState]
 
+    /// Per account de gevolgde repo's die het token niet kan lezen (`PollingModel.unreachableRepos`);
+    /// hun tags en branches worden niet bijgewerkt.
+    func unreachableRepos() async -> [UUID: UnreachableRepos]
+
     /// De laatste poll waarin minstens één account slaagde (`PollingModel.lastSuccessfulPoll`).
     func lastSuccessfulPoll() async -> Date?
 

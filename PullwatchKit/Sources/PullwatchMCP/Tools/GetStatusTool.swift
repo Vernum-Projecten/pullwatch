@@ -16,6 +16,8 @@ enum GetStatusTool {
         let lastPoll: Date?
         let failingSince: Date?
         let error: String?
+        /// Gevolgde repo's die het token niet kan lezen; ontbreekt als er geen zijn.
+        let unreachableRepositories: [String]?
     }
 
     struct Sync: Encodable {
@@ -50,8 +52,10 @@ enum GetStatusTool {
                 Returns Pullwatch's state: the accounts it follows (id, service, name and host; never a token), whether \
                 their last poll worked, the last successful poll, what is syncing now, when the last version and \
                 vulnerability check ran, which data sources are switched off in Settings (anything from those is not \
-                checked, never clean), and how many repositories are followed and items unread. Use it first to see how \
-                fresh the data is, and to find the account_id other tools take.
+                checked, never clean), and how many repositories are followed and items unread. An account lists the \
+                followed repositories its token cannot read: their tags and branches are not updated, so never read \
+                their latest tag as current. Use it first to see how fresh the data is, and to find the account_id other \
+                tools take.
                 """,
             output: .object(
                 [
@@ -89,6 +93,7 @@ enum GetStatusTool {
     static func run(_ arguments: MCPArguments, source: any MCPDataSource) async throws -> MCPToolResult {
         let accounts = await source.accounts()
         let states = await source.accountStates()
+        let unreachable = await source.unreachableRepos()
         let history = await source.historyItems()
         let followed = MCPFollowedRepos(accounts: accounts, summaries: await source.repoSummaries(), history: history)
         let disabled = await source.disabledSources()
@@ -114,7 +119,8 @@ enum GetStatusTool {
             if account.isPaused { state = "paused" }
             return AccountStatus(
                 id: info.id, service: info.service, name: info.name, host: info.host, state: state, lastPoll: lastPoll,
-                failingSince: since, error: error
+                failingSince: since, error: error,
+                unreachableRepositories: unreachable[account.id].map(\.repos).flatMap { $0.isEmpty ? nil : $0 }
             )
         }
         let sourcesOff = DataSource.all.map(\.id).filter(disabled.contains).map {
@@ -130,6 +136,10 @@ enum GetStatusTool {
         )
         let failing = statuses.filter { $0.state == "failed" }.count
         var summary = "\(MCPToolOutput.count(accounts.count, "account")) (\(failing) failing), \(output.followedRepositories) followed repositories"
+        let unreadable = statuses.reduce(0) { $0 + ($1.unreachableRepositories?.count ?? 0) }
+        if unreadable > 0 {
+            summary += ", \(MCPToolOutput.count(unreadable, "repository", "repositories")) the token cannot read"
+        }
         summary += sourcesOff.isEmpty ? "." : "; sources off: \(sourcesOff.map(\.name).joined(separator: ", "))."
         return try MCPToolOutput.result(output, summary: summary)
     }
@@ -159,5 +169,9 @@ extension GetStatusTool.AccountStatus {
         "last_poll": .dateTime("The last successful poll."),
         "failing_since": .dateTime("Since when polling fails."),
         "error": .string("Why polling fails."),
+        "unreachable_repositories": .array(
+            of: .string(),
+            "Followed repositories this account's token cannot read (not found or no access); their tags and branches are not updated."
+        ),
     ]) { first, _ in first }
 }
