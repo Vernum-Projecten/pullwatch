@@ -101,7 +101,7 @@ De voorbeelden hieronder komen uit de testgegevens van Pullwatch. De antwoorden 
 
 ### get_status
 
-De accounts (id, dienst, naam en host), hoe hun laatste poll ging, wat er bijgewerkt wordt, wanneer de versiecheck was, welke bronnen uit staan, en het aantal ongelezen. Geen argumenten.
+De accounts (id, dienst, naam en host), hoe hun laatste poll ging, wat er bijgewerkt wordt, wanneer de versiecheck was, welke bronnen uit staan, en het aantal ongelezen. Een account noemt in `unreachable_repositories` de gevolgde repositories die zijn token niet kan lezen: hun tags en branches worden niet bijgewerkt. Geen argumenten.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Tags en releases, nieuwste eerst. Argumenten: `repo`, `account_id`, `unread`, `l
 
 ### list_repositories
 
-De repositories die je volgt, slechtste eerst, met hun staat (`problem`, `behind`, `ok` of `unknown`) en aantallen: open pull requests, nieuwste tag, kwetsbaarheden per ernst, ernstige beveiligingsmeldingen, open secrets, verouderde runtimes en package-updates. Argumenten: `account_id`, `health`, `limit`, `cursor`.
+De repositories die je volgt, slechtste eerst, met hun staat (`problem`, `behind`, `ok` of `unknown`) en aantallen: open pull requests, nieuwste tag, kwetsbaarheden per ernst, ernstige beveiligingsmeldingen, open secrets, verouderde runtimes en package-updates. `unreachable` is `true` als het token van het account de repository niet kan lezen; de nieuwste tag kan dan oud zijn. Argumenten: `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}

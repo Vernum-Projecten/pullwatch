@@ -25,6 +25,15 @@ Het menupaneel toont elk account met de stand van de laatste poll. Open Instelli
 - Kijk bij GitLab naar de groepen of gebruikers die bij het account staan. Een groep volgt ook zijn subgroepen.
 - Voeg een losse repository buiten je accounts toe onder **Andere repositories**.
 
+## Tags of branches van een repository komen niet meer binnen
+
+Het token van het account kan die repository niet lezen: hij is niet gevonden, of het token heeft er geen toegang toe. Instellingen, Accounts toont het aantal bij het account, en het account noemt de repositories onder **Niet te lezen met dit token**. De repopagina en de kolom Laatste tag in Repo's markeren ze ook.
+
+- **Ingelogd met `gh`**: zonder keuze bij **GitHub-account** komt het token van het actieve account in `gh`. Na `gh auth switch` naar een login zonder toegang worden de private repositories van een organisatie onleesbaar. Kies de login die ze kan lezen.
+- **Een personal access token**: geef het toegang tot deze repositories, of volg ze niet meer.
+
+Is de toegang terug, dan komen de gemiste tags en branches bij de volgende poll binnen.
+
 ## Een deel van de repopagina zegt Toestemming nodig
 
 Het token of de GitHub-app mag dat deel niet lezen, zoals checks, code scanning of secret scanning. De link ernaast leidt naar het recht. Al het andere blijft werken. Zie [Rechten van tokens](/nl/getting-started/permissions/).

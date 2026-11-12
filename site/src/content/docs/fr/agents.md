@@ -101,7 +101,7 @@ Les exemples ci-dessous viennent des données de test de Pullwatch. Les réponse
 
 ### get_status
 
-Les comptes (id, service, nom et hôte), le résultat de leur dernière interrogation, ce qui se synchronise, la date de la vérification des versions, les sources désactivées et le nombre d’éléments non lus. Aucun argument.
+Les comptes (id, service, nom et hôte), le résultat de leur dernière interrogation, ce qui se synchronise, la date de la vérification des versions, les sources désactivées et le nombre d’éléments non lus. Un compte liste dans `unreachable_repositories` les dépôts suivis que son jeton ne peut pas lire : leurs tags et branches ne sont plus mis à jour. Aucun argument.
 
 ```jsonc
 // get_status {}
@@ -150,7 +150,7 @@ Les tags et les releases, les plus récents d’abord. Arguments : `repo`, `acco
 
 ### list_repositories
 
-Les dépôts que vous suivez, les pires d’abord, avec leur état (`problem`, `behind`, `ok` ou `unknown`) et leurs chiffres : pull requests ouvertes, dernier tag, vulnérabilités par gravité, alertes de sécurité graves, secrets ouverts, runtimes en retard et mises à jour de paquets. Arguments : `account_id`, `health`, `limit`, `cursor`.
+Les dépôts que vous suivez, les pires d’abord, avec leur état (`problem`, `behind`, `ok` ou `unknown`) et leurs chiffres : pull requests ouvertes, dernier tag, vulnérabilités par gravité, alertes de sécurité graves, secrets ouverts, runtimes en retard et mises à jour de paquets. `unreachable` vaut `true` quand le jeton du compte ne peut pas lire le dépôt ; le dernier tag peut alors être ancien. Arguments : `account_id`, `health`, `limit`, `cursor`.
 
 ```jsonc
 // list_repositories {"limit":2}

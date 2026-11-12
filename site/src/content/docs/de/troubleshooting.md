@@ -25,6 +25,15 @@ Das Menü zeigt jedes Konto mit dem Stand seiner letzten Abfrage. Öffne Einstel
 - Bei GitLab prüfe die Gruppen oder Benutzer, die beim Konto eingetragen sind. Eine Gruppe umfasst ihre Untergruppen.
 - Für ein einzelnes Repository außerhalb deiner Konten füge es unter **Andere Repositorys** hinzu.
 
+## Tags oder Branches eines Repositorys kommen nicht mehr an
+
+Das Token des Kontos kann dieses Repository nicht lesen: Es wurde nicht gefunden, oder das Token hat keinen Zugriff darauf. Einstellungen, Konten zeigt die Zahl beim Konto, und das Konto nennt die Repositories unter **Mit diesem Token nicht lesbar**. Die Repository-Seite und die Spalte Neuester Tag in Repos markieren sie ebenfalls.
+
+- **Mit `gh` angemeldet**: Ohne Auswahl unter **GitHub-Konto** stammt das Token vom aktiven Konto in `gh`. Nach `gh auth switch` zu einem Login ohne Zugriff werden die privaten Repositories einer Organisation unlesbar. Wähle das Login, das sie lesen kann.
+- **Ein Personal Access Token**: Gib ihm Zugriff auf diese Repositories oder folge ihnen nicht mehr.
+
+Ist der Zugriff zurück, kommen die verpassten Tags und Branches bei der nächsten Abfrage an.
+
 ## Ein Teil der Repository-Seite zeigt Berechtigung nötig
 
 Das Token oder die GitHub App darf diesen Teil nicht lesen, etwa Checks, Code-Scanning oder Secret-Scanning. Der Link daneben führt zur Berechtigung. Alles andere funktioniert weiter. Siehe [Token-Berechtigungen](/de/getting-started/permissions/).

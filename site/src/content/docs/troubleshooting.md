@@ -25,6 +25,15 @@ The menu panel shows each account with the state of its last poll. Open Settings
 - For GitLab, check the groups or users listed on the account. A group includes its subgroups.
 - For a single repository outside your accounts, add it under **Other repositories**.
 
+## Tags or branches of a repository stopped coming in
+
+The token of the account can't read that repository: it was not found, or the token has no access to it. Settings, Accounts shows the number on the account, and the account lists the repositories under **Can’t Be Read with This Token**. The repository page and the Latest tag column in Repos mark them too.
+
+- **Signed in with `gh`**: without a choice under **GitHub account**, the token comes from the active account in `gh`. After `gh auth switch` to a login without access, an organization's private repositories become unreadable. Pick the login that can read them.
+- **A personal access token**: give it access to these repositories, or stop following them.
+
+When access is back, the tags and branches that were missed come in on the next poll.
+
 ## A part of the repository page says Needs permission
 
 The token or the GitHub App may not read that part, such as checks, code scanning or secret scanning. The link next to it leads to the permission. Everything else keeps working. See [Token permissions](/getting-started/permissions/).
