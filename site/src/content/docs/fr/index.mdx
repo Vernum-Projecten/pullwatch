@@ -1,13 +1,24 @@
 ---
 title: Pullwatch
-description: "Une app de la barre des menus de macOS pour les nouvelles pull requests, les tags et les versions publiées sur GitHub, Azure DevOps et GitLab, avec une vérification de vos dépôts à la recherche de runtimes et de paquets obsolètes et de vulnérabilités connues."
+description: "App gratuite de la barre des menus de macOS qui signale les nouvelles pull requests, les tags et les versions publiées sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea, et vérifie vos dépôts à la recherche de paquets obsolètes et de vulnérabilités connues."
 template: splash
+head:
+  - tag: title
+    content: "Pullwatch : les pull requests notifiées dans la barre des menus de votre Mac"
+  - tag: meta
+    attrs:
+      property: og:title
+      content: "Pullwatch : les pull requests notifiées dans la barre des menus de votre Mac"
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
 editUrl: false
 lastUpdated: false
 pagefind: false
 hero:
   title: Pullwatch
-  tagline: "Les nouvelles pull requests, les tags et les versions publiées de GitHub, Azure DevOps et GitLab, directement dans votre barre des menus. Avec une vérification quotidienne de chaque dépôt à la recherche de runtimes et de paquets obsolètes et de vulnérabilités connues."
+  tagline: "Les nouvelles pull requests, les tags et les versions publiées de GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea, directement dans votre barre des menus. Avec une vérification quotidienne de chaque dépôt à la recherche de runtimes et de paquets obsolètes et de vulnérabilités connues."
   image:
     file: ../../../assets/pullwatch-icon.png
     alt: "L’icône de l’app Pullwatch"
@@ -36,7 +47,7 @@ import Closing from '../../../components/Closing.astro';
 	href="/fr/using/pull-requests-and-tags/"
 	more="Pull requests et tags"
 >
-	<p>Pullwatch suit vos comptes sur github.com, GitHub Enterprise, Azure DevOps et GitLab, et vous signale les nouvelles pull requests et merge requests dès leur arrivée. Chacune affiche son état et ses checks comme sur GitHub : le nombre de checks réussis sur le total, une croix rouge quand l’un d’eux a échoué, de l’orange tant qu’ils tournent.</p>
+	<p>Pullwatch suit vos comptes sur github.com, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea, et vous signale les nouvelles pull requests et merge requests dès leur arrivée. Chacune affiche son état et ses checks comme sur GitHub : le nombre de checks réussis sur le total, une croix rouge quand l’un d’eux a échoué, de l’orange tant qu’ils tournent.</p>
 	<p>Tout arrive dans un historique où vous pouvez chercher par titre, auteur et dépôt, avec les nouveaux tags et les nouvelles versions publiées.</p>
 </Feature>
 

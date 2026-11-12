@@ -1,13 +1,24 @@
 ---
 title: Pullwatch
-description: A macOS menu bar app for new pull requests, tags and releases on GitHub, Azure DevOps and GitLab, with a check of your repositories for outdated runtimes, packages and known vulnerabilities.
+description: Free macOS menu bar app that notifies you of new pull requests, tags and releases on GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea, and checks your repositories for outdated packages and known vulnerabilities.
 template: splash
+head:
+  - tag: title
+    content: "Pullwatch: pull request notifications in your Mac menu bar"
+  - tag: meta
+    attrs:
+      property: og:title
+      content: "Pullwatch: pull request notifications in your Mac menu bar"
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
 editUrl: false
 lastUpdated: false
 pagefind: false
 hero:
   title: Pullwatch
-  tagline: New pull requests, tags and releases from GitHub, Azure DevOps and GitLab, right in your menu bar. With a daily check of every repository for outdated runtimes, packages and known vulnerabilities.
+  tagline: New pull requests, tags and releases from GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea, right in your menu bar. With a daily check of every repository for outdated runtimes, packages and known vulnerabilities.
   image:
     file: ../../assets/pullwatch-icon.png
     alt: The Pullwatch app icon
@@ -36,7 +47,7 @@ import Closing from '../../components/Closing.astro';
 	href="/using/pull-requests-and-tags/"
 	more="Pull requests and tags"
 >
-	<p>Pullwatch follows your accounts on github.com, GitHub Enterprise, Azure DevOps and GitLab, and tells you about new pull requests and merge requests as they come in. Each one shows its state and its checks the way GitHub does: passed out of all, a red cross when one failed, amber while they run.</p>
+	<p>Pullwatch follows your accounts on github.com, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea, and tells you about new pull requests and merge requests as they come in. Each one shows its state and its checks the way GitHub does: passed out of all, a red cross when one failed, amber while they run.</p>
 	<p>Everything lands in a history you can search by title, author and repository, together with new tags and releases.</p>
 </Feature>
 

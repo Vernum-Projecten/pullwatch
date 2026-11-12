@@ -4,7 +4,7 @@
 	"pw.privacy.keychain.title": "Les jetons restent dans votre trousseau",
 	"pw.privacy.keychain.text": "Les jetons d’accès personnels et la connexion GitHub sont dans le trousseau de macOS. Les réglages et l’historique sont de simples fichiers dans votre dossier Bibliothèque.",
 	"pw.privacy.server.title": "Aucun serveur intermédiaire",
-	"pw.privacy.server.text": "Pullwatch communique directement avec vos serveurs GitHub, Azure DevOps et GitLab. Il n’a ni compte, ni serveur à lui, ni outil d’analyse d’audience.",
+	"pw.privacy.server.text": "Pullwatch communique directement avec les serveurs de vos comptes sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo et Gitea. Il n’a ni compte, ni serveur à lui, ni outil d’analyse d’audience.",
 	"pw.privacy.sources.title": "Chaque connexion listée",
 	"pw.privacy.sources.text": "Réglages, Sources affiche chaque service externe avec l’adresse qu’il appelle. Désactivez n’importe quelle source de données et Pullwatch indique ce qu’il n’a pas pu vérifier.",
 	"pw.privacy.more": "En savoir plus sur la confidentialité et les sources",

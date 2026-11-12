@@ -5,7 +5,7 @@ description: Let a coding agent such as Claude Code, Codex, Cursor or VS Code as
 
 Pullwatch has a local [Model Context Protocol](https://modelcontextprotocol.io) server, so a coding agent on your Mac can ask it what it knows: "which of my pull requests have failing checks?", "what is critical in `acme/web`?", "why can't I update `express`?", "who is still on an old `@acme/ui`?". The agent uses what Pullwatch already fetched with your accounts, so it needs no token of its own.
 
-Agents only read. They see only the repositories you follow, they never get a token, and they cannot change anything on GitHub, Azure DevOps or GitLab. Nothing is shared until you turn it on.
+Agents only read. They see only the repositories you follow, they never get a token, and they cannot change anything on GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo or Gitea. Nothing is shared until you turn it on.
 
 ## Turn it on
 
@@ -233,7 +233,7 @@ The same Markdown brief that **Copy for an AI Agent** puts on the clipboard for 
 - Tokens, Keychain items and the values of secrets found by secret scanning never reach an agent; secret scanning is only a count. Accounts appear as name and host. A server address with a token in it loses that part, and co-authors appear without their e-mail address. No tool can ask for a credential, because Pullwatch does not give the tools one.
 - A repository you do not follow does not exist for an agent. Asking about one gives "Repository … is not followed in Pullwatch."
 - When you switched a source off under Settings, **Sources**, the answer says "Not checked: source … is off." for what it would have answered. It is never reported as current or free of vulnerabilities. See [Privacy and sources](/privacy/).
-- The tools only read. Actions such as marking as read may come later, behind a separate switch that is off by default, and even those will never write to GitHub, Azure DevOps or GitLab.
+- The tools only read. Actions such as marking as read may come later, behind a separate switch that is off by default, and even those will never write to GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo or Gitea.
 
 ## Privacy
 

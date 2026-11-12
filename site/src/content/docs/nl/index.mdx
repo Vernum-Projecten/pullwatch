@@ -1,13 +1,24 @@
 ---
 title: Pullwatch
-description: Een macOS-app in de menubalk voor nieuwe pull requests, tags en releases op GitHub, Azure DevOps en GitLab, met een check van je repositories op verouderde runtimes, packages en bekende kwetsbaarheden.
+description: Gratis macOS-app in de menubalk die nieuwe pull requests, tags en releases meldt op GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo en Gitea, en je repositories checkt op verouderde packages en bekende kwetsbaarheden.
 template: splash
+head:
+  - tag: title
+    content: "Pullwatch: meldingen van pull requests in de menubalk van je Mac"
+  - tag: meta
+    attrs:
+      property: og:title
+      content: "Pullwatch: meldingen van pull requests in de menubalk van je Mac"
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
 editUrl: false
 lastUpdated: false
 pagefind: false
 hero:
   title: Pullwatch
-  tagline: Nieuwe pull requests, tags en releases uit GitHub, Azure DevOps en GitLab, gewoon in je menubalk. Met elke dag een check van al je repositories op verouderde runtimes, packages en bekende kwetsbaarheden.
+  tagline: Nieuwe pull requests, tags en releases uit GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo en Gitea, gewoon in je menubalk. Met elke dag een check van al je repositories op verouderde runtimes, packages en bekende kwetsbaarheden.
   image:
     file: ../../../assets/pullwatch-icon.png
     alt: Het app-icoon van Pullwatch
@@ -36,7 +47,7 @@ import Closing from '../../../components/Closing.astro';
 	href="/nl/using/pull-requests-and-tags/"
 	more="Pull requests en tags"
 >
-	<p>Pullwatch volgt je accounts op github.com, GitHub Enterprise, Azure DevOps en GitLab, en meldt nieuwe pull requests en merge requests zodra ze binnenkomen. Elke pull request toont zijn status en zijn checks zoals GitHub dat doet: het aantal geslaagd van het totaal, een rood kruis als er een mislukt is, oranje zolang ze lopen.</p>
+	<p>Pullwatch volgt je accounts op github.com, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo en Gitea, en meldt nieuwe pull requests en merge requests zodra ze binnenkomen. Elke pull request toont zijn status en zijn checks zoals GitHub dat doet: het aantal geslaagd van het totaal, een rood kruis als er een mislukt is, oranje zolang ze lopen.</p>
 	<p>Alles komt in een geschiedenis die je doorzoekt op titel, auteur en repository, samen met nieuwe tags en releases.</p>
 </Feature>
 

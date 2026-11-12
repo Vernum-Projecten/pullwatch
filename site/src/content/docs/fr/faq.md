@@ -13,7 +13,7 @@ macOS 26.6 ou ultérieur, sur Apple silicon et sur Intel. C’est une seule app 
 
 ## Quels services prend-il en charge ?
 
-GitHub (github.com, GitHub Enterprise Server et GHE.com), Azure DevOps, GitLab (gitlab.com et votre propre serveur) et Bitbucket Cloud (bitbucket.org). Voir [Ajouter vos comptes](/fr/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server et GHE.com), Azure DevOps, GitLab (gitlab.com et votre propre serveur) Bitbucket Cloud (bitbucket.org), ainsi que Codeberg, Forgejo et Gitea (codeberg.org, gitea.com et votre propre serveur). Voir [Ajouter vos comptes](/fr/getting-started/accounts/).
 
 ## Pullwatch peut-il modifier quelque chose dans mes dépôts ?
 

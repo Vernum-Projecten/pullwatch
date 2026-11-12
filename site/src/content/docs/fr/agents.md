@@ -5,7 +5,7 @@ description: "Laissez un agent de code comme Claude Code, Codex, Cursor ou VS Co
 
 Pullwatch dispose d’un serveur [Model Context Protocol](https://modelcontextprotocol.io) local : un agent de code sur votre Mac peut lui demander ce qu’il sait. « Lesquelles de mes pull requests ont des checks en échec ? », « Qu’y a-t-il de critique dans `acme/web` ? », « Pourquoi ne puis-je pas mettre à jour `express` ? », « Qui est encore sur un ancien `@acme/ui` ? ». L’agent utilise ce que Pullwatch a déjà récupéré avec vos comptes, il n’a donc besoin d’aucun jeton.
 
-Les agents ne font que lire. Ils ne voient que les dépôts que vous suivez, ne reçoivent jamais de jeton et ne peuvent rien modifier sur GitHub, Azure DevOps ou GitLab. Rien n’est partagé tant que vous ne l’activez pas.
+Les agents ne font que lire. Ils ne voient que les dépôts que vous suivez, ne reçoivent jamais de jeton et ne peuvent rien modifier sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo ou Gitea. Rien n’est partagé tant que vous ne l’activez pas.
 
 ## L’activer
 
@@ -233,7 +233,7 @@ La même consigne en Markdown que **Copier pour un agent IA** place dans le pres
 - Les jetons, les éléments du trousseau et les valeurs des secrets trouvés par le secret scanning n’atteignent jamais un agent ; le secret scanning n’est qu’un nombre. Les comptes apparaissent avec leur nom et leur hôte. Une adresse de serveur contenant un jeton perd cette partie, et les coauteurs apparaissent sans leur adresse e-mail. Aucun outil ne peut demander d’identifiants, car Pullwatch n’en donne aucun aux outils.
 - Un dépôt que vous ne suivez pas n’existe pas pour un agent. Une question à son sujet reçoit « Repository … is not followed in Pullwatch. »
 - Si vous avez désactivé une source dans Réglages, **Sources**, la réponse indique « Not checked: source … is off. » pour ce que cette source aurait fourni. Ce n’est jamais présenté comme à jour ou sans vulnérabilité. Voir [Confidentialité et sources](/fr/privacy/).
-- Les outils ne font que lire. Des actions comme marquer comme lu viendront peut-être plus tard, derrière un interrupteur à part, désactivé par défaut, et même celles-ci n’écriront jamais sur GitHub, Azure DevOps ou GitLab.
+- Les outils ne font que lire. Des actions comme marquer comme lu viendront peut-être plus tard, derrière un interrupteur à part, désactivé par défaut, et même celles-ci n’écriront jamais sur GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo ou Gitea.
 
 ## Confidentialité
 

@@ -1,1 +1,0 @@
-- Repositories that an account's token can't read are no longer skipped silently. Settings, Accounts shows how many there are on the account and lists them, with what to do (for a gh account: pick the login that can read them); the repository page and the Latest tag column in Repos mark them, and agents see them in get_status and list_repositories.
