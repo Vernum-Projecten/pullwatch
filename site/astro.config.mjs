@@ -30,7 +30,7 @@ export default defineConfig({
 		starlight({
 			title: 'Pullwatch',
 			description:
-				'A macOS menu bar app that tells you about new pull requests, tags and releases on GitHub, Azure DevOps and GitLab, and checks your repositories for outdated runtimes, packages and known vulnerabilities.',
+				'A macOS menu bar app that tells you about new pull requests, tags and releases on GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea, and checks your repositories for outdated runtimes, packages and known vulnerabilities.',
 			logo: { src: './src/assets/pullwatch-logo.png', alt: '' },
 			favicon: '/favicon.png',
 			head: [
@@ -54,6 +54,9 @@ export default defineConfig({
 			editLink: { baseUrl: `${repository}/edit/main/site/` },
 			customCss: ['./src/styles/custom.css'],
 			credits: false,
+			// Structured data (JSON-LD) for search engines and AI assistants: the app on the
+			// landing page, the questions on the FAQ.
+			routeMiddleware: './src/structuredData.ts',
 			sidebar: [
 				{
 					label: 'Getting started',
