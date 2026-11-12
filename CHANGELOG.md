@@ -9,6 +9,13 @@ release wait as fragments in `changelog.d/` until the cut writes them here.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-12
+
+### Added
+
+- A Branches section in the main window, after Tags, shows pushes to branches of the repositories you follow: who pushed, how many commits, a force push or a new branch, and when. Search, filter by repository or person, or hide your own pushes; double-click opens the comparison in the browser. It sends no notifications. Branches follow along with pull requests and can be switched off per repository (#9).
+- Repositories that an account's token can't read are no longer skipped silently. Settings, Accounts shows how many there are on the account and lists them, with what to do (for a gh account: pick the login that can read them); the repository page and the Latest tag column in Repos mark them, and agents see them in get_status and list_repositories (#10).
+
 ## [0.9.1] - 2026-11-08
 
 ### Thank you again, Ruben
@@ -479,7 +486,8 @@ before this changelog existed. The fork starts from this version.
 - The repository overview is calculated once instead of on every screen
   update.
 
-[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/alessandro823/pullwatch/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/alessandro823/pullwatch/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/alessandro823/pullwatch/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/alessandro823/pullwatch/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/alessandro823/pullwatch/compare/v0.7.0...v0.8.0
