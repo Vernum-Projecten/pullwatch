@@ -22,6 +22,7 @@ struct AccountEditor: View {
     let accounts: AccountsModel
     @Environment(AppModel.self) private var app
     @Environment(AppRouter.self) private var router
+    @Environment(PollingModel.self) private var polling
 
     @State private var draft: Account
     @State private var pat = ""
@@ -383,6 +384,14 @@ struct AccountEditor: View {
                 if draft.kind == .bitbucket {
                     Text("Bitbucket kent geen releases: bij Tags en releases staan voor dit account alleen tags.")
                 }
+            }
+
+            // Gevolgde repo's die het bewaarde token niet kan lezen, uit de laatste poll.
+            if !isNew, let unreachable = polling.unreachableRepos[draft.id], !unreachable.isEmpty {
+                UnreachableReposSection(
+                    repos: unreachable.repos,
+                    followsActiveGhAccount: draft.kind == .gitHub && draft.authMethod == .cli && draft.cliUser == nil
+                )
             }
 
             if draft.authMethod == .gitHubApp, let signIn, signIn.isSignedIn {

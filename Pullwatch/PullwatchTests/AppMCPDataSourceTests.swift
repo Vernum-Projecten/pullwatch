@@ -57,6 +57,7 @@ import Testing
                 return cache.stats(history: models.history, period: period, filter: filter, now: Self.now)
             },
             accountStates: { models.states },
+            unreachableRepos: { [:] },
             lastSuccessfulPoll: { Self.now },
             syncStatus: { .idle }
         ))

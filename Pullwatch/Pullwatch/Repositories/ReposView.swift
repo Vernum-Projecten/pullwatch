@@ -106,6 +106,8 @@ struct ReposView: View {
     }
 
     var body: some View {
+        // Hier gelezen en als waarde naar de cellen: een cel leest geen model uit de environment.
+        let unreachable = polling.unreachableRepos
         Table(rows, selection: $selection, sortOrder: $sortOrder) {
             TableColumn("Status", value: \.healthRank) { summary in
                 HealthIcon(health: summary.health)
@@ -128,9 +130,10 @@ struct ReposView: View {
             }
             .width(min: 60, ideal: 70)
             TableColumn("Laatste tag", value: \.latestTagSortKey) { summary in
-                if let tag = summary.latestTag {
-                    Text(verbatim: tag).monospacedDigit().lineLimit(1)
-                }
+                LatestTagCell(
+                    tag: summary.latestTag,
+                    isUnreachable: unreachable[summary.accountId]?.contains(summary.repo) == true
+                )
             }
             .width(min: 70, ideal: 100)
         }

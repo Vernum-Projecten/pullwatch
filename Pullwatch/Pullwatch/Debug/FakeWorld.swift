@@ -72,6 +72,23 @@ nonisolated enum FakeWorld {
         var release: Release?
     }
 
+    /// Met `-PullwatchFakeUnreachable octocat/spoon-knife,…` geven deze repo's `null` op de vraag
+    /// naar tags en branches, zoals bij een token zonder toegang, zodat Instellingen, de repopagina
+    /// en Repo's te fotograferen zijn met een onbereikbare repo.
+    static let unreachable: Set<String> = Set(
+        (UserDefaults.standard.string(forKey: "PullwatchFakeUnreachable") ?? "")
+            .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+    )
+
+    /// Het antwoord op de GraphQL-vraag naar `owner/name`: de lijst van een repo van octocat, een
+    /// lege lijst bij de organisatie `github` (die bestaat, zonder tags of branches), anders
+    /// `nil`: die repo bestaat niet of het token mag er niet bij.
+    static func graphQLList<Item>(_ lists: [String: [Item]], owner: String, name: String) -> [Item]? {
+        guard !unreachable.contains("\(owner)/\(name)".lowercased()) else { return nil }
+        if owner == FakeGitHub.login { return lists[name] }
+        return owner == "github" ? [] : nil
+    }
+
     static let tags: [String: [FakeTag]] = [
         "hello-world": [
             FakeTag(name: "v1.3.0-beta.1", daysAgo: 0.3, tagger: "hubot",
@@ -436,8 +453,8 @@ nonisolated enum FakeWorld {
     }
 
     /// De GraphQL-vraag naar tags en releases (`GitHubProvider.tags`): per alias (`r0`, `r1`, …)
-    /// de tags van die repo met hun tagger of commit-auteur, en de releases. Alleen repo's van
-    /// octocat bestaan; de rest is `null`, zoals bij GitHub.
+    /// de tags van die repo met hun tagger of commit-auteur, en de releases. Welke repo's bestaan
+    /// zegt `graphQLList`; de rest is `null`, zoals bij GitHub.
     static func tagsAndReleases(body: Data?) -> String {
         struct Query: Decodable { let variables: [String: String] }
         let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
@@ -448,7 +465,7 @@ nonisolated enum FakeWorld {
         var fields: [String] = []
         for index in 0... {
             guard let owner = variables["o\(index)"], let name = variables["n\(index)"] else { break }
-            guard owner == FakeGitHub.login, let list = tags[name] else {
+            guard let list = graphQLList(tags, owner: owner, name: name) else {
                 fields.append(#""r\#(index)":null"#)
                 continue
             }
@@ -475,15 +492,15 @@ nonisolated enum FakeWorld {
 
     /// De GraphQL-vraag naar branches (`GitHubProvider.branches`): per alias (`r0`, `r1`, …) de
     /// branches van die repo uit `branches`, met hun laatste commit en auteur. Eén pagina, ook
-    /// voor de kleine vraag naar de vingerafdruk (die leest alleen naam en sha). Alleen repo's
-    /// van octocat bestaan; de rest is `null`, zoals bij GitHub.
+    /// voor de kleine vraag naar de vingerafdruk (die leest alleen naam en sha). Welke repo's
+    /// bestaan zegt `graphQLList`; de rest is `null`, zoals bij GitHub.
     static func branchesAndHeads(body: Data?) -> String {
         struct Query: Decodable { let variables: [String: String] }
         let variables = body.flatMap { try? JSONDecoder().decode(Query.self, from: $0) }?.variables ?? [:]
         var fields: [String] = []
         for index in 0... {
             guard let owner = variables["o\(index)"], let name = variables["n\(index)"] else { break }
-            guard owner == FakeGitHub.login, let list = branches[name] else {
+            guard let list = graphQLList(branches, owner: owner, name: name) else {
                 fields.append(#""r\#(index)":null"#)
                 continue
             }
