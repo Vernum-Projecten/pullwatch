@@ -13,7 +13,7 @@ macOS 26.6 of nieuwer, op Apple silicon en op Intel. Het is één universele app
 
 ## Welke diensten ondersteunt het?
 
-GitHub (github.com, GitHub Enterprise Server en GHE.com), Azure DevOps, GitLab (gitlab.com en je eigen server), en Bitbucket Cloud (bitbucket.org). Zie [Je accounts toevoegen](/nl/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server en GHE.com), Azure DevOps, GitLab (gitlab.com en je eigen server), Bitbucket Cloud (bitbucket.org), en Codeberg, Forgejo en Gitea (codeberg.org, gitea.com en je eigen server). Zie [Je accounts toevoegen](/nl/getting-started/accounts/).
 
 ## Kan Pullwatch iets veranderen in mijn repositories?
 

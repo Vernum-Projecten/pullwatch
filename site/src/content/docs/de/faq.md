@@ -13,7 +13,7 @@ macOS 26.6 oder neuer, auf Apple Silicon und auf Intel. Es ist eine einzige univ
 
 ## Welche Dienste werden unterstützt?
 
-GitHub (github.com, GitHub Enterprise Server und GHE.com), Azure DevOps, GitLab (gitlab.com und dein eigener Server) und Bitbucket Cloud (bitbucket.org). Siehe [Konten hinzufügen](/de/getting-started/accounts/).
+GitHub (github.com, GitHub Enterprise Server und GHE.com), Azure DevOps, GitLab (gitlab.com und dein eigener Server) Bitbucket Cloud (bitbucket.org) sowie Codeberg, Forgejo und Gitea (codeberg.org, gitea.com und dein eigener Server). Siehe [Konten hinzufügen](/de/getting-started/accounts/).
 
 ## Kann Pullwatch etwas in meinen Repositories ändern?
 

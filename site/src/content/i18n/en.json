@@ -4,7 +4,7 @@
 	"pw.privacy.keychain.title": "Tokens stay in your Keychain",
 	"pw.privacy.keychain.text": "Personal access tokens and the GitHub sign-in live in the macOS Keychain. Settings and history are plain files in your Library folder.",
 	"pw.privacy.server.title": "No server in between",
-	"pw.privacy.server.text": "Pullwatch talks straight to your GitHub, Azure DevOps and GitLab servers. It has no account, no server of its own and no analytics.",
+	"pw.privacy.server.text": "Pullwatch talks straight to the servers of your accounts on GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo and Gitea. It has no account, no server of its own and no analytics.",
 	"pw.privacy.sources.title": "Every connection listed",
 	"pw.privacy.sources.text": "Settings, Sources shows each outside service with the address it calls. Switch off any data source and Pullwatch says what it could not check.",
 	"pw.privacy.more": "Read about privacy and sources",

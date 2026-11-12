@@ -5,7 +5,7 @@ description: Lass einen Coding-Agenten wie Claude Code, Codex, Cursor oder VS Co
 
 Pullwatch hat einen lokalen [Model Context Protocol](https://modelcontextprotocol.io)-Server. Ein Coding-Agent auf deinem Mac kann Pullwatch also fragen, was es weiß: „Welche meiner Pull Requests haben fehlgeschlagene Checks?“, „Was ist in `acme/web` kritisch?“, „Warum kann ich `express` nicht aktualisieren?“, „Wer ist noch auf einem alten `@acme/ui`?“. Der Agent nutzt, was Pullwatch mit deinen Konten bereits abgerufen hat, und braucht deshalb kein eigenes Token.
 
-Agenten lesen nur. Sie sehen nur die Repositories, denen du folgst, bekommen nie ein Token und können auf GitHub, Azure DevOps oder GitLab nichts ändern. Nichts wird geteilt, bevor du es einschaltest.
+Agenten lesen nur. Sie sehen nur die Repositories, denen du folgst, bekommen nie ein Token und können auf GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo oder Gitea nichts ändern. Nichts wird geteilt, bevor du es einschaltest.
 
 ## Einschalten
 
@@ -233,7 +233,7 @@ Derselbe Auftrag in Markdown, den **Für einen KI-Agenten kopieren** für einen 
 - Tokens, Einträge im Schlüsselbund und die Werte von Secrets, die Secret-Scanning gefunden hat, erreichen nie einen Agenten; Secret-Scanning ist nur eine Zahl. Konten erscheinen als Name und Host. Eine Serveradresse mit einem Token darin verliert diesen Teil, und Co-Autoren erscheinen ohne ihre E-Mail-Adresse. Kein Tool kann nach Zugangsdaten fragen, denn Pullwatch gibt den Tools keine.
 - Ein Repository, dem du nicht folgst, gibt es für einen Agenten nicht. Eine Frage danach bekommt „Repository … is not followed in Pullwatch.“
 - Hast du unter Einstellungen, **Quellen** eine Quelle ausgeschaltet, sagt die Antwort „Not checked: source … is off.“ für das, was diese Quelle beantwortet hätte. Es wird nie als aktuell oder frei von Schwachstellen gemeldet. Siehe [Datenschutz und Quellen](/de/privacy/).
-- Die Tools lesen nur. Aktionen wie „als gelesen markieren“ kommen vielleicht später, hinter einem eigenen Schalter, der standardmäßig aus ist, und auch sie schreiben nie zu GitHub, Azure DevOps oder GitLab.
+- Die Tools lesen nur. Aktionen wie „als gelesen markieren“ kommen vielleicht später, hinter einem eigenen Schalter, der standardmäßig aus ist, und auch sie schreiben nie zu GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo oder Gitea.
 
 ## Datenschutz
 

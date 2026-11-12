@@ -1,13 +1,24 @@
 ---
 title: Pullwatch
-description: Eine macOS-App für die Menüleiste, die neue Pull Requests, Tags und Releases auf GitHub, Azure DevOps und GitLab meldet und deine Repositories auf veraltete Runtimes, Pakete und bekannte Schwachstellen prüft.
+description: Kostenlose macOS-App für die Menüleiste, die neue Pull Requests, Tags und Releases auf GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo und Gitea meldet und deine Repositories auf veraltete Pakete und bekannte Schwachstellen prüft.
 template: splash
+head:
+  - tag: title
+    content: "Pullwatch: Pull Requests als Mitteilung in der Menüleiste deines Mac"
+  - tag: meta
+    attrs:
+      property: og:title
+      content: "Pullwatch: Pull Requests als Mitteilung in der Menüleiste deines Mac"
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
 editUrl: false
 lastUpdated: false
 pagefind: false
 hero:
   title: Pullwatch
-  tagline: Neue Pull Requests, Tags und Releases von GitHub, Azure DevOps und GitLab, direkt in deiner Menüleiste. Dazu eine tägliche Prüfung jedes Repositorys auf veraltete Runtimes, Pakete und bekannte Schwachstellen.
+  tagline: Neue Pull Requests, Tags und Releases von GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo und Gitea, direkt in deiner Menüleiste. Dazu eine tägliche Prüfung jedes Repositorys auf veraltete Runtimes, Pakete und bekannte Schwachstellen.
   image:
     file: ../../../assets/pullwatch-icon.png
     alt: Das App-Symbol von Pullwatch
@@ -36,7 +47,7 @@ import Closing from '../../../components/Closing.astro';
 	href="/de/using/pull-requests-and-tags/"
 	more="Pull Requests und Tags"
 >
-	<p>Pullwatch folgt deinen Konten auf github.com, GitHub Enterprise, Azure DevOps und GitLab und meldet neue Pull Requests und Merge Requests, sobald sie eintreffen. Jeder zeigt seinen Status und seine Checks so, wie GitHub es tut: bestanden von allen, ein rotes Kreuz, wenn einer fehlgeschlagen ist, und Gelb, solange sie laufen.</p>
+	<p>Pullwatch folgt deinen Konten auf github.com, GitHub Enterprise, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo und Gitea und meldet neue Pull Requests und Merge Requests, sobald sie eintreffen. Jeder zeigt seinen Status und seine Checks so, wie GitHub es tut: bestanden von allen, ein rotes Kreuz, wenn einer fehlgeschlagen ist, und Gelb, solange sie laufen.</p>
 	<p>Alles landet in einem Verlauf, den du nach Titel, Autor und Repository durchsuchen kannst, zusammen mit neuen Tags und Releases.</p>
 </Feature>
 

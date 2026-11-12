@@ -6,7 +6,7 @@
 	"pw.privacy.keychain.title": "Tokens blijven in je sleutelhanger",
 	"pw.privacy.keychain.text": "Personal access tokens en de aanmelding bij GitHub staan in de sleutelhanger van macOS. Instellingen en geschiedenis zijn gewone bestanden in je map Library.",
 	"pw.privacy.server.title": "Geen server ertussen",
-	"pw.privacy.server.text": "Pullwatch praat rechtstreeks met je servers van GitHub, Azure DevOps en GitLab. Het heeft geen account, geen eigen server en geen analytics.",
+	"pw.privacy.server.text": "Pullwatch praat rechtstreeks met de servers van je accounts op GitHub, Azure DevOps, GitLab, Bitbucket, Codeberg, Forgejo en Gitea. Het heeft geen account, geen eigen server en geen analytics.",
 	"pw.privacy.sources.title": "Elke verbinding op een rij",
 	"pw.privacy.sources.text": "Instellingen, Bronnen toont elke externe dienst met het adres dat Pullwatch aanroept. Zet een gegevensbron uit en Pullwatch zegt wat het niet kon controleren.",
 	"pw.privacy.more": "Lees over privacy en bronnen",
