@@ -117,6 +117,7 @@ final class MainActorSource: MCPDataSource {
     func updateContext(for repo: RepoVersions) async -> UpdateContext { await fake.updateContext(for: repo) }
     func activityStats(period: StatsPeriod, filter: ActivityFilter) async -> ActivityStats { await fake.activityStats(period: period, filter: filter) }
     func accountStates() async -> [UUID: AccountState] { await fake.accountStates() }
+    func unreachableRepos() async -> [UUID: UnreachableRepos] { await fake.unreachableRepos() }
     func lastSuccessfulPoll() async -> Date? { await fake.lastSuccessfulPoll() }
     func syncStatus() async -> SyncStatus { await fake.syncStatus() }
 }

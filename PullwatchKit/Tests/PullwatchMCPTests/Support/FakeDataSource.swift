@@ -26,6 +26,7 @@ struct FakeDataSource: MCPDataSource {
         gitLabId: .failed(.unauthorized, since: checkedAt),
     ]
     var lastPoll: Date? = now
+    var unreachable: [UUID: UnreachableRepos] = [:]
     var sync: SyncStatus = .idle
 
     init() {
@@ -60,6 +61,7 @@ struct FakeDataSource: MCPDataSource {
     }
 
     func accountStates() async -> [UUID: AccountState] { states }
+    func unreachableRepos() async -> [UUID: UnreachableRepos] { unreachable }
     func lastSuccessfulPoll() async -> Date? { lastPoll }
     func syncStatus() async -> SyncStatus { sync }
 

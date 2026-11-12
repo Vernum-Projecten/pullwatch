@@ -127,6 +127,9 @@ public actor PollEngine {
     var identities: [UUID: UserIdentity?] = [:]
     /// Accounts waarvan de branches nu opgehaald worden; een overlappende `pollBranches` slaat ze over.
     var branchesInFlight: Set<UUID> = []
+    /// Per account de gevolgde repo's die het token niet kan lezen (`unreachableRepos()`). Niet
+    /// bewaard: de eerste tag- en branch-poll na een start vult het weer.
+    var unreachable: [UUID: UnreachableRepos] = [:]
     private var schedules: [UUID: Schedule] = [:]
     private var statuses: [UUID: AccountState] = [:]
     private var inFlight: Set<UUID> = []
@@ -185,6 +188,12 @@ public actor PollEngine {
     /// login.
     public func currentUserIds() -> [UUID: String] {
         userIds
+    }
+
+    /// Per account de gevolgde repo's die het token niet kan lezen, uit de laatste tag- en
+    /// branch-poll die lukte; een account zonder onbereikbare repo's staat er niet in.
+    public func unreachableRepos() -> [UUID: UnreachableRepos] {
+        unreachable.filter { !$0.value.isEmpty }
     }
 
     /// Tijdstip van de laatste geslaagde sync per account (alleen accounts met een sync).
@@ -380,6 +389,7 @@ public actor PollEngine {
         userIds = userIds.filter { ids.contains($0.key) }
         listedRepos = listedRepos.filter { ids.contains($0.key) }
         identities = identities.filter { ids.contains($0.key) }
+        unreachable = unreachable.filter { ids.contains($0.key) }
         schedules = schedules.filter { ids.contains($0.key) }
         statuses = statuses.filter { ids.contains($0.key) }
         let keys = Set(ids.map(\.uuidString))
@@ -601,6 +611,8 @@ public actor PollEngine {
         notBefore: Date?,
         at t: Date
     ) -> (fresh: [Tag], updated: [Tag], backfill: [Tag]) {
+        // Volgt het account nergens meer tags: dan is ook geen repo meer onbereikbaar voor tags.
+        if !account.followsTagsByDefault, account.tagRepos.isEmpty { unreachable[account.id]?.tags = [] }
         // Mislukte tag-fetch: tag-state ongemoeid laten tot de volgende tag-poll.
         guard fetched.tagError == nil else { return ([], [], []) }
         let prefix = "\(account.id.uuidString):"
@@ -612,6 +624,8 @@ public actor PollEngine {
         guard let tags = fetched.tags else { return ([], [], []) }
         let tagsByRepo = Dictionary(grouping: tags) { $0.repo.lowercased() }
         let datedByRepo = Dictionary(grouping: fetched.backfillTags) { $0.repo.lowercased() }
+        unreachable[account.id, default: UnreachableRepos()].tags =
+            UnreachableRepos.names(of: fetched.tagRepos, in: fetched.unavailableTagRepos)
         if !fetched.unavailableTagRepos.isEmpty {
             logger.warning("tags overgeslagen voor \(account.displayName): \(fetched.unavailableTagRepos.sorted().joined(separator: ", ")) (niet gevonden of geen toegang)")
         }
